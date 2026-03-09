@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pandoc corporate-climb-gdd.docx -o /tmp/corporate-climb-gdd.md)",
+      "Bash(brew list pandoc)",
+      "mcp__Desktop_Commander__read_file",
+      "Bash(python3 -c \":*)",
+      "Bash(npm init -y)",
+      "Bash(npm install phaser react react-dom zustand)",
+      "Bash(npm install -D vite @vitejs/plugin-react typescript @types/react @types/react-dom)",
+      "Bash(npx tsc --noEmit)",
+      "mcp__Claude_Preview__preview_start",
+      "mcp__Desktop_Commander__list_directory",
+      "mcp__Desktop_Commander__read_multiple_files",
+      "Bash(git init)",
+      "Bash(git add -A)",
+      "Bash(git rm -r --cached .)",
+      "Bash(git rm -r --cached node_modules)"
+    ]
+  }
+}
