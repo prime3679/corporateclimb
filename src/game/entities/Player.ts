@@ -1,10 +1,11 @@
 import Phaser from "phaser";
 import { useGameState } from "../../ui/stores/gameState";
+import { useCharacterStore } from "../../ui/stores/characterStore";
 
 // ─── Movement constants ───
 const WIDTH = 60;
 const HEIGHT = 80;
-const COLOR = 0x4f46e5;
+const DEFAULT_COLOR = 0x4f46e5;
 
 const MAX_SPEED = 300;
 const ACCEL = 1200;
@@ -79,8 +80,10 @@ export class Player extends Phaser.GameObjects.Zone {
     this.body.setGravityY(GRAVITY);
     this.body.setCollideWorldBounds(false);
 
-    // Visual rectangle (follows the zone, can scale freely)
-    this.visual = scene.add.rectangle(this.x, this.y, WIDTH, HEIGHT, COLOR);
+    // Visual rectangle — use accent color from character store
+    const accentHex = useCharacterStore.getState().accentColor;
+    const playerColor = parseInt(accentHex.replace("#", ""), 16) || DEFAULT_COLOR;
+    this.visual = scene.add.rectangle(this.x, this.y, WIDTH, HEIGHT, playerColor);
     this.visual.setDepth(10);
 
     this.lastSafeX = this.x;

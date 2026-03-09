@@ -1,67 +1,63 @@
 import Phaser from "phaser";
 import { BG_COLOR } from "../config/gameConfig";
+import { useCharacterStore } from "../../ui/stores/characterStore";
 
-const DEV_SKIP_BOOT = true;
-
+/**
+ * Boot scene now waits for character creation before starting the game.
+ * It shows a title screen while the React CharacterCreator overlay is visible.
+ * Once the player finalizes their character, we transition to GameScene.
+ */
 export class BootScene extends Phaser.Scene {
-  private started = false;
+  private unsubscribe?: () => void;
 
   constructor() {
     super({ key: "Boot" });
   }
 
   create() {
-    if (DEV_SKIP_BOOT) {
-      // Use game-level scene manager and stop Boot to avoid both scenes running
-      const game = this.game;
-      setTimeout(() => {
-        game.scene.stop("Boot");
-        game.scene.start("Game");
-      }, 50);
-      return;
-    }
-
     this.cameras.main.setBackgroundColor(BG_COLOR);
 
     const { width, height } = this.scale;
 
     this.add
-      .text(width / 2, height / 2, "Corporate Climb", {
+      .text(width / 2, height / 2 - 40, "Corporate Climb", {
         fontFamily: "Arial, sans-serif",
         fontSize: "64px",
         color: "#ffffff",
       })
       .setOrigin(0.5);
 
-    const subtitle = this.add
-      .text(width / 2, height / 2 + 60, "Press any key to start", {
+    this.add
+      .text(width / 2, height / 2 + 30, "Create your character to begin", {
         fontFamily: "Arial, sans-serif",
-        fontSize: "20px",
+        fontSize: "18px",
         color: "#94a3b8",
       })
-      .setOrigin(0.5)
-      .setAlpha(0);
+      .setOrigin(0.5);
 
-    this.tweens.add({
-      targets: subtitle,
-      alpha: 1,
-      duration: 800,
-      delay: 500,
-      yoyo: true,
-      repeat: -1,
-      hold: 1200,
+    // If character already created (shouldn't happen, but handle it)
+    if (useCharacterStore.getState().isCreated) {
+      this.startGame();
+      return;
+    }
+
+    // Listen for character finalization from the React CharacterCreator
+    this.unsubscribe = useCharacterStore.subscribe((state) => {
+      if (state.isCreated) {
+        this.startGame();
+      }
     });
-
-    this.input.keyboard!.on("keydown", () => this.startGame());
-    this.input.on("pointerdown", () => this.startGame());
   }
 
   private startGame() {
-    if (this.started) return;
-    this.started = true;
+    this.unsubscribe?.();
     this.cameras.main.fadeOut(300, 0, 0, 0);
     this.cameras.main.once("camerafadeoutcomplete", () => {
       this.scene.start("Game");
     });
+  }
+
+  shutdown() {
+    this.unsubscribe?.();
   }
 }

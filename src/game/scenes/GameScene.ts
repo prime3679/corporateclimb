@@ -7,6 +7,7 @@ import { LevelConfig, PlatformConfig } from "../config/levelTypes";
 import { testLevel } from "../config/levels/testLevel";
 import { testDialogue } from "../config/dialogues/testDialogue";
 import { useDialogueState } from "../../ui/stores/dialogueState";
+import { useGameState } from "../../ui/stores/gameState";
 
 const PLATFORM_COLOR = 0x334155;
 const ONEWAY_COLOR = 0x475569;
@@ -69,6 +70,10 @@ export class GameScene extends Phaser.Scene {
 
     // Dialogue triggers
     this.createDialogueTriggers(level);
+
+    // Signal React that the game is running (shows HUD)
+    useGameState.getState().setRunning(true);
+    useGameState.getState().setCurrentScene("Game");
 
     // Listen for dialogue state changes to pause/resume
     useDialogueState.subscribe((state) => {

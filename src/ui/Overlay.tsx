@@ -15,10 +15,13 @@ export function Overlay() {
         pointerEvents: "none",
       }}
     >
+      {/* Character creator shown before game starts */}
+      <CharacterCreator />
+
+      {/* In-game overlays */}
       <HUD />
       <DialogueBox />
       <Menu />
-      <CharacterCreator />
     </div>
   );
 }
