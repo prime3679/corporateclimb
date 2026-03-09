@@ -2,6 +2,7 @@ import { HUD } from "./components/HUD";
 import { DialogueBox } from "./components/DialogueBox";
 import { Menu } from "./components/Menu";
 import { CharacterCreator } from "./components/CharacterCreator";
+import { LevelComplete } from "./components/LevelComplete";
 
 export function Overlay() {
   return (
@@ -22,6 +23,9 @@ export function Overlay() {
       <HUD />
       <DialogueBox />
       <Menu />
+
+      {/* Level complete screen */}
+      <LevelComplete />
     </div>
   );
 }

@@ -68,6 +68,9 @@ export class Player extends Phaser.GameObjects.Zone {
   // Input lock (disabled during dialogue)
   private inputEnabled = true;
 
+  // Speed multiplier (for power-ups)
+  private speedMultiplier = 1.0;
+
   constructor(scene: Phaser.Scene, x: number, y: number) {
     // Zone centered at (x, y - HEIGHT/2) so bottom of zone aligns with spawn y
     super(scene, x, y - HEIGHT / 2, WIDTH, HEIGHT);
@@ -117,6 +120,10 @@ export class Player extends Phaser.GameObjects.Zone {
 
   setInputEnabled(enabled: boolean) {
     this.inputEnabled = enabled;
+  }
+
+  setSpeedMultiplier(mult: number) {
+    this.speedMultiplier = mult;
   }
 
   update(dt: number) {
@@ -224,10 +231,11 @@ export class Player extends Phaser.GameObjects.Zone {
   private handleMovement(input: ReturnType<typeof this.readInput>, dtSec: number) {
     const vx = this.body.velocity.x;
     const decel = this.onGround ? DECEL_GROUND : DECEL_AIR;
+    const maxSpeed = MAX_SPEED * this.speedMultiplier;
 
     if (input.moveX !== 0) {
       this.facingRight = input.moveX > 0;
-      const newVx = Phaser.Math.Clamp(vx + input.moveX * ACCEL * dtSec, -MAX_SPEED, MAX_SPEED);
+      const newVx = Phaser.Math.Clamp(vx + input.moveX * ACCEL * dtSec, -maxSpeed, maxSpeed);
       this.body.setVelocityX(newVx);
     } else {
       if (Math.abs(vx) < decel * dtSec) {
