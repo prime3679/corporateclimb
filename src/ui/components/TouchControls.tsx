@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { inputManager } from '../../game/systems/InputManager'
+import { useDialogueState } from '../stores/dialogueState'
 
 /**
  * Mobile game controls — D-pad (left/right) + action buttons.
@@ -14,6 +15,7 @@ function isTouchDevice(): boolean {
 export function TouchControls() {
   const [visible, setVisible] = useState(false)
   const [activeButtons, setActiveButtons] = useState<Set<string>>(new Set())
+  const { isOpen: dialogueOpen } = useDialogueState()
 
   useEffect(() => {
     // Show on touch devices OR narrow screens (likely mobile)
@@ -41,7 +43,7 @@ export function TouchControls() {
     else if (id === 'interact') inputManager.setTouchButton('interact', false)
   }, [])
 
-  if (!visible) return null
+  if (!visible || dialogueOpen) return null
 
   const isActive = (id: string) => activeButtons.has(id)
 
