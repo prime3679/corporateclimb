@@ -588,9 +588,9 @@ export class GameScene extends Phaser.Scene {
   // ── Platforms & Backgrounds ──
 
   private buildBackgrounds(cfg: LevelConfig) {
-    // Sky gradient (drawn once, fixed)
+    // Pokémon-style bright blue sky gradient
     const skyG = this.add.graphics()
-    const skyColors = [0x87CEEB, 0xA8D8EA, 0xD4E9F7, 0xF0E6D3]
+    const skyColors = [0x58A8D8, 0x6DB8E0, 0x88CCE8, 0xA8DCF0]
     const bandH = Math.ceil(this.cameras.main.height / skyColors.length)
     for (let i = 0; i < skyColors.length; i++) {
       skyG.fillStyle(skyColors[i], 1)
@@ -599,40 +599,62 @@ export class GameScene extends Phaser.Scene {
     skyG.setScrollFactor(0)
     skyG.setDepth(-20)
 
+    const hasTree = this.textures.exists('bg_tree')
+    const hasBuilding = this.textures.exists('bg_building')
+    const hasBush = this.textures.exists('bg_bush')
+
     for (const layer of cfg.backgrounds) {
       for (const bgRect of layer.rects) {
-        if (bgRect.height <= 80 && this.textures.exists('bg_bush')) {
-          // Short rects → bushes
+        if (bgRect.height <= 80 && hasBush) {
+          // Short → bushes
           const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_bush')
           tile.setScrollFactor(layer.scrollFactor)
           tile.setDepth(-5)
-        } else if (bgRect.height > 200 && layer.scrollFactor <= 0.15 && this.textures.exists('bg_building')) {
-          // Only far-away tall rects get the detailed building texture
-          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_building')
-          tile.setScrollFactor(layer.scrollFactor)
-          tile.setDepth(-12)
-          tile.setAlpha(0.5)
-        } else {
-          // Everything else → clean colored silhouettes
+        } else if (bgRect.height > 200 && layer.scrollFactor <= 0.15) {
+          // Far tall → faded city silhouettes with optional buildings
+          if (hasBuilding) {
+            // Show building texture only for the bottom portion (like a skyline)
+            const skylineH = Math.min(bgRect.height, 180)
+            const tile = this.add.tileSprite(
+              bgRect.x, bgRect.y + (bgRect.height - skylineH) / 2,
+              bgRect.width, skylineH, 'bg_building',
+            )
+            tile.setScrollFactor(layer.scrollFactor)
+            tile.setDepth(-12)
+            tile.setAlpha(0.3)
+          }
+        } else if (bgRect.height > 100 && layer.scrollFactor > 0.15 && hasTree) {
+          // Mid-ground tall → trees (Pokémon-style)
+          const treeCount = Math.max(1, Math.floor(bgRect.width / 80))
+          for (let t = 0; t < treeCount; t++) {
+            const tx = bgRect.x - bgRect.width / 2 + (t + 0.5) * (bgRect.width / treeCount)
+            const tree = this.add.sprite(tx, bgRect.y + bgRect.height / 2 - 30, 'bg_tree')
+            tree.setScrollFactor(layer.scrollFactor)
+            tree.setDepth(-8)
+            tree.setScale(1.2 + Math.random() * 0.6)
+            tree.setAlpha(0.8)
+          }
+        } else if (bgRect.height > 80) {
+          // Remaining mid-size → tinted silhouettes
           const color = bgRect.color ?? layer.color
           const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
           bg.setScrollFactor(layer.scrollFactor)
-          bg.setDepth(layer.scrollFactor < 0.2 ? -12 : -8)
-          bg.setAlpha(layer.scrollFactor < 0.2 ? 0.35 : 0.45)
+          bg.setDepth(-10)
+          bg.setAlpha(0.3)
         }
       }
     }
 
-    // Add clouds
+    // Clouds
     if (cfg.backgrounds.length > 0 && this.textures.exists('bg_cloud')) {
-      for (let i = 0; i < 6; i++) {
-        const cx = 100 + i * (cfg.width / 6)
-        const cy = 20 + Math.random() * 80
+      for (let i = 0; i < 8; i++) {
+        const cx = 50 + i * (cfg.width / 8)
+        const cy = 15 + Math.random() * 60
         const cloud = this.add.sprite(cx, cy, 'bg_cloud')
-        cloud.setScrollFactor(0.05 + Math.random() * 0.1)
-        cloud.setDepth(-15)
-        cloud.setAlpha(0.5 + Math.random() * 0.3)
-        cloud.setScale(1 + Math.random() * 0.5)
+        cloud.setScrollFactor(0.03 + Math.random() * 0.08)
+        cloud.setDepth(-18)
+        cloud.setAlpha(0.7 + Math.random() * 0.25)
+        cloud.setScale(1.5 + Math.random() * 1.5)
       }
     }
   }

@@ -7,7 +7,7 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#0F172A')
+    this.cameras.main.setBackgroundColor('#78C8E8')
 
     // Generate all pixel-art textures at boot time
     generateAllTextures(this)

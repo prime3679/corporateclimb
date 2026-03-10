@@ -146,14 +146,14 @@ const PLAYER_JUMP = [
 
 // ── Platform palettes ──
 const GRASS_PAL = [
-  0x2D5A1E,  // 0: dark grass
-  0x4A8C38,  // 1: grass mid
-  0x6CBF50,  // 2: grass light
-  0x8FD86E,  // 3: highlight
-  0x7A5A3D,  // 4: dirt
-  0x5C3F28,  // 5: dirt dark
-  0x9E7E5A,  // 6: dirt light
-  0x4E3520,  // 7: dirt shadow
+  0x308030,  // 0: dark grass
+  0x48A848,  // 1: grass mid
+  0x68D068,  // 2: grass light
+  0x90E890,  // 3: highlight
+  0x8B6840,  // 4: dirt
+  0x6B4E2A,  // 5: dirt dark
+  0xAA8860,  // 6: dirt light
+  0x5A3E1E,  // 7: dirt shadow
 ]
 
 // 16x16 grass platform tile
@@ -397,6 +397,41 @@ export function generateAllTextures(scene: Phaser.Scene) {
     [0,4,0,0,4,0,4,0,0,4,0,0],
   ]
   renderSprite(scene, 'bg_bush', BUSH, BUSH_PAL)
+
+  // Pokémon-style round tree (16x20)
+  const TREE_PAL = [
+    0x1A5C10,  // 0: dark leaf
+    0x38A028,  // 1: mid leaf
+    0x50C840,  // 2: light leaf
+    0x70E060,  // 3: highlight
+    0x6B4226,  // 4: trunk dark
+    0x8B5A2B,  // 5: trunk
+    0xA07040,  // 6: trunk light
+    0x000000,  // 7: outline
+  ]
+  const TREE = [
+    [T,T,T,T,T,T,2,3,3,2,T,T,T,T,T,T],
+    [T,T,T,T,2,3,2,1,1,2,3,2,T,T,T,T],
+    [T,T,T,2,1,2,1,1,1,1,2,1,2,T,T,T],
+    [T,T,2,1,1,1,0,1,1,0,1,1,1,2,T,T],
+    [T,2,1,1,0,1,1,1,1,1,1,0,1,1,2,T],
+    [T,2,1,0,1,1,1,0,0,1,1,1,0,1,2,T],
+    [2,1,1,1,1,0,1,1,1,1,0,1,1,1,1,2],
+    [2,1,0,1,1,1,1,1,1,1,1,1,1,0,1,2],
+    [2,1,1,1,0,1,1,1,1,1,1,0,1,1,1,2],
+    [T,2,1,1,1,1,0,1,1,0,1,1,1,1,2,T],
+    [T,T,2,1,1,1,1,1,1,1,1,1,1,2,T,T],
+    [T,T,T,2,2,1,1,1,1,1,1,2,2,T,T,T],
+    [T,T,T,T,T,7,7,5,5,7,7,T,T,T,T,T],
+    [T,T,T,T,T,7,5,5,5,5,7,T,T,T,T,T],
+    [T,T,T,T,T,7,5,6,6,5,7,T,T,T,T,T],
+    [T,T,T,T,T,7,5,5,5,5,7,T,T,T,T,T],
+    [T,T,T,T,T,7,4,5,5,4,7,T,T,T,T,T],
+    [T,T,T,T,T,7,4,4,4,4,7,T,T,T,T,T],
+    [T,T,T,T,7,4,4,4,4,4,4,7,T,T,T,T],
+    [T,T,T,T,7,7,7,7,7,7,7,7,T,T,T,T],
+  ]
+  renderSprite(scene, 'bg_tree', TREE, TREE_PAL)
 }
 
 function generateBossTextures(scene: Phaser.Scene) {
@@ -472,42 +507,45 @@ function generateBgTextures(scene: Phaser.Scene) {
   g.generateTexture('bg_cloud', 16 * S, 6 * S)
   g.destroy()
 
-  // Building — clean Pokémon/Zelda city style
-  // 2 building variants + gap for sky peek-through
+  // Building — Pokémon town style: bright colored roofs, cream walls
   const bldgW = 48
-  const bldgH = 24 // shorter = less overwhelming
+  const bldgH = 20
   const g2 = scene.add.graphics()
 
-  // Building A: cream/warm
-  const drawBuilding = (ox: number, w: number, wall: number, trim: number, win: number) => {
+  const drawHouse = (ox: number, w: number, wall: number, roof: number, roofDark: number) => {
+    // Outline
+    g2.fillStyle(0x404040, 1)
+    fillBlock(g2, ox, 0, w, bldgH)
+    // Roof (triangular feel via layered rects)
+    g2.fillStyle(roof, 1)
+    fillBlock(g2, ox + 1, 0, w - 2, 2)
+    fillBlock(g2, ox, 2, w, 3)
+    g2.fillStyle(roofDark, 1)
+    fillBlock(g2, ox, 4, w, 1)
     // Wall
     g2.fillStyle(wall, 1)
-    fillBlock(g2, ox, 2, w, bldgH - 2)
-    // Roof
-    g2.fillStyle(trim, 1)
-    fillBlock(g2, ox - 1, 0, w + 2, 3)
-    // Outline
-    g2.fillStyle(0x000000, 0.3)
-    fillBlock(g2, ox, 0, 1, bldgH)
-    fillBlock(g2, ox + w - 1, 0, 1, bldgH)
-    // Windows (2 cols, 4 rows, more spacing)
-    for (let wy = 0; wy < 4; wy++) {
-      for (let wx = 0; wx < 2; wx++) {
-        const lit = (wx + wy) % 2 === 0
-        g2.fillStyle(lit ? win : 0x6B7A8A, 1)
-        fillBlock(g2, ox + 2 + wx * 6, 5 + wy * 5, 3, 2)
-      }
-    }
+    fillBlock(g2, ox + 1, 5, w - 2, bldgH - 6)
+    // Windows
+    g2.fillStyle(0x88CCEE, 1)
+    fillBlock(g2, ox + 2, 7, 2, 2)
+    fillBlock(g2, ox + w - 4, 7, 2, 2)
+    // Window cross
+    g2.fillStyle(wall, 1)
+    fillBlock(g2, ox + 3, 7, 1, 2)  // vertical divider left
+    fillBlock(g2, ox + w - 3, 7, 1, 2)  // vertical divider right
     // Door
-    g2.fillStyle(trim, 0.8)
-    fillBlock(g2, ox + Math.floor(w / 2) - 1, bldgH - 4, 3, 4)
+    g2.fillStyle(0x8B6544, 1)
+    fillBlock(g2, ox + Math.floor(w / 2) - 1, bldgH - 5, 2, 5)
+    g2.fillStyle(0xA07856, 1)
+    fillBlock(g2, ox + Math.floor(w / 2) - 1, bldgH - 4, 2, 3)
   }
 
-  drawBuilding(0, 14, 0xE8D5B8, 0xC4956A, 0xFBBF24)   // cream building
-  // Sky gap (empty space)
-  drawBuilding(20, 12, 0xB8C8D8, 0x8A9AAA, 0x87CEEB)   // blue-gray building
-  // More sky gap on right
-  drawBuilding(38, 10, 0xD4C4A8, 0xAA9478, 0xFFE4B5)   // tan building
+  // Red-roof house (Pallet Town style)
+  drawHouse(0, 14, 0xF5F0E0, 0xCC4444, 0xAA2222)
+  // Blue-roof house
+  drawHouse(18, 12, 0xFFF8E8, 0x4477BB, 0x335599)
+  // Brown-roof house
+  drawHouse(34, 14, 0xF0EAD6, 0xBB7744, 0x995522)
 
   g2.generateTexture('bg_building', bldgW * S, bldgH * S)
   g2.destroy()
