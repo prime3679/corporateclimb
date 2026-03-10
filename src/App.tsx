@@ -1,6 +1,7 @@
 import { useEffect, useRef } from 'react'
 import Phaser from 'phaser'
 import { gameConfig } from './game/config/gameConfig'
+import { DialogueBox } from './ui/components/DialogueBox'
 
 export default function App() {
   const gameRef = useRef<Phaser.Game | null>(null)
@@ -22,10 +23,9 @@ export default function App() {
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
-      {/* Phaser canvas */}
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
 
-      {/* React overlay layer — renders on top of Phaser */}
+      {/* React overlay layer */}
       <div
         id="ui-overlay"
         style={{
@@ -37,7 +37,7 @@ export default function App() {
           pointerEvents: 'none',
         }}
       >
-        {/* UI components will go here */}
+        <DialogueBox />
       </div>
     </div>
   )
