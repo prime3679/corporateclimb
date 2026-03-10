@@ -7,6 +7,7 @@ import { CharacterCreator } from './ui/components/CharacterCreator'
 import { TutorialPrompts } from './ui/components/TutorialPrompts'
 import { LevelComplete } from './ui/components/LevelComplete'
 import { WhisperOverlay } from './ui/components/WhisperOverlay'
+import { MontageOverlay } from './ui/components/MontageOverlay'
 import { useGameState } from './ui/stores/gameState'
 
 type AppPhase = 'boot' | 'character' | 'playing'
@@ -15,7 +16,7 @@ export default function App() {
   const gameRef = useRef<Phaser.Game | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<AppPhase>('boot')
-  const { setPlaying, currentScene, whisperActive } = useGameState()
+  const { setPlaying, currentScene, whisperActive, montageActive, bossMirrorRef } = useGameState()
 
   useEffect(() => {
     if (gameRef.current || !containerRef.current) return
@@ -88,6 +89,10 @@ export default function App() {
           <LevelComplete levelName="Freshman Year" onContinue={handleLevelContinue} />
         )}
         {phase === 'playing' && <WhisperOverlay active={whisperActive} />}
+        <MontageOverlay
+          active={montageActive}
+          onComplete={() => bossMirrorRef?.onMontageComplete()}
+        />
         <DialogueBox />
       </div>
     </div>

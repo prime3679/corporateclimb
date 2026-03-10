@@ -19,7 +19,7 @@ export interface BackgroundLayer {
 }
 
 export interface EnemyConfig {
-  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever' | 'coffee_run' | 'slack_barrage' | 'credit_thief' | 'scope_creep_blob'
+  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever' | 'coffee_run' | 'slack_barrage' | 'credit_thief' | 'scope_creep_blob' | 'golden_handcuffs'
   x: number
   y: number
   // Alarm clock

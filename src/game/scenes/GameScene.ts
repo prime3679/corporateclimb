@@ -19,6 +19,8 @@ import { CreditThiefManager } from '../entities/CreditThiefManager'
 import { BossSkipLevel } from '../entities/BossSkipLevel'
 import { BossImposterSyndrome } from '../entities/BossImposterSyndrome'
 import { ScopeCreepBlob } from '../entities/ScopeCreepBlob'
+import { GoldenHandcuffs } from '../entities/GoldenHandcuffs'
+import { BossMirror } from '../entities/BossMirror'
 import { OfficeMoodSystem } from '../systems/OfficeMoodSystem'
 import { ReorgSystem } from '../systems/ReorgSystem'
 import { useDialogueState } from '../../ui/stores/dialogueState'
@@ -66,11 +68,15 @@ export class GameScene extends Phaser.Scene {
   private scopeCreepBlobs: ScopeCreepBlob[] = []
   private officeMood: OfficeMoodSystem | null = null
 
+  // Level 5 entities
+  private goldenHandcuffs: GoldenHandcuffs[] = []
+
   // Boss (polymorphic)
   private bossNoCurve: BossNoCurve | null = null
   private bossRecruiter: BossGhostingRecruiter | null = null
   private bossSkipLevel: BossSkipLevel | null = null
   private bossImposterSyndrome: BossImposterSyndrome | null = null
+  private bossMirror: BossMirror | null = null
   private bossStarted = false
 
   private levelConfig!: LevelConfig
@@ -257,6 +263,10 @@ export class GameScene extends Phaser.Scene {
           this.scopeCreepBlobs.push(new ScopeCreepBlob(this, enemy.x, enemy.y, enemy.baseSize, enemy.growthRate, enemy.maxSize))
           break
         }
+        case 'golden_handcuffs': {
+          this.goldenHandcuffs.push(new GoldenHandcuffs(this, enemy.x, enemy.y))
+          break
+        }
       }
     }
   }
@@ -355,6 +365,12 @@ export class GameScene extends Phaser.Scene {
       this.bossImposterSyndrome.onDefeated = onDefeated
       this.bossImposterSyndrome.onWhisperStart = () => useGameState.getState().setWhisperActive(true)
       this.bossImposterSyndrome.onWhisperEnd = () => useGameState.getState().setWhisperActive(false)
+    } else if (cfg.boss.type === 'mirror') {
+      this.bossMirror = new BossMirror(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossMirror.onDefeated = onDefeated
+      this.bossMirror.onMontageStart = () => useGameState.getState().setMontageActive(true)
+      this.bossMirror.onMontageEnd = () => useGameState.getState().setMontageActive(false)
+      useGameState.getState().setBossMirrorRef(this.bossMirror)
     }
 
     this.bossStarted = false
@@ -447,6 +463,11 @@ export class GameScene extends Phaser.Scene {
     }
 
     this.officeMood?.update(delta)
+
+    // Level 5 collectibles
+    for (const gh of this.goldenHandcuffs) {
+      gh.checkCollect(px, py)
+    }
   }
 
   private updatePowerUps() {
@@ -483,7 +504,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateBoss(delta: number) {
-    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel ?? this.bossImposterSyndrome
+    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel ?? this.bossImposterSyndrome ?? this.bossMirror
     if (!boss || boss.destroyed) return
 
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {
