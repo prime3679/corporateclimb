@@ -3,7 +3,7 @@ import Phaser from 'phaser'
 type AnimState = 'idle' | 'run' | 'jump_up' | 'jump_fall' | 'dodge' | 'land'
 
 const PLAYER_WIDTH = 60
-const PLAYER_HEIGHT = 80
+const PLAYER_HEIGHT = 66
 const MAX_SPEED = 300
 const ACCELERATION = 1200
 const GROUND_DECEL = 800
@@ -19,7 +19,7 @@ const DODGE_COOLDOWN = 500
 
 export class Player {
   scene: Phaser.Scene
-  sprite: Phaser.GameObjects.Rectangle
+  sprite: Phaser.GameObjects.Sprite
   body: Phaser.Physics.Arcade.Body
 
   // State
@@ -39,17 +39,32 @@ export class Player {
   private jumpStretchTimer = 0
   private wasOnGround = false
   private lastSafePosition: { x: number; y: number }
+  private runFrame = 0
+  private runFrameTimer = 0
 
   // Variable jump
   private isJumping = false
   private jumpHeld = false
 
-  constructor(scene: Phaser.Scene, x: number, y: number, color: number = 0x4F46E5) {
+  constructor(scene: Phaser.Scene, x: number, y: number, _color: number = 0x4F46E5) {
     this.scene = scene
     this.lastSafePosition = { x, y }
 
-    // Create placeholder rectangle with character accent color
-    this.sprite = scene.add.rectangle(x, y, PLAYER_WIDTH, PLAYER_HEIGHT, color)
+    // Use generated pixel-art sprite
+    const textureKey = scene.textures.exists('player_idle') ? 'player_idle' : undefined
+    if (textureKey) {
+      this.sprite = scene.add.sprite(x, y, 'player_idle')
+    } else {
+      // Fallback: create a colored rectangle texture
+      const g = scene.add.graphics()
+      g.fillStyle(_color, 1)
+      g.fillRect(0, 0, PLAYER_WIDTH, PLAYER_HEIGHT)
+      g.generateTexture('player_fallback', PLAYER_WIDTH, PLAYER_HEIGHT)
+      g.destroy()
+      this.sprite = scene.add.sprite(x, y, 'player_fallback')
+    }
+
+    this.sprite.setDepth(10)
     scene.physics.add.existing(this.sprite)
 
     this.body = this.sprite.body as Phaser.Physics.Arcade.Body
@@ -70,11 +85,9 @@ export class Player {
     if (this.isOnGround) {
       this.coyoteTimer = COYOTE_TIME
       if (!this.wasOnGround) {
-        // Just landed
         this.landSquashTimer = 50
         this.isJumping = false
       }
-      // Store safe position (on solid ground, not over pits)
       this.lastSafePosition.x = this.sprite.x
       this.lastSafePosition.y = this.sprite.y
     } else {
@@ -95,7 +108,6 @@ export class Player {
         this.isInvulnerable = false
         this.body.setVelocityX(0)
       } else {
-        // Continue dodge velocity
         const dodgeSpeed = DODGE_DISTANCE / (DODGE_DURATION / 1000)
         this.body.setVelocityX(this.dodgeDirection * dodgeSpeed)
       }
@@ -115,7 +127,6 @@ export class Player {
       const newVelX = this.body.velocity.x + moveDir * accel
       this.body.setVelocityX(Phaser.Math.Clamp(newVelX, -MAX_SPEED, MAX_SPEED))
     } else {
-      // Decelerate
       const decel = (this.isOnGround ? GROUND_DECEL : AIR_DECEL) * dtSec
       if (Math.abs(this.body.velocity.x) < decel) {
         this.body.setVelocityX(0)
@@ -136,7 +147,6 @@ export class Player {
       this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dtMs)
     }
 
-    // Execute jump if buffer active and coyote time valid
     if (this.jumpBufferTimer > 0 && this.coyoteTimer > 0 && !this.isJumping) {
       this.body.setVelocityY(JUMP_VELOCITY)
       this.isJumping = true
@@ -145,7 +155,6 @@ export class Player {
       this.jumpStretchTimer = 50
     }
 
-    // Variable jump height: cut jump short when key released
     if (this.isJumping && !this.jumpHeld && this.body.velocity.y < JUMP_VELOCITY * 0.4) {
       this.body.setVelocityY(this.body.velocity.y * 0.5)
     }
@@ -160,10 +169,8 @@ export class Player {
       this.dodgeDirection = this.facingRight ? 1 : -1
       this.body.setVelocityY(0)
       this.body.setGravityY(0)
-      // Dodge velocity set in dodge update above
     }
 
-    // Restore gravity when not dodging
     if (!this.isDodging) {
       this.body.setGravityY(GRAVITY)
     }
@@ -173,21 +180,35 @@ export class Player {
   }
 
   private updateVisuals() {
-    // Squash on land
+    // Flip sprite based on facing direction
+    this.sprite.setFlipX(!this.facingRight)
+
+    // Squash/stretch effects
     if (this.landSquashTimer > 0) {
       this.sprite.setScale(1.15, 0.8)
-    }
-    // Stretch on jump
-    else if (this.jumpStretchTimer > 0) {
+    } else if (this.jumpStretchTimer > 0) {
       this.sprite.setScale(0.85, 1.2)
-    }
-    // Stretch on dodge
-    else if (this.isDodging) {
+    } else if (this.isDodging) {
       this.sprite.setScale(1.3, 0.85)
-    }
-    // Normal
-    else {
+      this.sprite.setAlpha(0.7)
+    } else {
       this.sprite.setScale(1, 1)
+      this.sprite.setAlpha(this.isInvulnerable ? 0.5 : 1)
+    }
+
+    // Animate run cycle
+    if (this.animState === 'run') {
+      this.runFrameTimer += 16
+      if (this.runFrameTimer > 120) {
+        this.runFrameTimer = 0
+        this.runFrame = (this.runFrame + 1) % 2
+      }
+      const tex = this.runFrame === 0 ? 'player_run1' : 'player_run2'
+      if (this.scene.textures.exists(tex)) this.sprite.setTexture(tex)
+    } else if (this.animState === 'jump_up' || this.animState === 'jump_fall') {
+      if (this.scene.textures.exists('player_jump')) this.sprite.setTexture('player_jump')
+    } else {
+      if (this.scene.textures.exists('player_idle')) this.sprite.setTexture('player_idle')
     }
   }
 

@@ -127,8 +127,8 @@ export class GameScene extends Phaser.Scene {
     // Collisions
     this.physics.add.collider(this.player.sprite, this.solidPlatforms)
     this.physics.add.collider(this.player.sprite, this.oneWayPlatforms, undefined, (playerSprite, platform) => {
-      const playerBody = (playerSprite as Phaser.GameObjects.Rectangle).body as Phaser.Physics.Arcade.Body
-      const platBody = (platform as Phaser.GameObjects.Rectangle).body as Phaser.Physics.Arcade.StaticBody
+      const playerBody = (playerSprite as Phaser.GameObjects.Sprite).body as Phaser.Physics.Arcade.Body
+      const platBody = (platform as Phaser.GameObjects.GameObject).body as Phaser.Physics.Arcade.StaticBody
       return playerBody.velocity.y >= 0 && playerBody.bottom <= platBody.top + 10
     })
     for (const mp of this.movingPlatforms) {
@@ -306,11 +306,19 @@ export class GameScene extends Phaser.Scene {
         oneShot: trigCfg.oneShot,
       })
 
-      const npcW = trigCfg.npcWidth ?? 40
-      const npcH = trigCfg.npcHeight ?? 60
-      const npcColor = trigCfg.npcColor ?? 0xF59E0B
-      const npc = this.add.rectangle(trigCfg.x, trigCfg.y + trigCfg.height / 2 - npcH / 2, npcW, npcH, npcColor)
-      npc.setDepth(1)
+      // Use generated NPC sprite if available
+      const npcIdx = this.dialogueTriggers.length % 5
+      const npcKey = `npc_${npcIdx}`
+      if (this.textures.exists(npcKey)) {
+        const npc = this.add.sprite(trigCfg.x, trigCfg.y + trigCfg.height / 2 - 20, npcKey)
+        npc.setDepth(2)
+      } else {
+        const npcW = trigCfg.npcWidth ?? 40
+        const npcH = trigCfg.npcHeight ?? 60
+        const npcColor = trigCfg.npcColor ?? 0xF59E0B
+        const npc = this.add.rectangle(trigCfg.x, trigCfg.y + trigCfg.height / 2 - npcH / 2, npcW, npcH, npcColor)
+        npc.setDepth(1)
+      }
 
       this.dialogueTriggers.push(trigger)
     }
@@ -352,10 +360,9 @@ export class GameScene extends Phaser.Scene {
     if (!cfg.boss) return
 
     const flashPlayer = () => {
-      this.player.sprite.setFillStyle(0xEF4444)
+      this.player.sprite.setTint(0xEF4444)
       this.time.delayedCall(200, () => {
-        const accentHex = useCharacterStore.getState().accentColor
-        this.player.sprite.setFillStyle(parseInt(accentHex.replace('#', ''), 16))
+        this.player.sprite.clearTint()
       })
     }
 
@@ -417,7 +424,7 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const ms of this.midtermStacks) {
-      ms.update(delta, this.player.sprite)
+      ms.update(delta, this.player.sprite as any)
     }
 
     // Level 2 enemies
@@ -528,7 +535,7 @@ export class GameScene extends Phaser.Scene {
 
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {
       this.bossStarted = true
-      boss.startFight(this.player.sprite)
+      boss.startFight(this.player.sprite as any)
     }
 
     boss.update(delta)
@@ -577,23 +584,58 @@ export class GameScene extends Phaser.Scene {
 
   private buildBackgrounds(cfg: LevelConfig) {
     for (const layer of cfg.backgrounds) {
-      for (const rect of layer.rects) {
-        const color = rect.color ?? layer.color
-        const bg = this.add.rectangle(rect.x, rect.y, rect.width, rect.height, color)
-        bg.setScrollFactor(layer.scrollFactor)
-        bg.setDepth(-10)
+      for (const bgRect of layer.rects) {
+        const color = bgRect.color ?? layer.color
+        // Use building texture if tall enough, otherwise just a tinted rect
+        if (bgRect.height > 200 && this.textures.exists('bg_building')) {
+          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_building')
+          tile.setScrollFactor(layer.scrollFactor)
+          tile.setDepth(-10)
+          tile.setTint(color)
+        } else {
+          const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
+          bg.setScrollFactor(layer.scrollFactor)
+          bg.setDepth(-10)
+        }
+      }
+    }
+
+    // Add clouds if sky layer exists
+    if (cfg.backgrounds.length > 0 && this.textures.exists('bg_cloud')) {
+      for (let i = 0; i < 5; i++) {
+        const cx = 200 + i * (cfg.width / 5)
+        const cy = 30 + Math.random() * 100
+        const cloud = this.add.sprite(cx, cy, 'bg_cloud')
+        cloud.setScrollFactor(0.1)
+        cloud.setDepth(-9)
+        cloud.setAlpha(0.6)
       }
     }
   }
 
   private createStaticPlatform(plat: PlatformConfig, group: Phaser.Physics.Arcade.StaticGroup) {
-    const rect = this.add.rectangle(plat.x, plat.y, plat.width, plat.height, plat.color ?? 0x475569)
-    this.physics.add.existing(rect, true)
-    group.add(rect)
+    // Use pixel-art tiled texture for platforms
+    const textureKey = plat.type === 'one-way'
+      ? (this.textures.exists('platform_oneway') ? 'platform_oneway' : '')
+      : (this.textures.exists('platform_grass') ? 'platform_grass' : '')
+
+    if (textureKey) {
+      const tile = this.add.tileSprite(plat.x, plat.y, plat.width, plat.height, textureKey)
+      tile.setDepth(1)
+      this.physics.add.existing(tile, true)
+      group.add(tile)
+    } else {
+      const rect = this.add.rectangle(plat.x, plat.y, plat.width, plat.height, plat.color ?? 0x475569)
+      this.physics.add.existing(rect, true)
+      group.add(rect)
+    }
   }
 
   private createMovingPlatform(plat: PlatformConfig) {
-    const rect = this.add.rectangle(plat.x, plat.y, plat.width, plat.height, plat.color ?? 0x10B981)
+    const textureKey = this.textures.exists('platform_stone') ? 'platform_stone' : ''
+    const rect = textureKey
+      ? this.add.tileSprite(plat.x, plat.y, plat.width, plat.height, textureKey) as any
+      : this.add.rectangle(plat.x, plat.y, plat.width, plat.height, plat.color ?? 0x10B981)
     this.physics.add.existing(rect, false)
     const body = rect.body as Phaser.Physics.Arcade.Body
     body.setImmovable(true)
