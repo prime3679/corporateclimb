@@ -7,33 +7,17 @@ export class BootScene extends Phaser.Scene {
   }
 
   create() {
-    this.cameras.main.setBackgroundColor('#1B2A4A')
+    this.cameras.main.setBackgroundColor('#0F172A')
 
-    const title = this.add
-      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, 'Corporate Climb', {
-        fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '64px',
-        color: '#ffffff',
-        fontStyle: 'bold',
+    // Just render a dark background — the React MainMenu handles the actual menu.
+    // Boot scene exists so Phaser has something to render on init.
+    // It does NOT auto-transition to Game; App.tsx controls that.
+    this.add
+      .text(GAME_WIDTH / 2, GAME_HEIGHT / 2, '', {
+        fontFamily: 'system-ui, sans-serif',
+        fontSize: '1px',
+        color: '#0F172A',
       })
       .setOrigin(0.5)
-      .setAlpha(0)
-
-    // Fade in title
-    this.tweens.add({
-      targets: title,
-      alpha: 1,
-      duration: 800,
-      ease: 'Power2',
-      onComplete: () => {
-        // Hold, then transition to game
-        this.time.delayedCall(1200, () => {
-          this.cameras.main.fadeOut(500, 27, 42, 74)
-          this.cameras.main.once('camerafadeoutcomplete', () => {
-            this.scene.start('Game')
-          })
-        })
-      },
-    })
   }
 }

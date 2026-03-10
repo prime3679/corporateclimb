@@ -201,6 +201,15 @@ export class GameScene extends Phaser.Scene {
     this.updateBoss(delta)
     this.reorgSystem?.checkTrigger(this.player.sprite.x)
 
+    // Narrative-only level ending (Level 6c): trigger ending when player reaches far right
+    if (!this.levelConfig.boss && this.levelConfig.id.startsWith('level6')) {
+      if (this.player.sprite.x > this.levelConfig.width - 200) {
+        ;(window as any).__corporateClimbEnding = 'hybrid'
+        useGameState.getState().setCurrentScene('ending')
+        return
+      }
+    }
+
     // Fall respawn + pit energy cost
     if (this.player.sprite.y > this.levelConfig.bounds.bottom + 50) {
       this.handleFallRespawn()

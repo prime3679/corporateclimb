@@ -15,6 +15,8 @@ import { MainMenu } from './ui/components/MainMenu'
 import { useGameState } from './ui/stores/gameState'
 import { usePlayerStats } from './ui/stores/playerStats'
 import { useChoiceHistory } from './ui/stores/choiceHistory'
+import { useGameProgress } from './ui/stores/gameProgress'
+import { getLevelConfig, getNextLevel } from './game/systems/LevelRouter'
 
 type AppPhase = 'menu' | 'character' | 'playing'
 
@@ -23,6 +25,7 @@ export default function App() {
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<AppPhase>('menu')
   const [paused, setPaused] = useState(false)
+  const [currentLevelName, setCurrentLevelName] = useState('Level 1')
   const { setPlaying, currentScene, whisperActive, montageActive, bossMirrorRef } = useGameState()
 
   useEffect(() => {
@@ -60,33 +63,47 @@ export default function App() {
     return () => window.removeEventListener('keydown', handleKey)
   }, [phase])
 
+  const startLevel = useCallback((levelId: string) => {
+    const config = getLevelConfig(levelId)
+    useGameProgress.getState().setCurrentLevel(levelId)
+    setCurrentLevelName(config.name)
+    useGameState.getState().setCurrentScene('Game')
+    setPhase('playing')
+    setPlaying(true)
+    setPaused(false)
+
+    const game = gameRef.current
+    if (game) {
+      game.scene.stop('Game')
+      game.scene.start('Game', { levelConfig: config })
+    }
+  }, [setPlaying])
+
   const handleNewGame = useCallback(() => {
     setPhase('character')
   }, [])
 
   const handleContinue = useCallback((_save: any) => {
-    // Load save data into stores, then start game
     setPhase('character')
   }, [])
 
   const handleStartGame = useCallback(() => {
-    setPhase('playing')
-    setPlaying(true)
-    const game = gameRef.current
-    if (game) {
-      game.scene.start('Game')
-    }
-  }, [setPlaying])
+    const levelId = useGameProgress.getState().currentLevel
+    startLevel(levelId)
+  }, [startLevel])
 
   const handleLevelContinue = useCallback(() => {
-    useGameState.getState().setCurrentScene('Game')
-    setPhase('menu')
-    setPlaying(false)
-    const game = gameRef.current
-    if (game) {
-      game.scene.stop('Game')
+    const currentLevel = useGameProgress.getState().currentLevel
+    useGameProgress.getState().completeLevel(currentLevel)
+    const nextId = getNextLevel(currentLevel)
+
+    if (nextId) {
+      startLevel(nextId)
+    } else {
+      // Final level — show ending
+      useGameState.getState().setCurrentScene('ending')
     }
-  }, [setPlaying])
+  }, [startLevel])
 
   const handleResume = useCallback(() => {
     setPaused(false)
@@ -98,13 +115,9 @@ export default function App() {
   }, [])
 
   const handleRestart = useCallback(() => {
-    setPaused(false)
-    const game = gameRef.current
-    if (game) {
-      game.scene.stop('Game')
-      game.scene.start('Game')
-    }
-  }, [])
+    const currentLevel = useGameProgress.getState().currentLevel
+    startLevel(currentLevel)
+  }, [startLevel])
 
   const handleQuit = useCallback(() => {
     setPaused(false)
@@ -123,6 +136,7 @@ export default function App() {
     usePlayerStats.getState().resetStats()
     useChoiceHistory.getState().clearHistory()
     useGameState.getState().setCurrentScene('Boot')
+    useGameProgress.getState().setCurrentLevel('level1')
     delete (window as any).__corporateClimbEnding
     setPhase('character')
     setPlaying(false)
@@ -153,7 +167,7 @@ export default function App() {
         {phase === 'playing' && !showLevelComplete && !showEnding && !paused && <TutorialPrompts />}
         {phase === 'playing' && !paused && <TouchControls />}
         {showLevelComplete && (
-          <LevelComplete levelName="Freshman Year" onContinue={handleLevelContinue} />
+          <LevelComplete levelName={currentLevelName} onContinue={handleLevelContinue} />
         )}
         {phase === 'playing' && <WhisperOverlay active={whisperActive} />}
         <MontageOverlay
