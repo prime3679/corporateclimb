@@ -17,6 +17,9 @@ import { CoffeeRunRequest } from '../entities/CoffeeRunRequest'
 import { SlackBarrage } from '../entities/SlackBarrage'
 import { CreditThiefManager } from '../entities/CreditThiefManager'
 import { BossSkipLevel } from '../entities/BossSkipLevel'
+import { BossImposterSyndrome } from '../entities/BossImposterSyndrome'
+import { ScopeCreepBlob } from '../entities/ScopeCreepBlob'
+import { OfficeMoodSystem } from '../systems/OfficeMoodSystem'
 import { ReorgSystem } from '../systems/ReorgSystem'
 import { useDialogueState } from '../../ui/stores/dialogueState'
 import { useCharacterStore } from '../../ui/stores/characterStore'
@@ -59,10 +62,15 @@ export class GameScene extends Phaser.Scene {
   private creditThieves: CreditThiefManager[] = []
   private reorgSystem: ReorgSystem | null = null
 
+  // Level 4 entities
+  private scopeCreepBlobs: ScopeCreepBlob[] = []
+  private officeMood: OfficeMoodSystem | null = null
+
   // Boss (polymorphic)
   private bossNoCurve: BossNoCurve | null = null
   private bossRecruiter: BossGhostingRecruiter | null = null
   private bossSkipLevel: BossSkipLevel | null = null
+  private bossImposterSyndrome: BossImposterSyndrome | null = null
   private bossStarted = false
 
   private levelConfig!: LevelConfig
@@ -141,6 +149,11 @@ export class GameScene extends Phaser.Scene {
     this.setupTimedDoors(cfg)
     this.setupReorg(cfg)
     this.setupBoss(cfg)
+
+    // Office mood system (Level 4+)
+    if (cfg.id === 'level4') {
+      this.officeMood = new OfficeMoodSystem(this)
+    }
 
     // Listen for dialogue state changes to pause/unpause
     let wasOpen = false
@@ -240,6 +253,10 @@ export class GameScene extends Phaser.Scene {
           this.creditThieves.push(new CreditThiefManager(this, enemy.x, enemy.y))
           break
         }
+        case 'scope_creep_blob': {
+          this.scopeCreepBlobs.push(new ScopeCreepBlob(this, enemy.x, enemy.y, enemy.baseSize, enemy.growthRate, enemy.maxSize))
+          break
+        }
       }
     }
   }
@@ -333,6 +350,11 @@ export class GameScene extends Phaser.Scene {
     } else if (cfg.boss.type === 'skip_level') {
       this.bossSkipLevel = new BossSkipLevel(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
       this.bossSkipLevel.onDefeated = onDefeated
+    } else if (cfg.boss.type === 'imposter_syndrome') {
+      this.bossImposterSyndrome = new BossImposterSyndrome(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossImposterSyndrome.onDefeated = onDefeated
+      this.bossImposterSyndrome.onWhisperStart = () => useGameState.getState().setWhisperActive(true)
+      this.bossImposterSyndrome.onWhisperEnd = () => useGameState.getState().setWhisperActive(false)
     }
 
     this.bossStarted = false
@@ -413,6 +435,18 @@ export class GameScene extends Phaser.Scene {
     for (const ct of this.creditThieves) {
       ct.update(delta, px, py)
     }
+
+    // Level 4 enemies
+    for (const blob of this.scopeCreepBlobs) {
+      blob.update(delta)
+      if (!blob.destroyed && !this.player.isInvulnerable && blob.checkCollision(px, py)) {
+        usePlayerStats.getState().modifyStats({ energy: -4 }, 'enemy:scope_creep_blob')
+        this.player.isInvulnerable = true
+        this.time.delayedCall(800, () => { this.player.isInvulnerable = false })
+      }
+    }
+
+    this.officeMood?.update(delta)
   }
 
   private updatePowerUps() {
@@ -449,7 +483,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateBoss(delta: number) {
-    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel
+    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel ?? this.bossImposterSyndrome
     if (!boss || boss.destroyed) return
 
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {

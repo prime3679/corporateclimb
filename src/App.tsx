@@ -6,6 +6,7 @@ import { HUD } from './ui/components/HUD'
 import { CharacterCreator } from './ui/components/CharacterCreator'
 import { TutorialPrompts } from './ui/components/TutorialPrompts'
 import { LevelComplete } from './ui/components/LevelComplete'
+import { WhisperOverlay } from './ui/components/WhisperOverlay'
 import { useGameState } from './ui/stores/gameState'
 
 type AppPhase = 'boot' | 'character' | 'playing'
@@ -14,7 +15,7 @@ export default function App() {
   const gameRef = useRef<Phaser.Game | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<AppPhase>('boot')
-  const { setPlaying, currentScene } = useGameState()
+  const { setPlaying, currentScene, whisperActive } = useGameState()
 
   useEffect(() => {
     if (gameRef.current || !containerRef.current) return
@@ -86,6 +87,7 @@ export default function App() {
         {showLevelComplete && (
           <LevelComplete levelName="Freshman Year" onContinue={handleLevelContinue} />
         )}
+        {phase === 'playing' && <WhisperOverlay active={whisperActive} />}
         <DialogueBox />
       </div>
     </div>

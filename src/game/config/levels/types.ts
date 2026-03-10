@@ -19,7 +19,7 @@ export interface BackgroundLayer {
 }
 
 export interface EnemyConfig {
-  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever' | 'coffee_run' | 'slack_barrage' | 'credit_thief'
+  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever' | 'coffee_run' | 'slack_barrage' | 'credit_thief' | 'scope_creep_blob'
   x: number
   y: number
   // Alarm clock
@@ -47,6 +47,10 @@ export interface EnemyConfig {
   bubbleCount?: number
   // Credit thief
   stolenPowerUps?: number
+  // Scope creep blob
+  baseSize?: number
+  growthRate?: number
+  maxSize?: number
 }
 
 // Reorg event config — platforms swap to alternate layout
