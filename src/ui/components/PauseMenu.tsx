@@ -27,7 +27,8 @@ export function PauseMenu({ onResume, onRestart, onQuit }: PauseMenuProps) {
   }, [])
 
   const buttonStyle: React.CSSProperties = {
-    width: '220px',
+    width: '80%',
+    maxWidth: '220px',
     padding: '12px 24px',
     backgroundColor: '#1E293B',
     border: '1px solid #334155',
@@ -73,7 +74,7 @@ export function PauseMenu({ onResume, onRestart, onQuit }: PauseMenuProps) {
           </button>
         </>
       ) : (
-        <div style={{ width: '280px' }}>
+        <div style={{ width: '80%', maxWidth: '280px' }}>
           <div style={{ marginBottom: '20px' }}>
             {(['masterVolume', 'musicVolume', 'sfxVolume'] as const).map((key) => (
               <div key={key} style={{ marginBottom: '14px' }}>

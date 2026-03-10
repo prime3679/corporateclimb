@@ -53,7 +53,7 @@ export function CharacterCreator({ onStart }: { onStart: () => void }) {
         zIndex: 100,
       }}
     >
-      <div style={{ maxWidth: 600, width: '100%', padding: '40px 32px', margin: '0 auto' }}>
+      <div style={{ maxWidth: 600, width: '100%', padding: '24px 16px', margin: '0 auto', boxSizing: 'border-box' as const }}>
         <h1
           style={{
             fontSize: 32,

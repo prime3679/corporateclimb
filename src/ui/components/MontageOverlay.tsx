@@ -153,8 +153,9 @@ export function MontageOverlay({ active, onComplete }: MontageOverlayProps) {
           fontFamily: 'system-ui, sans-serif',
           color: '#94A3B8',
           fontStyle: 'italic',
-          maxWidth: '500px',
+          maxWidth: '90%',
           textAlign: 'center',
+          padding: '0 16px',
         }}
       >
         {card.subtitle}

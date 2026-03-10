@@ -73,6 +73,8 @@ export function EndingScreen({ onPlayAgain }: EndingScreenProps) {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
         zIndex: 200,
         pointerEvents: 'auto',
         fontFamily: 'system-ui, sans-serif',
@@ -88,14 +90,14 @@ export function EndingScreen({ onPlayAgain }: EndingScreenProps) {
           <div style={{ fontSize: '48px', fontWeight: 700, marginBottom: '16px', letterSpacing: '2px' }}>
             {ending.title}
           </div>
-          <div style={{ fontSize: '18px', color: '#94A3B8', fontStyle: 'italic', maxWidth: '500px' }}>
+          <div style={{ fontSize: '18px', color: '#94A3B8', fontStyle: 'italic', maxWidth: '90%', padding: '0 16px' }}>
             {ending.subtitle}
           </div>
         </div>
       )}
 
       {phase === 'stats' && (
-        <div style={{ textAlign: 'center', width: '400px', animation: 'fadeIn 0.8s ease' }}>
+        <div style={{ textAlign: 'center', width: '90%', maxWidth: '400px', animation: 'fadeIn 0.8s ease' }}>
           <div style={{ fontSize: '24px', fontWeight: 600, marginBottom: '30px' }}>
             Final Stats
           </div>

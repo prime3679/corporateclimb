@@ -80,7 +80,9 @@ export function DialogueBox() {
         style={{
           margin: '0 auto',
           maxWidth: 800,
-          padding: '24px 32px',
+          width: '100%',
+          padding: '16px 20px',
+          boxSizing: 'border-box' as const,
           background: 'rgba(15, 23, 42, 0.92)',
           backdropFilter: 'blur(12px)',
           borderTop: '1px solid rgba(255, 255, 255, 0.1)',
@@ -172,7 +174,7 @@ export function DialogueBox() {
               fontFamily: 'system-ui, sans-serif',
             }}
           >
-            Click to continue
+            Tap to continue
           </div>
         )}
       </div>

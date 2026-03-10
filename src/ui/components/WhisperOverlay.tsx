@@ -92,7 +92,8 @@ export function WhisperOverlay({ active }: WhisperOverlayProps) {
             opacity: 0,
             animation: `whisperFade ${LINE_DURATION}ms ease-in-out forwards`,
             textShadow: '0 0 20px rgba(124, 58, 237, 0.5)',
-            whiteSpace: 'nowrap',
+            whiteSpace: 'normal',
+            maxWidth: '60%',
           }}
         >
           {line.text}
