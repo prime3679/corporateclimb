@@ -1,12 +1,17 @@
 import Phaser from 'phaser'
 import { Player, CursorKeys, WASDKeys } from '../entities/Player'
 import { LevelConfig, PlatformConfig } from '../config/levels/types'
-import { testLevel } from '../config/levels/testLevel'
-import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig'
-import { DialogueTrigger, DialogueTriggerConfig } from '../entities/DialogueTrigger'
+import { level1 } from '../config/levels/level1'
+import { DialogueTrigger } from '../entities/DialogueTrigger'
+import { AlarmClock } from '../entities/AlarmClock'
+import { Freeloader } from '../entities/Freeloader'
+import { MidtermStack } from '../entities/MidtermStack'
+import { PowerUp } from '../entities/PowerUp'
+import { BossNoCurve } from '../entities/BossNoCurve'
 import { useDialogueState } from '../../ui/stores/dialogueState'
 import { useCharacterStore } from '../../ui/stores/characterStore'
-import { testDialogue } from '../config/dialogues/testDialogue'
+import { usePlayerStats } from '../../ui/stores/playerStats'
+import { useGameState } from '../../ui/stores/gameState'
 
 export class GameScene extends Phaser.Scene {
   private player!: Player
@@ -25,18 +30,28 @@ export class GameScene extends Phaser.Scene {
   private dialogueTriggers: DialogueTrigger[] = []
   private activeTrigger: DialogueTrigger | null = null
 
+  // Entities spawned from config
+  private alarmClocks: AlarmClock[] = []
+  private freeloaders: Freeloader[] = []
+  private midtermStacks: MidtermStack[] = []
+  private powerUps: PowerUp[] = []
+  private boss: BossNoCurve | null = null
+  private bossStarted = false
+
   private levelConfig!: LevelConfig
+  private levelStartTime = 0
 
   constructor() {
     super({ key: 'Game' })
   }
 
-  init() {
-    this.levelConfig = testLevel
+  init(data?: { levelConfig?: LevelConfig }) {
+    this.levelConfig = data?.levelConfig ?? level1
   }
 
   create() {
     const cfg = this.levelConfig
+    this.levelStartTime = Date.now()
 
     this.physics.world.setBounds(cfg.bounds.left, cfg.bounds.top, cfg.bounds.right - cfg.bounds.left, cfg.bounds.bottom - cfg.bounds.top)
 
@@ -59,7 +74,7 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Player — use accent color from character store
+    // Player
     const accentHex = useCharacterStore.getState().accentColor
     const playerColor = parseInt(accentHex.replace('#', ''), 16)
     this.player = new Player(this, cfg.spawn.x, cfg.spawn.y, playerColor)
@@ -92,8 +107,11 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setDeadzone(100, 80)
     this.cameras.main.setBounds(cfg.bounds.left, cfg.bounds.top, cfg.bounds.right - cfg.bounds.left, cfg.bounds.bottom - cfg.bounds.top)
 
-    // Dialogue triggers
-    this.setupDialogueTriggers()
+    // Spawn entities from config
+    this.spawnEnemies(cfg)
+    this.spawnPowerUps(cfg)
+    this.setupDialogueTriggers(cfg)
+    this.setupBoss(cfg)
 
     // Listen for dialogue state changes to pause/unpause
     let wasOpen = false
@@ -114,7 +132,6 @@ export class GameScene extends Phaser.Scene {
   }
 
   update(time: number, delta: number) {
-    // Don't process input during dialogue
     if (useDialogueState.getState().isOpen) return
 
     this.player.update(delta, this.cursors, this.wasd, this.jumpKey, this.dodgeKey)
@@ -125,39 +142,177 @@ export class GameScene extends Phaser.Scene {
     this.cameras.main.setFollowOffset(Phaser.Math.Linear(currentOffset, lookDir, 0.03), 0)
 
     this.updateMovingPlatforms(time)
-
-    // Check dialogue trigger proximity
     this.checkDialogueTriggers()
+    this.updateEnemies(delta)
+    this.updatePowerUps()
+    this.updateBoss(delta)
 
-    // Fall respawn
+    // Fall respawn + pit energy cost
     if (this.player.sprite.y > this.levelConfig.bounds.bottom + 50) {
-      this.player.respawnAtSafe()
+      this.handleFallRespawn()
     }
   }
 
-  private setupDialogueTriggers() {
-    // Place a test NPC trigger in the test level
-    const trigger = new DialogueTrigger(this, {
-      x: 1000,
-      y: 620,
-      width: 80,
-      height: 100,
-      dialogueId: 'test_student',
-      startNodeId: 'start',
-      dialogueTree: testDialogue,
-      oneShot: false,
-    })
+  // ── Entity Spawning ──
 
-    // Add a visual NPC rectangle
-    const npc = this.add.rectangle(1000, 630, 40, 60, 0xF59E0B)
-    npc.setDepth(1)
+  private spawnEnemies(cfg: LevelConfig) {
+    if (!cfg.enemies) return
 
-    this.dialogueTriggers.push(trigger)
+    for (const enemy of cfg.enemies) {
+      switch (enemy.type) {
+        case 'alarm_clock': {
+          const ac = new AlarmClock(
+            this, enemy.x, enemy.y,
+            enemy.speed, enemy.direction,
+            enemy.patrolMin, enemy.patrolMax
+          )
+          this.alarmClocks.push(ac)
+          break
+        }
+        case 'freeloader': {
+          const fl = new Freeloader(this, enemy.x, enemy.y)
+          fl.onDrain = (amount) => {
+            usePlayerStats.getState().modifyStats({ energy: -amount }, 'enemy:freeloader')
+          }
+          fl.onShakeOff = () => {
+            usePlayerStats.getState().modifyStats({ reputation: 3 }, 'enemy:freeloader:shakeoff')
+          }
+          this.freeloaders.push(fl)
+          break
+        }
+        case 'midterm_stack': {
+          const ms = new MidtermStack(this, enemy.x, enemy.spawnWidth, enemy.spawnInterval)
+          ms.onHitPlayer = () => {
+            usePlayerStats.getState().modifyStats({ energy: -5 }, 'enemy:midterm_stack')
+          }
+          this.midtermStacks.push(ms)
+          break
+        }
+      }
+    }
+  }
+
+  private spawnPowerUps(cfg: LevelConfig) {
+    if (!cfg.powerUps) return
+    for (const pu of cfg.powerUps) {
+      this.powerUps.push(new PowerUp(this, pu.x, pu.y, pu.type))
+    }
+  }
+
+  private setupDialogueTriggers(cfg: LevelConfig) {
+    if (!cfg.dialogueTriggers) return
+
+    for (const trigCfg of cfg.dialogueTriggers) {
+      const trigger = new DialogueTrigger(this, {
+        x: trigCfg.x,
+        y: trigCfg.y,
+        width: trigCfg.width,
+        height: trigCfg.height,
+        dialogueId: trigCfg.dialogueId,
+        startNodeId: trigCfg.startNodeId,
+        dialogueTree: trigCfg.dialogueTree,
+        oneShot: trigCfg.oneShot,
+      })
+
+      // Draw NPC rectangle
+      const npcW = trigCfg.npcWidth ?? 40
+      const npcH = trigCfg.npcHeight ?? 60
+      const npcColor = trigCfg.npcColor ?? 0xF59E0B
+      const npc = this.add.rectangle(trigCfg.x, trigCfg.y + trigCfg.height / 2 - npcH / 2, npcW, npcH, npcColor)
+      npc.setDepth(1)
+
+      this.dialogueTriggers.push(trigger)
+    }
+  }
+
+  private setupBoss(cfg: LevelConfig) {
+    if (!cfg.boss || cfg.boss.type !== 'no_curve') return
+
+    this.boss = new BossNoCurve(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+    this.boss.onHitPlayer = () => {
+      // Flash player red
+      this.player.sprite.setFillStyle(0xEF4444)
+      this.time.delayedCall(200, () => {
+        const accentHex = useCharacterStore.getState().accentColor
+        this.player.sprite.setFillStyle(parseInt(accentHex.replace('#', ''), 16))
+      })
+    }
+    this.boss.onDefeated = () => {
+      // Signal level complete
+      useGameState.getState().setCurrentScene('level_complete')
+    }
+    this.bossStarted = false
+  }
+
+  // ── Entity Updates ──
+
+  private updateEnemies(delta: number) {
+    const px = this.player.sprite.x
+    const py = this.player.sprite.y
+    const jumpPressed = Phaser.Input.Keyboard.JustDown(this.jumpKey)
+
+    for (const ac of this.alarmClocks) {
+      ac.update()
+      // Collision with player
+      if (!ac.destroyed && !this.player.isInvulnerable) {
+        const dx = Math.abs(px - ac.sprite.x)
+        const dy = Math.abs(py - ac.sprite.y)
+        if (dx < 40 && dy < 50) {
+          usePlayerStats.getState().modifyStats({ energy: -10 }, 'enemy:alarm_clock')
+          ac.destroy()
+        }
+      }
+    }
+
+    for (const fl of this.freeloaders) {
+      fl.update(delta, px, py, jumpPressed)
+    }
+
+    for (const ms of this.midtermStacks) {
+      ms.update(delta, this.player.sprite)
+    }
+  }
+
+  private updatePowerUps() {
+    const px = this.player.sprite.x
+    const py = this.player.sprite.y
+
+    for (const pu of this.powerUps) {
+      if (pu.collected) continue
+      const dx = Math.abs(px - pu.sprite.x)
+      const dy = Math.abs(py - pu.sprite.y)
+      if (dx < 40 && dy < 50) {
+        pu.collect(this)
+      }
+    }
+  }
+
+  private updateBoss(delta: number) {
+    if (!this.boss || this.boss.destroyed) return
+
+    // Start boss fight when player enters arena
+    if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {
+      this.bossStarted = true
+      this.boss.startFight(this.player.sprite)
+    }
+
+    this.boss.update(delta)
+  }
+
+  private handleFallRespawn() {
+    // Check if player fell into a pit zone for energy cost
+    const px = this.player.sprite.x
+    const pitZone = this.levelConfig.pitZones?.find(
+      (p) => px >= p.x && px <= p.x + p.width
+    )
+    if (pitZone) {
+      usePlayerStats.getState().modifyStats({ energy: -pitZone.energyCost }, 'pit_fall')
+    }
+    this.player.respawnAtSafe()
   }
 
   private checkDialogueTriggers() {
     const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey)
-    let anyOverlap = false
 
     for (const trigger of this.dialogueTriggers) {
       if (!trigger.canTrigger()) continue
@@ -170,8 +325,6 @@ export class GameScene extends Phaser.Scene {
 
       if (inRange) {
         trigger.showPrompt()
-        anyOverlap = true
-
         if (interactPressed) {
           this.activeTrigger = trigger
           useDialogueState.getState().openDialogue(
@@ -185,6 +338,8 @@ export class GameScene extends Phaser.Scene {
       }
     }
   }
+
+  // ── Platforms & Backgrounds ──
 
   private buildBackgrounds(cfg: LevelConfig) {
     for (const layer of cfg.backgrounds) {
@@ -219,7 +374,6 @@ export class GameScene extends Phaser.Scene {
       const plat = this.movingPlatforms[i]
       const cfg = this.movingPlatformConfigs[i]
       const origin = this.movingPlatformOrigins[i]
-      const body = plat.body as Phaser.Physics.Arcade.Body
 
       const speed = cfg.moveSpeed ?? 80
       const period = ((cfg.moveX ?? 200) * 2) / speed
@@ -229,6 +383,7 @@ export class GameScene extends Phaser.Scene {
       if (cfg.moveX) {
         const progress = t < halfPeriod ? t / halfPeriod : 1 - (t - halfPeriod) / halfPeriod
         const newX = origin.x + (cfg.moveX * progress) - cfg.moveX / 2
+        const body = plat.body as Phaser.Physics.Arcade.Body
         body.setVelocityX((newX - plat.x) * 60)
         plat.x = newX
       }

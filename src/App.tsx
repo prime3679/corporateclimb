@@ -4,6 +4,8 @@ import { gameConfig } from './game/config/gameConfig'
 import { DialogueBox } from './ui/components/DialogueBox'
 import { HUD } from './ui/components/HUD'
 import { CharacterCreator } from './ui/components/CharacterCreator'
+import { TutorialPrompts } from './ui/components/TutorialPrompts'
+import { LevelComplete } from './ui/components/LevelComplete'
 import { useGameState } from './ui/stores/gameState'
 
 type AppPhase = 'boot' | 'character' | 'playing'
@@ -12,7 +14,7 @@ export default function App() {
   const gameRef = useRef<Phaser.Game | null>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [phase, setPhase] = useState<AppPhase>('boot')
-  const { setPlaying } = useGameState()
+  const { setPlaying, currentScene } = useGameState()
 
   useEffect(() => {
     if (gameRef.current || !containerRef.current) return
@@ -27,7 +29,6 @@ export default function App() {
       const bootScene = gameRef.current!.scene.getScene('Boot')
       if (bootScene) {
         bootScene.events.on('shutdown', () => {
-          // Intercept: don't go to GameScene yet, show character creator
           gameRef.current!.scene.stop('Game')
           setPhase('character')
         })
@@ -50,6 +51,20 @@ export default function App() {
     }
   }, [setPlaying])
 
+  const handleLevelContinue = useCallback(() => {
+    // For now, return to boot. Future: advance to next level
+    useGameState.getState().setCurrentScene('Game')
+    setPhase('boot')
+    setPlaying(false)
+    const game = gameRef.current
+    if (game) {
+      game.scene.stop('Game')
+      game.scene.start('Boot')
+    }
+  }, [setPlaying])
+
+  const showLevelComplete = phase === 'playing' && currentScene === 'level_complete'
+
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
       <div ref={containerRef} style={{ width: '100%', height: '100%' }} />
@@ -66,7 +81,11 @@ export default function App() {
         }}
       >
         {phase === 'character' && <CharacterCreator onStart={handleStartGame} />}
-        {phase === 'playing' && <HUD />}
+        {phase === 'playing' && !showLevelComplete && <HUD />}
+        {phase === 'playing' && !showLevelComplete && <TutorialPrompts />}
+        {showLevelComplete && (
+          <LevelComplete levelName="Freshman Year" onContinue={handleLevelContinue} />
+        )}
         <DialogueBox />
       </div>
     </div>
