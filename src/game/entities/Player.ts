@@ -1,4 +1,5 @@
 import Phaser from 'phaser'
+import { InputState } from '../systems/InputManager'
 
 type AnimState = 'idle' | 'run' | 'jump_up' | 'jump_fall' | 'dodge' | 'land'
 
@@ -74,7 +75,7 @@ export class Player {
     this.body.setSize(PLAYER_WIDTH, PLAYER_HEIGHT)
   }
 
-  update(dt: number, cursors: CursorKeys, wasd: WASDKeys, jumpKey: Phaser.Input.Keyboard.Key, dodgeKey: Phaser.Input.Keyboard.Key) {
+  update(dt: number, input: InputState) {
     const dtMs = dt
     const dtSec = dt / 1000
 
@@ -117,9 +118,7 @@ export class Player {
     }
 
     // --- Horizontal Movement ---
-    const leftPressed = cursors.left.isDown || wasd.left.isDown
-    const rightPressed = cursors.right.isDown || wasd.right.isDown
-    const moveDir = (rightPressed ? 1 : 0) - (leftPressed ? 1 : 0)
+    const moveDir = (input.right ? 1 : 0) - (input.left ? 1 : 0)
 
     if (moveDir !== 0) {
       this.facingRight = moveDir > 0
@@ -138,10 +137,9 @@ export class Player {
     }
 
     // --- Jump ---
-    const jumpPressed = Phaser.Input.Keyboard.JustDown(jumpKey)
-    this.jumpHeld = jumpKey.isDown
+    this.jumpHeld = input.jump
 
-    if (jumpPressed) {
+    if (input.jumpJustPressed) {
       this.jumpBufferTimer = JUMP_BUFFER
     } else {
       this.jumpBufferTimer = Math.max(0, this.jumpBufferTimer - dtMs)
@@ -160,8 +158,7 @@ export class Player {
     }
 
     // --- Dodge ---
-    const dodgePressed = Phaser.Input.Keyboard.JustDown(dodgeKey)
-    if (dodgePressed && this.dodgeCooldownTimer <= 0 && !this.isDodging) {
+    if (input.dodgeJustPressed && this.dodgeCooldownTimer <= 0 && !this.isDodging) {
       this.isDodging = true
       this.isInvulnerable = true
       this.dodgeTimer = DODGE_DURATION

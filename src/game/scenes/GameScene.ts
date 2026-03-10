@@ -25,6 +25,7 @@ import { BossGoldenCage } from '../entities/BossGoldenCage'
 import { BossAlgorithm } from '../entities/BossAlgorithm'
 import { OfficeMoodSystem } from '../systems/OfficeMoodSystem'
 import { ReorgSystem } from '../systems/ReorgSystem'
+import { inputManager } from '../systems/InputManager'
 import { useDialogueState } from '../../ui/stores/dialogueState'
 import { useCharacterStore } from '../../ui/stores/characterStore'
 import { usePlayerStats } from '../../ui/stores/playerStats'
@@ -186,7 +187,11 @@ export class GameScene extends Phaser.Scene {
   update(time: number, delta: number) {
     if (useDialogueState.getState().isOpen) return
 
-    this.player.update(delta, this.cursors, this.wasd, this.jumpKey, this.dodgeKey)
+    // Merge keyboard + touch input
+    inputManager.update(this.cursors, this.wasd, this.jumpKey, this.dodgeKey, this.interactKey)
+    const input = inputManager.getState()
+
+    this.player.update(delta, input)
 
     // Camera lookahead
     const lookDir = this.player.facingRight ? -80 : 80
@@ -407,7 +412,7 @@ export class GameScene extends Phaser.Scene {
   private updateEnemies(delta: number) {
     const px = this.player.sprite.x
     const py = this.player.sprite.y
-    const jumpPressed = Phaser.Input.Keyboard.JustDown(this.jumpKey)
+    const jumpPressed = inputManager.getState().jumpJustPressed
 
     for (const ac of this.alarmClocks) {
       ac.update()
@@ -553,7 +558,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private checkDialogueTriggers() {
-    const interactPressed = Phaser.Input.Keyboard.JustDown(this.interactKey)
+    const interactPressed = inputManager.getState().interactJustPressed
 
     for (const trigger of this.dialogueTriggers) {
       if (!trigger.canTrigger()) continue
@@ -583,16 +588,31 @@ export class GameScene extends Phaser.Scene {
   // ── Platforms & Backgrounds ──
 
   private buildBackgrounds(cfg: LevelConfig) {
+    // Sky gradient (drawn once, fixed)
+    const skyG = this.add.graphics()
+    const skyColors = [0x87CEEB, 0xA8D8EA, 0xD4E9F7, 0xF0E6D3]
+    const bandH = Math.ceil(this.cameras.main.height / skyColors.length)
+    for (let i = 0; i < skyColors.length; i++) {
+      skyG.fillStyle(skyColors[i], 1)
+      skyG.fillRect(0, i * bandH, this.cameras.main.width, bandH)
+    }
+    skyG.setScrollFactor(0)
+    skyG.setDepth(-20)
+
     for (const layer of cfg.backgrounds) {
       for (const bgRect of layer.rects) {
-        const color = bgRect.color ?? layer.color
-        // Use building texture if tall enough, otherwise just a tinted rect
+        // Use building texture if tall enough, otherwise a colored rect
         if (bgRect.height > 200 && this.textures.exists('bg_building')) {
           const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_building')
           tile.setScrollFactor(layer.scrollFactor)
           tile.setDepth(-10)
-          tile.setTint(color)
+          tile.setAlpha(0.85)
+        } else if (bgRect.height <= 80 && this.textures.exists('bg_bush')) {
+          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_bush')
+          tile.setScrollFactor(layer.scrollFactor)
+          tile.setDepth(-5)
         } else {
+          const color = bgRect.color ?? layer.color
           const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
           bg.setScrollFactor(layer.scrollFactor)
           bg.setDepth(-10)
@@ -600,15 +620,16 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Add clouds if sky layer exists
+    // Add clouds
     if (cfg.backgrounds.length > 0 && this.textures.exists('bg_cloud')) {
-      for (let i = 0; i < 5; i++) {
-        const cx = 200 + i * (cfg.width / 5)
-        const cy = 30 + Math.random() * 100
+      for (let i = 0; i < 6; i++) {
+        const cx = 100 + i * (cfg.width / 6)
+        const cy = 20 + Math.random() * 80
         const cloud = this.add.sprite(cx, cy, 'bg_cloud')
-        cloud.setScrollFactor(0.1)
-        cloud.setDepth(-9)
-        cloud.setAlpha(0.6)
+        cloud.setScrollFactor(0.05 + Math.random() * 0.1)
+        cloud.setDepth(-15)
+        cloud.setAlpha(0.5 + Math.random() * 0.3)
+        cloud.setScale(1 + Math.random() * 0.5)
       }
     }
   }
