@@ -8,7 +8,10 @@ import { TutorialPrompts } from './ui/components/TutorialPrompts'
 import { LevelComplete } from './ui/components/LevelComplete'
 import { WhisperOverlay } from './ui/components/WhisperOverlay'
 import { MontageOverlay } from './ui/components/MontageOverlay'
+import { EndingScreen } from './ui/components/EndingScreen'
 import { useGameState } from './ui/stores/gameState'
+import { usePlayerStats } from './ui/stores/playerStats'
+import { useChoiceHistory } from './ui/stores/choiceHistory'
 
 type AppPhase = 'boot' | 'character' | 'playing'
 
@@ -66,6 +69,20 @@ export default function App() {
   }, [setPlaying])
 
   const showLevelComplete = phase === 'playing' && currentScene === 'level_complete'
+  const showEnding = phase === 'playing' && currentScene === 'ending'
+
+  const handlePlayAgain = useCallback(() => {
+    usePlayerStats.getState().resetStats()
+    useChoiceHistory.getState().clearHistory()
+    useGameState.getState().setCurrentScene('Boot')
+    delete (window as any).__corporateClimbEnding
+    setPhase('character')
+    setPlaying(false)
+    const game = gameRef.current
+    if (game) {
+      game.scene.stop('Game')
+    }
+  }, [setPlaying])
 
   return (
     <div style={{ position: 'relative', width: '100%', height: '100%' }}>
@@ -93,6 +110,7 @@ export default function App() {
           active={montageActive}
           onComplete={() => bossMirrorRef?.onMontageComplete()}
         />
+        {showEnding && <EndingScreen onPlayAgain={handlePlayAgain} />}
         <DialogueBox />
       </div>
     </div>

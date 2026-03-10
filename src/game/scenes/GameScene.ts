@@ -21,6 +21,8 @@ import { BossImposterSyndrome } from '../entities/BossImposterSyndrome'
 import { ScopeCreepBlob } from '../entities/ScopeCreepBlob'
 import { GoldenHandcuffs } from '../entities/GoldenHandcuffs'
 import { BossMirror } from '../entities/BossMirror'
+import { BossGoldenCage } from '../entities/BossGoldenCage'
+import { BossAlgorithm } from '../entities/BossAlgorithm'
 import { OfficeMoodSystem } from '../systems/OfficeMoodSystem'
 import { ReorgSystem } from '../systems/ReorgSystem'
 import { useDialogueState } from '../../ui/stores/dialogueState'
@@ -77,6 +79,8 @@ export class GameScene extends Phaser.Scene {
   private bossSkipLevel: BossSkipLevel | null = null
   private bossImposterSyndrome: BossImposterSyndrome | null = null
   private bossMirror: BossMirror | null = null
+  private bossGoldenCage: BossGoldenCage | null = null
+  private bossAlgorithm: BossAlgorithm | null = null
   private bossStarted = false
 
   private levelConfig!: LevelConfig
@@ -371,6 +375,12 @@ export class GameScene extends Phaser.Scene {
       this.bossMirror.onMontageStart = () => useGameState.getState().setMontageActive(true)
       this.bossMirror.onMontageEnd = () => useGameState.getState().setMontageActive(false)
       useGameState.getState().setBossMirrorRef(this.bossMirror)
+    } else if (cfg.boss.type === 'golden_cage') {
+      this.bossGoldenCage = new BossGoldenCage(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossGoldenCage.onDefeated = onDefeated
+    } else if (cfg.boss.type === 'algorithm') {
+      this.bossAlgorithm = new BossAlgorithm(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossAlgorithm.onDefeated = onDefeated
     }
 
     this.bossStarted = false
@@ -504,7 +514,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateBoss(delta: number) {
-    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel ?? this.bossImposterSyndrome ?? this.bossMirror
+    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel ?? this.bossImposterSyndrome ?? this.bossMirror ?? this.bossGoldenCage ?? this.bossAlgorithm
     if (!boss || boss.destroyed) return
 
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {
