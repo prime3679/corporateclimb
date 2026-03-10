@@ -12,6 +12,7 @@ const GROUND_H = 40
 export const level1: LevelConfig = {
   id: 'level1',
   name: 'Freshman Year',
+  theme: 'campus',
   width: 8000,
   height: 720,
   spawn: { x: 200, y: 500 },

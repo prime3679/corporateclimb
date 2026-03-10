@@ -1,7 +1,7 @@
 import Phaser from 'phaser'
 import { usePlayerStats } from '../../ui/stores/playerStats'
 
-export type PowerUpType = 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice'
+export type PowerUpType = 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice' | 'energy_drink' | 'usb_drive' | 'business_card' | 'stress_ball'
 
 const POWER_UP_DEFS: Record<PowerUpType, { color: number; label: string; size: number }> = {
   espresso: { color: 0x92400E, label: '☕', size: 24 },
@@ -10,6 +10,10 @@ const POWER_UP_DEFS: Record<PowerUpType, { color: number; label: string; size: n
   side_hustle: { color: 0x7C3AED, label: '💻', size: 22 },
   linkedin_endorsement: { color: 0x2563EB, label: '👍', size: 24 },
   mentors_advice: { color: 0xD97706, label: '🎓', size: 24 },
+  energy_drink: { color: 0x00CC66, label: '⚡', size: 22 },
+  usb_drive: { color: 0x374151, label: '💾', size: 20 },
+  business_card: { color: 0x3B82F6, label: '📇', size: 20 },
+  stress_ball: { color: 0xEF4444, label: '🔴', size: 20 },
 }
 
 export class PowerUp {
@@ -74,6 +78,22 @@ export class PowerUp {
       case 'mentors_advice':
         stats.modifyStats({ reputation: 10 }, 'power-up:mentors_advice')
         consequence = '🎓 Mentor\'s Advice! +10 Reputation + hidden boss option unlocked'
+        break
+      case 'energy_drink':
+        stats.modifyStats({ energy: 15 }, 'power-up:energy_drink')
+        consequence = '⚡ Energy Drink! +15 Energy + speed boost'
+        break
+      case 'usb_drive':
+        stats.modifyStats({ reputation: 8 }, 'power-up:usb_drive')
+        consequence = '💾 USB Drive! +8 Reputation — contains the real org chart'
+        break
+      case 'business_card':
+        stats.modifyStats({ network: 3 }, 'power-up:business_card')
+        consequence = '📇 Business Card! +3 Network — VP of Synergy Optimization'
+        break
+      case 'stress_ball':
+        stats.modifyStats({ energy: 5 }, 'power-up:stress_ball')
+        consequence = '🔴 Stress Ball! +5 Energy — squeeze to decompress'
         break
     }
 

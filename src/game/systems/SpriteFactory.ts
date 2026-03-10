@@ -204,6 +204,124 @@ const STONE_TILE = [
   [2,1,1,1,1,2,1,4,2,1,1,2,1,1,1,1],
 ]
 
+// Corporate floor platform tiles
+
+// Linoleum (mailroom/lobby) — beige tiles with grout lines
+const LINOLEUM_PAL = [
+  0xD4C5A9,  // 0: tile light
+  0xC4B599,  // 1: tile mid
+  0xB8A88E,  // 2: tile dark
+  0x8B7D6B,  // 3: grout/scuff
+  0x6B5B4B,  // 4: baseboard
+  0xDDD0B8,  // 5: highlight
+]
+
+const LINOLEUM_TILE = [
+  [5,0,0,1,1,1,0,3,5,0,0,1,1,1,0,0],
+  [0,1,1,1,1,1,1,3,0,1,1,1,1,1,1,1],
+  [0,1,1,1,2,1,1,3,0,1,1,2,1,1,1,1],
+  [1,1,2,1,1,1,1,3,1,1,1,1,1,2,1,1],
+  [1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,1],
+  [0,1,1,1,1,2,1,3,0,1,1,1,2,1,1,1],
+  [0,1,1,1,1,1,1,3,0,1,1,1,1,1,1,1],
+  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+  [5,0,0,1,1,1,0,3,5,0,0,1,1,1,0,0],
+  [0,1,1,1,1,1,1,3,0,1,1,1,1,1,1,1],
+  [0,1,2,1,1,1,1,3,0,1,1,1,1,2,1,1],
+  [1,1,1,1,2,1,1,3,1,1,2,1,1,1,1,1],
+  [1,1,1,1,1,1,1,3,1,1,1,1,1,1,1,1],
+  [0,1,1,2,1,1,1,3,0,1,1,1,1,1,2,1],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+  [4,4,4,4,4,4,4,4,4,4,4,4,4,4,4,4],
+]
+
+// Carpet (cubicle farm) — gray with subtle pattern
+const CARPET_PAL = [
+  0x6B7280,  // 0: carpet mid
+  0x5B6370,  // 1: carpet dark
+  0x7B8490,  // 2: carpet light
+  0x4B5563,  // 3: pattern
+  0x8B95A0,  // 4: highlight
+  0x3B4553,  // 5: edge
+]
+
+const CARPET_TILE = [
+  [2,0,0,1,0,0,2,0,0,1,0,0,2,0,0,1],
+  [0,1,0,0,0,1,0,0,1,0,0,1,0,0,1,0],
+  [0,0,3,0,0,0,0,3,0,0,0,0,3,0,0,0],
+  [1,0,0,0,1,0,0,0,0,1,0,0,0,0,1,0],
+  [0,0,0,1,0,0,1,0,0,0,0,1,0,0,0,0],
+  [0,1,0,0,0,0,0,0,1,0,0,0,0,1,0,0],
+  [0,0,0,0,3,0,0,0,0,0,3,0,0,0,0,3],
+  [1,0,0,0,0,1,0,1,0,0,0,0,1,0,0,0],
+  [0,0,1,0,0,0,0,0,0,1,0,0,0,0,1,0],
+  [0,0,0,0,0,0,1,0,0,0,0,0,0,1,0,0],
+  [0,3,0,0,0,0,0,0,3,0,0,0,0,0,0,3],
+  [0,0,0,1,0,0,0,0,0,0,1,0,0,0,0,0],
+  [1,0,0,0,0,1,0,0,0,0,0,0,1,0,0,0],
+  [0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,1],
+  [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+  [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+]
+
+// Hardwood (executive floor) — warm brown planks
+const HARDWOOD_PAL = [
+  0x8B6544,  // 0: plank dark
+  0xA07856,  // 1: plank mid
+  0xC49B6F,  // 2: plank light
+  0x6B4226,  // 3: gap/shadow
+  0xDEB887,  // 4: highlight
+  0x785030,  // 5: knot
+]
+
+const HARDWOOD_TILE = [
+  [4,2,2,1,1,1,2,2,4,2,2,1,1,1,2,2],
+  [2,1,1,1,0,1,1,1,2,1,1,0,1,1,1,1],
+  [1,1,0,1,1,1,5,1,1,1,1,1,1,5,1,0],
+  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+  [2,1,4,2,2,1,1,1,2,4,2,2,1,1,1,2],
+  [1,1,1,1,0,1,1,1,1,1,1,0,1,1,1,1],
+  [0,1,1,5,1,1,1,0,1,1,1,1,1,0,1,1],
+  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+  [4,2,1,1,1,2,2,4,2,1,1,1,2,2,4,2],
+  [1,1,1,0,1,1,1,1,1,1,0,1,1,1,1,1],
+  [1,0,1,1,1,5,1,1,0,1,1,1,5,1,1,0],
+  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+  [2,2,4,2,1,1,1,2,2,4,2,1,1,1,2,2],
+  [1,0,1,1,1,1,1,0,1,1,1,1,1,1,0,1],
+  [1,1,1,1,0,1,1,1,1,5,1,0,1,1,1,1],
+  [3,3,3,3,3,3,3,3,3,3,3,3,3,3,3,3],
+]
+
+// Marble (C-suite) — white with gray veins
+const MARBLE_PAL = [
+  0xE8E4E0,  // 0: marble white
+  0xD8D4D0,  // 1: marble light gray
+  0xBBB5AD,  // 2: vein
+  0xF5F0E8,  // 3: highlight
+  0xCCC5BD,  // 4: vein dark
+  0xA8A098,  // 5: shadow
+]
+
+const MARBLE_TILE = [
+  [3,0,0,0,1,0,0,0,3,0,0,0,1,0,0,0],
+  [0,0,1,0,0,0,0,2,0,0,1,0,0,0,0,1],
+  [0,0,0,0,0,2,0,0,0,0,0,0,2,0,0,0],
+  [0,1,0,2,0,0,4,0,0,1,0,0,0,4,0,0],
+  [0,0,0,0,4,0,0,0,0,0,0,4,0,0,0,0],
+  [0,0,2,0,0,0,0,0,1,0,0,0,0,0,2,0],
+  [1,0,0,0,0,0,2,0,0,0,0,0,0,0,0,0],
+  [0,0,0,0,2,0,0,4,0,0,2,0,0,0,0,1],
+  [0,0,0,0,0,4,0,0,0,0,0,0,0,2,0,0],
+  [0,2,0,0,0,0,0,0,0,0,0,0,4,0,0,0],
+  [0,0,0,0,0,0,4,0,0,2,0,0,0,0,0,0],
+  [0,0,4,0,0,0,0,0,0,0,0,0,0,0,4,0],
+  [1,0,0,0,2,0,0,0,1,0,0,2,0,0,0,0],
+  [0,0,0,0,0,0,0,2,0,0,0,0,0,0,0,2],
+  [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+  [5,5,5,5,5,5,5,5,5,5,5,5,5,5,5,5],
+]
+
 // One-way platform tile
 const ONEWAY_PAL = [
   0x8B6544,  // 0: wood dark
@@ -297,6 +415,98 @@ const NPC_BODY = [
   [T,T,T,0,0,T,T,0,0,T,T,T],
 ]
 
+// NPC variants — intern (with lanyard)
+const NPC_INTERN = [
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,0,1,1,1,1,1,1,1,1,0,T],
+  [T,0,1,3,0,1,1,3,0,1,0,T],
+  [T,0,1,1,1,2,2,1,1,1,0,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,0,0,4,4,6,4,4,4,0,0,T],  // 6 = lanyard/badge
+  [0,2,0,4,4,6,5,4,4,0,2,0],
+  [0,1,0,4,4,6,4,4,4,0,1,0],
+  [T,0,T,0,4,4,4,4,0,T,0,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+]
+
+// NPC manager (with tie, wider shoulders)
+const NPC_MANAGER = [
+  [T,T,T,0,0,0,0,0,0,T,T,T,T,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T,T,T],
+  [T,0,1,1,1,1,1,1,1,1,0,T,T,T],
+  [T,0,1,3,0,1,1,3,0,1,0,T,T,T],
+  [T,0,1,1,1,2,2,1,1,1,0,T,T,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T,T,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T,T,T],
+  [0,0,0,4,4,4,4,4,4,0,0,0,T,T],
+  [0,2,0,4,4,6,6,4,4,0,2,0,T,T],  // 6 = tie
+  [0,1,0,4,4,6,6,4,4,0,1,0,T,T],
+  [T,0,T,0,4,4,6,4,0,T,0,T,T,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T,T,T],
+]
+
+// NPC executive (taller, suit jacket)
+const NPC_EXEC = [
+  [T,T,T,T,0,0,0,0,0,0,T,T,T,T],
+  [T,T,T,0,1,1,1,1,1,1,0,T,T,T],
+  [T,T,0,1,1,1,1,1,1,1,1,0,T,T],
+  [T,T,0,1,3,0,1,1,3,0,1,0,T,T],
+  [T,T,0,1,1,1,2,2,1,1,1,0,T,T],
+  [T,T,T,0,1,1,1,1,1,1,0,T,T,T],
+  [T,T,T,T,0,0,0,0,0,0,T,T,T,T],
+  [T,0,0,5,4,4,4,4,4,4,5,0,0,T],
+  [0,2,0,5,4,4,6,6,4,4,5,0,2,0],
+  [0,1,0,5,4,4,6,6,4,4,5,0,1,0],
+  [T,0,T,0,5,4,4,4,4,5,0,T,0,T],
+  [T,T,T,0,0,5,5,5,5,0,0,T,T,T],
+  [T,T,T,0,0,0,0,0,0,0,0,T,T,T],
+  [T,T,T,T,0,0,T,T,0,0,T,T,T,T],
+  [T,T,T,T,0,0,T,T,0,0,T,T,T,T],
+  [T,T,T,T,0,0,T,T,0,0,T,T,T,T],
+]
+
+// NPC IT guy (hoodie + headphones)
+const NPC_IT = [
+  [T,T,0,0,0,0,0,0,0,0,T,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,0,1,1,1,1,1,1,1,1,0,T],
+  [6,0,1,3,0,1,1,3,0,1,0,6],  // 6 = headphones
+  [T,0,1,1,1,2,2,1,1,1,0,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,0,4,4,4,4,4,4,4,4,0,T],  // hoodie (wider)
+  [0,2,4,4,4,5,5,4,4,4,2,0],
+  [0,1,0,4,4,4,4,4,4,0,1,0],
+  [T,0,T,0,4,4,4,4,0,T,0,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+]
+
+// NPC HR (clipboard in front)
+const NPC_HR = [
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,0,1,1,1,1,1,1,1,1,0,T],
+  [T,0,1,3,0,1,1,3,0,1,0,T],
+  [T,0,1,1,1,2,2,1,1,1,0,T],
+  [T,T,0,1,1,1,1,1,1,0,T,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,0,0,4,4,4,4,4,4,0,0,T],
+  [0,2,0,4,6,6,6,6,4,0,2,0],  // 6 = clipboard
+  [0,1,0,4,6,0,0,6,4,0,1,0],
+  [T,0,T,0,6,6,6,6,0,T,0,T],
+  [T,T,T,0,0,0,0,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+  [T,T,T,0,0,T,T,0,0,T,T,T],
+]
+
 // ── Power-up definitions ──
 const ESPRESSO_PAL = [0x000000, 0x6F4E37, 0xDEB887, 0xFFFFFF, 0x8B6544, 0xF5F5DC]
 const ESPRESSO_SPRITE = [
@@ -309,6 +519,66 @@ const ESPRESSO_SPRITE = [
   [T,0,1,1,1,1,0,0],
   [T,0,0,0,0,0,0,T],
   [T,T,0,2,2,0,T,T],
+  [T,T,0,0,0,0,T,T],
+]
+
+// Energy drink (8x16)
+const EDRINK_PAL = [0x000000, 0x00CC66, 0x00AA55, 0xFFFFFF, 0xC0C0C0, 0x009944]
+const EDRINK_SPRITE = [
+  [T,T,T,4,4,T,T,T],
+  [T,T,0,4,4,0,T,T],
+  [T,0,1,1,1,1,0,T],
+  [T,0,1,2,2,1,0,T],
+  [T,0,1,1,1,1,0,T],
+  [T,0,3,3,3,3,0,T],
+  [T,0,3,0,0,3,0,T],
+  [T,0,3,3,3,3,0,T],
+  [T,0,1,1,1,1,0,T],
+  [T,0,1,5,1,1,0,T],
+  [T,0,1,1,5,1,0,T],
+  [T,0,1,1,1,1,0,T],
+  [T,0,2,2,2,2,0,T],
+  [T,0,1,1,1,1,0,T],
+  [T,0,2,2,2,2,0,T],
+  [T,T,0,0,0,0,T,T],
+]
+
+// USB drive (6x10)
+const USB_PAL = [0x000000, 0x374151, 0x6B7280, 0x3B82F6, 0x9CA3AF]
+const USB_SPRITE = [
+  [T,0,4,4,0,T],
+  [T,0,1,1,0,T],
+  [0,1,1,1,1,0],
+  [0,1,2,2,1,0],
+  [0,1,1,1,1,0],
+  [0,1,1,1,1,0],
+  [0,1,3,1,1,0],
+  [0,1,1,1,1,0],
+  [0,1,1,1,1,0],
+  [T,0,0,0,0,T],
+]
+
+// Business card (10x6)
+const BCARD_PAL = [0xFFFFFF, 0xE8E4E0, 0x000000, 0x3B82F6, 0xCCC8C4]
+const BCARD_SPRITE = [
+  [2,2,2,2,2,2,2,2,2,2],
+  [2,0,0,0,0,0,0,3,0,2],
+  [2,0,4,4,4,4,0,3,0,2],
+  [2,0,0,0,0,0,0,0,0,2],
+  [2,0,4,4,4,4,4,4,0,2],
+  [2,2,2,2,2,2,2,2,2,2],
+]
+
+// Stress ball (8x8)
+const SBALL_PAL = [0x000000, 0xEF4444, 0xDC2626, 0xF87171, 0xFCA5A5]
+const SBALL_SPRITE = [
+  [T,T,0,0,0,0,T,T],
+  [T,0,3,4,3,1,0,T],
+  [0,3,1,3,1,1,2,0],
+  [0,4,3,1,1,2,2,0],
+  [0,1,1,1,2,2,2,0],
+  [0,1,1,2,2,2,2,0],
+  [T,0,2,2,2,2,0,T],
   [T,T,0,0,0,0,T,T],
 ]
 
@@ -358,6 +628,10 @@ export function generateAllTextures(scene: Phaser.Scene) {
   renderSprite(scene, 'platform_grass', GRASS_TILE, GRASS_PAL)
   renderSprite(scene, 'platform_stone', STONE_TILE, STONE_PAL)
   renderSprite(scene, 'platform_oneway', ONEWAY_TILE, ONEWAY_PAL)
+  renderSprite(scene, 'platform_linoleum', LINOLEUM_TILE, LINOLEUM_PAL)
+  renderSprite(scene, 'platform_carpet', CARPET_TILE, CARPET_PAL)
+  renderSprite(scene, 'platform_hardwood', HARDWOOD_TILE, HARDWOOD_PAL)
+  renderSprite(scene, 'platform_marble', MARBLE_TILE, MARBLE_PAL)
 
   // Enemies
   renderSprite(scene, 'enemy_alarm', ALARM_SPRITE, ALARM_PAL)
@@ -366,8 +640,12 @@ export function generateAllTextures(scene: Phaser.Scene) {
 
   // Power-ups
   renderSprite(scene, 'powerup_espresso', ESPRESSO_SPRITE, ESPRESSO_PAL)
+  renderSprite(scene, 'powerup_energy_drink', EDRINK_SPRITE, EDRINK_PAL)
+  renderSprite(scene, 'powerup_usb_drive', USB_SPRITE, USB_PAL)
+  renderSprite(scene, 'powerup_business_card', BCARD_SPRITE, BCARD_PAL)
+  renderSprite(scene, 'powerup_stress_ball', SBALL_SPRITE, SBALL_PAL)
 
-  // NPCs (5 color variants)
+  // NPCs (5 color variants of each type)
   const NPC_COLORS = [
     [0x3498DB, 0x2471A3],  // blue
     [0xE74C3C, 0xA93226],  // red
@@ -375,9 +653,19 @@ export function generateAllTextures(scene: Phaser.Scene) {
     [0xF39C12, 0xD68910],  // orange
     [0x9B59B6, 0x7D3C98],  // purple
   ]
-  for (let i = 0; i < NPC_COLORS.length; i++) {
-    const pal = [...NPC_PAL, NPC_COLORS[i][0], NPC_COLORS[i][1]]
-    renderSprite(scene, `npc_${i}`, NPC_BODY, pal)
+  const NPC_TYPES: { key: string; body: number[][] }[] = [
+    { key: 'npc', body: NPC_BODY },
+    { key: 'npc_intern', body: NPC_INTERN },
+    { key: 'npc_manager', body: NPC_MANAGER },
+    { key: 'npc_executive', body: NPC_EXEC },
+    { key: 'npc_it_guy', body: NPC_IT },
+    { key: 'npc_hr', body: NPC_HR },
+  ]
+  for (const npcType of NPC_TYPES) {
+    for (let i = 0; i < NPC_COLORS.length; i++) {
+      const pal = [...NPC_PAL, NPC_COLORS[i][0], NPC_COLORS[i][1]]
+      renderSprite(scene, `${npcType.key}_${i}`, npcType.body, pal)
+    }
   }
 
   // Bosses (color variants of same large sprite)
@@ -506,6 +794,150 @@ function generateBgTextures(scene: Phaser.Scene) {
   fillBlock(g, 5, 2, 6, 1)
   g.generateTexture('bg_cloud', 16 * S, 6 * S)
   g.destroy()
+
+  // ── Corporate environment textures ──
+
+  // Desk with monitor (16x12)
+  const DESK_PAL = [0x78350F, 0x6B4226, 0x374151, 0x6DB8E0, 0x1F2937, 0xA0784F, 0x000000]
+  const DESK_SPRITE = [
+    [T,T,T,T,T,6,2,2,2,2,6,T,T,T,T,T],
+    [T,T,T,T,T,6,3,3,3,3,6,T,T,T,T,T],
+    [T,T,T,T,T,6,3,3,3,3,6,T,T,T,T,T],
+    [T,T,T,T,T,6,3,3,3,3,6,T,T,T,T,T],
+    [T,T,T,T,T,6,2,2,2,2,6,T,T,T,T,T],
+    [T,T,T,T,T,T,T,4,4,T,T,T,T,T,T,T],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,5,5,0,0,0,0,0,0,0,0,0,0,5,5,6],
+    [6,5,5,5,5,5,5,5,5,5,5,5,5,5,5,6],
+    [6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6],
+    [T,6,T,T,T,T,T,T,T,T,T,T,T,T,6,T],
+    [T,6,T,T,T,T,T,T,T,T,T,T,T,T,6,T],
+  ]
+  renderSprite(scene, 'bg_desk', DESK_SPRITE, DESK_PAL)
+
+  // Cubicle wall with pinboard (16x16)
+  const CUB_PAL = [0x9CA3AF, 0x6B7280, 0xFBBF24, 0xEF4444, 0x78716C, 0xB0B8C0, 0x4B5563]
+  const CUB_SPRITE = [
+    [6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,0,5,0,0,0,0,5,0,0,0,0,5,0,0,6],
+    [6,0,0,0,2,2,0,0,0,3,3,0,0,0,0,6],
+    [6,0,0,0,2,2,0,0,0,3,3,0,0,0,0,6],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,0,0,0,0,0,2,2,0,0,0,0,0,0,0,6],
+    [6,0,5,0,0,0,2,2,0,0,0,5,0,0,0,6],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,0,0,3,3,0,0,0,0,2,2,0,0,0,0,6],
+    [6,0,0,3,3,0,0,0,0,2,2,0,0,0,0,6],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,0,0,0,0,0,0,5,0,0,0,0,0,5,0,6],
+    [6,0,0,0,0,0,0,0,0,0,0,0,0,0,0,6],
+    [6,1,1,1,1,1,1,1,1,1,1,1,1,1,1,6],
+    [6,6,6,6,6,6,6,6,6,6,6,6,6,6,6,6],
+  ]
+  renderSprite(scene, 'bg_cubicle', CUB_SPRITE, CUB_PAL)
+
+  // Water cooler (8x16)
+  const WC_PAL = [0xE8E4E0, 0x6DB8E0, 0x374151, 0x000000, 0xC8C4C0, 0x4BA8D0]
+  const WC_SPRITE = [
+    [T,T,3,0,0,3,T,T],
+    [T,3,1,1,1,1,3,T],
+    [T,3,1,5,1,1,3,T],
+    [T,3,1,1,1,1,3,T],
+    [T,3,1,5,1,1,3,T],
+    [T,3,1,1,1,1,3,T],
+    [T,3,0,0,0,0,3,T],
+    [T,3,0,4,4,0,3,T],
+    [T,3,0,0,0,0,3,T],
+    [T,3,0,0,0,0,3,T],
+    [T,3,0,4,0,0,3,T],
+    [T,3,0,0,0,0,3,T],
+    [T,3,2,2,2,2,3,T],
+    [T,T,3,2,2,3,T,T],
+    [T,3,3,3,3,3,3,T],
+    [T,3,T,T,T,T,3,T],
+  ]
+  renderSprite(scene, 'bg_watercooler', WC_SPRITE, WC_PAL)
+
+  // Filing cabinet (10x16)
+  const FC_PAL = [0x6B7280, 0x4B5563, 0x9CA3AF, 0x000000, 0x838B95]
+  const FC_SPRITE = [
+    [3,1,1,1,1,1,1,1,1,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,4,0,2,2,0,4,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,1,1,1,1,1,1,1,1,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,4,0,2,2,0,4,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,1,1,1,1,1,1,1,1,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,4,0,2,2,0,4,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,0,0,0,0,0,0,0,0,3],
+    [3,1,1,1,1,1,1,1,1,3],
+  ]
+  renderSprite(scene, 'bg_filing_cabinet', FC_SPRITE, FC_PAL)
+
+  // Motivational poster (10x14)
+  const POST_PAL = [0x000000, 0xFFFFFF, 0x4F46E5, 0xFBBF24, 0x8B8585, 0xE8E4E0]
+  const POST_SPRITE = [
+    [0,0,0,0,0,0,0,0,0,0],
+    [0,5,5,5,5,5,5,5,5,0],
+    [0,5,2,2,2,2,2,2,5,0],
+    [0,5,2,2,2,2,2,2,5,0],
+    [0,5,2,2,3,3,2,2,5,0],
+    [0,5,2,3,3,3,3,2,5,0],
+    [0,5,2,2,2,2,2,2,5,0],
+    [0,5,2,2,2,2,2,2,5,0],
+    [0,5,5,5,5,5,5,5,5,0],
+    [0,5,1,4,4,4,4,1,5,0],
+    [0,5,1,1,1,1,1,1,5,0],
+    [0,5,4,4,4,4,4,4,5,0],
+    [0,5,5,5,5,5,5,5,5,0],
+    [0,0,0,0,0,0,0,0,0,0],
+  ]
+  renderSprite(scene, 'bg_poster', POST_SPRITE, POST_PAL)
+
+  // Sad office plant (8x14)
+  const PLANT_PAL = [0x4A8C38, 0x2D5A1E, 0x6CBF50, 0x8B5A2B, 0x6B4226, 0x374151]
+  const PLANT_SPRITE = [
+    [T,T,T,2,0,T,T,T],
+    [T,T,2,0,2,0,T,T],
+    [T,2,0,1,0,2,T,T],
+    [T,0,1,0,1,0,2,T],
+    [2,0,1,0,0,1,0,T],
+    [T,2,0,0,1,0,2,T],
+    [T,T,2,0,0,2,T,T],
+    [T,T,T,1,1,T,T,T],
+    [T,T,T,1,1,T,T,T],
+    [T,T,5,3,3,5,T,T],
+    [T,5,3,3,3,3,5,T],
+    [T,5,3,4,4,3,5,T],
+    [T,5,3,3,3,3,5,T],
+    [T,T,5,5,5,5,T,T],
+  ]
+  renderSprite(scene, 'bg_plant', PLANT_SPRITE, PLANT_PAL)
+
+  // Coffee machine (10x12)
+  const CM_PAL = [0x1F2937, 0x374151, 0xEF4444, 0x6F4E37, 0x4B5563, 0x9CA3AF]
+  const CM_SPRITE = [
+    [T,4,0,0,0,0,0,0,4,T],
+    [T,4,0,1,1,1,1,0,4,T],
+    [T,4,0,1,5,5,1,0,4,T],
+    [T,4,0,1,5,5,1,0,4,T],
+    [T,4,0,1,1,1,1,0,4,T],
+    [T,4,0,0,0,0,0,0,4,T],
+    [T,4,0,1,2,1,1,0,4,T],
+    [T,4,0,0,0,0,0,0,4,T],
+    [T,4,T,T,3,3,T,T,4,T],
+    [T,4,T,T,3,T,T,T,4,T],
+    [T,4,4,4,4,4,4,4,4,T],
+    [T,T,4,T,T,T,T,4,T,T],
+  ]
+  renderSprite(scene, 'bg_coffee_machine', CM_SPRITE, CM_PAL)
 
   // Building — Pokémon town style: bright colored roofs, cream walls
   const bldgW = 48

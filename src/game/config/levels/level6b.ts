@@ -11,6 +11,7 @@ const GROUND_H = 40
 export const level6b: LevelConfig = {
   id: 'level6b',
   name: 'The Pivot',
+  theme: 'garage',
   width: 9000,
   height: 720,
   spawn: { x: 200, y: 500 },

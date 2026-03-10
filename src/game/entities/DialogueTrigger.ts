@@ -10,6 +10,7 @@ export interface DialogueTriggerConfig {
   startNodeId: string
   dialogueTree: DialogueNode[]
   oneShot: boolean
+  meetingBattle?: boolean
 }
 
 export class DialogueTrigger {

@@ -13,6 +13,7 @@ const GROUND_H = 40
 export const level6c: LevelConfig = {
   id: 'level6c',
   name: 'The Hybrid',
+  theme: 'boardroom',
   width: 5000,
   height: 720,
   spawn: { x: 200, y: 500 },

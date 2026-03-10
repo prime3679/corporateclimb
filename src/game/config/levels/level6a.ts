@@ -11,6 +11,7 @@ const GROUND_H = 40
 export const level6a: LevelConfig = {
   id: 'level6a',
   name: 'Corner Office',
+  theme: 'csuite',
   width: 8000,
   height: 720,
   spawn: { x: 200, y: 500 },

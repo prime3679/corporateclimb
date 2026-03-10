@@ -209,3 +209,79 @@ export const creditThiefDialogue: DialogueNode[] = [
     text: "Great! I knew you were a team player. I'll make sure to mention your... support role.",
   },
 ]
+
+// Standing Desk Evangelist — open office zealot
+export const standingDeskDialogue: DialogueNode[] = [
+  {
+    id: 'start',
+    speaker: 'Jake (Standing Desk Evangelist)',
+    text: "Hey! You should really try standing. I've been standing for six hours straight. My calves are SCREAMING but my productivity is through the ROOF.",
+    options: [
+      { text: '"How do you know it\'s better?"', nextNodeId: 'proof' },
+      { text: '"I\'ll stick with sitting, thanks."', nextNodeId: 'sitting' },
+      { text: '"Your monitor is at belly height."', nextNodeId: 'height' },
+    ],
+  },
+  {
+    id: 'proof',
+    speaker: 'Jake (Standing Desk Evangelist)',
+    text: "I read an article. Well, a headline. On LinkedIn. But the point STANDS — get it? Stands? Because I'm standing?",
+    options: [
+      { text: 'Force a polite laugh.', statChanges: { network: 2 }, consequence: '+2 Network — Jake considers you a friend now.' },
+    ],
+  },
+  {
+    id: 'sitting',
+    speaker: 'Jake (Standing Desk Evangelist)',
+    text: "Sitting is the new smoking! Or was it sugar? Either way, you're basically on fire right now. Metaphorically.",
+    options: [
+      { text: 'Nod and walk away.', consequence: "Jake will bring this up in every all-hands." },
+    ],
+  },
+  {
+    id: 'height',
+    speaker: 'Jake (Standing Desk Evangelist)',
+    text: "...Is it? Oh. OH. I've been looking down for six— that explains the neck thing. Thanks, you might have saved my vertebrae.",
+    options: [
+      { text: '"Any time."', statChanges: { reputation: 3 }, consequence: '+3 Reputation — ergonomics hero.' },
+    ],
+  },
+]
+
+// Meeting Scheduler — books meetings about meetings
+export const meetingSchedulerDialogue: DialogueNode[] = [
+  {
+    id: 'start',
+    speaker: 'Priya (Meeting Coordinator)',
+    text: "Perfect timing! I need to schedule a pre-meeting for the post-mortem of last week's retrospective on our meeting cadence review.",
+    options: [
+      { text: '"How many meetings is that?"', nextNodeId: 'count' },
+      { text: '"I have a conflict."', nextNodeId: 'conflict' },
+      { text: '"What if we just... didn\'t?"', nextNodeId: 'radical' },
+    ],
+  },
+  {
+    id: 'count',
+    speaker: 'Priya (Meeting Coordinator)',
+    text: "Let me check... *scrolls furiously* ...it's meetings all the way down. I have a recurring meeting to review my recurring meetings. It's beautiful, really.",
+    options: [
+      { text: 'Stare blankly.', statChanges: { energy: -3 }, consequence: '-3 Energy — absorbed into the meeting vortex.' },
+    ],
+  },
+  {
+    id: 'conflict',
+    speaker: 'Priya (Meeting Coordinator)',
+    text: "No worries! I'll schedule a meeting to discuss your conflict. Is 4:45 PM on Friday good? I know you're free — I can see your calendar.",
+    options: [
+      { text: '"...Fine."', statChanges: { energy: -5 }, consequence: '-5 Energy — Friday is ruined.' },
+    ],
+  },
+  {
+    id: 'radical',
+    speaker: 'Priya (Meeting Coordinator)',
+    text: "Not have meetings? That's... that's the most radical thing anyone has ever said to me. I need to schedule a meeting to process this.",
+    options: [
+      { text: 'Walk away before she books it.', statChanges: { reputation: 5 }, consequence: '+5 Reputation — legend status in the office.' },
+    ],
+  },
+]

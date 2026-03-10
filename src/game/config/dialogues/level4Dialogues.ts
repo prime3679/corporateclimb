@@ -134,3 +134,77 @@ export const preBossCoworkerDialogue: DialogueNode[] = [
     text: "Good. Then you'll be ready. The Mirror Room is ahead. It's not about fighting — it's about surviving what you see. Good luck.",
   },
 ]
+
+// Meeting Battle: Q3 Planning Review
+export const q3PlanningMeetingDialogue: DialogueNode[] = [
+  {
+    id: 'start',
+    speaker: 'Director of Strategy',
+    text: "Alright team, let's align on Q3 deliverables. We need to synergize across verticals and leverage our core competencies. Who wants to kick us off?",
+    options: [
+      { text: '"I\'ve prepared a deck on cross-functional alignment."', nextNodeId: 'deck', statChanges: { reputation: 5, energy: -8 }, consequence: '+5 Rep, -8 Energy — ambitious opener' },
+      { text: '"Let\'s start with the data."', nextNodeId: 'data', statChanges: { reputation: 3, energy: -3 }, consequence: '+3 Rep, -3 Energy — safe play' },
+      { text: '"Can we take this offline?"', nextNodeId: 'offline', statChanges: { reputation: -3 }, consequence: '-3 Rep — wrong answer in a meeting battle' },
+    ],
+  },
+  {
+    id: 'deck',
+    speaker: 'Director of Strategy',
+    text: "Impressive initiative! Now — who owns the action items from last quarter? Because I'm seeing a lot of red on the tracker.",
+    options: [
+      { text: '"I\'ll own the blockers."', nextNodeId: 'own_it', statChanges: { energy: -10, reputation: 8 }, consequence: '-10 Energy, +8 Rep — bold commitment' },
+      { text: '"Per the RACI matrix, that\'s cross-team."', nextNodeId: 'deflect', statChanges: { energy: -3 }, consequence: '-3 Energy — corporate judo' },
+    ],
+  },
+  {
+    id: 'data',
+    speaker: 'Director of Strategy',
+    text: "Good, good. The data says we're behind on OKRs. Any blockers we should flag?",
+    options: [
+      { text: '"No blockers, all green."', nextNodeId: 'own_it', statChanges: { reputation: 5 }, consequence: '+5 Rep — confident' },
+      { text: '"Actually, we need to discuss resourcing."', nextNodeId: 'honest', statChanges: { reputation: -2, network: 5 }, consequence: '-2 Rep, +5 Network — honest gets allies' },
+    ],
+  },
+  {
+    id: 'offline',
+    speaker: 'Director of Strategy',
+    text: "...We're literally IN the meeting. This IS the online. But fine, noted. Moving on without your input.",
+    options: [
+      { text: 'Stare at your laptop.', nextNodeId: 'survive', statChanges: { energy: -5 }, consequence: '-5 Energy — painful silence' },
+    ],
+  },
+  {
+    id: 'own_it',
+    speaker: 'Director of Strategy',
+    text: "Excellent! Any final thoughts before we wrap? I want to leave with clear next steps.",
+    options: [
+      { text: '"Let\'s circle back next week with updates."', statChanges: { reputation: 5, energy: -3 }, consequence: '+5 Rep, -3 Energy — MEETING SURVIVED!' },
+      { text: '"I think we\'re aligned."', statChanges: { reputation: 3 }, consequence: '+3 Rep — MEETING SURVIVED!' },
+    ],
+  },
+  {
+    id: 'deflect',
+    speaker: 'Director of Strategy',
+    text: "The RACI matrix... right. Well, someone needs to own this. Any volunteers? ...Anyone?",
+    options: [
+      { text: '"I\'ll take point."', statChanges: { reputation: 8, energy: -8 }, consequence: '+8 Rep, -8 Energy — MEETING SURVIVED! (barely)' },
+      { text: 'Stay silent.', statChanges: { reputation: -5 }, consequence: '-5 Rep — cowardice noted. MEETING SURVIVED.' },
+    ],
+  },
+  {
+    id: 'honest',
+    speaker: 'Director of Strategy',
+    text: "Hmm. Fair point. I appreciate the transparency. Let's flag it up. Anything else?",
+    options: [
+      { text: '"That covers it."', statChanges: { reputation: 3 }, consequence: '+3 Rep — MEETING SURVIVED with integrity!' },
+    ],
+  },
+  {
+    id: 'survive',
+    speaker: 'Director of Strategy',
+    text: "Alright, that's a wrap. Action items will be in the follow-up email. Which nobody will read.",
+    options: [
+      { text: 'Close your laptop.', consequence: 'MEETING SURVIVED — barely.' },
+    ],
+  },
+]

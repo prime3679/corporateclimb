@@ -20,12 +20,13 @@ export interface DialogueNode {
 
 interface DialogueState {
   isOpen: boolean
+  isMeetingBattle: boolean
   currentNode: DialogueNode | null
   dialogueTree: DialogueNode[]
   dialogueId: string
   consequence: string | null
   showingConsequence: boolean
-  openDialogue: (dialogueId: string, startNodeId: string, tree: DialogueNode[]) => void
+  openDialogue: (dialogueId: string, startNodeId: string, tree: DialogueNode[], meetingBattle?: boolean) => void
   selectOption: (optionIndex: number) => void
   advanceOrClose: () => void
   closeDialogue: () => void
@@ -33,16 +34,18 @@ interface DialogueState {
 
 export const useDialogueState = create<DialogueState>((set, get) => ({
   isOpen: false,
+  isMeetingBattle: false,
   currentNode: null,
   dialogueTree: [],
   dialogueId: '',
   consequence: null,
   showingConsequence: false,
 
-  openDialogue: (dialogueId, startNodeId, tree) => {
+  openDialogue: (dialogueId, startNodeId, tree, meetingBattle = false) => {
     const startNode = tree.find((n) => n.id === startNodeId)
     set({
       isOpen: true,
+      isMeetingBattle: meetingBattle,
       currentNode: startNode ?? null,
       dialogueTree: tree,
       dialogueId,
@@ -112,5 +115,5 @@ export const useDialogueState = create<DialogueState>((set, get) => ({
     }
   },
 
-  closeDialogue: () => set({ isOpen: false, currentNode: null, consequence: null, showingConsequence: false }),
+  closeDialogue: () => set({ isOpen: false, isMeetingBattle: false, currentNode: null, consequence: null, showingConsequence: false }),
 }))

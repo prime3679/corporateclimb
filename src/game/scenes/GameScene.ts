@@ -1,6 +1,6 @@
 import Phaser from 'phaser'
 import { Player, CursorKeys, WASDKeys } from '../entities/Player'
-import { LevelConfig, PlatformConfig } from '../config/levels/types'
+import { LevelConfig, PlatformConfig, CorporateTheme } from '../config/levels/types'
 import { level1 } from '../config/levels/level1'
 import { DialogueTrigger } from '../entities/DialogueTrigger'
 import { AlarmClock } from '../entities/AlarmClock'
@@ -309,11 +309,15 @@ export class GameScene extends Phaser.Scene {
         startNodeId: trigCfg.startNodeId,
         dialogueTree: trigCfg.dialogueTree,
         oneShot: trigCfg.oneShot,
+        meetingBattle: trigCfg.meetingBattle,
       })
 
-      // Use generated NPC sprite if available
+      // Use NPC type sprite if specified, else cycle through default variants
       const npcIdx = this.dialogueTriggers.length % 5
-      const npcKey = `npc_${npcIdx}`
+      const typePrefix = trigCfg.npcType && trigCfg.npcType !== 'default'
+        ? `npc_${trigCfg.npcType}`
+        : 'npc'
+      const npcKey = `${typePrefix}_${npcIdx}`
       if (this.textures.exists(npcKey)) {
         const npc = this.add.sprite(trigCfg.x, trigCfg.y + trigCfg.height / 2 - 20, npcKey)
         npc.setDepth(2)
@@ -576,7 +580,8 @@ export class GameScene extends Phaser.Scene {
           useDialogueState.getState().openDialogue(
             trigger.config.dialogueId,
             trigger.config.startNodeId,
-            trigger.config.dialogueTree
+            trigger.config.dialogueTree,
+            trigger.config.meetingBattle,
           )
         }
       } else {
@@ -587,10 +592,52 @@ export class GameScene extends Phaser.Scene {
 
   // ── Platforms & Backgrounds ──
 
+  private getThemeSkyColors(theme?: CorporateTheme): number[] {
+    switch (theme) {
+      case 'cubicle_farm':  return [0xD4D4D4, 0xC8C8C8, 0xBCBCBC, 0xB0B0B0]  // fluorescent ceiling
+      case 'open_office':   return [0xE8E0D4, 0xDDD5C9, 0xD2CABF, 0xC8C0B5]  // warm neutral loft
+      case 'middle_mgmt':   return [0xC8D4E0, 0xBDC9D5, 0xB2BECA, 0xA8B4C0]  // cool office
+      case 'executive':     return [0xF0E6D0, 0xE8DCC4, 0xDFD2B8, 0xD6C8AD]  // golden hour
+      case 'csuite':        return [0x1E293B, 0x253446, 0x2C3F51, 0x334A5C]  // night city view
+      case 'garage':        return [0xE8E8E8, 0xDDDDDD, 0xD2D2D2, 0xC8C8C8]  // bright fluorescent
+      case 'boardroom':     return [0x1A2332, 0x22303F, 0x2A3D4C, 0x324A59]  // deep navy dramatic
+      case 'mailroom':      return [0xD8D0C4, 0xCCC4B8, 0xC0B8AC, 0xB4ACA0]  // institutional beige
+      default:              return [0x58A8D8, 0x6DB8E0, 0x88CCE8, 0xA8DCF0]  // campus blue sky
+    }
+  }
+
+  private getThemePlatformTexture(theme?: CorporateTheme): string {
+    switch (theme) {
+      case 'mailroom':      return 'platform_linoleum'
+      case 'cubicle_farm':  return 'platform_carpet'
+      case 'open_office':   return 'platform_hardwood'
+      case 'middle_mgmt':   return 'platform_carpet'
+      case 'executive':     return 'platform_hardwood'
+      case 'csuite':        return 'platform_marble'
+      case 'garage':        return 'platform_linoleum'
+      case 'boardroom':     return 'platform_marble'
+      default:              return 'platform_grass'
+    }
+  }
+
+  private getThemeBgSprites(theme?: CorporateTheme): { tall: string; short: string; mid: string; far: string } {
+    switch (theme) {
+      case 'cubicle_farm':  return { tall: 'bg_cubicle', short: 'bg_plant', mid: 'bg_desk', far: 'bg_cubicle' }
+      case 'open_office':   return { tall: 'bg_desk', short: 'bg_plant', mid: 'bg_watercooler', far: 'bg_desk' }
+      case 'middle_mgmt':   return { tall: 'bg_filing_cabinet', short: 'bg_plant', mid: 'bg_poster', far: 'bg_filing_cabinet' }
+      case 'executive':     return { tall: 'bg_poster', short: 'bg_plant', mid: 'bg_coffee_machine', far: 'bg_poster' }
+      case 'csuite':        return { tall: 'bg_poster', short: 'bg_plant', mid: 'bg_coffee_machine', far: 'bg_building' }
+      case 'mailroom':      return { tall: 'bg_filing_cabinet', short: 'bg_plant', mid: 'bg_watercooler', far: 'bg_building' }
+      case 'garage':        return { tall: 'bg_desk', short: 'bg_plant', mid: 'bg_coffee_machine', far: 'bg_desk' }
+      case 'boardroom':     return { tall: 'bg_poster', short: 'bg_plant', mid: 'bg_filing_cabinet', far: 'bg_building' }
+      default:              return { tall: 'bg_tree', short: 'bg_bush', mid: 'bg_bush', far: 'bg_building' }
+    }
+  }
+
   private buildBackgrounds(cfg: LevelConfig) {
-    // Pokémon-style bright blue sky gradient
+    // Theme-aware sky gradient
     const skyG = this.add.graphics()
-    const skyColors = [0x58A8D8, 0x6DB8E0, 0x88CCE8, 0xA8DCF0]
+    const skyColors = this.getThemeSkyColors(cfg.theme)
     const bandH = Math.ceil(this.cameras.main.height / skyColors.length)
     for (let i = 0; i < skyColors.length; i++) {
       skyG.fillStyle(skyColors[i], 1)
@@ -599,54 +646,65 @@ export class GameScene extends Phaser.Scene {
     skyG.setScrollFactor(0)
     skyG.setDepth(-20)
 
-    const hasTree = this.textures.exists('bg_tree')
-    const hasBuilding = this.textures.exists('bg_building')
-    const hasBush = this.textures.exists('bg_bush')
+    // Theme-aware background sprite mapping
+    const themeBg = this.getThemeBgSprites(cfg.theme)
 
     for (const layer of cfg.backgrounds) {
       for (const bgRect of layer.rects) {
-        if (bgRect.height <= 80 && hasBush) {
-          // Short → bushes
-          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_bush')
+        if (bgRect.height <= 80 && this.textures.exists(themeBg.short)) {
+          // Short → bushes / plants
+          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, themeBg.short)
           tile.setScrollFactor(layer.scrollFactor)
           tile.setDepth(-5)
         } else if (bgRect.height > 200 && layer.scrollFactor <= 0.15) {
-          // Far tall → faded city silhouettes with optional buildings
-          if (hasBuilding) {
-            // Show building texture only for the bottom portion (like a skyline)
+          // Far tall → faded silhouettes / skyline
+          if (this.textures.exists(themeBg.far)) {
             const skylineH = Math.min(bgRect.height, 180)
             const tile = this.add.tileSprite(
               bgRect.x, bgRect.y + (bgRect.height - skylineH) / 2,
-              bgRect.width, skylineH, 'bg_building',
+              bgRect.width, skylineH, themeBg.far,
             )
             tile.setScrollFactor(layer.scrollFactor)
             tile.setDepth(-12)
             tile.setAlpha(0.3)
           }
-        } else if (bgRect.height > 100 && layer.scrollFactor > 0.15 && hasTree) {
-          // Mid-ground tall → trees (Pokémon-style)
-          const treeCount = Math.max(1, Math.floor(bgRect.width / 80))
-          for (let t = 0; t < treeCount; t++) {
-            const tx = bgRect.x - bgRect.width / 2 + (t + 0.5) * (bgRect.width / treeCount)
-            const tree = this.add.sprite(tx, bgRect.y + bgRect.height / 2 - 30, 'bg_tree')
-            tree.setScrollFactor(layer.scrollFactor)
-            tree.setDepth(-8)
-            tree.setScale(1.2 + Math.random() * 0.6)
-            tree.setAlpha(0.8)
+        } else if (bgRect.height > 100 && layer.scrollFactor > 0.15 && this.textures.exists(themeBg.tall)) {
+          // Mid-ground tall → trees / cubicles / desks
+          const spriteCount = Math.max(1, Math.floor(bgRect.width / 80))
+          for (let t = 0; t < spriteCount; t++) {
+            const tx = bgRect.x - bgRect.width / 2 + (t + 0.5) * (bgRect.width / spriteCount)
+            const spr = this.add.sprite(tx, bgRect.y + bgRect.height / 2 - 30, themeBg.tall)
+            spr.setScrollFactor(layer.scrollFactor)
+            spr.setDepth(-8)
+            spr.setScale(1.2 + Math.random() * 0.6)
+            spr.setAlpha(0.8)
           }
         } else if (bgRect.height > 80) {
-          // Remaining mid-size → tinted silhouettes
-          const color = bgRect.color ?? layer.color
-          const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
-          bg.setScrollFactor(layer.scrollFactor)
-          bg.setDepth(-10)
-          bg.setAlpha(0.3)
+          // Mid-size → theme accent sprites or tinted silhouettes
+          if (this.textures.exists(themeBg.mid)) {
+            const midCount = Math.max(1, Math.floor(bgRect.width / 100))
+            for (let m = 0; m < midCount; m++) {
+              const mx = bgRect.x - bgRect.width / 2 + (m + 0.5) * (bgRect.width / midCount)
+              const mid = this.add.sprite(mx, bgRect.y, themeBg.mid)
+              mid.setScrollFactor(layer.scrollFactor)
+              mid.setDepth(-10)
+              mid.setAlpha(0.6)
+              mid.setScale(1.0 + Math.random() * 0.4)
+            }
+          } else {
+            const color = bgRect.color ?? layer.color
+            const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
+            bg.setScrollFactor(layer.scrollFactor)
+            bg.setDepth(-10)
+            bg.setAlpha(0.3)
+          }
         }
       }
     }
 
-    // Clouds
-    if (cfg.backgrounds.length > 0 && this.textures.exists('bg_cloud')) {
+    // Clouds (only for outdoor themes)
+    const isIndoor = cfg.theme && !['campus'].includes(cfg.theme)
+    if (!isIndoor && cfg.backgrounds.length > 0 && this.textures.exists('bg_cloud')) {
       for (let i = 0; i < 8; i++) {
         const cx = 50 + i * (cfg.width / 8)
         const cy = 15 + Math.random() * 60
@@ -660,10 +718,11 @@ export class GameScene extends Phaser.Scene {
   }
 
   private createStaticPlatform(plat: PlatformConfig, group: Phaser.Physics.Arcade.StaticGroup) {
-    // Use pixel-art tiled texture for platforms
+    // Use pixel-art tiled texture for platforms — theme-aware
+    const themeTexture = this.getThemePlatformTexture(this.levelConfig.theme)
     const textureKey = plat.type === 'one-way'
       ? (this.textures.exists('platform_oneway') ? 'platform_oneway' : '')
-      : (this.textures.exists('platform_grass') ? 'platform_grass' : '')
+      : (this.textures.exists(themeTexture) ? themeTexture : '')
 
     if (textureKey) {
       const tile = this.add.tileSprite(plat.x, plat.y, plat.width, plat.height, textureKey)

@@ -4,6 +4,7 @@ import {
   meetingGuideDialogue,
   rooftopDialogue,
   preBossCoworkerDialogue,
+  q3PlanningMeetingDialogue,
 } from '../dialogues/level4Dialogues'
 
 const GROUND_Y = 680
@@ -12,6 +13,7 @@ const GROUND_H = 40
 export const level4: LevelConfig = {
   id: 'level4',
   name: 'IC Grind',
+  theme: 'middle_mgmt',
   width: 10000,
   height: 720,
   spawn: { x: 200, y: 500 },
@@ -217,6 +219,20 @@ export const level4: LevelConfig = {
       npcColor: 0x10B981,
       npcWidth: 36,
       npcHeight: 55,
+    },
+    // Conference Room — Meeting Battle!
+    {
+      id: 'q3_planning_meeting',
+      x: 5200,
+      y: 620,
+      width: 100,
+      height: 120,
+      dialogueId: 'q3_planning_meeting',
+      startNodeId: 'start',
+      dialogueTree: q3PlanningMeetingDialogue,
+      oneShot: true,
+      meetingBattle: true,
+      npcType: 'executive',
     },
   ],
 

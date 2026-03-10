@@ -5,7 +5,7 @@ import { usePlayerStats } from '../stores/playerStats'
 const TYPEWRITER_SPEED = 30 // ms per character
 
 export function DialogueBox() {
-  const { isOpen, currentNode, consequence, showingConsequence, selectOption, advanceOrClose } = useDialogueState()
+  const { isOpen, isMeetingBattle, currentNode, consequence, showingConsequence, selectOption, advanceOrClose } = useDialogueState()
   const playerStats = usePlayerStats()
   const [displayedText, setDisplayedText] = useState('')
   const [isTyping, setIsTyping] = useState(false)
@@ -83,20 +83,41 @@ export function DialogueBox() {
           width: '100%',
           padding: '16px 20px',
           boxSizing: 'border-box' as const,
-          background: 'rgba(15, 23, 42, 0.92)',
+          background: isMeetingBattle
+            ? 'linear-gradient(180deg, rgba(62, 39, 18, 0.95) 0%, rgba(30, 20, 10, 0.97) 100%)'
+            : 'rgba(15, 23, 42, 0.92)',
           backdropFilter: 'blur(12px)',
-          borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+          borderTop: isMeetingBattle
+            ? '3px solid rgba(139, 90, 43, 0.8)'
+            : '1px solid rgba(255, 255, 255, 0.1)',
           borderRadius: '16px 16px 0 0',
           cursor: 'pointer',
         }}
       >
+        {/* Meeting battle header */}
+        {isMeetingBattle && (
+          <div
+            style={{
+              fontSize: 10,
+              fontWeight: 700,
+              color: '#D4A574',
+              textTransform: 'uppercase',
+              letterSpacing: '0.15em',
+              marginBottom: 4,
+              fontFamily: 'system-ui, sans-serif',
+            }}
+          >
+            MEETING IN PROGRESS
+          </div>
+        )}
+
         {/* Speaker name */}
         {currentNode?.speaker && (
           <div
             style={{
               fontSize: 13,
               fontWeight: 700,
-              color: '#818CF8',
+              color: isMeetingBattle ? '#D4A574' : '#818CF8',
               textTransform: 'uppercase',
               letterSpacing: '0.05em',
               marginBottom: 8,
@@ -138,11 +159,15 @@ export function DialogueBox() {
                   selectOption(currentNode!.options!.indexOf(opt))
                 }}
                 style={{
-                  background: 'rgba(79, 70, 229, 0.15)',
-                  border: '1px solid rgba(79, 70, 229, 0.3)',
+                  background: isMeetingBattle
+                    ? 'rgba(139, 90, 43, 0.2)'
+                    : 'rgba(79, 70, 229, 0.15)',
+                  border: isMeetingBattle
+                    ? '1px solid rgba(139, 90, 43, 0.4)'
+                    : '1px solid rgba(79, 70, 229, 0.3)',
                   borderRadius: 8,
                   padding: '10px 16px',
-                  color: '#C7D2FE',
+                  color: isMeetingBattle ? '#E8D5BF' : '#C7D2FE',
                   fontSize: 15,
                   fontFamily: 'system-ui, sans-serif',
                   cursor: 'pointer',
@@ -150,12 +175,16 @@ export function DialogueBox() {
                   transition: 'background 0.15s, border-color 0.15s',
                 }}
                 onMouseEnter={(e) => {
-                  e.currentTarget.style.background = 'rgba(79, 70, 229, 0.3)'
-                  e.currentTarget.style.borderColor = 'rgba(79, 70, 229, 0.6)'
+                  const bg = isMeetingBattle ? 'rgba(139, 90, 43, 0.4)' : 'rgba(79, 70, 229, 0.3)'
+                  const bc = isMeetingBattle ? 'rgba(139, 90, 43, 0.7)' : 'rgba(79, 70, 229, 0.6)'
+                  e.currentTarget.style.background = bg
+                  e.currentTarget.style.borderColor = bc
                 }}
                 onMouseLeave={(e) => {
-                  e.currentTarget.style.background = 'rgba(79, 70, 229, 0.15)'
-                  e.currentTarget.style.borderColor = 'rgba(79, 70, 229, 0.3)'
+                  const bg = isMeetingBattle ? 'rgba(139, 90, 43, 0.2)' : 'rgba(79, 70, 229, 0.15)'
+                  const bc = isMeetingBattle ? 'rgba(139, 90, 43, 0.4)' : 'rgba(79, 70, 229, 0.3)'
+                  e.currentTarget.style.background = bg
+                  e.currentTarget.style.borderColor = bc
                 }}
               >
                 {opt.text}

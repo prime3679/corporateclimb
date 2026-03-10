@@ -4,6 +4,8 @@ import {
   careerBoothDialogue,
   overachieverDialogue,
   elevatorPitchDialogue,
+  kitchenThiefDialogue,
+  passiveAggressiveEmailerDialogue,
 } from '../dialogues/level2Dialogues'
 
 const GROUND_Y = 680
@@ -12,6 +14,7 @@ const GROUND_H = 40
 export const level2: LevelConfig = {
   id: 'level2',
   name: 'Senior Scramble',
+  theme: 'cubicle_farm',
   width: 8500,
   height: 720,
   spawn: { x: 200, y: 500 },
@@ -225,6 +228,32 @@ export const level2: LevelConfig = {
       npcColor: 0x1F2937,
       npcWidth: 42,
       npcHeight: 70,
+    },
+    // Kitchen Thief — near break room area
+    {
+      id: 'kitchen_thief',
+      x: 2400,
+      y: 620,
+      width: 80,
+      height: 100,
+      dialogueId: 'kitchen_thief',
+      startNodeId: 'start',
+      dialogueTree: kitchenThiefDialogue,
+      oneShot: false,
+      npcType: 'hr',
+    },
+    // Passive-Aggressive Emailer
+    {
+      id: 'passive_emailer',
+      x: 4300,
+      y: 620,
+      width: 80,
+      height: 100,
+      dialogueId: 'passive_emailer',
+      startNodeId: 'start',
+      dialogueTree: passiveAggressiveEmailerDialogue,
+      oneShot: false,
+      npcType: 'manager',
     },
   ],
 

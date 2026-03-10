@@ -1,5 +1,7 @@
 import { DialogueNode } from '../../../ui/stores/dialogueState'
 
+export type CorporateTheme = 'campus' | 'mailroom' | 'cubicle_farm' | 'open_office' | 'middle_mgmt' | 'executive' | 'csuite' | 'garage' | 'boardroom'
+
 export interface PlatformConfig {
   x: number
   y: number
@@ -62,7 +64,7 @@ export interface ReorgConfig {
 }
 
 export interface PowerUpConfig {
-  type: 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice'
+  type: 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice' | 'energy_drink' | 'usb_drive' | 'business_card' | 'stress_ball'
   x: number
   y: number
 }
@@ -78,6 +80,8 @@ export interface TimedDoorConfig {
   startOpen?: boolean
 }
 
+export type NpcType = 'default' | 'intern' | 'manager' | 'executive' | 'it_guy' | 'hr'
+
 export interface DialogueTriggerConfig {
   id: string
   x: number
@@ -88,6 +92,8 @@ export interface DialogueTriggerConfig {
   startNodeId: string
   dialogueTree: DialogueNode[]
   oneShot: boolean
+  npcType?: NpcType
+  meetingBattle?: boolean
   npcColor?: number
   npcWidth?: number
   npcHeight?: number
@@ -106,6 +112,7 @@ export interface LevelConfig {
   width: number
   height: number
   spawn: { x: number; y: number }
+  theme?: CorporateTheme
   platforms: PlatformConfig[]
   backgrounds: BackgroundLayer[]
   bounds: { left: number; right: number; top: number; bottom: number }

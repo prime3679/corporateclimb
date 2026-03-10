@@ -189,3 +189,79 @@ export const elevatorPitchDialogue: DialogueNode[] = [
     ],
   },
 ]
+
+// Kitchen Thief — passive-aggressive fridge drama
+export const kitchenThiefDialogue: DialogueNode[] = [
+  {
+    id: 'start',
+    speaker: 'Karen from Accounting',
+    text: "Someone ate my clearly-labeled yogurt. AGAIN. I have put up SEVEN sticky notes. I am THIS close to installing a security camera.",
+    options: [
+      { text: '"That sounds frustrating."', nextNodeId: 'empathy' },
+      { text: '"Have you tried a mini fridge?"', nextNodeId: 'solution' },
+      { text: '"It was me. Sorry."', nextNodeId: 'confess' },
+    ],
+  },
+  {
+    id: 'empathy',
+    speaker: 'Karen from Accounting',
+    text: "Thank you. FINALLY someone who understands. You know what? You're alright. Here — I have extra granola bars. Take one.",
+    options: [
+      { text: 'Accept the granola bar.', statChanges: { energy: 5, network: 2 }, consequence: '+5 Energy, +2 Network' },
+    ],
+  },
+  {
+    id: 'solution',
+    speaker: 'Karen from Accounting',
+    text: "A MINI FRIDGE? Do you know what they charge for desk real estate around here? No. Justice will be served. Cold. Like my stolen yogurt.",
+    options: [
+      { text: 'Back away slowly.', consequence: "You've learned something about office politics." },
+    ],
+  },
+  {
+    id: 'confess',
+    speaker: 'Karen from Accounting',
+    text: "...I appreciate your honesty. But know this: I forgive, but I never forget. And I CC everyone.",
+    options: [
+      { text: 'Noted.', statChanges: { reputation: -3 }, consequence: '-3 Reputation — Karen remembers.' },
+    ],
+  },
+]
+
+// Passive-Aggressive Emailer — teaches email survival
+export const passiveAggressiveEmailerDialogue: DialogueNode[] = [
+  {
+    id: 'start',
+    speaker: 'Greg (Senior Associate)',
+    text: "Per my last email — which, for the record, I sent three times — the deliverables were due yesterday. But sure, take your time.",
+    options: [
+      { text: '"Sorry, I was swamped."', nextNodeId: 'excuse' },
+      { text: '"Per YOUR last email, it said next week."', nextNodeId: 'pushback' },
+      { text: '"What deliverables?"', nextNodeId: 'clueless' },
+    ],
+  },
+  {
+    id: 'excuse',
+    speaker: 'Greg (Senior Associate)',
+    text: "No worries at all! 🙂 Just going to go ahead and loop in your manager. For visibility. As per best practices.",
+    options: [
+      { text: 'Panic internally.', statChanges: { reputation: -5 }, consequence: '-5 Reputation — you\'ve been CC\'d into oblivion.' },
+    ],
+  },
+  {
+    id: 'pushback',
+    speaker: 'Greg (Senior Associate)',
+    text: "...Huh. You're right. Well. I appreciate you surfacing that discrepancy. I'll... recalibrate the timeline.",
+    options: [
+      { text: 'Walk away victorious.', statChanges: { reputation: 5 }, consequence: '+5 Reputation — you won the email war.' },
+    ],
+  },
+  {
+    id: 'clueless',
+    speaker: 'Greg (Senior Associate)',
+    text: "The — are you — I literally — you know what, I'm going to take a walk. A long walk. Maybe to HR.",
+    options: [
+      { text: '"Good chat, Greg."', statChanges: { energy: 3 }, consequence: '+3 Energy — Greg leaves, blissful ignorance prevails.' },
+    ],
+  },
+]

@@ -11,6 +11,7 @@ const GROUND_H = 40
 export const level5: LevelConfig = {
   id: 'level5',
   name: 'The Crossroads',
+  theme: 'executive',
   width: 6000,
   height: 720,
   spawn: { x: 200, y: 500 },

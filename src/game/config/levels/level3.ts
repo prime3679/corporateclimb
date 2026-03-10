@@ -5,6 +5,8 @@ import {
   friendlyCoworkerDialogue,
   preBossMentorDialogue,
   creditThiefDialogue,
+  standingDeskDialogue,
+  meetingSchedulerDialogue,
 } from '../dialogues/level3Dialogues'
 
 const GROUND_Y = 680
@@ -13,6 +15,7 @@ const GROUND_H = 40
 export const level3: LevelConfig = {
   id: 'level3',
   name: 'The Intern',
+  theme: 'open_office',
   width: 9500,
   height: 720,
   spawn: { x: 200, y: 500 },
@@ -230,6 +233,32 @@ export const level3: LevelConfig = {
       npcColor: 0x7C3AED,
       npcWidth: 48,
       npcHeight: 72,
+    },
+    // Standing Desk Evangelist — open office true believer
+    {
+      id: 'standing_desk',
+      x: 4800,
+      y: 620,
+      width: 80,
+      height: 100,
+      dialogueId: 'standing_desk',
+      startNodeId: 'start',
+      dialogueTree: standingDeskDialogue,
+      oneShot: false,
+      npcType: 'it_guy',
+    },
+    // Meeting Scheduler — books meetings about meetings
+    {
+      id: 'meeting_scheduler',
+      x: 5800,
+      y: 620,
+      width: 80,
+      height: 100,
+      dialogueId: 'meeting_scheduler',
+      startNodeId: 'start',
+      dialogueTree: meetingSchedulerDialogue,
+      oneShot: false,
+      npcType: 'manager',
     },
   ],
 
