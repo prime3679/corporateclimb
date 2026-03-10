@@ -19,7 +19,7 @@ export interface BackgroundLayer {
 }
 
 export interface EnemyConfig {
-  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite'
+  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever'
   x: number
   y: number
   // Alarm clock
@@ -30,12 +30,34 @@ export interface EnemyConfig {
   // Midterm stack
   spawnInterval?: number
   spawnWidth?: number
+  // Resume gap
+  gapWidth?: number
+  // Networking crowd
+  zoneWidth?: number
+  zoneHeight?: number
+  slowFactor?: number
+  // LinkedIn swarm
+  count?: number
+  radius?: number
+  // Overachiever
+  targetX?: number // where they race to
 }
 
 export interface PowerUpConfig {
-  type: 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle'
+  type: 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice'
   x: number
   y: number
+}
+
+// Timed door that opens/closes on a cycle
+export interface TimedDoorConfig {
+  x: number
+  y: number
+  width: number
+  height: number
+  openDuration: number  // ms
+  closeDuration: number // ms
+  startOpen?: boolean
 }
 
 export interface DialogueTriggerConfig {
@@ -74,4 +96,5 @@ export interface LevelConfig {
   dialogueTriggers?: DialogueTriggerConfig[]
   boss?: BossConfig
   pitZones?: { x: number; width: number; energyCost: number }[]
+  timedDoors?: TimedDoorConfig[]
 }

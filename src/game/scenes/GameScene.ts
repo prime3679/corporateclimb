@@ -8,6 +8,11 @@ import { Freeloader } from '../entities/Freeloader'
 import { MidtermStack } from '../entities/MidtermStack'
 import { PowerUp } from '../entities/PowerUp'
 import { BossNoCurve } from '../entities/BossNoCurve'
+import { BossGhostingRecruiter } from '../entities/BossGhostingRecruiter'
+import { ResumeGap } from '../entities/ResumeGap'
+import { NetworkingCrowd } from '../entities/NetworkingCrowd'
+import { LinkedInSwarm } from '../entities/LinkedInSwarm'
+import { Overachiever } from '../entities/Overachiever'
 import { useDialogueState } from '../../ui/stores/dialogueState'
 import { useCharacterStore } from '../../ui/stores/characterStore'
 import { usePlayerStats } from '../../ui/stores/playerStats'
@@ -30,12 +35,22 @@ export class GameScene extends Phaser.Scene {
   private dialogueTriggers: DialogueTrigger[] = []
   private activeTrigger: DialogueTrigger | null = null
 
-  // Entities spawned from config
+  // Level 1 entities
   private alarmClocks: AlarmClock[] = []
   private freeloaders: Freeloader[] = []
   private midtermStacks: MidtermStack[] = []
   private powerUps: PowerUp[] = []
-  private boss: BossNoCurve | null = null
+
+  // Level 2 entities
+  private resumeGaps: ResumeGap[] = []
+  private networkingCrowds: NetworkingCrowd[] = []
+  private linkedInSwarms: LinkedInSwarm[] = []
+  private overachievers: Overachiever[] = []
+  private timedDoors: { rect: Phaser.GameObjects.Rectangle; body: Phaser.Physics.Arcade.StaticBody; open: boolean; timer: number; openDuration: number; closeDuration: number }[] = []
+
+  // Boss (polymorphic)
+  private bossNoCurve: BossNoCurve | null = null
+  private bossRecruiter: BossGhostingRecruiter | null = null
   private bossStarted = false
 
   private levelConfig!: LevelConfig
@@ -111,6 +126,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnEnemies(cfg)
     this.spawnPowerUps(cfg)
     this.setupDialogueTriggers(cfg)
+    this.setupTimedDoors(cfg)
     this.setupBoss(cfg)
 
     // Listen for dialogue state changes to pause/unpause
@@ -145,6 +161,7 @@ export class GameScene extends Phaser.Scene {
     this.checkDialogueTriggers()
     this.updateEnemies(delta)
     this.updatePowerUps()
+    this.updateTimedDoors(delta)
     this.updateBoss(delta)
 
     // Fall respawn + pit energy cost
@@ -161,31 +178,40 @@ export class GameScene extends Phaser.Scene {
     for (const enemy of cfg.enemies) {
       switch (enemy.type) {
         case 'alarm_clock': {
-          const ac = new AlarmClock(
-            this, enemy.x, enemy.y,
-            enemy.speed, enemy.direction,
-            enemy.patrolMin, enemy.patrolMax
-          )
-          this.alarmClocks.push(ac)
+          this.alarmClocks.push(new AlarmClock(
+            this, enemy.x, enemy.y, enemy.speed, enemy.direction, enemy.patrolMin, enemy.patrolMax
+          ))
           break
         }
         case 'freeloader': {
           const fl = new Freeloader(this, enemy.x, enemy.y)
-          fl.onDrain = (amount) => {
-            usePlayerStats.getState().modifyStats({ energy: -amount }, 'enemy:freeloader')
-          }
-          fl.onShakeOff = () => {
-            usePlayerStats.getState().modifyStats({ reputation: 3 }, 'enemy:freeloader:shakeoff')
-          }
+          fl.onDrain = (amount) => usePlayerStats.getState().modifyStats({ energy: -amount }, 'enemy:freeloader')
+          fl.onShakeOff = () => usePlayerStats.getState().modifyStats({ reputation: 3 }, 'enemy:freeloader:shakeoff')
           this.freeloaders.push(fl)
           break
         }
         case 'midterm_stack': {
           const ms = new MidtermStack(this, enemy.x, enemy.spawnWidth, enemy.spawnInterval)
-          ms.onHitPlayer = () => {
-            usePlayerStats.getState().modifyStats({ energy: -5 }, 'enemy:midterm_stack')
-          }
+          ms.onHitPlayer = () => usePlayerStats.getState().modifyStats({ energy: -5 }, 'enemy:midterm_stack')
           this.midtermStacks.push(ms)
+          break
+        }
+        case 'resume_gap': {
+          this.resumeGaps.push(new ResumeGap(this, enemy.x, enemy.y, enemy.gapWidth))
+          break
+        }
+        case 'networking_crowd': {
+          this.networkingCrowds.push(new NetworkingCrowd(
+            this, enemy.x, enemy.y, enemy.zoneWidth, enemy.zoneHeight, enemy.slowFactor
+          ))
+          break
+        }
+        case 'linkedin_swarm': {
+          this.linkedInSwarms.push(new LinkedInSwarm(this, enemy.x, enemy.y, enemy.count, enemy.radius))
+          break
+        }
+        case 'overachiever': {
+          this.overachievers.push(new Overachiever(this, enemy.x, enemy.y, enemy.targetX ?? enemy.x + 600))
           break
         }
       }
@@ -214,7 +240,6 @@ export class GameScene extends Phaser.Scene {
         oneShot: trigCfg.oneShot,
       })
 
-      // Draw NPC rectangle
       const npcW = trigCfg.npcWidth ?? 40
       const npcH = trigCfg.npcHeight ?? 60
       const npcColor = trigCfg.npcColor ?? 0xF59E0B
@@ -225,22 +250,56 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
-  private setupBoss(cfg: LevelConfig) {
-    if (!cfg.boss || cfg.boss.type !== 'no_curve') return
+  private setupTimedDoors(cfg: LevelConfig) {
+    if (!cfg.timedDoors) return
 
-    this.boss = new BossNoCurve(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
-    this.boss.onHitPlayer = () => {
-      // Flash player red
+    for (const doorCfg of cfg.timedDoors) {
+      const rect = this.add.rectangle(doorCfg.x, doorCfg.y, doorCfg.width, doorCfg.height, 0x991B1B)
+      this.physics.add.existing(rect, true)
+      const body = rect.body as Phaser.Physics.Arcade.StaticBody
+      this.physics.add.collider(this.player.sprite, rect)
+
+      const isOpen = doorCfg.startOpen ?? false
+      if (isOpen) {
+        rect.setAlpha(0.2)
+        body.enable = false
+      }
+
+      this.timedDoors.push({
+        rect,
+        body,
+        open: isOpen,
+        timer: 0,
+        openDuration: doorCfg.openDuration,
+        closeDuration: doorCfg.closeDuration,
+      })
+    }
+  }
+
+  private setupBoss(cfg: LevelConfig) {
+    if (!cfg.boss) return
+
+    const flashPlayer = () => {
       this.player.sprite.setFillStyle(0xEF4444)
       this.time.delayedCall(200, () => {
         const accentHex = useCharacterStore.getState().accentColor
         this.player.sprite.setFillStyle(parseInt(accentHex.replace('#', ''), 16))
       })
     }
-    this.boss.onDefeated = () => {
-      // Signal level complete
+
+    const onDefeated = () => {
       useGameState.getState().setCurrentScene('level_complete')
     }
+
+    if (cfg.boss.type === 'no_curve') {
+      this.bossNoCurve = new BossNoCurve(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossNoCurve.onHitPlayer = flashPlayer
+      this.bossNoCurve.onDefeated = onDefeated
+    } else if (cfg.boss.type === 'ghosting_recruiter') {
+      this.bossRecruiter = new BossGhostingRecruiter(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossRecruiter.onDefeated = onDefeated
+    }
+
     this.bossStarted = false
   }
 
@@ -253,11 +312,8 @@ export class GameScene extends Phaser.Scene {
 
     for (const ac of this.alarmClocks) {
       ac.update()
-      // Collision with player
       if (!ac.destroyed && !this.player.isInvulnerable) {
-        const dx = Math.abs(px - ac.sprite.x)
-        const dy = Math.abs(py - ac.sprite.y)
-        if (dx < 40 && dy < 50) {
+        if (Math.abs(px - ac.sprite.x) < 40 && Math.abs(py - ac.sprite.y) < 50) {
           usePlayerStats.getState().modifyStats({ energy: -10 }, 'enemy:alarm_clock')
           ac.destroy()
         }
@@ -271,6 +327,39 @@ export class GameScene extends Phaser.Scene {
     for (const ms of this.midtermStacks) {
       ms.update(delta, this.player.sprite)
     }
+
+    // Level 2 enemies
+    for (const swarm of this.linkedInSwarms) {
+      swarm.update(delta)
+      if (!this.player.isInvulnerable && swarm.checkCollision(px, py)) {
+        usePlayerStats.getState().modifyStats({ energy: -8 }, 'enemy:linkedin_swarm')
+        // Brief invulnerability to prevent frame-stacking
+        this.player.isInvulnerable = true
+        this.time.delayedCall(500, () => { this.player.isInvulnerable = false })
+      }
+    }
+
+    for (const crowd of this.networkingCrowds) {
+      if (crowd.isPlayerInside(px, py)) {
+        // Slow player movement
+        this.player.body.setMaxVelocity(300 * crowd.slowFactor, 800)
+        const drain = crowd.updateDrain(delta)
+        if (drain > 0) {
+          usePlayerStats.getState().modifyStats({ energy: -drain }, 'enemy:networking_crowd')
+        }
+      } else {
+        crowd.resetDrain()
+        this.player.body.setMaxVelocity(300, 800)
+      }
+    }
+
+    for (const oa of this.overachievers) {
+      // Start race when player gets within 200px
+      if (!oa.destroyed && Math.abs(px - oa.baseX) < 200) {
+        oa.startRace()
+      }
+      oa.update(delta)
+    }
   }
 
   private updatePowerUps() {
@@ -279,28 +368,46 @@ export class GameScene extends Phaser.Scene {
 
     for (const pu of this.powerUps) {
       if (pu.collected) continue
-      const dx = Math.abs(px - pu.sprite.x)
-      const dy = Math.abs(py - pu.sprite.y)
-      if (dx < 40 && dy < 50) {
+      if (Math.abs(px - pu.sprite.x) < 40 && Math.abs(py - pu.sprite.y) < 50) {
         pu.collect(this)
       }
     }
   }
 
-  private updateBoss(delta: number) {
-    if (!this.boss || this.boss.destroyed) return
+  private updateTimedDoors(delta: number) {
+    for (const door of this.timedDoors) {
+      door.timer += delta
+      const threshold = door.open ? door.openDuration : door.closeDuration
 
-    // Start boss fight when player enters arena
+      if (door.timer >= threshold) {
+        door.timer -= threshold
+        door.open = !door.open
+
+        if (door.open) {
+          door.rect.setAlpha(0.2)
+          door.body.enable = false
+        } else {
+          door.rect.setAlpha(1)
+          door.body.enable = true
+          door.body.updateFromGameObject()
+        }
+      }
+    }
+  }
+
+  private updateBoss(delta: number) {
+    const boss = this.bossNoCurve ?? this.bossRecruiter
+    if (!boss || boss.destroyed) return
+
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {
       this.bossStarted = true
-      this.boss.startFight(this.player.sprite)
+      boss.startFight(this.player.sprite)
     }
 
-    this.boss.update(delta)
+    boss.update(delta)
   }
 
   private handleFallRespawn() {
-    // Check if player fell into a pit zone for energy cost
     const px = this.player.sprite.x
     const pitZone = this.levelConfig.pitZones?.find(
       (p) => px >= p.x && px <= p.x + p.width

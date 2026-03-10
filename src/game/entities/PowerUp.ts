@@ -1,13 +1,15 @@
 import Phaser from 'phaser'
 import { usePlayerStats } from '../../ui/stores/playerStats'
 
-export type PowerUpType = 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle'
+export type PowerUpType = 'espresso' | 'networking_card' | 'pto_day' | 'side_hustle' | 'linkedin_endorsement' | 'mentors_advice'
 
 const POWER_UP_DEFS: Record<PowerUpType, { color: number; label: string; size: number }> = {
   espresso: { color: 0x92400E, label: '☕', size: 24 },
   networking_card: { color: 0x065F46, label: '🤝', size: 22 },
   pto_day: { color: 0xF59E0B, label: '☀', size: 26 },
   side_hustle: { color: 0x7C3AED, label: '💻', size: 22 },
+  linkedin_endorsement: { color: 0x2563EB, label: '👍', size: 24 },
+  mentors_advice: { color: 0xD97706, label: '🎓', size: 24 },
 }
 
 export class PowerUp {
@@ -64,6 +66,14 @@ export class PowerUp {
       case 'side_hustle':
         stats.modifyStats({ cash: 15, energy: -5 }, 'power-up:side_hustle')
         consequence = '+15 Cash, -5 Energy'
+        break
+      case 'linkedin_endorsement':
+        stats.modifyStats({ reputation: 10 }, 'power-up:linkedin_endorsement')
+        consequence = '👍 LinkedIn Endorsement! +10 Reputation (temp buff)'
+        break
+      case 'mentors_advice':
+        stats.modifyStats({ reputation: 10 }, 'power-up:mentors_advice')
+        consequence = '🎓 Mentor\'s Advice! +10 Reputation + hidden boss option unlocked'
         break
     }
 
