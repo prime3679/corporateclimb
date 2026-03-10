@@ -601,21 +601,24 @@ export class GameScene extends Phaser.Scene {
 
     for (const layer of cfg.backgrounds) {
       for (const bgRect of layer.rects) {
-        // Use building texture if tall enough, otherwise a colored rect
-        if (bgRect.height > 200 && this.textures.exists('bg_building')) {
-          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_building')
-          tile.setScrollFactor(layer.scrollFactor)
-          tile.setDepth(-10)
-          tile.setAlpha(0.85)
-        } else if (bgRect.height <= 80 && this.textures.exists('bg_bush')) {
+        if (bgRect.height <= 80 && this.textures.exists('bg_bush')) {
+          // Short rects → bushes
           const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_bush')
           tile.setScrollFactor(layer.scrollFactor)
           tile.setDepth(-5)
+        } else if (bgRect.height > 200 && layer.scrollFactor <= 0.15 && this.textures.exists('bg_building')) {
+          // Only far-away tall rects get the detailed building texture
+          const tile = this.add.tileSprite(bgRect.x, bgRect.y, bgRect.width, bgRect.height, 'bg_building')
+          tile.setScrollFactor(layer.scrollFactor)
+          tile.setDepth(-12)
+          tile.setAlpha(0.5)
         } else {
+          // Everything else → clean colored silhouettes
           const color = bgRect.color ?? layer.color
           const bg = this.add.rectangle(bgRect.x, bgRect.y, bgRect.width, bgRect.height, color)
           bg.setScrollFactor(layer.scrollFactor)
-          bg.setDepth(-10)
+          bg.setDepth(layer.scrollFactor < 0.2 ? -12 : -8)
+          bg.setAlpha(layer.scrollFactor < 0.2 ? 0.35 : 0.45)
         }
       }
     }

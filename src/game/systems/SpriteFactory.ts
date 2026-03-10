@@ -472,57 +472,42 @@ function generateBgTextures(scene: Phaser.Scene) {
   g.generateTexture('bg_cloud', 16 * S, 6 * S)
   g.destroy()
 
-  // Building — warm tones, Pokémon/Zelda city vibe
-  // 3 building variants side by side for variety
-  const bldgW = 48  // 3 buildings of 16 wide
-  const bldgH = 32
+  // Building — clean Pokémon/Zelda city style
+  // 2 building variants + gap for sky peek-through
+  const bldgW = 48
+  const bldgH = 24 // shorter = less overwhelming
   const g2 = scene.add.graphics()
 
-  // Building colors: beige, warm gray, light blue
-  const bldgColors = [
-    { wall: 0x9CA8B5, accent: 0xB8C4D0, window: 0xFBBF24, dark: 0x7A8A9A },
-    { wall: 0xD4A574, accent: 0xE8C49A, window: 0x87CEEB, dark: 0xB88A5A },
-    { wall: 0xA8B4A0, accent: 0xC0CCBA, window: 0xFFE4B5, dark: 0x8A9A80 },
-  ]
-
-  for (let b = 0; b < 3; b++) {
-    const ox = b * 16
-    const c = bldgColors[b]
-
-    // Wall fill
-    g2.fillStyle(c.wall, 1)
-    fillBlock(g2, ox, 0, 16, bldgH)
-
-    // Roof cap
-    g2.fillStyle(c.dark, 1)
-    fillBlock(g2, ox, 0, 16, 2)
-    g2.fillStyle(c.accent, 1)
-    fillBlock(g2, ox, 2, 16, 1)
-
-    // Vertical side lines
-    g2.fillStyle(c.dark, 1)
+  // Building A: cream/warm
+  const drawBuilding = (ox: number, w: number, wall: number, trim: number, win: number) => {
+    // Wall
+    g2.fillStyle(wall, 1)
+    fillBlock(g2, ox, 2, w, bldgH - 2)
+    // Roof
+    g2.fillStyle(trim, 1)
+    fillBlock(g2, ox - 1, 0, w + 2, 3)
+    // Outline
+    g2.fillStyle(0x000000, 0.3)
     fillBlock(g2, ox, 0, 1, bldgH)
-    fillBlock(g2, ox + 15, 0, 1, bldgH)
-
-    // Windows (3 cols, 7 rows)
-    for (let wy = 0; wy < 7; wy++) {
-      for (let wx = 0; wx < 3; wx++) {
-        const lit = (wx + wy + b) % 3 !== 0
-        const winColor = lit ? c.window : 0x3A4556
-        g2.fillStyle(winColor, 1)
-        fillBlock(g2, ox + 2 + wx * 5, 4 + wy * 4, 3, 2)
-        // Window frame
-        g2.fillStyle(c.dark, 1)
-        fillBlock(g2, ox + 2 + wx * 5, 4 + wy * 4 + 2, 3, 1)
+    fillBlock(g2, ox + w - 1, 0, 1, bldgH)
+    // Windows (2 cols, 4 rows, more spacing)
+    for (let wy = 0; wy < 4; wy++) {
+      for (let wx = 0; wx < 2; wx++) {
+        const lit = (wx + wy) % 2 === 0
+        g2.fillStyle(lit ? win : 0x6B7A8A, 1)
+        fillBlock(g2, ox + 2 + wx * 6, 5 + wy * 5, 3, 2)
       }
     }
-
-    // Door on ground floor
-    g2.fillStyle(c.dark, 1)
-    fillBlock(g2, ox + 6, bldgH - 5, 4, 5)
-    g2.fillStyle(c.accent, 1)
-    fillBlock(g2, ox + 7, bldgH - 4, 2, 3)
+    // Door
+    g2.fillStyle(trim, 0.8)
+    fillBlock(g2, ox + Math.floor(w / 2) - 1, bldgH - 4, 3, 4)
   }
+
+  drawBuilding(0, 14, 0xE8D5B8, 0xC4956A, 0xFBBF24)   // cream building
+  // Sky gap (empty space)
+  drawBuilding(20, 12, 0xB8C8D8, 0x8A9AAA, 0x87CEEB)   // blue-gray building
+  // More sky gap on right
+  drawBuilding(38, 10, 0xD4C4A8, 0xAA9478, 0xFFE4B5)   // tan building
 
   g2.generateTexture('bg_building', bldgW * S, bldgH * S)
   g2.destroy()

@@ -1,11 +1,11 @@
-import { useRef, useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { inputManager } from '../../game/systems/InputManager'
 
-const JOYSTICK_SIZE = 120
-const JOYSTICK_DEAD_ZONE = 15
-const BUTTON_SIZE_LARGE = 80
-const BUTTON_SIZE_MEDIUM = 60
-const BUTTON_SIZE_SMALL = 50
+/**
+ * Mobile game controls — D-pad (left/right) + action buttons.
+ * Designed for platformers: big, clear, always reachable with thumbs.
+ * Shows only on touch-capable devices.
+ */
 
 function isTouchDevice(): boolean {
   return 'ontouchstart' in window || navigator.maxTouchPoints > 0
@@ -13,155 +13,160 @@ function isTouchDevice(): boolean {
 
 export function TouchControls() {
   const [visible, setVisible] = useState(false)
-  const joystickRef = useRef<HTMLDivElement>(null)
-  const [joystickOrigin, setJoystickOrigin] = useState<{ x: number; y: number } | null>(null)
-  const [joystickPos, setJoystickPos] = useState({ x: 0, y: 0 })
+  const [activeButtons, setActiveButtons] = useState<Set<string>>(new Set())
 
   useEffect(() => {
-    setVisible(isTouchDevice())
+    // Show on touch devices OR narrow screens (likely mobile)
+    setVisible(isTouchDevice() || window.innerWidth < 768)
   }, [])
 
-  const handleJoystickStart = useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-    const touch = e.touches[0]
-    setJoystickOrigin({ x: touch.clientX, y: touch.clientY })
-    setJoystickPos({ x: 0, y: 0 })
+  const press = useCallback((id: string) => {
+    setActiveButtons(prev => new Set(prev).add(id))
+    if (id === 'left') inputManager.setJoystick(-1, 0)
+    else if (id === 'right') inputManager.setJoystick(1, 0)
+    else if (id === 'jump') inputManager.setTouchButton('jump', true)
+    else if (id === 'dodge') inputManager.setTouchButton('dodge', true)
+    else if (id === 'interact') inputManager.setTouchButton('interact', true)
   }, [])
 
-  const handleJoystickMove = useCallback((e: React.TouchEvent) => {
-    e.preventDefault()
-    if (!joystickOrigin) return
-    const touch = e.touches[0]
-    const dx = touch.clientX - joystickOrigin.x
-    const dy = touch.clientY - joystickOrigin.y
-    const dist = Math.sqrt(dx * dx + dy * dy)
-    const maxDist = JOYSTICK_SIZE / 2
-
-    const clampedDist = Math.min(dist, maxDist)
-    const angle = Math.atan2(dy, dx)
-    const cx = Math.cos(angle) * clampedDist
-    const cy = Math.sin(angle) * clampedDist
-
-    setJoystickPos({ x: cx, y: cy })
-
-    // Normalize to -1..1, apply dead zone
-    const nx = dist < JOYSTICK_DEAD_ZONE ? 0 : cx / maxDist
-    const ny = dist < JOYSTICK_DEAD_ZONE ? 0 : cy / maxDist
-    inputManager.setJoystick(nx, ny)
-  }, [joystickOrigin])
-
-  const handleJoystickEnd = useCallback(() => {
-    setJoystickOrigin(null)
-    setJoystickPos({ x: 0, y: 0 })
-    inputManager.setJoystick(0, 0)
-  }, [])
-
-  const handleButtonDown = useCallback((button: 'jump' | 'dodge' | 'interact') => {
-    inputManager.setTouchButton(button, true)
-  }, [])
-
-  const handleButtonUp = useCallback((button: 'jump' | 'dodge' | 'interact') => {
-    inputManager.setTouchButton(button, false)
+  const release = useCallback((id: string) => {
+    setActiveButtons(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+    if (id === 'left' || id === 'right') inputManager.setJoystick(0, 0)
+    else if (id === 'jump') inputManager.setTouchButton('jump', false)
+    else if (id === 'dodge') inputManager.setTouchButton('dodge', false)
+    else if (id === 'interact') inputManager.setTouchButton('interact', false)
   }, [])
 
   if (!visible) return null
 
-  const buttonStyle = (size: number, bottom: number, right: number): React.CSSProperties => ({
-    position: 'absolute',
-    bottom: `${bottom}px`,
-    right: `${right}px`,
-    width: `${size}px`,
-    height: `${size}px`,
-    borderRadius: '50%',
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    border: '2px solid rgba(255, 255, 255, 0.25)',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    fontSize: `${size * 0.25}px`,
-    fontFamily: 'system-ui',
-    color: 'rgba(255, 255, 255, 0.6)',
-    userSelect: 'none',
-    WebkitUserSelect: 'none',
-    touchAction: 'none',
-    pointerEvents: 'auto',
-  })
+  const isActive = (id: string) => activeButtons.has(id)
+
+  // Shared button base
+  const btn = (
+    id: string,
+    style: React.CSSProperties,
+    children: React.ReactNode,
+  ) => (
+    <div
+      style={{
+        ...style,
+        opacity: isActive(id) ? 1 : 0.7,
+        transform: isActive(id) ? 'scale(0.92)' : 'scale(1)',
+        transition: 'transform 0.05s, opacity 0.05s',
+        userSelect: 'none',
+        WebkitUserSelect: 'none',
+        touchAction: 'none',
+        pointerEvents: 'auto',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}
+      onTouchStart={(e) => { e.preventDefault(); press(id) }}
+      onTouchEnd={(e) => { e.preventDefault(); release(id) }}
+      onTouchCancel={() => release(id)}
+    >
+      {children}
+    </div>
+  )
+
+  const DPAD_BTN = 64   // D-pad button size
+  const ACTION_BTN = 72  // Action button size
+  const SMALL_BTN = 52   // Smaller action button
 
   return (
     <div
       style={{
         position: 'absolute',
-        top: 0,
-        left: 0,
-        width: '100%',
-        height: '100%',
+        top: 0, left: 0, width: '100%', height: '100%',
         pointerEvents: 'none',
         zIndex: 50,
       }}
     >
-      {/* Virtual Joystick — left side */}
-      <div
-        ref={joystickRef}
-        style={{
-          position: 'absolute',
-          bottom: '40px',
-          left: '30px',
-          width: `${JOYSTICK_SIZE}px`,
-          height: `${JOYSTICK_SIZE}px`,
-          borderRadius: '50%',
-          backgroundColor: 'rgba(255, 255, 255, 0.1)',
-          border: '2px solid rgba(255, 255, 255, 0.2)',
-          touchAction: 'none',
-          pointerEvents: 'auto',
-        }}
-        onTouchStart={handleJoystickStart}
-        onTouchMove={handleJoystickMove}
-        onTouchEnd={handleJoystickEnd}
-        onTouchCancel={handleJoystickEnd}
-      >
-        {/* Thumb indicator */}
-        <div
-          style={{
-            position: 'absolute',
-            left: `${JOYSTICK_SIZE / 2 + joystickPos.x - 18}px`,
-            top: `${JOYSTICK_SIZE / 2 + joystickPos.y - 18}px`,
-            width: '36px',
-            height: '36px',
+      {/* ── D-Pad: left side ── */}
+      <div style={{
+        position: 'absolute',
+        bottom: '24px',
+        left: '16px',
+        display: 'flex',
+        gap: '8px',
+      }}>
+        {btn('left', {
+          width: `${DPAD_BTN}px`,
+          height: `${DPAD_BTN}px`,
+          borderRadius: '14px',
+          backgroundColor: 'rgba(30, 30, 50, 0.75)',
+          border: '2px solid rgba(255,255,255,0.35)',
+          fontSize: '28px',
+          color: '#fff',
+        }, '\u25C0')}
+
+        {btn('right', {
+          width: `${DPAD_BTN}px`,
+          height: `${DPAD_BTN}px`,
+          borderRadius: '14px',
+          backgroundColor: 'rgba(30, 30, 50, 0.75)',
+          border: '2px solid rgba(255,255,255,0.35)',
+          fontSize: '28px',
+          color: '#fff',
+        }, '\u25B6')}
+      </div>
+
+      {/* ── Action buttons: right side ── */}
+      <div style={{
+        position: 'absolute',
+        bottom: '24px',
+        right: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        gap: '8px',
+      }}>
+        {/* Top row: dodge + interact */}
+        <div style={{ display: 'flex', gap: '8px' }}>
+          {btn('dodge', {
+            width: `${SMALL_BTN}px`,
+            height: `${SMALL_BTN}px`,
             borderRadius: '50%',
-            backgroundColor: 'rgba(255, 255, 255, 0.35)',
-            transition: joystickOrigin ? 'none' : 'all 0.15s ease',
-          }}
-        />
-      </div>
+            backgroundColor: 'rgba(234, 179, 8, 0.8)',
+            border: '2px solid rgba(255,255,255,0.4)',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            fontFamily: 'system-ui',
+            color: '#fff',
+            letterSpacing: '0.5px',
+          }, 'ROLL')}
 
-      {/* Jump — large, bottom right */}
-      <div
-        style={buttonStyle(BUTTON_SIZE_LARGE, 40, 30)}
-        onTouchStart={(e) => { e.preventDefault(); handleButtonDown('jump') }}
-        onTouchEnd={() => handleButtonUp('jump')}
-        onTouchCancel={() => handleButtonUp('jump')}
-      >
-        JUMP
-      </div>
+          {btn('interact', {
+            width: `${SMALL_BTN}px`,
+            height: `${SMALL_BTN}px`,
+            borderRadius: '50%',
+            backgroundColor: 'rgba(59, 130, 246, 0.8)',
+            border: '2px solid rgba(255,255,255,0.4)',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            fontFamily: 'system-ui',
+            color: '#fff',
+            letterSpacing: '0.5px',
+          }, 'TALK')}
+        </div>
 
-      {/* Dodge — above jump */}
-      <div
-        style={buttonStyle(BUTTON_SIZE_MEDIUM, 140, 40)}
-        onTouchStart={(e) => { e.preventDefault(); handleButtonDown('dodge') }}
-        onTouchEnd={() => handleButtonUp('dodge')}
-        onTouchCancel={() => handleButtonUp('dodge')}
-      >
-        DODGE
-      </div>
-
-      {/* Interact — top right area */}
-      <div
-        style={buttonStyle(BUTTON_SIZE_SMALL, 220, 50)}
-        onTouchStart={(e) => { e.preventDefault(); handleButtonDown('interact') }}
-        onTouchEnd={() => handleButtonUp('interact')}
-        onTouchCancel={() => handleButtonUp('interact')}
-      >
-        E
+        {/* Bottom: big jump button */}
+        {btn('jump', {
+          width: `${ACTION_BTN}px`,
+          height: `${ACTION_BTN}px`,
+          borderRadius: '50%',
+          backgroundColor: 'rgba(79, 70, 229, 0.85)',
+          border: '3px solid rgba(255,255,255,0.5)',
+          fontSize: '14px',
+          fontWeight: 'bold',
+          fontFamily: 'system-ui',
+          color: '#fff',
+          letterSpacing: '1px',
+        }, 'JUMP')}
       </div>
     </div>
   )
