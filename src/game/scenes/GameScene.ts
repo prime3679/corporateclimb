@@ -13,6 +13,11 @@ import { ResumeGap } from '../entities/ResumeGap'
 import { NetworkingCrowd } from '../entities/NetworkingCrowd'
 import { LinkedInSwarm } from '../entities/LinkedInSwarm'
 import { Overachiever } from '../entities/Overachiever'
+import { CoffeeRunRequest } from '../entities/CoffeeRunRequest'
+import { SlackBarrage } from '../entities/SlackBarrage'
+import { CreditThiefManager } from '../entities/CreditThiefManager'
+import { BossSkipLevel } from '../entities/BossSkipLevel'
+import { ReorgSystem } from '../systems/ReorgSystem'
 import { useDialogueState } from '../../ui/stores/dialogueState'
 import { useCharacterStore } from '../../ui/stores/characterStore'
 import { usePlayerStats } from '../../ui/stores/playerStats'
@@ -48,9 +53,16 @@ export class GameScene extends Phaser.Scene {
   private overachievers: Overachiever[] = []
   private timedDoors: { rect: Phaser.GameObjects.Rectangle; body: Phaser.Physics.Arcade.StaticBody; open: boolean; timer: number; openDuration: number; closeDuration: number }[] = []
 
+  // Level 3 entities
+  private coffeeRunRequests: CoffeeRunRequest[] = []
+  private slackBarrages: SlackBarrage[] = []
+  private creditThieves: CreditThiefManager[] = []
+  private reorgSystem: ReorgSystem | null = null
+
   // Boss (polymorphic)
   private bossNoCurve: BossNoCurve | null = null
   private bossRecruiter: BossGhostingRecruiter | null = null
+  private bossSkipLevel: BossSkipLevel | null = null
   private bossStarted = false
 
   private levelConfig!: LevelConfig
@@ -127,6 +139,7 @@ export class GameScene extends Phaser.Scene {
     this.spawnPowerUps(cfg)
     this.setupDialogueTriggers(cfg)
     this.setupTimedDoors(cfg)
+    this.setupReorg(cfg)
     this.setupBoss(cfg)
 
     // Listen for dialogue state changes to pause/unpause
@@ -163,6 +176,7 @@ export class GameScene extends Phaser.Scene {
     this.updatePowerUps()
     this.updateTimedDoors(delta)
     this.updateBoss(delta)
+    this.reorgSystem?.checkTrigger(this.player.sprite.x)
 
     // Fall respawn + pit energy cost
     if (this.player.sprite.y > this.levelConfig.bounds.bottom + 50) {
@@ -212,6 +226,18 @@ export class GameScene extends Phaser.Scene {
         }
         case 'overachiever': {
           this.overachievers.push(new Overachiever(this, enemy.x, enemy.y, enemy.targetX ?? enemy.x + 600))
+          break
+        }
+        case 'coffee_run': {
+          this.coffeeRunRequests.push(new CoffeeRunRequest(this, enemy.x, enemy.y, enemy.projectileSpeed))
+          break
+        }
+        case 'slack_barrage': {
+          this.slackBarrages.push(new SlackBarrage(this, enemy.x, enemy.y, enemy.bubbleCount))
+          break
+        }
+        case 'credit_thief': {
+          this.creditThieves.push(new CreditThiefManager(this, enemy.x, enemy.y))
           break
         }
       }
@@ -276,6 +302,12 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private setupReorg(cfg: LevelConfig) {
+    if (!cfg.reorg) return
+    this.reorgSystem = new ReorgSystem(this, cfg.reorg, this.solidPlatforms)
+    // The reorg system will handle platform tweening when triggered
+  }
+
   private setupBoss(cfg: LevelConfig) {
     if (!cfg.boss) return
 
@@ -298,6 +330,9 @@ export class GameScene extends Phaser.Scene {
     } else if (cfg.boss.type === 'ghosting_recruiter') {
       this.bossRecruiter = new BossGhostingRecruiter(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
       this.bossRecruiter.onDefeated = onDefeated
+    } else if (cfg.boss.type === 'skip_level') {
+      this.bossSkipLevel = new BossSkipLevel(this, cfg.boss.arenaStart, cfg.boss.arenaEnd, cfg.boss.arenaY)
+      this.bossSkipLevel.onDefeated = onDefeated
     }
 
     this.bossStarted = false
@@ -354,11 +389,29 @@ export class GameScene extends Phaser.Scene {
     }
 
     for (const oa of this.overachievers) {
-      // Start race when player gets within 200px
       if (!oa.destroyed && Math.abs(px - oa.baseX) < 200) {
         oa.startRace()
       }
       oa.update(delta)
+    }
+
+    // Level 3 enemies
+    for (const cr of this.coffeeRunRequests) {
+      if (cr.update(delta, px, py) && !this.player.isInvulnerable) {
+        usePlayerStats.getState().modifyStats({ energy: -5 }, 'enemy:coffee_run')
+        this.player.isInvulnerable = true
+        this.time.delayedCall(500, () => { this.player.isInvulnerable = false })
+      }
+    }
+
+    for (const sb of this.slackBarrages) {
+      if (sb.update(delta, px, py) && !this.player.isInvulnerable) {
+        usePlayerStats.getState().modifyStats({ energy: -3 }, 'enemy:slack_barrage')
+      }
+    }
+
+    for (const ct of this.creditThieves) {
+      ct.update(delta, px, py)
     }
   }
 
@@ -396,7 +449,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private updateBoss(delta: number) {
-    const boss = this.bossNoCurve ?? this.bossRecruiter
+    const boss = this.bossNoCurve ?? this.bossRecruiter ?? this.bossSkipLevel
     if (!boss || boss.destroyed) return
 
     if (!this.bossStarted && this.player.sprite.x > (this.levelConfig.boss?.arenaStart ?? 9999)) {

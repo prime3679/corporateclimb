@@ -19,7 +19,7 @@ export interface BackgroundLayer {
 }
 
 export interface EnemyConfig {
-  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever'
+  type: 'alarm_clock' | 'freeloader' | 'midterm_stack' | 'party_invite' | 'resume_gap' | 'networking_crowd' | 'linkedin_swarm' | 'overachiever' | 'coffee_run' | 'slack_barrage' | 'credit_thief'
   x: number
   y: number
   // Alarm clock
@@ -41,6 +41,20 @@ export interface EnemyConfig {
   radius?: number
   // Overachiever
   targetX?: number // where they race to
+  // Coffee run
+  projectileSpeed?: number
+  // Slack barrage
+  bubbleCount?: number
+  // Credit thief
+  stolenPowerUps?: number
+}
+
+// Reorg event config — platforms swap to alternate layout
+export interface ReorgConfig {
+  triggerX: number // player x position that triggers reorg
+  preReorgPlatforms: PlatformConfig[] // platforms before reorg (indices into main array)
+  postReorgPlatforms: PlatformConfig[] // replacement platforms after reorg
+  narratorDialogue?: string
 }
 
 export interface PowerUpConfig {
@@ -97,4 +111,5 @@ export interface LevelConfig {
   boss?: BossConfig
   pitZones?: { x: number; width: number; energyCost: number }[]
   timedDoors?: TimedDoorConfig[]
+  reorg?: ReorgConfig
 }
