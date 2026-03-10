@@ -47,14 +47,13 @@ export function CharacterCreator({ onStart }: { onStart: () => void }) {
         position: 'absolute',
         inset: 0,
         background: '#1B2A4A',
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
+        overflowY: 'auto',
+        WebkitOverflowScrolling: 'touch',
         pointerEvents: 'auto',
         zIndex: 100,
       }}
     >
-      <div style={{ maxWidth: 600, width: '100%', padding: '40px 32px' }}>
+      <div style={{ maxWidth: 600, width: '100%', padding: '40px 32px', margin: '0 auto' }}>
         <h1
           style={{
             fontSize: 32,
