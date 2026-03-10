@@ -5,6 +5,7 @@ import { testLevel } from '../config/levels/testLevel'
 import { GAME_WIDTH, GAME_HEIGHT } from '../config/gameConfig'
 import { DialogueTrigger, DialogueTriggerConfig } from '../entities/DialogueTrigger'
 import { useDialogueState } from '../../ui/stores/dialogueState'
+import { useCharacterStore } from '../../ui/stores/characterStore'
 import { testDialogue } from '../config/dialogues/testDialogue'
 
 export class GameScene extends Phaser.Scene {
@@ -58,8 +59,10 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Player
-    this.player = new Player(this, cfg.spawn.x, cfg.spawn.y)
+    // Player — use accent color from character store
+    const accentHex = useCharacterStore.getState().accentColor
+    const playerColor = parseInt(accentHex.replace('#', ''), 16)
+    this.player = new Player(this, cfg.spawn.x, cfg.spawn.y, playerColor)
 
     // Collisions
     this.physics.add.collider(this.player.sprite, this.solidPlatforms)

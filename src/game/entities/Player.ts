@@ -44,12 +44,12 @@ export class Player {
   private isJumping = false
   private jumpHeld = false
 
-  constructor(scene: Phaser.Scene, x: number, y: number) {
+  constructor(scene: Phaser.Scene, x: number, y: number, color: number = 0x4F46E5) {
     this.scene = scene
     this.lastSafePosition = { x, y }
 
-    // Create placeholder rectangle
-    this.sprite = scene.add.rectangle(x, y, PLAYER_WIDTH, PLAYER_HEIGHT, 0x4F46E5)
+    // Create placeholder rectangle with character accent color
+    this.sprite = scene.add.rectangle(x, y, PLAYER_WIDTH, PLAYER_HEIGHT, color)
     scene.physics.add.existing(this.sprite)
 
     this.body = this.sprite.body as Phaser.Physics.Arcade.Body
