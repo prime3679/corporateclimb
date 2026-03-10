@@ -2,11 +2,32 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Corporate Climb</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+    <title>Corporate Climb - A Satirical Side-Scrolling RPG</title>
+    <meta name="description" content="Navigate the absurdity of modern career progression. Built by Adrian Lumley with Claude Code." />
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Corporate Climb" />
+    <meta property="og:description" content="A satirical side-scrolling RPG about navigating the corporate ladder." />
+    <meta property="og:type" content="website" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Corporate Climb" />
+    <meta name="twitter:description" content="A satirical side-scrolling RPG about navigating the corporate ladder." />
+
+    <!-- Favicon — tiny ladder in game palette -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 32 32'><rect x='6' y='2' width='4' height='28' rx='1' fill='%234F46E5'/><rect x='22' y='2' width='4' height='28' rx='1' fill='%234F46E5'/><rect x='6' y='8' width='20' height='3' rx='1' fill='%23818CF8'/><rect x='6' y='16' width='20' height='3' rx='1' fill='%23818CF8'/><rect x='6' y='24' width='20' height='3' rx='1' fill='%23818CF8'/></svg>" />
+
+    <!-- Force landscape on mobile -->
+    <meta name="screen-orientation" content="landscape" />
+
     <style>
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #1B2A4A; }
+      html, body, #root { width: 100%; height: 100%; overflow: hidden; background: #0F172A; }
+      body { touch-action: none; -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; }
+      /* Safe area insets for notched devices */
+      #root { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
     </style>
   </head>
   <body>

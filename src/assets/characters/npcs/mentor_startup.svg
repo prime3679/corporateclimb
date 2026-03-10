@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="52" height="78" viewBox="0 0 52 78">
+  <!-- Head -->
+  <ellipse cx="26" cy="11.7" rx="10" ry="12" fill="#D4A574" />
+  <!-- Body -->
+  <rect x="10.4" y="21.840000000000003" width="31.2" height="31.200000000000003" rx="4" fill="#D97706" />
+  <!-- Accent detail -->
+  <rect x="21.84" y="21.840000000000003" width="8.32" height="19.5" fill="#F59E0B" />
+  <!-- Legs -->
+  <rect x="13" y="53.040000000000006" width="10.4" height="21.840000000000003" rx="3" fill="#334155" />
+  <rect x="28.6" y="53.040000000000006" width="10.4" height="21.840000000000003" rx="3" fill="#334155" />
+</svg>
