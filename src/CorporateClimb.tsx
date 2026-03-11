@@ -1279,26 +1279,185 @@ function BattleScreen({
   enemyStatuses: StatusInstance[];
 }) {
   // Floor-based battle backgrounds
-  const bgColors = [
-    ["#E8F5E9", "#C8E6C9", "#A5D6A7"], // Floor 1: grassy
-    ["#E3F2FD", "#BBDEFB", "#90CAF9"], // Floor 2: corporate blue
-    ["#FFF3E0", "#FFE0B2", "#FFCC80"], // Floor 3: warm office
-    ["#ECEFF1", "#CFD8DC", "#B0BEC5"], // Floor 4: gray corporate
-    ["#EDE7F6", "#D1C4E9", "#B39DDB"], // Floor 5: power purple
-    ["#212121", "#424242", "#616161"], // Floor 6: dark C-suite
-  ];
-  const bg = bgColors[Math.min(floor - 1, 5)];
   const isDark = floor >= 6;
+
+  // Background scene elements per floor
+  const bgScene = useMemo(() => {
+    const f = Math.min(floor - 1, 5);
+    return [
+      // Floor 1: Cubicle farm — beige walls, fluorescent lights, cubicle partitions
+      {
+        sky: "linear-gradient(180deg, #F5F0E8 0%, #EDE8DB 40%, #D7CFC0 100%)",
+        ground: "#B8A88A",
+        groundDark: "#A09078",
+        elements: (
+          <>
+            {/* Ceiling tiles */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 20, background: "#E8E0D0", borderBottom: "3px solid #D0C8B8" }} />
+            {/* Fluorescent lights */}
+            {[60, 200, 340].map((x, i) => (
+              <div key={i} style={{ position: "absolute", top: 6, left: x, width: 50, height: 6, background: "#FFFDE7", boxShadow: "0 2px 12px rgba(255,253,231,0.6)", borderRadius: 2 }} />
+            ))}
+            {/* Cubicle walls */}
+            {[20, 120, 300].map((x, i) => (
+              <div key={`c${i}`} style={{ position: "absolute", bottom: "35%", left: x, width: 70, height: 60, background: "#B0BEC5", border: "2px solid #90A4AE", borderRadius: "2px 2px 0 0" }}>
+                <div style={{ position: "absolute", top: 4, left: 4, right: 4, height: 20, background: "#CFD8DC", borderRadius: 1 }} />
+              </div>
+            ))}
+            {/* Water cooler */}
+            <div style={{ position: "absolute", bottom: "35%", right: 30, width: 16, height: 30, background: "#E0E0E0", borderRadius: 2 }}>
+              <div style={{ width: 12, height: 10, background: "#42A5F5", margin: "2px auto", borderRadius: 1 }} />
+            </div>
+          </>
+        ),
+      },
+      // Floor 2: Open office — blue accent walls, standing desks
+      {
+        sky: "linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 40%, #90CAF9 100%)",
+        ground: "#78909C",
+        groundDark: "#607D8B",
+        elements: (
+          <>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 16, background: "#1565C0" }} />
+            {/* Windows */}
+            {[30, 130, 230, 330].map((x, i) => (
+              <div key={i} style={{ position: "absolute", top: 22, left: x, width: 50, height: 55, background: "#E1F5FE", border: "3px solid #90A4AE", borderRadius: 2 }}>
+                <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, background: "#90A4AE" }} />
+                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 2, background: "#90A4AE" }} />
+              </div>
+            ))}
+            {/* Potted plant */}
+            <div style={{ position: "absolute", bottom: "36%", left: 20 }}>
+              <div style={{ width: 18, height: 14, background: "#4CAF50", borderRadius: "50%", position: "relative", left: -1 }} />
+              <div style={{ width: 12, height: 12, background: "#8D6E63", margin: "0 auto", borderRadius: "0 0 2px 2px" }} />
+            </div>
+          </>
+        ),
+      },
+      // Floor 3: Conference room — long table, whiteboard, warm lighting
+      {
+        sky: "linear-gradient(180deg, #FFF8E1 0%, #FFE0B2 40%, #FFCC80 100%)",
+        ground: "#8D6E63",
+        groundDark: "#6D4C41",
+        elements: (
+          <>
+            {/* Warm ceiling */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 14, background: "#F9A825" }}>
+              <div style={{ position: "absolute", bottom: 0, left: 80, width: 30, height: 8, background: "#FFD54F", borderRadius: "0 0 4px 4px", boxShadow: "0 4px 20px rgba(255,213,79,0.4)" }} />
+              <div style={{ position: "absolute", bottom: 0, left: 280, width: 30, height: 8, background: "#FFD54F", borderRadius: "0 0 4px 4px", boxShadow: "0 4px 20px rgba(255,213,79,0.4)" }} />
+            </div>
+            {/* Whiteboard */}
+            <div style={{ position: "absolute", top: 24, left: 50, width: 100, height: 50, background: "#FAFAFA", border: "3px solid #9E9E9E", borderRadius: 2 }}>
+              <div style={{ position: "absolute", top: 8, left: 8, width: 30, height: 3, background: "#F44336", borderRadius: 1 }} />
+              <div style={{ position: "absolute", top: 16, left: 8, width: 50, height: 3, background: "#2196F3", borderRadius: 1 }} />
+              <div style={{ position: "absolute", top: 24, left: 8, width: 40, height: 3, background: "#4CAF50", borderRadius: 1 }} />
+            </div>
+            {/* Conference table */}
+            <div style={{ position: "absolute", bottom: "34%", left: "50%", transform: "translateX(-50%)", width: 160, height: 20, background: "#5D4037", borderRadius: 4, border: "2px solid #4E342E" }} />
+          </>
+        ),
+      },
+      // Floor 4: Manager's office — gray, filing cabinets, motivational poster
+      {
+        sky: "linear-gradient(180deg, #ECEFF1 0%, #CFD8DC 40%, #B0BEC5 100%)",
+        ground: "#78909C",
+        groundDark: "#546E7A",
+        elements: (
+          <>
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: "#90A4AE" }} />
+            {/* Filing cabinets */}
+            {[15, 50].map((x, i) => (
+              <div key={i} style={{ position: "absolute", bottom: "35%", left: x, width: 28, height: 50, background: "#78909C", border: "2px solid #607D8B", borderRadius: "2px 2px 0 0" }}>
+                {[8, 22, 36].map((y, j) => (
+                  <div key={j} style={{ position: "absolute", top: y, left: 6, width: 14, height: 8, background: "#90A4AE", borderRadius: 1 }}>
+                    <div style={{ position: "absolute", top: 3, left: 5, width: 4, height: 2, background: "#B0BEC5", borderRadius: 1 }} />
+                  </div>
+                ))}
+              </div>
+            ))}
+            {/* "Motivational" poster */}
+            <div style={{ position: "absolute", top: 22, right: 40, width: 60, height: 45, background: "#FFFFFF", border: "2px solid #9E9E9E", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <div style={{ fontFamily: "'Press Start 2P'", fontSize: 4, color: "#9E9E9E", textAlign: "center", lineHeight: 1.8 }}>HANG<br />IN<br />THERE</div>
+            </div>
+            {/* Desk */}
+            <div style={{ position: "absolute", bottom: "34%", right: 60, width: 100, height: 14, background: "#6D4C41", borderRadius: "3px 3px 0 0", border: "2px solid #5D4037" }} />
+          </>
+        ),
+      },
+      // Floor 5: Executive floor — purple carpet, city view windows, fancy
+      {
+        sky: "linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 30%, #B39DDB 100%)",
+        ground: "#7E57C2",
+        groundDark: "#5E35B1",
+        elements: (
+          <>
+            {/* Floor-to-ceiling windows with city view */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "65%", display: "flex", gap: 4, padding: "0 10px" }}>
+              {[0, 1, 2, 3, 4, 5].map((i) => (
+                <div key={i} style={{ flex: 1, background: "linear-gradient(180deg, #1A237E 0%, #283593 50%, #3949AB 80%, #5C6BC0 100%)", border: "3px solid #9E9E9E", borderTop: "none", borderRadius: "0 0 2px 2px", position: "relative", overflow: "hidden" }}>
+                  {/* Stars */}
+                  {[15, 35, 55].map((t, j) => (
+                    <div key={j} style={{ position: "absolute", top: t + i * 3, left: 8 + j * 7, width: 2, height: 2, background: "#FFF", borderRadius: "50%", opacity: 0.6 }} />
+                  ))}
+                  {/* City silhouette */}
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 25, background: "#1A237E" }}>
+                    {[3, 12, 20].map((x, j) => (
+                      <div key={j} style={{ position: "absolute", bottom: 0, left: x, width: 6, height: 10 + j * 6, background: "#0D1B3E", borderRadius: "1px 1px 0 0" }} />
+                    ))}
+                  </div>
+                </div>
+              ))}
+            </div>
+            {/* Gold trim */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, #FFD54F, #FFC107, #FFD54F)" }} />
+          </>
+        ),
+      },
+      // Floor 6: C-Suite penthouse — dark, gold accents, throne-like
+      {
+        sky: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 30%, #16213E 70%, #0F3460 100%)",
+        ground: "#1A1A1A",
+        groundDark: "#0D0D0D",
+        elements: (
+          <>
+            {/* Dark windows with red glow */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "60%", display: "flex", gap: 6, padding: "12px 20px" }}>
+              {[0, 1, 2, 3].map((i) => (
+                <div key={i} style={{ flex: 1, background: "linear-gradient(180deg, #0D0D0D 0%, #1A0A0A 50%, #2D0A0A 100%)", border: "2px solid #333", borderRadius: 2, position: "relative" }}>
+                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(0deg, #B71C1C22, transparent)" }} />
+                </div>
+              ))}
+            </div>
+            {/* Gold crown molding */}
+            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, background: "linear-gradient(90deg, #B8860B, #FFD700, #B8860B)", opacity: 0.8 }} />
+            {/* Torches / wall sconces */}
+            {[30, 370].map((x, i) => (
+              <div key={i} style={{ position: "absolute", top: 70, left: x }}>
+                <div style={{ width: 8, height: 16, background: "#5D4037", margin: "0 auto", borderRadius: 1 }} />
+                <div style={{ width: 14, height: 10, background: "#FF6F00", borderRadius: "50%", margin: "-4px auto 0", boxShadow: "0 0 12px #FF6F00, 0 0 24px #FF8F0088", animation: "pulse 1.5s infinite" }} />
+              </div>
+            ))}
+            {/* Red carpet runner */}
+            <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 80, height: "45%", background: "linear-gradient(0deg, #B71C1C 0%, #C6282888 70%, transparent 100%)" }} />
+          </>
+        ),
+      },
+    ][f];
+  }, [floor]);
 
   return (
     <div
       className={screenShake ? "screen-shake" : ""}
       style={{
         display: "flex", flexDirection: "column", height: "100%",
-        background: `linear-gradient(180deg, ${bg[0]} 0%, ${bg[1]} 40%, ${bg[2]} 100%)`,
+        background: bgScene.sky,
         position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Background scene elements */}
+      {bgScene.elements}
+
       {/* Move type flash */}
       {moveTypeColor && (
         <div style={{
@@ -1314,50 +1473,48 @@ function BattleScreen({
       {/* Floor indicator */}
       <div style={{
         position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
-        fontFamily: "'Press Start 2P'", fontSize: 8, color: isDark ? "#B0BEC5" : "#2E7D32",
-        background: isDark ? "rgba(0,0,0,0.5)" : "rgba(255,255,255,0.7)",
+        fontFamily: "'Press Start 2P'", fontSize: 8, color: isDark ? "#FFD54F" : "#2E7D32",
+        background: isDark ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
         padding: "4px 12px", borderRadius: 10,
-        border: `2px solid ${isDark ? "#616161" : "#4CAF50"}`, zIndex: 5,
+        border: `2px solid ${isDark ? "#FFD700" : "#4CAF50"}`, zIndex: 5,
       }}>
         FLOOR {floor}/6
       </div>
 
       {/* Battle field */}
       <div style={{ flex: 1, position: "relative", padding: "12px 16px", minHeight: 220 }}>
-        {/* Ground */}
+        {/* Ground plane */}
         <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: "35%",
-          background: isDark
-            ? "linear-gradient(0deg, #1a1a1a 0%, #2d2d2d 30%, transparent 100%)"
-            : "linear-gradient(0deg, #8D6E63 0%, #A1887F 30%, transparent 100%)",
-          opacity: isDark ? 0.6 : 0.25,
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "38%",
+          background: `linear-gradient(0deg, ${bgScene.groundDark} 0%, ${bgScene.ground} 40%, transparent 100%)`,
+          opacity: 0.5,
         }} />
 
         {/* Enemy area */}
-        <div style={{ position: "absolute", top: 32, right: 12 }}>
+        <div style={{ position: "absolute", top: 28, right: 10, zIndex: 3 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
           <StatusBadges statuses={enemyStatuses} />
         </div>
-        <div style={{ position: "absolute", top: 78, right: 50 }}>
-          <PixelSprite spriteId={enemy.spriteId} size={72} animState={enemyAnim} flip />
+        <div style={{ position: "absolute", top: 50, right: 30, zIndex: 2 }}>
+          <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
           <div style={{
-            width: 56, height: 10, background: "rgba(0,0,0,0.15)",
+            width: 88, height: 14, background: "rgba(0,0,0,0.18)",
             borderRadius: "50%", margin: "2px auto 0",
           }} />
         </div>
 
         {/* Player area */}
-        <div style={{ position: "absolute", bottom: 54, left: 12 }}>
+        <div style={{ position: "absolute", bottom: 16, left: 10, zIndex: 3 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
           <StatusBadges statuses={playerStatuses} />
           <div style={{ marginTop: 3 }}>
             <XpBar xp={xp} xpToNext={xpToNext} level={level} />
           </div>
         </div>
-        <div style={{ position: "absolute", bottom: 44, left: 50 }}>
-          <PixelSprite spriteId={player.spriteId} size={80} animState={playerAnim} />
+        <div style={{ position: "absolute", bottom: 10, left: 50, zIndex: 2 }}>
+          <PixelSprite spriteId={player.spriteId} size={120} animState={playerAnim} />
           <div style={{
-            width: 64, height: 12, background: "rgba(0,0,0,0.15)",
+            width: 96, height: 16, background: "rgba(0,0,0,0.18)",
             borderRadius: "50%", margin: "2px auto 0",
           }} />
         </div>
@@ -1800,8 +1957,8 @@ export default function CorporateClimb() {
     const popup: DamagePopup = {
       id: popupIdCounter++,
       value,
-      x: isEnemy ? 220 + Math.random() * 40 : 80 + Math.random() * 40,
-      y: isEnemy ? 80 + Math.random() * 20 : 160 + Math.random() * 20,
+      x: isEnemy ? 200 + Math.random() * 60 : 60 + Math.random() * 60,
+      y: isEnemy ? 70 + Math.random() * 30 : 130 + Math.random() * 30,
       isCrit,
       isHeal,
     };
