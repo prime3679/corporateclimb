@@ -781,40 +781,46 @@ function PixelSprite({
 
 function HpBar({ current, max, label, isEnemy }: { current: number; max: number; label: string; isEnemy?: boolean }) {
   const pct = Math.max(0, Math.min(100, (current / max) * 100));
-  const color = pct > 50 ? "#4CAF50" : pct > 20 ? "#FFC107" : "#F44336";
+  const color = pct > 50 ? "#48D868" : pct > 20 ? "#F8D030" : "#F85858";
+  const lvl = isEnemy ? Math.ceil(max / 25) : "??";
 
   return (
     <div style={{
-      background: isEnemy ? "#FFF8E1" : "#E3F2FD",
-      border: "3px solid #263238",
-      borderRadius: 8,
-      padding: "8px 12px",
-      minWidth: 200,
-      boxShadow: "4px 4px 0 #263238",
+      background: "#F8F0D8",
+      border: "3px solid #484848",
+      borderRadius: 6,
+      padding: "6px 10px 6px 10px",
+      minWidth: 190,
+      position: "relative",
+      boxShadow: "2px 2px 0 rgba(0,0,0,0.3)",
     }}>
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 9, color: "#263238" }}>{label}</span>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#546E7A" }}>
-          Lv{isEnemy ? Math.ceil(max / 25) : "??"}
+      {/* Name row */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 3 }}>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 10, color: "#383838", letterSpacing: 0.5 }}>{label}</span>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#585858" }}>
+          <span style={{ fontSize: 6, verticalAlign: "top" }}>Lv</span>{lvl}
         </span>
       </div>
-      <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#263238" }}>HP</span>
+      {/* HP bar row */}
+      <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#F8A800", fontWeight: "bold" }}>HP</span>
         <div style={{
-          flex: 1, height: 10, background: "#263238", borderRadius: 5, overflow: "hidden",
+          flex: 1, height: 8, background: "#484848", borderRadius: 4, overflow: "hidden",
+          border: "1px solid #383838",
         }}>
           <div style={{
             width: `${pct}%`, height: "100%", background: color,
-            transition: "width 0.6s ease, background 0.4s ease",
-            borderRadius: 5,
-            boxShadow: "inset 0 -2px 0 rgba(0,0,0,0.2), inset 0 2px 0 rgba(255,255,255,0.3)",
+            transition: "width 0.5s ease, background 0.3s ease",
+            borderRadius: 4,
+            boxShadow: `inset 0 -2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)`,
           }} />
         </div>
       </div>
+      {/* HP numbers (player only) */}
       {!isEnemy && (
         <div style={{ textAlign: "right", marginTop: 2 }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#263238" }}>
-            {Math.max(0, current)}/{max}
+          <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#383838" }}>
+            {Math.max(0, current)}<span style={{ color: "#888", fontSize: 7 }}> / {max}</span>
           </span>
         </div>
       )}
@@ -1278,185 +1284,49 @@ function BattleScreen({
   playerStatuses: StatusInstance[];
   enemyStatuses: StatusInstance[];
 }) {
-  // Floor-based battle backgrounds
+  // Floor-based battle scenes
   const isDark = floor >= 6;
+  const fi = Math.min(floor - 1, 5);
 
-  // Background scene elements per floor
-  const bgScene = useMemo(() => {
-    const f = Math.min(floor - 1, 5);
-    return [
-      // Floor 1: Cubicle farm — beige walls, fluorescent lights, cubicle partitions
-      {
-        sky: "linear-gradient(180deg, #F5F0E8 0%, #EDE8DB 40%, #D7CFC0 100%)",
-        ground: "#B8A88A",
-        groundDark: "#A09078",
-        elements: (
-          <>
-            {/* Ceiling tiles */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 20, background: "#E8E0D0", borderBottom: "3px solid #D0C8B8" }} />
-            {/* Fluorescent lights */}
-            {[60, 200, 340].map((x, i) => (
-              <div key={i} style={{ position: "absolute", top: 6, left: x, width: 50, height: 6, background: "#FFFDE7", boxShadow: "0 2px 12px rgba(255,253,231,0.6)", borderRadius: 2 }} />
-            ))}
-            {/* Cubicle walls */}
-            {[20, 120, 300].map((x, i) => (
-              <div key={`c${i}`} style={{ position: "absolute", bottom: "35%", left: x, width: 70, height: 60, background: "#B0BEC5", border: "2px solid #90A4AE", borderRadius: "2px 2px 0 0" }}>
-                <div style={{ position: "absolute", top: 4, left: 4, right: 4, height: 20, background: "#CFD8DC", borderRadius: 1 }} />
-              </div>
-            ))}
-            {/* Water cooler */}
-            <div style={{ position: "absolute", bottom: "35%", right: 30, width: 16, height: 30, background: "#E0E0E0", borderRadius: 2 }}>
-              <div style={{ width: 12, height: 10, background: "#42A5F5", margin: "2px auto", borderRadius: 1 }} />
-            </div>
-          </>
-        ),
-      },
-      // Floor 2: Open office — blue accent walls, standing desks
-      {
-        sky: "linear-gradient(180deg, #E3F2FD 0%, #BBDEFB 40%, #90CAF9 100%)",
-        ground: "#78909C",
-        groundDark: "#607D8B",
-        elements: (
-          <>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 16, background: "#1565C0" }} />
-            {/* Windows */}
-            {[30, 130, 230, 330].map((x, i) => (
-              <div key={i} style={{ position: "absolute", top: 22, left: x, width: 50, height: 55, background: "#E1F5FE", border: "3px solid #90A4AE", borderRadius: 2 }}>
-                <div style={{ position: "absolute", left: "50%", top: 0, bottom: 0, width: 2, background: "#90A4AE" }} />
-                <div style={{ position: "absolute", top: "50%", left: 0, right: 0, height: 2, background: "#90A4AE" }} />
-              </div>
-            ))}
-            {/* Potted plant */}
-            <div style={{ position: "absolute", bottom: "36%", left: 20 }}>
-              <div style={{ width: 18, height: 14, background: "#4CAF50", borderRadius: "50%", position: "relative", left: -1 }} />
-              <div style={{ width: 12, height: 12, background: "#8D6E63", margin: "0 auto", borderRadius: "0 0 2px 2px" }} />
-            </div>
-          </>
-        ),
-      },
-      // Floor 3: Conference room — long table, whiteboard, warm lighting
-      {
-        sky: "linear-gradient(180deg, #FFF8E1 0%, #FFE0B2 40%, #FFCC80 100%)",
-        ground: "#8D6E63",
-        groundDark: "#6D4C41",
-        elements: (
-          <>
-            {/* Warm ceiling */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 14, background: "#F9A825" }}>
-              <div style={{ position: "absolute", bottom: 0, left: 80, width: 30, height: 8, background: "#FFD54F", borderRadius: "0 0 4px 4px", boxShadow: "0 4px 20px rgba(255,213,79,0.4)" }} />
-              <div style={{ position: "absolute", bottom: 0, left: 280, width: 30, height: 8, background: "#FFD54F", borderRadius: "0 0 4px 4px", boxShadow: "0 4px 20px rgba(255,213,79,0.4)" }} />
-            </div>
-            {/* Whiteboard */}
-            <div style={{ position: "absolute", top: 24, left: 50, width: 100, height: 50, background: "#FAFAFA", border: "3px solid #9E9E9E", borderRadius: 2 }}>
-              <div style={{ position: "absolute", top: 8, left: 8, width: 30, height: 3, background: "#F44336", borderRadius: 1 }} />
-              <div style={{ position: "absolute", top: 16, left: 8, width: 50, height: 3, background: "#2196F3", borderRadius: 1 }} />
-              <div style={{ position: "absolute", top: 24, left: 8, width: 40, height: 3, background: "#4CAF50", borderRadius: 1 }} />
-            </div>
-            {/* Conference table */}
-            <div style={{ position: "absolute", bottom: "34%", left: "50%", transform: "translateX(-50%)", width: 160, height: 20, background: "#5D4037", borderRadius: 4, border: "2px solid #4E342E" }} />
-          </>
-        ),
-      },
-      // Floor 4: Manager's office — gray, filing cabinets, motivational poster
-      {
-        sky: "linear-gradient(180deg, #ECEFF1 0%, #CFD8DC 40%, #B0BEC5 100%)",
-        ground: "#78909C",
-        groundDark: "#546E7A",
-        elements: (
-          <>
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 12, background: "#90A4AE" }} />
-            {/* Filing cabinets */}
-            {[15, 50].map((x, i) => (
-              <div key={i} style={{ position: "absolute", bottom: "35%", left: x, width: 28, height: 50, background: "#78909C", border: "2px solid #607D8B", borderRadius: "2px 2px 0 0" }}>
-                {[8, 22, 36].map((y, j) => (
-                  <div key={j} style={{ position: "absolute", top: y, left: 6, width: 14, height: 8, background: "#90A4AE", borderRadius: 1 }}>
-                    <div style={{ position: "absolute", top: 3, left: 5, width: 4, height: 2, background: "#B0BEC5", borderRadius: 1 }} />
-                  </div>
-                ))}
-              </div>
-            ))}
-            {/* "Motivational" poster */}
-            <div style={{ position: "absolute", top: 22, right: 40, width: 60, height: 45, background: "#FFFFFF", border: "2px solid #9E9E9E", borderRadius: 2, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <div style={{ fontFamily: "'Press Start 2P'", fontSize: 4, color: "#9E9E9E", textAlign: "center", lineHeight: 1.8 }}>HANG<br />IN<br />THERE</div>
-            </div>
-            {/* Desk */}
-            <div style={{ position: "absolute", bottom: "34%", right: 60, width: 100, height: 14, background: "#6D4C41", borderRadius: "3px 3px 0 0", border: "2px solid #5D4037" }} />
-          </>
-        ),
-      },
-      // Floor 5: Executive floor — purple carpet, city view windows, fancy
-      {
-        sky: "linear-gradient(180deg, #EDE7F6 0%, #D1C4E9 30%, #B39DDB 100%)",
-        ground: "#7E57C2",
-        groundDark: "#5E35B1",
-        elements: (
-          <>
-            {/* Floor-to-ceiling windows with city view */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "65%", display: "flex", gap: 4, padding: "0 10px" }}>
-              {[0, 1, 2, 3, 4, 5].map((i) => (
-                <div key={i} style={{ flex: 1, background: "linear-gradient(180deg, #1A237E 0%, #283593 50%, #3949AB 80%, #5C6BC0 100%)", border: "3px solid #9E9E9E", borderTop: "none", borderRadius: "0 0 2px 2px", position: "relative", overflow: "hidden" }}>
-                  {/* Stars */}
-                  {[15, 35, 55].map((t, j) => (
-                    <div key={j} style={{ position: "absolute", top: t + i * 3, left: 8 + j * 7, width: 2, height: 2, background: "#FFF", borderRadius: "50%", opacity: 0.6 }} />
-                  ))}
-                  {/* City silhouette */}
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 25, background: "#1A237E" }}>
-                    {[3, 12, 20].map((x, j) => (
-                      <div key={j} style={{ position: "absolute", bottom: 0, left: x, width: 6, height: 10 + j * 6, background: "#0D1B3E", borderRadius: "1px 1px 0 0" }} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-            {/* Gold trim */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 6, background: "linear-gradient(90deg, #FFD54F, #FFC107, #FFD54F)" }} />
-          </>
-        ),
-      },
-      // Floor 6: C-Suite penthouse — dark, gold accents, throne-like
-      {
-        sky: "linear-gradient(180deg, #0D0D0D 0%, #1A1A2E 30%, #16213E 70%, #0F3460 100%)",
-        ground: "#1A1A1A",
-        groundDark: "#0D0D0D",
-        elements: (
-          <>
-            {/* Dark windows with red glow */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "60%", display: "flex", gap: 6, padding: "12px 20px" }}>
-              {[0, 1, 2, 3].map((i) => (
-                <div key={i} style={{ flex: 1, background: "linear-gradient(180deg, #0D0D0D 0%, #1A0A0A 50%, #2D0A0A 100%)", border: "2px solid #333", borderRadius: 2, position: "relative" }}>
-                  <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%", background: "linear-gradient(0deg, #B71C1C22, transparent)" }} />
-                </div>
-              ))}
-            </div>
-            {/* Gold crown molding */}
-            <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 8, background: "linear-gradient(90deg, #B8860B, #FFD700, #B8860B)", opacity: 0.8 }} />
-            {/* Torches / wall sconces */}
-            {[30, 370].map((x, i) => (
-              <div key={i} style={{ position: "absolute", top: 70, left: x }}>
-                <div style={{ width: 8, height: 16, background: "#5D4037", margin: "0 auto", borderRadius: 1 }} />
-                <div style={{ width: 14, height: 10, background: "#FF6F00", borderRadius: "50%", margin: "-4px auto 0", boxShadow: "0 0 12px #FF6F00, 0 0 24px #FF8F0088", animation: "pulse 1.5s infinite" }} />
-              </div>
-            ))}
-            {/* Red carpet runner */}
-            <div style={{ position: "absolute", bottom: 0, left: "50%", transform: "translateX(-50%)", width: 80, height: "45%", background: "linear-gradient(0deg, #B71C1C 0%, #C6282888 70%, transparent 100%)" }} />
-          </>
-        ),
-      },
-    ][f];
-  }, [floor]);
+  // Backgrounds: wall color + floor color + accent
+  const scenes = [
+    { wall: "#E8E0D0", wallBot: "#D8D0B8", floor: "#C8B898", floorDk: "#B0A080", accent: "#90A4AE" }, // 1: Cubicle
+    { wall: "#D6E8F0", wallBot: "#B8D4E8", floor: "#90A4AE", floorDk: "#78909C", accent: "#1565C0" }, // 2: Open office
+    { wall: "#F5E8D0", wallBot: "#E8D8B8", floor: "#A08060", floorDk: "#886848", accent: "#F9A825" }, // 3: Conference
+    { wall: "#D8D8D8", wallBot: "#C0C0C0", floor: "#909090", floorDk: "#787878", accent: "#607D8B" }, // 4: Manager
+    { wall: "#D8C8F0", wallBot: "#C0A8E0", floor: "#8860C0", floorDk: "#6840A0", accent: "#FFD54F" }, // 5: Executive
+    { wall: "#181828", wallBot: "#101020", floor: "#201018", floorDk: "#100810", accent: "#FFD700" }, // 6: C-Suite
+  ];
+  const sc = scenes[fi];
 
   return (
     <div
       className={screenShake ? "screen-shake" : ""}
       style={{
         display: "flex", flexDirection: "column", height: "100%",
-        background: bgScene.sky,
+        background: `linear-gradient(180deg, ${sc.wall} 0%, ${sc.wallBot} 55%, ${sc.floor} 55%, ${sc.floorDk} 100%)`,
         position: "relative",
         overflow: "hidden",
       }}
     >
-      {/* Background scene elements */}
-      {bgScene.elements}
+      {/* Wall details */}
+      {fi < 5 && (
+        <>
+          {/* Baseboard / wall-floor edge */}
+          <div style={{ position: "absolute", top: "54%", left: 0, right: 0, height: 4, background: sc.accent, opacity: 0.4, zIndex: 1 }} />
+          {/* Floor tile lines for depth */}
+          {[60, 70, 82].map((pct, i) => (
+            <div key={i} style={{ position: "absolute", top: `${pct}%`, left: 0, right: 0, height: 1, background: sc.floorDk, opacity: 0.2, zIndex: 1 }} />
+          ))}
+        </>
+      )}
+      {fi === 5 && (
+        <>
+          {/* C-suite: gold trim + red carpet */}
+          <div style={{ position: "absolute", top: "53%", left: 0, right: 0, height: 5, background: "linear-gradient(90deg, #B8860B, #FFD700, #B8860B)", opacity: 0.6, zIndex: 1 }} />
+          <div style={{ position: "absolute", top: "55%", bottom: 0, left: "35%", right: "35%", background: "linear-gradient(180deg, #8B0000 0%, #B71C1C 100%)", opacity: 0.3, zIndex: 1 }} />
+        </>
+      )}
 
       {/* Move type flash */}
       {moveTypeColor && (
@@ -1470,53 +1340,58 @@ function BattleScreen({
         }} />
       )}
 
-      {/* Floor indicator */}
-      <div style={{
-        position: "absolute", top: 8, left: "50%", transform: "translateX(-50%)",
-        fontFamily: "'Press Start 2P'", fontSize: 8, color: isDark ? "#FFD54F" : "#2E7D32",
-        background: isDark ? "rgba(0,0,0,0.7)" : "rgba(255,255,255,0.7)",
-        padding: "4px 12px", borderRadius: 10,
-        border: `2px solid ${isDark ? "#FFD700" : "#4CAF50"}`, zIndex: 5,
-      }}>
-        FLOOR {floor}/6
-      </div>
-
       {/* Battle field */}
       <div style={{ flex: 1, position: "relative", minHeight: 220 }}>
-        {/* Ground floor */}
-        <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: "45%",
-          background: `linear-gradient(0deg, ${bgScene.groundDark} 0%, ${bgScene.ground} 50%, ${bgScene.ground}88 70%, transparent 100%)`,
-          opacity: 0.6,
-        }} />
 
-        {/* ── Enemy: HP bar left, sprite right (top half) ── */}
-        <div style={{ position: "absolute", top: 24, left: 12, zIndex: 4 }}>
+        {/* ═══ ENEMY SIDE (top) ═══ */}
+        {/* Enemy platform — ellipse on the floor */}
+        <div style={{
+          position: "absolute", top: "42%", right: 20,
+          width: 140, height: 28,
+          background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
+          borderRadius: "50%",
+          zIndex: 1,
+        }} />
+        {/* Enemy sprite — standing on platform */}
+        <div style={{ position: "absolute", top: "12%", right: 35, zIndex: 2 }}>
+          <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
+        </div>
+        {/* Enemy HP panel — top left */}
+        <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
           <StatusBadges statuses={enemyStatuses} />
         </div>
-        <div style={{ position: "absolute", top: 16, right: 30, zIndex: 2 }}>
-          <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
-          <div style={{
-            width: 80, height: 12, background: "rgba(0,0,0,0.22)",
-            borderRadius: "50%", margin: "-2px auto 0",
-          }} />
-        </div>
 
-        {/* ── Player: sprite left, HP bar right (bottom half) ── */}
-        <div style={{ position: "absolute", bottom: "6%", left: 20, zIndex: 2 }}>
-          <PixelSprite spriteId={player.spriteId} size={120} animState={playerAnim} />
-          <div style={{
-            width: 90, height: 14, background: "rgba(0,0,0,0.22)",
-            borderRadius: "50%", margin: "-2px auto 0",
-          }} />
+        {/* ═══ PLAYER SIDE (bottom) ═══ */}
+        {/* Player platform — ellipse on the floor */}
+        <div style={{
+          position: "absolute", bottom: "8%", left: 10,
+          width: 160, height: 32,
+          background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
+          borderRadius: "50%",
+          zIndex: 1,
+        }} />
+        {/* Player sprite — standing on platform */}
+        <div style={{ position: "absolute", bottom: "10%", left: 25, zIndex: 2 }}>
+          <PixelSprite spriteId={player.spriteId} size={128} animState={playerAnim} />
         </div>
-        <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 4 }}>
+        {/* Player HP panel — bottom right */}
+        <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
           <StatusBadges statuses={playerStatuses} />
-          <div style={{ marginTop: 3 }}>
+          <div style={{ marginTop: 2 }}>
             <XpBar xp={xp} xpToNext={xpToNext} level={level} />
           </div>
+        </div>
+
+        {/* Floor indicator — subtle */}
+        <div style={{
+          position: "absolute", top: 6, right: 8,
+          fontFamily: "'Press Start 2P'", fontSize: 7,
+          color: isDark ? "#FFD54F88" : "#00000044",
+          zIndex: 3,
+        }}>
+          F{floor}/6
         </div>
 
         {/* Damage popups */}
