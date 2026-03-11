@@ -53,13 +53,17 @@ interface PlayerClass {
   atk: number;
   def: number;
   spd: number;
+  types: MoveType[];
   desc: string;
   moves: Move[];
 }
 
+type MoveType = "strategy" | "influence" | "execution" | "analytics" | "technical" | "normal";
+
 interface EnemyMove {
   name: string;
   dmg: number;
+  type?: MoveType;
   heal?: number;
   status?: StatusEffectOnMove;
 }
@@ -72,6 +76,7 @@ interface Enemy {
   maxHp: number;
   atk: number;
   def: number;
+  types: MoveType[];
   moves: EnemyMove[];
   defeat: string;
   title: string;
@@ -94,6 +99,7 @@ const PLAYER_CLASSES: PlayerClass[] = [
     atk: 14,
     def: 10,
     spd: 12,
+    types: ["strategy", "influence"],
     desc: "Balances roadmaps and stakeholders. High versatility.",
     moves: [
       { name: "Prioritize Backlog", dmg: 18, type: "strategy", desc: "Ruthlessly cuts scope. Hits hard.", pp: 15, status: { id: "focused", target: "self", chance: 0.4 } },
@@ -111,6 +117,7 @@ const PLAYER_CLASSES: PlayerClass[] = [
     atk: 18,
     def: 8,
     spd: 14,
+    types: ["technical", "execution"],
     desc: "Writes code and rewrites everything else. Glass cannon.",
     moves: [
       { name: "Refactor Everything", dmg: 22, type: "technical", desc: "Rewrites the opponent from scratch.", pp: 12, status: { id: "motivated", target: "self", chance: 0.4 } },
@@ -128,6 +135,7 @@ const PLAYER_CLASSES: PlayerClass[] = [
     atk: 12,
     def: 12,
     spd: 16,
+    types: ["analytics", "technical"],
     desc: "Sees what others can't. Fast and balanced.",
     moves: [
       { name: "Pixel Perfect Punch", dmg: 20, type: "execution", desc: "That 1px misalignment? Fixed violently.", pp: 15, status: { id: "focused", target: "self", chance: 0.3 } },
@@ -140,44 +148,44 @@ const PLAYER_CLASSES: PlayerClass[] = [
 
 const ENEMIES: Enemy[] = [
   {
-    floor: 1, name: "Intern", emoji: "🥤", spriteId: "intern", maxHp: 50, atk: 6, def: 4,
-    moves: [{ name: "Eager Question", dmg: 8 }, { name: "Coffee Run", dmg: 5, heal: 10 }],
+    floor: 1, name: "Intern", emoji: "🥤", spriteId: "intern", maxHp: 50, atk: 6, def: 4, types: ["normal"],
+    moves: [{ name: "Eager Question", dmg: 8, type: "normal" }, { name: "Coffee Run", dmg: 5, type: "normal", heal: 10 }],
     defeat: "The intern learned a valuable lesson today.",
     title: "THE EAGER INTERN",
   },
   {
-    floor: 2, name: "Recruiter", emoji: "📞", spriteId: "recruiter", maxHp: 65, atk: 9, def: 5,
-    moves: [{ name: "LinkedIn Spam", dmg: 10 }, { name: "Lowball Offer", dmg: 14 }],
+    floor: 2, name: "Recruiter", emoji: "📞", spriteId: "recruiter", maxHp: 65, atk: 9, def: 5, types: ["influence"],
+    moves: [{ name: "LinkedIn Spam", dmg: 10, type: "influence" }, { name: "Lowball Offer", dmg: 14, type: "strategy" }],
     defeat: "\u201CLet\u2019s circle back when you have more budget.\u201D",
     title: "THE PERSISTENT RECRUITER",
   },
   {
-    floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 75, atk: 11, def: 6,
-    moves: [{ name: "Humble Brag", dmg: 14, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 18 }, { name: "Volunteer as Tribute", dmg: 10, heal: 12, status: { id: "motivated", target: "self" } }],
+    floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 75, atk: 11, def: 6, types: ["execution"],
+    moves: [{ name: "Humble Brag", dmg: 14, type: "influence", status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 18, type: "execution" }, { name: "Volunteer as Tribute", dmg: 10, type: "strategy", heal: 12, status: { id: "motivated", target: "self" } }],
     defeat: "\"I guess even 110% wasn't enough today.\"",
     title: "THE OVERACHIEVER",
   },
   {
-    floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8,
-    moves: [{ name: "Standup Ambush", dmg: 12, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 16, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 10, heal: 8 }],
+    floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8, types: ["strategy", "execution"],
+    moves: [{ name: "Standup Ambush", dmg: 12, type: "strategy", status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 16, type: "execution", status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 10, type: "influence", heal: 8 }],
     defeat: "The daily standup has been cancelled. Forever.",
     title: "THE RELENTLESS SCRUM MASTER",
   },
   {
-    floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10,
-    moves: [{ name: "Unnecessary Meeting", dmg: 14, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 18, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 8, heal: 15, status: { id: "motivated", target: "self" } }],
+    floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10, types: ["influence", "strategy"],
+    moves: [{ name: "Unnecessary Meeting", dmg: 14, type: "strategy", status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 18, type: "influence", status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 8, type: "influence", heal: 15, status: { id: "motivated", target: "self" } }],
     defeat: "\u201CPer my last email\u2026 I resign.\u201D",
     title: "THE MIDDLE MANAGER",
   },
   {
-    floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12,
-    moves: [{ name: "Buzzword Barrage", dmg: 16, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 22, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 12, heal: 12, status: { id: "motivated", target: "self" } }],
+    floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12, types: ["influence", "analytics"],
+    moves: [{ name: "Buzzword Barrage", dmg: 16, type: "influence", status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 22, type: "strategy", status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 12, type: "influence", heal: 12, status: { id: "motivated", target: "self" } }],
     defeat: "Synergy has been disrupted. The paradigm shifts.",
     title: "THE VP OF SYNERGY",
   },
   {
-    floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15,
-    moves: [{ name: "Golden Parachute", dmg: 10, heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, status: { id: "micromanaged", target: "enemy" } }],
+    floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15, types: ["strategy", "influence"],
+    moves: [{ name: "Golden Parachute", dmg: 10, type: "strategy", heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, type: "execution", status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, type: "analytics", status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, type: "influence", status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
   },
@@ -200,6 +208,27 @@ const TYPE_LABELS: Record<string, string> = {
   technical: "TECH",
   normal: "NORM",
 };
+
+// Type effectiveness: attacker type → set of types it's super effective against
+const TYPE_STRONG: Record<string, Set<string>> = {
+  strategy:  new Set(["execution", "influence"]),
+  execution: new Set(["technical", "analytics"]),
+  technical: new Set(["strategy", "influence"]),
+  analytics: new Set(["strategy", "execution"]),
+  influence: new Set(["execution", "analytics"]),
+};
+
+function getTypeMultiplier(atkType: string, defTypes: string[]): { mult: number; label: string | null } {
+  if (atkType === "normal" || !TYPE_STRONG[atkType]) return { mult: 1, label: null };
+  const strong = TYPE_STRONG[atkType];
+  // Check if any of the defender's types are weak to this attack
+  const superEffective = defTypes.some(t => strong.has(t));
+  // Check if any of the defender's types resist this attack (they have strong against attacker)
+  const notEffective = defTypes.some(t => TYPE_STRONG[t]?.has(atkType));
+  if (superEffective && !notEffective) return { mult: 1.5, label: "Super effective!" };
+  if (notEffective && !superEffective) return { mult: 0.67, label: "Not very effective..." };
+  return { mult: 1, label: null };
+}
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap";
 
@@ -969,6 +998,14 @@ function BattleScreen({
         {/* Enemy HP panel — top left */}
         <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
+          <div style={{ display: "flex", gap: 3, marginTop: 2 }}>
+            {enemy.types.map(t => (
+              <span key={t} style={{
+                fontFamily: "'Press Start 2P'", fontSize: 5, padding: "1px 4px",
+                background: TYPE_COLORS[t], color: "#fff", borderRadius: 2, opacity: 0.85,
+              }}>{TYPE_LABELS[t]}</span>
+            ))}
+          </div>
           <StatusBadges statuses={enemyStatuses} />
         </div>
 
@@ -1387,6 +1424,18 @@ function FloorIntro({ enemy, onReady }: { enemy: Enemy; onReady: () => void }) {
         {enemy.title}
       </div>
       <div style={{
+        display: "flex", gap: 6, justifyContent: "center",
+        opacity: show ? 1 : 0,
+        transition: "opacity 0.8s ease 0.4s",
+      }}>
+        {enemy.types.map(t => (
+          <span key={t} style={{
+            fontFamily: "'Press Start 2P'", fontSize: 7, padding: "3px 8px",
+            background: TYPE_COLORS[t], color: "#fff", borderRadius: 4,
+          }}>{TYPE_LABELS[t]}</span>
+        ))}
+      </div>
+      <div style={{
         width: 96, height: 96,
         opacity: show ? 1 : 0,
         transition: "opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s",
@@ -1670,11 +1719,11 @@ export default function CorporateClimb() {
     }, 0);
   };
 
-  const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0): [number, boolean] => {
+  const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0, typeMult: number = 1): [number, boolean] => {
     const variance = 0.85 + Math.random() * 0.3;
     const isCrit = Math.random() < (0.1 + critBonus);
     const crit = isCrit ? 1.5 : 1;
-    return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit)), isCrit];
+    return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit * typeMult)), isCrit];
   };
 
   const doPlayerMove = useCallback((moveIdx: number) => {
@@ -1695,7 +1744,8 @@ export default function CorporateClimb() {
       const playerAtkMod = getStatusAtkMod(gs.playerStatuses);
       const enemyDefMod = getStatusDefMod(gs.enemyStatuses);
       const playerCritBonus = getStatusCritBonus(gs.playerStatuses);
-      const [dmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus);
+      const typeResult = getTypeMultiplier(move.type, gs.enemy.types);
+      const [dmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus, typeResult.mult);
       const newEnemyHp = Math.max(0, gs.enemyHp - dmg);
       setEnemyHp(newEnemyHp);
       setEnemyAnim("hit");
@@ -1705,6 +1755,7 @@ export default function CorporateClimb() {
 
       let logMsg = `${gs.player!.name} used ${move.name}! ${dmg} damage!`;
       if (isCrit) logMsg += " Critical hit!";
+      if (typeResult.label) logMsg += ` ${typeResult.label}`;
 
       // Apply status effect from move
       if (move.status) {
@@ -1820,10 +1871,12 @@ export default function CorporateClimb() {
           const enemyAtkMod = getStatusAtkMod(gs.enemyStatuses);
           const playerDefMod = getStatusDefMod(gs.playerStatuses);
           const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses);
-          const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, gs.player!.def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus);
+          const eTypeResult = getTypeMultiplier(eMove.type || "normal", gs.player!.types);
+          const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, gs.player!.def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus, eTypeResult.mult);
 
           let eLog = `${gs.enemy.name} used ${eMove.name}! ${eDmg} damage!`;
           if (eCrit) eLog += " Critical hit!";
+          if (eTypeResult.label) eLog += ` ${eTypeResult.label}`;
 
           // Apply status effect from enemy move
           if (eMove.status) {
