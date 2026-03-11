@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef, useMemo } from "react";
+import { SFX } from "./sfx";
 
 // ─── TYPES ───────────────────────────────────────────────────
 interface Move {
@@ -388,6 +389,111 @@ const TYPE_LABELS: Record<string, string> = {
 };
 
 const FONT_URL = "https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap";
+
+// ─── HALLWAY EVENTS ──────────────────────────────────────────
+interface HallwayEvent {
+  id: string;
+  title: string;
+  desc: string;
+  emoji: string;
+  choices: {
+    label: string;
+    effect: { hp?: number; atk?: number; def?: number; ppRestore?: number };
+    result: string;
+    isGood: boolean;
+  }[];
+}
+
+const HALLWAY_EVENTS: HallwayEvent[] = [
+  {
+    id: "coffee_machine",
+    title: "BREAK ROOM",
+    desc: "You stumble upon an unattended coffee machine. The good stuff \u2014 not that instant garbage.",
+    emoji: "\u2615",
+    choices: [
+      { label: "Grab a double shot", effect: { hp: 25 }, result: "The caffeine hits immediately. You feel alive again.", isGood: true },
+      { label: "Take the whole pot", effect: { hp: 40, def: -1 }, result: "You chug the entire pot. Jittery but ENERGIZED. Your hands won't stop shaking though.", isGood: true },
+      { label: "Pass \u2014 stay focused", effect: { atk: 1 }, result: "Discipline over comfort. Your resolve strengthens.", isGood: true },
+    ],
+  },
+  {
+    id: "office_gossip",
+    title: "WATER COOLER",
+    desc: "Two VPs are whispering by the water cooler. You could eavesdrop and learn about your next opponent...",
+    emoji: "\uD83D\uDDE3\uFE0F",
+    choices: [
+      { label: "Eavesdrop carefully", effect: { atk: 2 }, result: "You overhear their weaknesses. Knowledge is power.", isGood: true },
+      { label: "Join the conversation", effect: { def: 1, hp: -10 }, result: "They rope you into a 20-minute chat about golf. Draining, but they like you now.", isGood: true },
+      { label: "Walk past quickly", effect: { hp: 10 }, result: "You avoid the drama. Peace of mind is its own reward.", isGood: true },
+    ],
+  },
+  {
+    id: "sensitivity_training",
+    title: "MANDATORY TRAINING",
+    desc: "HR ambushes you. \"We need you for a quick sensitivity training. It'll only take an hour.\"",
+    emoji: "\uD83D\uDCCB",
+    choices: [
+      { label: "Attend willingly", effect: { def: 2, hp: -15 }, result: "It was NOT quick. But you learned about \"psychological safety\" which is... something.", isGood: true },
+      { label: "Fake a meeting conflict", effect: { atk: 1 }, result: "\"Sorry, syncing with stakeholders!\" You dodge it smoothly. Confidence boost.", isGood: true },
+      { label: "Actually engage", effect: { def: 3, hp: -20, ppRestore: 2 }, result: "You genuinely participate. HR is shocked. You feel weirdly refreshed.", isGood: true },
+    ],
+  },
+  {
+    id: "supply_closet",
+    title: "SUPPLY CLOSET",
+    desc: "The supply closet is unlocked. Inside: premium sticky notes, a Red Bull, and someone's hidden snack stash.",
+    emoji: "\uD83D\uDCE6",
+    choices: [
+      { label: "Grab the Red Bull", effect: { hp: 30, atk: 1 }, result: "Wings acquired. You feel unstoppable (for about 45 minutes).", isGood: true },
+      { label: "Raid the snack stash", effect: { hp: 20, ppRestore: 3 }, result: "Trail mix, protein bars, and... is that a full sleeve of Oreos? Jackpot.", isGood: true },
+      { label: "Take the sticky notes", effect: { def: 2 }, result: "Premium 3M Super Sticky notes. Your organizational armor is now impenetrable.", isGood: true },
+    ],
+  },
+  {
+    id: "elevator_pitch",
+    title: "ELEVATOR ENCOUNTER",
+    desc: "You're stuck in the elevator with the CEO for 30 floors. They look at you expectantly.",
+    emoji: "\uD83D\uDEBB",
+    choices: [
+      { label: "Pitch your idea", effect: { atk: 3, hp: -15 }, result: "\"Interesting. Send me a deck.\" Your heart is POUNDING but your confidence soars.", isGood: true },
+      { label: "Make small talk", effect: { def: 1, hp: 10 }, result: "\"Nice weather, right?\" The CEO smiles. You survive. That's a win.", isGood: true },
+      { label: "Stare at your phone", effect: { hp: -5 }, result: "The CEO notices. Noted. Literally \u2014 they wrote something down.", isGood: false },
+    ],
+  },
+  {
+    id: "printer_jam",
+    title: "PRINTER CRISIS",
+    desc: "The printer is jammed. A line of 6 people is forming. You're the only one who might know how to fix it.",
+    emoji: "\uD83D\uDDA8\uFE0F",
+    choices: [
+      { label: "Fix it heroically", effect: { atk: 2, def: 1 }, result: "You clear the jam. The crowd applauds. You are now the Office Hero.", isGood: true },
+      { label: "Pretend you didn't see", effect: { hp: 5 }, result: "Not your problem. You slip away with your sanity intact.", isGood: true },
+      { label: "Kick it", effect: { atk: 3, hp: -10 }, result: "It... actually works? The printer whirs to life. Your foot hurts but respect is earned.", isGood: true },
+    ],
+  },
+  {
+    id: "birthday_cake",
+    title: "BIRTHDAY PARTY",
+    desc: "Someone you barely know is having a birthday in the break room. There's cake.",
+    emoji: "\uD83C\uDF82",
+    choices: [
+      { label: "Eat cake, sing along", effect: { hp: 35, ppRestore: 2 }, result: "The cake is surprisingly good. Costco sheet cake never disappoints.", isGood: true },
+      { label: "Take cake, skip singing", effect: { hp: 20 }, result: "You ninja a corner piece and disappear. Efficient.", isGood: true },
+      { label: "Skip it entirely", effect: { atk: 1 }, result: "\"Too busy crushing it.\" You channel the grind energy.", isGood: true },
+    ],
+  },
+  {
+    id: "it_ticket",
+    title: "IT HELP DESK",
+    desc: "The IT desk has one spot open. You could get your laptop looked at \u2014 it's been running slow.",
+    emoji: "\uD83D\uDCBB",
+    choices: [
+      { label: "Get a RAM upgrade", effect: { atk: 2, def: 1 }, result: "16GB \u2192 32GB. Your machine (and your mind) runs faster.", isGood: true },
+      { label: "Clear the bloatware", effect: { ppRestore: 4 }, result: "They remove 14 startup programs. Everything feels fresh.", isGood: true },
+      { label: "\"It's fine, actually\"", effect: { hp: 5 }, result: "You walk away. The slow laptop builds character. Allegedly.", isGood: true },
+    ],
+  },
+];
 
 // ─── ANIMATION TYPES ─────────────────────────────────────────
 type AnimState = "idle" | "attacking" | "hit" | "faint";
@@ -1192,6 +1298,150 @@ function WinScreen({ player, onRestart }: { player: PlayerClass; onRestart: () =
   );
 }
 
+function HallwayEventScreen({
+  event,
+  onChoice,
+  playerHp,
+  playerMaxHp,
+}: {
+  event: HallwayEvent;
+  onChoice: (choiceIdx: number) => void;
+  playerHp: number;
+  playerMaxHp: number;
+}) {
+  const [chosen, setChosen] = useState<number | null>(null);
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    SFX.eventNeutral();
+    setTimeout(() => setShow(true), 200);
+  }, []);
+
+  const handleChoice = (idx: number) => {
+    if (chosen !== null) return;
+    setChosen(idx);
+    const choice = event.choices[idx];
+    if (choice.isGood) SFX.eventGood();
+    else SFX.eventBad();
+    setTimeout(() => onChoice(idx), 2000);
+  };
+
+  const choice = chosen !== null ? event.choices[chosen] : null;
+
+  return (
+    <div style={{
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      height: "100%", gap: 16, padding: 24,
+      background: "linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)",
+    }}>
+      {/* HP display */}
+      <div style={{
+        position: "absolute", top: 12, right: 16,
+        fontFamily: "'Press Start 2P'", fontSize: 7, color: "#4CAF50",
+        background: "rgba(0,0,0,0.4)", padding: "4px 10px", borderRadius: 6,
+      }}>
+        HP {playerHp}/{playerMaxHp}
+      </div>
+
+      <div style={{
+        fontFamily: "'Press Start 2P'", fontSize: 9, color: "#FFD54F",
+        letterSpacing: 3,
+        opacity: show ? 1 : 0,
+        transition: "opacity 0.5s ease",
+      }}>
+        {event.title}
+      </div>
+
+      <div style={{
+        fontSize: 56,
+        opacity: show ? 1 : 0,
+        transition: "opacity 0.6s ease 0.2s",
+      }}>
+        {event.emoji}
+      </div>
+
+      <div style={{
+        fontFamily: "'Press Start 2P'", fontSize: 8, color: "#B0BEC5",
+        textAlign: "center", lineHeight: 2.4, maxWidth: 320,
+        opacity: show ? 1 : 0,
+        transition: "opacity 0.6s ease 0.3s",
+      }}>
+        {event.desc}
+      </div>
+
+      {chosen === null ? (
+        <div style={{
+          display: "flex", flexDirection: "column", gap: 8, width: "100%", maxWidth: 320,
+          opacity: show ? 1 : 0,
+          transition: "opacity 0.6s ease 0.5s",
+        }}>
+          {event.choices.map((c, i) => (
+            <button
+              key={i}
+              onClick={() => handleChoice(i)}
+              style={{
+                fontFamily: "'Press Start 2P'", fontSize: 8,
+                padding: "12px 14px",
+                background: "#FAFAFA",
+                border: "3px solid #263238",
+                borderRadius: 8,
+                cursor: "pointer",
+                boxShadow: "4px 4px 0 #263238",
+                color: "#263238",
+                textAlign: "left",
+                lineHeight: 1.8,
+              }}
+            >
+              {c.label}
+            </button>
+          ))}
+        </div>
+      ) : choice && (
+        <div style={{
+          background: "rgba(255,255,255,0.08)", border: "2px solid rgba(255,255,255,0.15)",
+          borderRadius: 10, padding: 16, maxWidth: 320, textAlign: "center",
+          animation: "fade-in 0.4s ease",
+        }}>
+          <div style={{
+            fontFamily: "'Press Start 2P'", fontSize: 8, color: "#FFFFFF",
+            lineHeight: 2.2, marginBottom: 10,
+          }}>
+            {choice.result}
+          </div>
+          <div style={{ display: "flex", gap: 12, justifyContent: "center", flexWrap: "wrap" }}>
+            {choice.effect.hp && (
+              <span style={{
+                fontFamily: "'Press Start 2P'", fontSize: 8,
+                color: choice.effect.hp > 0 ? "#4CAF50" : "#F44336",
+              }}>
+                HP {choice.effect.hp > 0 ? "+" : ""}{choice.effect.hp}
+              </span>
+            )}
+            {choice.effect.atk && (
+              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#FF9800" }}>
+                ATK +{choice.effect.atk}
+              </span>
+            )}
+            {choice.effect.def && (
+              <span style={{
+                fontFamily: "'Press Start 2P'", fontSize: 8,
+                color: choice.effect.def > 0 ? "#2196F3" : "#F44336",
+              }}>
+                DEF {choice.effect.def > 0 ? "+" : ""}{choice.effect.def}
+              </span>
+            )}
+            {choice.effect.ppRestore && (
+              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#9C27B0" }}>
+                PP +{choice.effect.ppRestore}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 function FloorIntro({ enemy, onReady }: { enemy: Enemy; onReady: () => void }) {
   const [show, setShow] = useState(false);
   const sprites = useSpriteUrls();
@@ -1246,7 +1496,7 @@ function FloorIntro({ enemy, onReady }: { enemy: Enemy; onReady: () => void }) {
 
 // ─── MAIN GAME ───────────────────────────────────────────────
 
-type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win";
+type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent";
 
 let popupIdCounter = 0;
 
@@ -1264,6 +1514,14 @@ export default function CorporateClimb() {
   const [level, setLevel] = useState(1);
   const [xpGained, setXpGained] = useState(0);
   const [leveledUp, setLeveledUp] = useState(false);
+
+  // Stat buffs from events
+  const [atkBuff, setAtkBuff] = useState(0);
+  const [defBuff, setDefBuff] = useState(0);
+
+  // Hallway event
+  const [currentEvent, setCurrentEvent] = useState<HallwayEvent | null>(null);
+  const usedEventsRef = useRef<Set<string>>(new Set());
 
   // Animation state
   const [playerAnim, setPlayerAnim] = useState<AnimState>("idle");
@@ -1299,9 +1557,13 @@ export default function CorporateClimb() {
     setTimeout(() => setMoveTypeColor(null), 400);
   };
 
-  const startGame = () => setScreen("classSelect");
+  const startGame = () => {
+    SFX.menuSelect();
+    setScreen("classSelect");
+  };
 
   const selectClass = (cls: PlayerClass) => {
+    SFX.menuConfirm();
     setPlayer(cls);
     setPlayerHp(cls.maxHp);
     setPlayerPp(cls.moves.map((m) => m.pp));
@@ -1309,6 +1571,9 @@ export default function CorporateClimb() {
     setXp(0);
     setXpToNext(30);
     setLevel(1);
+    setAtkBuff(0);
+    setDefBuff(0);
+    usedEventsRef.current.clear();
     setScreen("floorIntro");
   };
 
@@ -1320,7 +1585,39 @@ export default function CorporateClimb() {
     setPlayerAnim("idle");
     setEnemyAnim("idle");
     setDamagePopups([]);
+    if (floor >= 5) SFX.bossIntro();
+    else SFX.enemyAppear();
     setScreen("battle");
+  };
+
+  const pickRandomEvent = (): HallwayEvent | null => {
+    const available = HALLWAY_EVENTS.filter((e) => !usedEventsRef.current.has(e.id));
+    if (available.length === 0) {
+      usedEventsRef.current.clear();
+      return HALLWAY_EVENTS[Math.floor(Math.random() * HALLWAY_EVENTS.length)];
+    }
+    return available[Math.floor(Math.random() * available.length)];
+  };
+
+  const handleEventChoice = (choiceIdx: number) => {
+    if (!currentEvent || !player) return;
+    const choice = currentEvent.choices[choiceIdx];
+    const eff = choice.effect;
+
+    if (eff.hp) {
+      setPlayerHp((hp) => Math.max(1, Math.min(player.maxHp + atkBuff * 5, hp + eff.hp!)));
+    }
+    if (eff.atk) setAtkBuff((b) => b + eff.atk!);
+    if (eff.def) setDefBuff((b) => b + eff.def!);
+    if (eff.ppRestore) {
+      setPlayerPp((pp) => pp.map((v, i) => Math.min(player.moves[i].pp, v + eff.ppRestore!)));
+    }
+
+    usedEventsRef.current.add(currentEvent.id);
+
+    setTimeout(() => {
+      setScreen("floorIntro");
+    }, 0);
   };
 
   const calcDamage = (atkStat: number, defStat: number, baseDmg: number): [number, boolean] => {
@@ -1340,15 +1637,17 @@ export default function CorporateClimb() {
     // Player attack animation
     setPlayerAnim("attacking");
     flashMoveType(move.type);
+    SFX.attackSwing();
 
     setTimeout(() => {
       setPlayerAnim("idle");
-      const [dmg, isCrit] = calcDamage(player.atk + level * 2, enemy.def, move.dmg);
+      const [dmg, isCrit] = calcDamage(player.atk + level * 2 + atkBuff, enemy.def, move.dmg);
       const newEnemyHp = Math.max(0, enemyHp - dmg);
       setEnemyHp(newEnemyHp);
       setEnemyAnim("hit");
       triggerShake();
       addDamagePopup(dmg, true, isCrit, false);
+      if (isCrit) SFX.critHit(); else SFX.hit();
 
       let logMsg = `${player.name} used ${move.name}! ${dmg} damage!`;
       if (isCrit) logMsg += " Critical hit!";
@@ -1359,6 +1658,7 @@ export default function CorporateClimb() {
         if (healAmt > 0) {
           logMsg += ` Recovered ${healAmt} HP!`;
           addDamagePopup(healAmt, false, false, true);
+          SFX.heal();
         }
       }
 
@@ -1368,7 +1668,7 @@ export default function CorporateClimb() {
       setTimeout(() => setEnemyAnim("idle"), 400);
 
       if (newEnemyHp <= 0) {
-        setTimeout(() => setEnemyAnim("faint"), 500);
+        setTimeout(() => { setEnemyAnim("faint"); SFX.faint(); }, 500);
         const gained = 15 + floor * 10;
         const newXp = xp + gained;
         const didLevel = newXp >= xpToNext;
@@ -1376,11 +1676,13 @@ export default function CorporateClimb() {
         setLeveledUp(didLevel);
 
         setTimeout(() => {
+          SFX.victory();
           if (didLevel) {
             setLevel((l) => l + 1);
             setXp(newXp - xpToNext);
             setXpToNext((x) => x + 20);
             setPlayerHp((hp) => Math.min(player.maxHp + 10, hp + 20));
+            setTimeout(() => SFX.levelUp(), 600);
           } else {
             setXp(newXp);
           }
@@ -1393,10 +1695,11 @@ export default function CorporateClimb() {
       setTimeout(() => {
         const eMove = enemy.moves[Math.floor(Math.random() * enemy.moves.length)];
         setEnemyAnim("attacking");
+        SFX.attackSwing();
 
         setTimeout(() => {
           setEnemyAnim("idle");
-          const [eDmg, eCrit] = calcDamage(enemy.atk, player.def + level, eMove.dmg);
+          const [eDmg, eCrit] = calcDamage(enemy.atk, player.def + level + defBuff, eMove.dmg);
 
           let eLog = `${enemy.name} used ${eMove.name}! ${eDmg} damage!`;
           if (eCrit) eLog += " Critical hit!";
@@ -1404,6 +1707,7 @@ export default function CorporateClimb() {
           setPlayerAnim("hit");
           triggerShake();
           addDamagePopup(eDmg, false, eCrit, false);
+          if (eCrit) SFX.critHit(); else SFX.hit();
 
           if (eMove.heal) {
             setEnemyHp((hp) => Math.min(enemy.maxHp, hp + eMove.heal!));
@@ -1416,7 +1720,8 @@ export default function CorporateClimb() {
             if (newHp <= 0) {
               setTimeout(() => {
                 setPlayerAnim("faint");
-                setTimeout(() => setScreen("gameOver"), 1000);
+                SFX.faint();
+                setTimeout(() => { SFX.gameOver(); setScreen("gameOver"); }, 1000);
               }, 400);
             }
             return newHp;
@@ -1433,21 +1738,34 @@ export default function CorporateClimb() {
   }, [turn, player, playerPp, level, enemy, enemyHp, playerHp, xp, xpToNext, floor]);
 
   const handleVictoryContinue = () => {
+    SFX.menuConfirm();
     if (floor >= ENEMIES.length - 1) {
+      SFX.fanfare();
       setScreen("win");
     } else {
       setFloor((f) => f + 1);
-      setScreen("floorIntro");
+      // Show hallway event between floors (not before floor 1)
+      const evt = pickRandomEvent();
+      if (evt) {
+        setCurrentEvent(evt);
+        setScreen("hallwayEvent");
+      } else {
+        setScreen("floorIntro");
+      }
     }
   };
 
   const restart = () => {
+    SFX.menuSelect();
     setScreen("title");
     setPlayer(null);
     setFloor(0);
     setLevel(1);
     setXp(0);
     setXpToNext(30);
+    setAtkBuff(0);
+    setDefBuff(0);
+    usedEventsRef.current.clear();
   };
 
   return (
@@ -1508,6 +1826,10 @@ export default function CorporateClimb() {
           0% { opacity: 0.25; }
           100% { opacity: 0; }
         }
+        @keyframes fade-in {
+          0% { opacity: 0; transform: translateY(8px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
         @keyframes screen-shake-anim {
           0%, 100% { transform: translate(0, 0); }
           10% { transform: translate(-4px, 2px); }
@@ -1532,6 +1854,14 @@ export default function CorporateClimb() {
       <div style={{ width: "100%", height: "100%" }}>
         {screen === "title" && <TitleScreen onStart={startGame} />}
         {screen === "classSelect" && <ClassSelect onSelect={selectClass} />}
+        {screen === "hallwayEvent" && currentEvent && player && (
+          <HallwayEventScreen
+            event={currentEvent}
+            onChoice={handleEventChoice}
+            playerHp={playerHp}
+            playerMaxHp={player.maxHp}
+          />
+        )}
         {screen === "floorIntro" && <FloorIntro enemy={ENEMIES[floor]} onReady={startBattle} />}
         {screen === "battle" && player && (
           <BattleScreen
