@@ -152,25 +152,31 @@ const ENEMIES: Enemy[] = [
     title: "THE PERSISTENT RECRUITER",
   },
   {
-    floor: 3, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8,
+    floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 75, atk: 11, def: 6,
+    moves: [{ name: "Humble Brag", dmg: 14, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 18 }, { name: "Volunteer as Tribute", dmg: 10, heal: 12, status: { id: "motivated", target: "self" } }],
+    defeat: "\"I guess even 110% wasn't enough today.\"",
+    title: "THE OVERACHIEVER",
+  },
+  {
+    floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8,
     moves: [{ name: "Standup Ambush", dmg: 12, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 16, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 10, heal: 8 }],
     defeat: "The daily standup has been cancelled. Forever.",
     title: "THE RELENTLESS SCRUM MASTER",
   },
   {
-    floor: 4, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10,
+    floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10,
     moves: [{ name: "Unnecessary Meeting", dmg: 14, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 18, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 8, heal: 15, status: { id: "motivated", target: "self" } }],
     defeat: "\u201CPer my last email\u2026 I resign.\u201D",
     title: "THE MIDDLE MANAGER",
   },
   {
-    floor: 5, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12,
+    floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12,
     moves: [{ name: "Buzzword Barrage", dmg: 16, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 22, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 12, heal: 12, status: { id: "motivated", target: "self" } }],
     defeat: "Synergy has been disrupted. The paradigm shifts.",
     title: "THE VP OF SYNERGY",
   },
   {
-    floor: 6, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15,
+    floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15,
     moves: [{ name: "Golden Parachute", dmg: 10, heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
@@ -606,7 +612,7 @@ function XpBar({ xp, xpToNext, level }: { xp: number; xpToNext: number; level: n
 
 // ─── SCREENS ─────────────────────────────────────────────────
 
-function TitleScreen({ onStart }: { onStart: () => void }) {
+function TitleScreen({ onStart, onContinue }: { onStart: () => void; onContinue?: () => void }) {
   const [flicker, setFlicker] = useState(true);
   const sprites = useSpriteUrls();
 
@@ -717,8 +723,28 @@ function TitleScreen({ onStart }: { onStart: () => void }) {
           zIndex: 2,
         }}
       >
-        PRESS START
+        {onContinue ? "NEW GAME" : "PRESS START"}
       </button>
+
+      {onContinue && (
+        <button
+          onClick={onContinue}
+          style={{
+            fontFamily: "'Press Start 2P'", fontSize: 12,
+            padding: "12px 32px",
+            background: "#4FC3F7",
+            border: "4px solid #263238",
+            borderRadius: 10,
+            cursor: "pointer",
+            boxShadow: "6px 6px 0 #263238",
+            color: "#263238",
+            position: "relative",
+            zIndex: 2,
+          }}
+        >
+          CONTINUE
+        </button>
+      )}
 
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 7, color: "#64B5F6",
@@ -1199,7 +1225,6 @@ function HallwayEventScreen({
     const choice = event.choices[idx];
     if (choice.isGood) SFX.eventGood();
     else SFX.eventBad();
-    setTimeout(() => onChoice(idx), 2000);
   };
 
   const choice = chosen !== null ? event.choices[chosen] : null;
@@ -1312,6 +1337,17 @@ function HallwayEventScreen({
               </span>
             )}
           </div>
+          <button
+            onClick={() => onChoice(chosen!)}
+            style={{
+              fontFamily: "'Press Start 2P'", fontSize: 9, padding: "10px 24px",
+              background: "#FFC107", border: "3px solid #263238", borderRadius: 8,
+              cursor: "pointer", boxShadow: "4px 4px 0 #263238", color: "#263238",
+              marginTop: 14,
+            }}
+          >
+            CONTINUE &rarr;
+          </button>
         </div>
       )}
     </div>
@@ -1376,7 +1412,59 @@ type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "g
 
 let popupIdCounter = 0;
 
+// ─── SAVE SYSTEM ────────────────────────────────────────────
+const SAVE_KEY = "corporate-climb-save";
+
+interface SaveData {
+  classId: string;
+  floor: number;
+  level: number;
+  xp: number;
+  xpToNext: number;
+  playerHp: number;
+  playerPp: number[];
+  atkBuff: number;
+  defBuff: number;
+  usedEvents: string[];
+}
+
+function saveGame(data: SaveData) {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch {}
+}
+
+function loadGame(): SaveData | null {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const data = JSON.parse(raw) as SaveData;
+    // Validate the save has a valid class and floor
+    if (!PLAYER_CLASSES.find(c => c.id === data.classId)) return null;
+    if (data.floor < 0 || data.floor >= ENEMIES.length) return null;
+    return data;
+  } catch { return null; }
+}
+
+function clearSave() {
+  try { localStorage.removeItem(SAVE_KEY); } catch {}
+}
+
+function useSpritePreloader(): boolean {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const urls = Object.values(buildSpriteUrls());
+    let cancelled = false;
+    Promise.all(urls.map(u => {
+      const img = new Image();
+      img.src = u;
+      return img.decode().catch(() => {});
+    })).then(() => { if (!cancelled) setReady(true); });
+    return () => { cancelled = true; };
+  }, []);
+  return ready;
+}
+
 export default function CorporateClimb() {
+  const spritesReady = useSpritePreloader();
   const [screen, setScreen] = useState<Screen>("title");
   const [player, setPlayer] = useState<PlayerClass | null>(null);
   const [floor, setFloor] = useState(0);
@@ -1411,6 +1499,10 @@ export default function CorporateClimb() {
   const [moveTypeColor, setMoveTypeColor] = useState<string | null>(null);
 
   const enemy = ENEMIES[floor] || ENEMIES[0];
+
+  // Ref to avoid stale closures in doPlayerMove's setTimeout chains
+  const gsRef = useRef({ player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses });
+  gsRef.current = { player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses };
 
   const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean) => {
     const popup: DamagePopup = {
@@ -1495,8 +1587,27 @@ export default function CorporateClimb() {
   };
 
   const startGame = () => {
+    clearSave();
     SFX.menuSelect();
     setScreen("classSelect");
+  };
+
+  const continueGame = () => {
+    const save = loadGame();
+    if (!save) return;
+    const cls = PLAYER_CLASSES.find(c => c.id === save.classId)!;
+    SFX.menuConfirm();
+    setPlayer(cls);
+    setPlayerHp(save.playerHp);
+    setPlayerPp(save.playerPp);
+    setFloor(save.floor);
+    setXp(save.xp);
+    setXpToNext(save.xpToNext);
+    setLevel(save.level);
+    setAtkBuff(save.atkBuff);
+    setDefBuff(save.defBuff);
+    usedEventsRef.current = new Set(save.usedEvents);
+    setScreen("floorIntro");
   };
 
   const selectClass = (cls: PlayerClass) => {
@@ -1567,9 +1678,10 @@ export default function CorporateClimb() {
   };
 
   const doPlayerMove = useCallback((moveIdx: number) => {
-    if (turn !== "player" || !player) return;
-    const move = player.moves[moveIdx];
-    const newPp = [...playerPp];
+    const gs = gsRef.current;
+    if (gs.turn !== "player" || !gs.player) return;
+    const move = gs.player.moves[moveIdx];
+    const newPp = [...gs.playerPp];
     newPp[moveIdx]--;
     setPlayerPp(newPp);
 
@@ -1580,31 +1692,31 @@ export default function CorporateClimb() {
 
     setTimeout(() => {
       setPlayerAnim("idle");
-      const playerAtkMod = getStatusAtkMod(playerStatuses);
-      const enemyDefMod = getStatusDefMod(enemyStatuses);
-      const playerCritBonus = getStatusCritBonus(playerStatuses);
-      const [dmg, isCrit] = calcDamage(player.atk + level * 2 + atkBuff + playerAtkMod, enemy.def + enemyDefMod, move.dmg, playerCritBonus);
-      const newEnemyHp = Math.max(0, enemyHp - dmg);
+      const playerAtkMod = getStatusAtkMod(gs.playerStatuses);
+      const enemyDefMod = getStatusDefMod(gs.enemyStatuses);
+      const playerCritBonus = getStatusCritBonus(gs.playerStatuses);
+      const [dmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus);
+      const newEnemyHp = Math.max(0, gs.enemyHp - dmg);
       setEnemyHp(newEnemyHp);
       setEnemyAnim("hit");
       triggerShake();
       addDamagePopup(dmg, true, isCrit, false);
       if (isCrit) SFX.critHit(); else SFX.hit();
 
-      let logMsg = `${player.name} used ${move.name}! ${dmg} damage!`;
+      let logMsg = `${gs.player!.name} used ${move.name}! ${dmg} damage!`;
       if (isCrit) logMsg += " Critical hit!";
 
       // Apply status effect from move
       if (move.status) {
         const applied = applyStatus(move.status, true);
         if (applied) {
-          logMsg += ` ${move.status.target === "self" ? player.name : enemy.name} is ${applied.name}!`;
+          logMsg += ` ${move.status.target === "self" ? gs.player!.name : gs.enemy.name} is ${applied.name}!`;
         }
       }
 
       if (move.heal) {
-        const healAmt = Math.min(move.heal + level, player.maxHp - playerHp);
-        setPlayerHp((hp) => Math.min(player.maxHp, hp + healAmt));
+        const healAmt = Math.min(move.heal + gs.level, gs.player!.maxHp - gs.playerHp);
+        setPlayerHp((hp) => Math.min(gs.player!.maxHp, hp + healAmt));
         if (healAmt > 0) {
           logMsg += ` Recovered ${healAmt} HP!`;
           addDamagePopup(healAmt, false, false, true);
@@ -1619,9 +1731,9 @@ export default function CorporateClimb() {
 
       if (newEnemyHp <= 0) {
         setTimeout(() => { setEnemyAnim("faint"); SFX.faint(); }, 500);
-        const gained = 15 + floor * 10;
-        const newXp = xp + gained;
-        const didLevel = newXp >= xpToNext;
+        const gained = 15 + gs.floor * 10;
+        const newXp = gs.xp + gained;
+        const didLevel = newXp >= gs.xpToNext;
         setXpGained(gained);
         setLeveledUp(didLevel);
 
@@ -1629,9 +1741,9 @@ export default function CorporateClimb() {
           SFX.victory();
           if (didLevel) {
             setLevel((l) => l + 1);
-            setXp(newXp - xpToNext);
+            setXp(newXp - gs.xpToNext);
             setXpToNext((x) => x + 20);
-            setPlayerHp((hp) => Math.min(player.maxHp + 10, hp + 20));
+            setPlayerHp((hp) => Math.min(gs.player!.maxHp + 10, hp + 20));
             setTimeout(() => SFX.levelUp(), 600);
           } else {
             setXp(newXp);
@@ -1642,12 +1754,12 @@ export default function CorporateClimb() {
       }
 
       // Tick enemy statuses (burn damage, duration)
-      const enemyBurn = getBurnDamage(enemyStatuses);
+      const enemyBurn = getBurnDamage(gs.enemyStatuses);
       if (enemyBurn > 0) {
         setTimeout(() => {
           setEnemyHp((hp) => Math.max(0, hp - enemyBurn));
           addDamagePopup(enemyBurn, true, false, false);
-          setLog((l) => [...l, `${enemy.name} is burned out! -${enemyBurn} HP!`]);
+          setLog((l) => [...l, `${gs.enemy.name} is burned out! -${enemyBurn} HP!`]);
         }, 500);
       }
       tickStatuses(setEnemyStatuses);
@@ -1655,7 +1767,7 @@ export default function CorporateClimb() {
       // Enemy turn
       setTimeout(() => {
         // Tick player burn at start of enemy turn
-        const playerBurn = getBurnDamage(playerStatuses);
+        const playerBurn = getBurnDamage(gs.playerStatuses);
         if (playerBurn > 0) {
           setPlayerHp((hp) => {
             const newHp = Math.max(0, hp - playerBurn);
@@ -1663,34 +1775,61 @@ export default function CorporateClimb() {
               setTimeout(() => {
                 setPlayerAnim("faint");
                 SFX.faint();
-                setTimeout(() => { SFX.gameOver(); setScreen("gameOver"); }, 1000);
+                setTimeout(() => { clearSave(); SFX.gameOver(); setScreen("gameOver"); }, 1000);
               }, 400);
             }
             return newHp;
           });
           addDamagePopup(playerBurn, false, false, false);
-          setLog((l) => [...l, `${player.name} is burned out! -${playerBurn} HP!`]);
+          setLog((l) => [...l, `${gs.player!.name} is burned out! -${playerBurn} HP!`]);
         }
 
-        const eMove = enemy.moves[Math.floor(Math.random() * enemy.moves.length)];
+        // Enemy AI: smarter move selection
+        const eMove = (() => {
+          const moves = gs.enemy.moves;
+          if (moves.length <= 1) return moves[0];
+
+          const eHpPct = newEnemyHp / gs.enemy.maxHp;
+          const pHpPct = gs.playerHp / gs.player!.maxHp;
+
+          // Heal when low HP (if has a heal move)
+          if (eHpPct < 0.35) {
+            const healMove = moves.find(m => m.heal && m.heal > 0);
+            if (healMove && Math.random() < 0.7) return healMove;
+          }
+
+          // Debuff when player is strong (if has a status move targeting enemy)
+          if (pHpPct > 0.6 && gs.playerStatuses.length === 0) {
+            const debuffMove = moves.find(m => m.status?.target === "enemy");
+            if (debuffMove && Math.random() < 0.5) return debuffMove;
+          }
+
+          // Finish off with highest damage when player is low
+          if (pHpPct < 0.25) {
+            return moves.reduce((a, b) => (b.dmg > a.dmg ? b : a));
+          }
+
+          // Otherwise random
+          return moves[Math.floor(Math.random() * moves.length)];
+        })();
         setEnemyAnim("attacking");
         SFX.attackSwing();
 
         setTimeout(() => {
           setEnemyAnim("idle");
-          const enemyAtkMod = getStatusAtkMod(enemyStatuses);
-          const playerDefMod = getStatusDefMod(playerStatuses);
-          const enemyCritBonus = getStatusCritBonus(enemyStatuses);
-          const [eDmg, eCrit] = calcDamage(enemy.atk + enemyAtkMod, player.def + level + defBuff + playerDefMod, eMove.dmg, enemyCritBonus);
+          const enemyAtkMod = getStatusAtkMod(gs.enemyStatuses);
+          const playerDefMod = getStatusDefMod(gs.playerStatuses);
+          const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses);
+          const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, gs.player!.def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus);
 
-          let eLog = `${enemy.name} used ${eMove.name}! ${eDmg} damage!`;
+          let eLog = `${gs.enemy.name} used ${eMove.name}! ${eDmg} damage!`;
           if (eCrit) eLog += " Critical hit!";
 
           // Apply status effect from enemy move
           if (eMove.status) {
             const applied = applyStatus(eMove.status, false);
             if (applied) {
-              eLog += ` ${eMove.status.target === "self" ? enemy.name : player.name} is ${applied.name}!`;
+              eLog += ` ${eMove.status.target === "self" ? gs.enemy.name : gs.player!.name} is ${applied.name}!`;
             }
           }
 
@@ -1700,7 +1839,7 @@ export default function CorporateClimb() {
           if (eCrit) SFX.critHit(); else SFX.hit();
 
           if (eMove.heal) {
-            setEnemyHp((hp) => Math.min(enemy.maxHp, hp + eMove.heal!));
+            setEnemyHp((hp) => Math.min(gs.enemy.maxHp, hp + eMove.heal!));
             eLog += ` Recovered ${eMove.heal} HP!`;
             addDamagePopup(eMove.heal!, true, false, true);
           }
@@ -1711,7 +1850,7 @@ export default function CorporateClimb() {
               setTimeout(() => {
                 setPlayerAnim("faint");
                 SFX.faint();
-                setTimeout(() => { SFX.gameOver(); setScreen("gameOver"); }, 1000);
+                setTimeout(() => { clearSave(); SFX.gameOver(); setScreen("gameOver"); }, 1000);
               }, 400);
             }
             return newHp;
@@ -1728,15 +1867,26 @@ export default function CorporateClimb() {
         }, 300);
       }, 800);
     }, 350);
-  }, [turn, player, playerPp, level, enemy, enemyHp, playerHp, xp, xpToNext, floor, playerStatuses, enemyStatuses]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const handleVictoryContinue = () => {
     SFX.menuConfirm();
     if (floor >= ENEMIES.length - 1) {
+      clearSave();
       SFX.fanfare();
       setScreen("win");
     } else {
-      setFloor((f) => f + 1);
+      const nextFloor = floor + 1;
+      setFloor(nextFloor);
+      // Auto-save at floor transition
+      if (player) {
+        saveGame({
+          classId: player.id, floor: nextFloor, level, xp, xpToNext,
+          playerHp, playerPp, atkBuff, defBuff,
+          usedEvents: Array.from(usedEventsRef.current),
+        });
+      }
       // Show hallway event between floors (not before floor 1)
       const evt = pickRandomEvent();
       if (evt) {
@@ -1749,6 +1899,7 @@ export default function CorporateClimb() {
   };
 
   const restart = () => {
+    clearSave();
     SFX.menuSelect();
     setScreen("title");
     setPlayer(null);
@@ -1760,6 +1911,20 @@ export default function CorporateClimb() {
     setDefBuff(0);
     usedEventsRef.current.clear();
   };
+
+  if (!spritesReady) {
+    return (
+      <div style={{
+        width: "100%", maxWidth: 420, height: "100vh", maxHeight: 750,
+        margin: "0 auto", background: "#000", display: "flex",
+        alignItems: "center", justifyContent: "center", flexDirection: "column",
+        fontFamily: "monospace", color: "#4FC3F7",
+      }}>
+        <div style={{ fontSize: 24, marginBottom: 16 }}>LOADING...</div>
+        <div style={{ fontSize: 14, color: "#666" }}>Preparing sprites</div>
+      </div>
+    );
+  }
 
   return (
     <div style={{
@@ -1845,7 +2010,7 @@ export default function CorporateClimb() {
       `}</style>
 
       <div style={{ width: "100%", height: "100%" }}>
-        {screen === "title" && <TitleScreen onStart={startGame} />}
+        {screen === "title" && <TitleScreen onStart={startGame} onContinue={loadGame() ? continueGame : undefined} />}
         {screen === "classSelect" && <ClassSelect onSelect={selectClass} />}
         {screen === "hallwayEvent" && currentEvent && player && (
           <HallwayEventScreen
