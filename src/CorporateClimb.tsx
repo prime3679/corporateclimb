@@ -1490,14 +1490,12 @@ function BattleScreen({
           opacity: 0.6,
         }} />
 
-        {/* Enemy HP — top right */}
-        <div style={{ position: "absolute", top: 24, right: 12, zIndex: 4 }}>
+        {/* ── Enemy: HP bar left, sprite right (top half) ── */}
+        <div style={{ position: "absolute", top: 24, left: 12, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
           <StatusBadges statuses={enemyStatuses} />
         </div>
-
-        {/* Enemy sprite — right side, planted on ground */}
-        <div style={{ position: "absolute", bottom: "30%", right: 50, zIndex: 2 }}>
+        <div style={{ position: "absolute", top: 16, right: 30, zIndex: 2 }}>
           <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
           <div style={{
             width: 80, height: 12, background: "rgba(0,0,0,0.22)",
@@ -1505,22 +1503,20 @@ function BattleScreen({
           }} />
         </div>
 
-        {/* Player HP — bottom right corner (opposite side from sprite) */}
-        <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 4 }}>
-          <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
-          <StatusBadges statuses={playerStatuses} />
-          <div style={{ marginTop: 3 }}>
-            <XpBar xp={xp} xpToNext={xpToNext} level={level} />
-          </div>
-        </div>
-
-        {/* Player sprite — left side, planted on ground */}
-        <div style={{ position: "absolute", bottom: "12%", left: 30, zIndex: 2 }}>
+        {/* ── Player: sprite left, HP bar right (bottom half) ── */}
+        <div style={{ position: "absolute", bottom: "6%", left: 20, zIndex: 2 }}>
           <PixelSprite spriteId={player.spriteId} size={120} animState={playerAnim} />
           <div style={{
             width: 90, height: 14, background: "rgba(0,0,0,0.22)",
             borderRadius: "50%", margin: "-2px auto 0",
           }} />
+        </div>
+        <div style={{ position: "absolute", bottom: 12, right: 12, zIndex: 4 }}>
+          <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
+          <StatusBadges statuses={playerStatuses} />
+          <div style={{ marginTop: 3 }}>
+            <XpBar xp={xp} xpToNext={xpToNext} level={level} />
+          </div>
         </div>
 
         {/* Damage popups */}
