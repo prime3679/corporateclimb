@@ -89,7 +89,7 @@ const PLAYER_CLASSES: PlayerClass[] = [
     id: "pm",
     name: "Product Manager",
     emoji: "📋",
-    spriteId: "pm",
+    spriteId: "product_manager",
     maxHp: 100,
     atk: 14,
     def: 10,
@@ -340,8 +340,8 @@ function PixelSprite({
     <div
       className={animClass}
       style={{
-        width: size,
         height: size,
+        width: size * 0.8, // 4:5 aspect ratio matching SVG viewBox 128x160
         position: "relative",
         transform: flip ? "scaleX(-1)" : "none",
       }}
@@ -925,20 +925,20 @@ function BattleScreen({
       )}
 
       {/* Battle field */}
-      <div style={{ flex: 1, position: "relative", minHeight: 220 }}>
+      <div style={{ flex: 1, position: "relative", minHeight: 300 }}>
 
         {/* ═══ ENEMY SIDE (top) ═══ */}
         {/* Enemy platform — ellipse on the floor */}
         <div style={{
-          position: "absolute", top: "42%", right: 20,
-          width: 140, height: 28,
+          position: "absolute", top: "44%", right: 10,
+          width: 200, height: 36,
           background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
           borderRadius: "50%",
           zIndex: 1,
         }} />
         {/* Enemy sprite — standing on platform */}
-        <div style={{ position: "absolute", top: "12%", right: 35, zIndex: 2 }}>
-          <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
+        <div style={{ position: "absolute", top: "2%", right: 20, zIndex: 2 }}>
+          <PixelSprite spriteId={enemy.spriteId} size={220} animState={enemyAnim} flip />
         </div>
         {/* Enemy HP panel — top left */}
         <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
@@ -949,15 +949,15 @@ function BattleScreen({
         {/* ═══ PLAYER SIDE (bottom) ═══ */}
         {/* Player platform — ellipse on the floor */}
         <div style={{
-          position: "absolute", bottom: "8%", left: 10,
-          width: 160, height: 32,
+          position: "absolute", bottom: "2%", left: 0,
+          width: 220, height: 36,
           background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
           borderRadius: "50%",
           zIndex: 1,
         }} />
         {/* Player sprite — standing on platform */}
-        <div style={{ position: "absolute", bottom: "10%", left: 25, zIndex: 2 }}>
-          <PixelSprite spriteId={player.spriteId} size={128} animState={playerAnim} />
+        <div style={{ position: "absolute", bottom: "4%", left: 10, zIndex: 2 }}>
+          <PixelSprite spriteId={player.spriteId} size={240} animState={playerAnim} />
         </div>
         {/* Player HP panel — bottom right */}
         <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
