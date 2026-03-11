@@ -2,6 +2,37 @@ import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { SFX } from "./sfx";
 
 // ─── TYPES ───────────────────────────────────────────────────
+type StatusId = "motivated" | "focused" | "caffeinated" | "micromanaged" | "demoralized" | "burned_out";
+
+interface StatusDef {
+  id: StatusId;
+  name: string;
+  icon: string;
+  color: string;
+  duration: number;
+  desc: string;
+}
+
+const STATUS_DEFS: Record<StatusId, StatusDef> = {
+  motivated:     { id: "motivated",     name: "Motivated",     icon: "\u{1F525}", color: "#FF6F00", duration: 3, desc: "+ATK" },
+  focused:       { id: "focused",       name: "Focused",       icon: "\u{1F3AF}", color: "#7B1FA2", duration: 3, desc: "+Crit" },
+  caffeinated:   { id: "caffeinated",   name: "Caffeinated",   icon: "\u2615",    color: "#4E342E", duration: 3, desc: "+SPD -DEF" },
+  micromanaged:  { id: "micromanaged",  name: "Micromanaged",  icon: "\u{1F441}\uFE0F",  color: "#B71C1C", duration: 2, desc: "-ATK" },
+  demoralized:   { id: "demoralized",   name: "Demoralized",   icon: "\u{1F4C9}", color: "#4A148C", duration: 2, desc: "-DEF" },
+  burned_out:    { id: "burned_out",    name: "Burned Out",    icon: "\u{1F6AB}", color: "#616161", duration: 3, desc: "DoT" },
+};
+
+interface StatusInstance {
+  id: StatusId;
+  turnsLeft: number;
+}
+
+interface StatusEffectOnMove {
+  id: StatusId;
+  target: "self" | "enemy";
+  chance?: number; // 0-1, default 1
+}
+
 interface Move {
   name: string;
   dmg: number;
@@ -9,6 +40,7 @@ interface Move {
   desc: string;
   pp: number;
   heal?: number;
+  status?: StatusEffectOnMove;
 }
 
 interface PlayerClass {
@@ -28,6 +60,7 @@ interface EnemyMove {
   name: string;
   dmg: number;
   heal?: number;
+  status?: StatusEffectOnMove;
 }
 
 interface Enemy {
@@ -289,10 +322,10 @@ const PLAYER_CLASSES: PlayerClass[] = [
     spd: 12,
     desc: "Balances roadmaps and stakeholders. High versatility.",
     moves: [
-      { name: "Prioritize Backlog", dmg: 18, type: "strategy", desc: "Ruthlessly cuts scope. Hits hard.", pp: 15 },
-      { name: "Stakeholder Align", dmg: 12, type: "influence", desc: "Forces agreement through sheer will.", pp: 20, heal: 8 },
+      { name: "Prioritize Backlog", dmg: 18, type: "strategy", desc: "Ruthlessly cuts scope. Hits hard.", pp: 15, status: { id: "focused", target: "self", chance: 0.4 } },
+      { name: "Stakeholder Align", dmg: 12, type: "influence", desc: "Forces agreement through sheer will.", pp: 20, heal: 8, status: { id: "motivated", target: "self" } },
       { name: "Ship MVP", dmg: 28, type: "execution", desc: "80/20 strikes. Maximum impact.", pp: 8 },
-      { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 5 },
+      { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 5, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
     ],
   },
   {
@@ -306,9 +339,9 @@ const PLAYER_CLASSES: PlayerClass[] = [
     spd: 14,
     desc: "Writes code and rewrites everything else. Glass cannon.",
     moves: [
-      { name: "Refactor Everything", dmg: 22, type: "technical", desc: "Rewrites the opponent from scratch.", pp: 12 },
-      { name: "Deploy to Prod", dmg: 30, type: "execution", desc: "YOLO push on Friday. Risky but devastating.", pp: 8 },
-      { name: "Code Review Reject", dmg: 15, type: "technical", desc: "Nit-picks until they give up.", pp: 20 },
+      { name: "Refactor Everything", dmg: 22, type: "technical", desc: "Rewrites the opponent from scratch.", pp: 12, status: { id: "motivated", target: "self", chance: 0.4 } },
+      { name: "Deploy to Prod", dmg: 30, type: "execution", desc: "YOLO push on Friday. Risky but devastating.", pp: 8, status: { id: "caffeinated", target: "self" } },
+      { name: "Code Review Reject", dmg: 15, type: "technical", desc: "Nit-picks until they give up.", pp: 20, status: { id: "micromanaged", target: "enemy" } },
       { name: "Stack Overflow", dmg: 40, type: "analytics", desc: "Channels the collective wisdom. Huge damage.", pp: 4 },
     ],
   },
@@ -323,10 +356,10 @@ const PLAYER_CLASSES: PlayerClass[] = [
     spd: 16,
     desc: "Sees what others can't. Fast and balanced.",
     moves: [
-      { name: "Pixel Perfect Punch", dmg: 20, type: "execution", desc: "That 1px misalignment? Fixed violently.", pp: 15 },
-      { name: "User Research Beam", dmg: 16, type: "analytics", desc: "\u201CActually, users said\u2026\u201D", pp: 18, heal: 6 },
+      { name: "Pixel Perfect Punch", dmg: 20, type: "execution", desc: "That 1px misalignment? Fixed violently.", pp: 15, status: { id: "focused", target: "self", chance: 0.3 } },
+      { name: "User Research Beam", dmg: 16, type: "analytics", desc: "\u201CActually, users said\u2026\u201D", pp: 18, heal: 6, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
       { name: "Figma Tornado", dmg: 26, type: "technical", desc: "200 frames of animated fury.", pp: 10 },
-      { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 4 },
+      { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 4, status: { id: "motivated", target: "self", chance: 0.5 } },
     ],
   },
 ];
@@ -346,25 +379,25 @@ const ENEMIES: Enemy[] = [
   },
   {
     floor: 3, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8,
-    moves: [{ name: "Standup Ambush", dmg: 12 }, { name: "Sprint Overload", dmg: 16 }, { name: "Retro Guilt Trip", dmg: 10, heal: 8 }],
+    moves: [{ name: "Standup Ambush", dmg: 12, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 16, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 10, heal: 8 }],
     defeat: "The daily standup has been cancelled. Forever.",
     title: "THE RELENTLESS SCRUM MASTER",
   },
   {
     floor: 4, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10,
-    moves: [{ name: "Unnecessary Meeting", dmg: 14 }, { name: "Passive-Aggressive Email", dmg: 18 }, { name: "Take Credit", dmg: 8, heal: 15 }],
+    moves: [{ name: "Unnecessary Meeting", dmg: 14, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 18, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 8, heal: 15, status: { id: "motivated", target: "self" } }],
     defeat: "\u201CPer my last email\u2026 I resign.\u201D",
     title: "THE MIDDLE MANAGER",
   },
   {
     floor: 5, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12,
-    moves: [{ name: "Buzzword Barrage", dmg: 16 }, { name: "Pivot Strategy", dmg: 22 }, { name: "Executive Presence", dmg: 12, heal: 12 }],
+    moves: [{ name: "Buzzword Barrage", dmg: 16, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 22, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 12, heal: 12, status: { id: "motivated", target: "self" } }],
     defeat: "Synergy has been disrupted. The paradigm shifts.",
     title: "THE VP OF SYNERGY",
   },
   {
     floor: 6, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15,
-    moves: [{ name: "Golden Parachute", dmg: 10, heal: 25 }, { name: "Hostile Takeover", dmg: 28 }, { name: "Board Meeting Beam", dmg: 35 }, { name: "Layoff Wave", dmg: 22 }],
+    moves: [{ name: "Golden Parachute", dmg: 10, heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
   },
@@ -675,6 +708,38 @@ function TextBox({ lines, onAdvance, showArrow }: { lines: string[]; onAdvance?:
   );
 }
 
+function StatusBadges({ statuses }: { statuses: StatusInstance[] }) {
+  if (statuses.length === 0) return null;
+  return (
+    <div style={{ display: "flex", gap: 3, flexWrap: "wrap", marginTop: 3 }}>
+      {statuses.map((s) => {
+        const def = STATUS_DEFS[s.id];
+        return (
+          <span
+            key={s.id}
+            title={`${def.name} (${def.desc}) - ${s.turnsLeft} turns`}
+            style={{
+              background: def.color,
+              color: "#fff",
+              borderRadius: 4,
+              padding: "1px 4px",
+              fontFamily: "'Press Start 2P'",
+              fontSize: 6,
+              display: "flex",
+              alignItems: "center",
+              gap: 2,
+              border: "1px solid rgba(0,0,0,0.2)",
+            }}
+          >
+            <span style={{ fontSize: 9 }}>{def.icon}</span>
+            <span>{s.turnsLeft}</span>
+          </span>
+        );
+      })}
+    </div>
+  );
+}
+
 function MoveButton({ move, onClick, disabled }: { move: Move; onClick: () => void; disabled: boolean }) {
   const [hover, setHover] = useState(false);
   return (
@@ -703,7 +768,7 @@ function MoveButton({ move, onClick, disabled }: { move: Move; onClick: () => vo
         <TypeBadge type={move.type} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 7, color: "#78909C" }}>
-        <span>PWR {move.dmg}</span>
+        <span>PWR {move.dmg}{move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ""}</span>
         <span>PP {move.pp}</span>
       </div>
     </button>
@@ -1001,6 +1066,7 @@ function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass) => void }) {
 function BattleScreen({
   player, enemy, playerHp, enemyHp, onMove, log, turn, playerPp, xp, xpToNext, level, floor,
   playerAnim, enemyAnim, damagePopups, screenShake, moveTypeColor,
+  playerStatuses, enemyStatuses,
 }: {
   player: PlayerClass;
   enemy: Enemy;
@@ -1019,6 +1085,8 @@ function BattleScreen({
   damagePopups: DamagePopup[];
   screenShake: boolean;
   moveTypeColor: string | null;
+  playerStatuses: StatusInstance[];
+  enemyStatuses: StatusInstance[];
 }) {
   // Floor-based battle backgrounds
   const bgColors = [
@@ -1078,6 +1146,7 @@ function BattleScreen({
         {/* Enemy area */}
         <div style={{ position: "absolute", top: 32, right: 12 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
+          <StatusBadges statuses={enemyStatuses} />
         </div>
         <div style={{ position: "absolute", top: 78, right: 50 }}>
           <PixelSprite spriteId={enemy.spriteId} size={72} animState={enemyAnim} flip />
@@ -1090,6 +1159,7 @@ function BattleScreen({
         {/* Player area */}
         <div style={{ position: "absolute", bottom: 54, left: 12 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
+          <StatusBadges statuses={playerStatuses} />
           <div style={{ marginTop: 3 }}>
             <XpBar xp={xp} xpToNext={xpToNext} level={level} />
           </div>
@@ -1519,6 +1589,10 @@ export default function CorporateClimb() {
   const [atkBuff, setAtkBuff] = useState(0);
   const [defBuff, setDefBuff] = useState(0);
 
+  // Status effects
+  const [playerStatuses, setPlayerStatuses] = useState<StatusInstance[]>([]);
+  const [enemyStatuses, setEnemyStatuses] = useState<StatusInstance[]>([]);
+
   // Hallway event
   const [currentEvent, setCurrentEvent] = useState<HallwayEvent | null>(null);
   const usedEventsRef = useRef<Set<string>>(new Set());
@@ -1557,6 +1631,63 @@ export default function CorporateClimb() {
     setTimeout(() => setMoveTypeColor(null), 400);
   };
 
+  const applyStatus = (statusEffect: StatusEffectOnMove, isPlayerAttacking: boolean) => {
+    const chance = statusEffect.chance ?? 1;
+    if (Math.random() > chance) return null;
+
+    const def = STATUS_DEFS[statusEffect.id];
+    const newStatus: StatusInstance = { id: statusEffect.id, turnsLeft: def.duration };
+
+    // "self" means the attacker, "enemy" means the target
+    const applyToPlayer = (isPlayerAttacking && statusEffect.target === "self") ||
+                          (!isPlayerAttacking && statusEffect.target === "enemy");
+
+    if (applyToPlayer) {
+      setPlayerStatuses((prev) => {
+        const filtered = prev.filter((s) => s.id !== statusEffect.id);
+        return [...filtered, newStatus];
+      });
+    } else {
+      setEnemyStatuses((prev) => {
+        const filtered = prev.filter((s) => s.id !== statusEffect.id);
+        return [...filtered, newStatus];
+      });
+    }
+    return def;
+  };
+
+  const tickStatuses = (setStatuses: typeof setPlayerStatuses) => {
+    setStatuses((prev) =>
+      prev.map((s) => ({ ...s, turnsLeft: s.turnsLeft - 1 })).filter((s) => s.turnsLeft > 0)
+    );
+  };
+
+  const getStatusAtkMod = (statuses: StatusInstance[]): number => {
+    let mod = 0;
+    for (const s of statuses) {
+      if (s.id === "motivated") mod += 4;
+      if (s.id === "micromanaged") mod -= 4;
+    }
+    return mod;
+  };
+
+  const getStatusDefMod = (statuses: StatusInstance[]): number => {
+    let mod = 0;
+    for (const s of statuses) {
+      if (s.id === "caffeinated") mod -= 3;
+      if (s.id === "demoralized") mod -= 3;
+    }
+    return mod;
+  };
+
+  const getStatusCritBonus = (statuses: StatusInstance[]): number => {
+    return statuses.some((s) => s.id === "focused") ? 0.2 : 0;
+  };
+
+  const getBurnDamage = (statuses: StatusInstance[]): number => {
+    return statuses.some((s) => s.id === "burned_out") ? 8 : 0;
+  };
+
   const startGame = () => {
     SFX.menuSelect();
     setScreen("classSelect");
@@ -1585,6 +1716,8 @@ export default function CorporateClimb() {
     setPlayerAnim("idle");
     setEnemyAnim("idle");
     setDamagePopups([]);
+    setPlayerStatuses([]);
+    setEnemyStatuses([]);
     if (floor >= 5) SFX.bossIntro();
     else SFX.enemyAppear();
     setScreen("battle");
@@ -1620,11 +1753,11 @@ export default function CorporateClimb() {
     }, 0);
   };
 
-  const calcDamage = (atkStat: number, defStat: number, baseDmg: number): [number, boolean] => {
+  const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0): [number, boolean] => {
     const variance = 0.85 + Math.random() * 0.3;
-    const isCrit = Math.random() < 0.1;
+    const isCrit = Math.random() < (0.1 + critBonus);
     const crit = isCrit ? 1.5 : 1;
-    return [Math.max(1, Math.round(baseDmg * (atkStat / defStat) * variance * crit)), isCrit];
+    return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit)), isCrit];
   };
 
   const doPlayerMove = useCallback((moveIdx: number) => {
@@ -1641,7 +1774,10 @@ export default function CorporateClimb() {
 
     setTimeout(() => {
       setPlayerAnim("idle");
-      const [dmg, isCrit] = calcDamage(player.atk + level * 2 + atkBuff, enemy.def, move.dmg);
+      const playerAtkMod = getStatusAtkMod(playerStatuses);
+      const enemyDefMod = getStatusDefMod(enemyStatuses);
+      const playerCritBonus = getStatusCritBonus(playerStatuses);
+      const [dmg, isCrit] = calcDamage(player.atk + level * 2 + atkBuff + playerAtkMod, enemy.def + enemyDefMod, move.dmg, playerCritBonus);
       const newEnemyHp = Math.max(0, enemyHp - dmg);
       setEnemyHp(newEnemyHp);
       setEnemyAnim("hit");
@@ -1651,6 +1787,14 @@ export default function CorporateClimb() {
 
       let logMsg = `${player.name} used ${move.name}! ${dmg} damage!`;
       if (isCrit) logMsg += " Critical hit!";
+
+      // Apply status effect from move
+      if (move.status) {
+        const applied = applyStatus(move.status, true);
+        if (applied) {
+          logMsg += ` ${move.status.target === "self" ? player.name : enemy.name} is ${applied.name}!`;
+        }
+      }
 
       if (move.heal) {
         const healAmt = Math.min(move.heal + level, player.maxHp - playerHp);
@@ -1691,18 +1835,58 @@ export default function CorporateClimb() {
         return;
       }
 
+      // Tick enemy statuses (burn damage, duration)
+      const enemyBurn = getBurnDamage(enemyStatuses);
+      if (enemyBurn > 0) {
+        setTimeout(() => {
+          setEnemyHp((hp) => Math.max(0, hp - enemyBurn));
+          addDamagePopup(enemyBurn, true, false, false);
+          setLog((l) => [...l, `${enemy.name} is burned out! -${enemyBurn} HP!`]);
+        }, 500);
+      }
+      tickStatuses(setEnemyStatuses);
+
       // Enemy turn
       setTimeout(() => {
+        // Tick player burn at start of enemy turn
+        const playerBurn = getBurnDamage(playerStatuses);
+        if (playerBurn > 0) {
+          setPlayerHp((hp) => {
+            const newHp = Math.max(0, hp - playerBurn);
+            if (newHp <= 0) {
+              setTimeout(() => {
+                setPlayerAnim("faint");
+                SFX.faint();
+                setTimeout(() => { SFX.gameOver(); setScreen("gameOver"); }, 1000);
+              }, 400);
+            }
+            return newHp;
+          });
+          addDamagePopup(playerBurn, false, false, false);
+          setLog((l) => [...l, `${player.name} is burned out! -${playerBurn} HP!`]);
+        }
+
         const eMove = enemy.moves[Math.floor(Math.random() * enemy.moves.length)];
         setEnemyAnim("attacking");
         SFX.attackSwing();
 
         setTimeout(() => {
           setEnemyAnim("idle");
-          const [eDmg, eCrit] = calcDamage(enemy.atk, player.def + level + defBuff, eMove.dmg);
+          const enemyAtkMod = getStatusAtkMod(enemyStatuses);
+          const playerDefMod = getStatusDefMod(playerStatuses);
+          const enemyCritBonus = getStatusCritBonus(enemyStatuses);
+          const [eDmg, eCrit] = calcDamage(enemy.atk + enemyAtkMod, player.def + level + defBuff + playerDefMod, eMove.dmg, enemyCritBonus);
 
           let eLog = `${enemy.name} used ${eMove.name}! ${eDmg} damage!`;
           if (eCrit) eLog += " Critical hit!";
+
+          // Apply status effect from enemy move
+          if (eMove.status) {
+            const applied = applyStatus(eMove.status, false);
+            if (applied) {
+              eLog += ` ${eMove.status.target === "self" ? enemy.name : player.name} is ${applied.name}!`;
+            }
+          }
 
           setPlayerAnim("hit");
           triggerShake();
@@ -1728,6 +1912,9 @@ export default function CorporateClimb() {
           });
           setLog((l) => [...l, eLog]);
 
+          // Tick player statuses at end of round
+          tickStatuses(setPlayerStatuses);
+
           setTimeout(() => {
             setPlayerAnim("idle");
             setTurn("player");
@@ -1735,7 +1922,7 @@ export default function CorporateClimb() {
         }, 300);
       }, 800);
     }, 350);
-  }, [turn, player, playerPp, level, enemy, enemyHp, playerHp, xp, xpToNext, floor]);
+  }, [turn, player, playerPp, level, enemy, enemyHp, playerHp, xp, xpToNext, floor, playerStatuses, enemyStatuses]);
 
   const handleVictoryContinue = () => {
     SFX.menuConfirm();
@@ -1882,6 +2069,8 @@ export default function CorporateClimb() {
             damagePopups={damagePopups}
             screenShake={screenShake}
             moveTypeColor={moveTypeColor}
+            playerStatuses={playerStatuses}
+            enemyStatuses={enemyStatuses}
           />
         )}
         {screen === "victory" && (
