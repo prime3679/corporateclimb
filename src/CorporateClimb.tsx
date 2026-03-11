@@ -1482,40 +1482,44 @@ function BattleScreen({
       </div>
 
       {/* Battle field */}
-      <div style={{ flex: 1, position: "relative", padding: "12px 16px", minHeight: 220 }}>
-        {/* Ground plane */}
+      <div style={{ flex: 1, position: "relative", minHeight: 220 }}>
+        {/* Ground floor */}
         <div style={{
-          position: "absolute", bottom: 0, left: 0, right: 0, height: "38%",
-          background: `linear-gradient(0deg, ${bgScene.groundDark} 0%, ${bgScene.ground} 40%, transparent 100%)`,
-          opacity: 0.5,
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "45%",
+          background: `linear-gradient(0deg, ${bgScene.groundDark} 0%, ${bgScene.ground} 50%, ${bgScene.ground}88 70%, transparent 100%)`,
+          opacity: 0.6,
         }} />
 
-        {/* Enemy area */}
-        <div style={{ position: "absolute", top: 28, right: 10, zIndex: 3 }}>
+        {/* Enemy HP — top right */}
+        <div style={{ position: "absolute", top: 24, right: 12, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
           <StatusBadges statuses={enemyStatuses} />
         </div>
-        <div style={{ position: "absolute", top: 50, right: 30, zIndex: 2 }}>
+
+        {/* Enemy sprite — right side, planted on ground */}
+        <div style={{ position: "absolute", bottom: "30%", right: 50, zIndex: 2 }}>
           <PixelSprite spriteId={enemy.spriteId} size={110} animState={enemyAnim} flip />
           <div style={{
-            width: 88, height: 14, background: "rgba(0,0,0,0.18)",
-            borderRadius: "50%", margin: "2px auto 0",
+            width: 80, height: 12, background: "rgba(0,0,0,0.22)",
+            borderRadius: "50%", margin: "-2px auto 0",
           }} />
         </div>
 
-        {/* Player area */}
-        <div style={{ position: "absolute", bottom: 16, left: 10, zIndex: 3 }}>
+        {/* Player HP — bottom right corner (opposite side from sprite) */}
+        <div style={{ position: "absolute", bottom: 8, right: 10, zIndex: 4 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
           <StatusBadges statuses={playerStatuses} />
           <div style={{ marginTop: 3 }}>
             <XpBar xp={xp} xpToNext={xpToNext} level={level} />
           </div>
         </div>
-        <div style={{ position: "absolute", bottom: 10, left: 50, zIndex: 2 }}>
+
+        {/* Player sprite — left side, planted on ground */}
+        <div style={{ position: "absolute", bottom: "12%", left: 30, zIndex: 2 }}>
           <PixelSprite spriteId={player.spriteId} size={120} animState={playerAnim} />
           <div style={{
-            width: 96, height: 16, background: "rgba(0,0,0,0.18)",
-            borderRadius: "50%", margin: "2px auto 0",
+            width: 90, height: 14, background: "rgba(0,0,0,0.22)",
+            borderRadius: "50%", margin: "-2px auto 0",
           }} />
         </div>
 
