@@ -82,8 +82,8 @@ export default function HallwayEventScreen({
               key={i}
               onClick={() => handleChoice(i)}
               style={{
-                fontFamily: "'Press Start 2P'", fontSize: 8,
-                padding: "12px 14px",
+                fontFamily: "'Press Start 2P'", fontSize: 9,
+                padding: "16px 14px",
                 background: "#FAFAFA",
                 border: "3px solid #263238",
                 borderRadius: 8,
@@ -141,7 +141,7 @@ export default function HallwayEventScreen({
           <button
             onClick={() => onChoice(chosen!)}
             style={{
-              fontFamily: "'Press Start 2P'", fontSize: 9, padding: "10px 24px",
+              fontFamily: "'Press Start 2P'", fontSize: 10, padding: "14px 24px",
               background: "#FFC107", border: "3px solid #263238", borderRadius: 8,
               cursor: "pointer", boxShadow: "4px 4px 0 #263238", color: "#263238",
               marginTop: 14,
