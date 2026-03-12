@@ -28,6 +28,7 @@ export default function DamageNumber({ popup }: { popup: DamagePopup }) {
     >
       {popup.isHeal ? "+" : "-"}{popup.value}
       {popup.isCrit && <span style={{ fontSize: 8, display: "block", color: "#FF6F00" }}>CRIT!</span>}
+      {popup.label && <span style={{ fontSize: 7, display: "block", color: popup.labelColor || "#FFD54F", whiteSpace: "nowrap" }}>{popup.label}</span>}
     </div>
   );
 }
