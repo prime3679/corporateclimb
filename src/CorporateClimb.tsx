@@ -679,7 +679,7 @@ export default function CorporateClimb() {
     <div style={{
       width: "100%",
       maxWidth: 420,
-      height: "100vh",
+      height: "100svh",
       maxHeight: 750,
       margin: "0 auto",
       background: "#000",

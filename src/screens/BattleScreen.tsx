@@ -89,7 +89,7 @@ export default function BattleScreen({
         }} />
       )}
 
-      <div style={{ flex: 1, position: "relative", minHeight: 220 }}>
+      <div style={{ flex: 1, position: "relative", minHeight: 240, overflow: "visible" }}>
         <div style={{
           position: "absolute", top: "44%", right: 10,
           width: 150, height: 28,
@@ -97,8 +97,8 @@ export default function BattleScreen({
           borderRadius: "50%",
           zIndex: 1,
         }} />
-        <div style={{ position: "absolute", top: "2%", right: 20, zIndex: 2 }}>
-          <PixelSprite spriteId={enemy.spriteId} size={160} animState={enemyAnim} flip />
+        <div style={{ position: "absolute", top: "5%", right: 20, zIndex: 2 }}>
+          <PixelSprite spriteId={enemy.spriteId} size={140} animState={enemyAnim} flip />
         </div>
         <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
@@ -121,7 +121,7 @@ export default function BattleScreen({
           zIndex: 1,
         }} />
         <div style={{ position: "absolute", bottom: "4%", left: 10, zIndex: 2 }}>
-          <PixelSprite spriteId={player.spriteId} size={180} animState={playerAnim} />
+          <PixelSprite spriteId={player.spriteId} size={155} animState={playerAnim} />
         </div>
         <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
@@ -145,7 +145,7 @@ export default function BattleScreen({
         ))}
       </div>
 
-      <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
+      <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 6, flexShrink: 0 }}>
         {log.length > 0 && (
           <TextBox
             lines={[log[log.length - 1]]}
