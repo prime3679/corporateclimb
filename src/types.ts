@@ -97,7 +97,7 @@ export interface HallwayEvent {
 
 // ─── ITEMS ───────────────────────────────────────────────────
 
-export type ItemId = "espresso" | "linkedin_endorsement" | "mentors_advice" | "networking_card" | "pto_day" | "side_hustle";
+export type ItemId = "espresso" | "linkedin_endorsement" | "mentors_advice" | "networking_card" | "pto_day" | "side_hustle" | "standing_desk" | "noise_cancelling";
 
 export interface ItemDef {
   id: ItemId;

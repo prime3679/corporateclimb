@@ -290,6 +290,50 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
       { label: "\"It's fine, actually\"", effect: { hp: 5 }, result: "You walk away. The slow laptop builds character. Allegedly.", isGood: true },
     ],
   },
+  {
+    id: "all_hands",
+    title: "ALL-HANDS MEETING",
+    desc: "The CEO is doing a surprise all-hands. Attendance is 'optional' (it's not optional).",
+    emoji: "📢",
+    choices: [
+      { label: "Ask a tough question", effect: { atk: 3, hp: -20 }, result: "\"Great question.\" Dead silence. You're either a hero or unemployable. Either way — power move.", isGood: true },
+      { label: "Clap at the right moments", effect: { def: 2, hp: 10 }, result: "You master the art of strategic applause. Leadership notices. You're 'aligned.'", isGood: true },
+      { label: "Multitask through it", effect: { ppRestore: 3 }, result: "You clear 47 Slack messages. The CEO drones on. Efficient.", isGood: true },
+    ],
+  },
+  {
+    id: "team_lunch",
+    title: "TEAM LUNCH",
+    desc: "Someone organized a team lunch at that expensive sushi place. Your card is already on file.",
+    emoji: "🍣",
+    choices: [
+      { label: "Order the omakase", effect: { hp: 40, def: -1 }, result: "Best meal in months. Your wallet screams. Your soul sings.", isGood: true },
+      { label: "Just get the bento box", effect: { hp: 25, atk: 1 }, result: "Sensible and satisfying. You save money AND feel good. The rarest corporate combo.", isGood: true },
+      { label: "Expense it", effect: { atk: 2, def: 1 }, result: "\"Business development lunch.\" You'll deal with finance later. Confidence surges.", isGood: true },
+    ],
+  },
+  {
+    id: "server_room",
+    title: "SERVER ROOM",
+    desc: "You hear frantic beeping from the server room. The door is propped open with a shoe.",
+    emoji: "🖥️",
+    choices: [
+      { label: "Investigate", effect: { atk: 3, hp: -10 }, result: "You find and fix a runaway process. Nobody will ever know — except you. And that's enough.", isGood: true },
+      { label: "Report it to IT", effect: { def: 2 }, result: "IT owes you one. They slip you a keyboard shortcut cheat sheet. +DEF from efficiency.", isGood: true },
+      { label: "Close the door", effect: { hp: 15 }, result: "Not your problem. You walk away with the peace of a person who maintains boundaries.", isGood: true },
+    ],
+  },
+  {
+    id: "performance_review",
+    title: "SURPRISE REVIEW",
+    desc: "Your skip-level just scheduled a 1:1 in 10 minutes. Subject: 'Quick Chat.' Nothing quick is ever quick.",
+    emoji: "😰",
+    choices: [
+      { label: "Prep talking points", effect: { atk: 2, def: 2 }, result: "You walk in armed with receipts. The 'quick chat' becomes a promotion conversation.", isGood: true },
+      { label: "Wing it", effect: { atk: 4, hp: -15 }, result: "You speak from the heart. Raw. Unfiltered. They're either impressed or concerned. ATK goes way up.", isGood: true },
+      { label: "Reschedule", effect: { hp: 20, ppRestore: 2 }, result: "\"Can we do Thursday?\" Bought yourself time and mental space.", isGood: true },
+    ],
+  },
 ];
 
 // ─── ITEMS ───────────────────────────────────────────────────
@@ -323,6 +367,16 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     id: "side_hustle", name: "Side Hustle", emoji: "\uD83D\uDCB0",
     desc: "Extra income = extra confidence. Restores all PP.",
     effect: { ppRestore: 99 },
+  },
+  standing_desk: {
+    id: "standing_desk", name: "Standing Desk", emoji: "\uD83E\uDE91",
+    desc: "Power posture. +4 DEF and restores 15 HP.",
+    effect: { def: 4, hp: 15 },
+  },
+  noise_cancelling: {
+    id: "noise_cancelling", name: "Noise-Cancelling", emoji: "\uD83C\uDFA7",
+    desc: "Block out the chaos. Grants Focused status.",
+    effect: { status: { id: "focused", target: "self" } },
   },
 };
 
@@ -389,12 +443,67 @@ export const ENEMY_POOLS: Enemy[][] = [
       title: "THE MICROMANAGER",
     },
   ],
-  // Floors 6-10: fixed (no variants)
-  [ENEMIES[5]], // VP of Synergy
-  [ENEMIES[6]], // C-Suite Boss
-  [ENEMIES[7]], // The Consultant
-  [ENEMIES[8]], // Head of HR
-  [ENEMIES[9]], // The Founder
+  // Floor 6
+  [
+    ENEMIES[5], // VP of Synergy
+    {
+      floor: 6, name: "The Data Tyrant", emoji: "📊", spriteId: "vp", maxHp: 125, atk: 14, def: 14, types: ["analytics", "strategy"] as MoveType[],
+      moves: [
+        { name: "Dashboard Interrogation", dmg: 18, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.5 } },
+        { name: "KPI Guillotine", dmg: 24, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
+        { name: "Vanity Metrics", dmg: 10, type: "analytics" as MoveType, heal: 14, status: { id: "motivated", target: "self" } },
+      ],
+      defeat: "The dashboard goes dark. No more red numbers.",
+      title: "THE DATA TYRANT",
+    },
+  ],
+  // Floor 7
+  [
+    ENEMIES[6], // C-Suite Boss
+    {
+      floor: 7, name: "The Board Member", emoji: "🏛️", spriteId: "boss", maxHp: 170, atk: 18, def: 16, types: ["influence", "analytics"] as MoveType[],
+      moves: [
+        { name: "Shareholder Pressure", dmg: 20, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+        { name: "Fiduciary Fury", dmg: 30, type: "analytics" as MoveType },
+        { name: "Stock Buyback", dmg: 8, type: "strategy" as MoveType, heal: 22, status: { id: "motivated", target: "self" } },
+        { name: "Vote of No Confidence", dmg: 26, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy" } },
+      ],
+      defeat: "The board adjourns. Your motion carries.",
+      title: "THE BOARD MEMBER",
+    },
+  ],
+  // Floor 8
+  [
+    ENEMIES[7], // The Consultant
+    {
+      floor: 8, name: "The Agency Creative", emoji: "🎬", spriteId: "vp", maxHp: 140, atk: 17, def: 10, types: ["execution", "technical"] as MoveType[],
+      moves: [
+        { name: "Mood Board Assault", dmg: 20, type: "execution" as MoveType, status: { id: "focused", target: "self", chance: 0.4 } },
+        { name: "Brand Guidelines Bomb", dmg: 26, type: "technical" as MoveType },
+        { name: "\"Trust the Process\"", dmg: 14, type: "influence" as MoveType, heal: 12, status: { id: "micromanaged", target: "enemy", chance: 0.3 } },
+        { name: "Deliverable Dump", dmg: 34, type: "execution" as MoveType },
+      ],
+      defeat: "The retainer has been terminated. No more revisions.",
+      title: "THE AGENCY CREATIVE",
+    },
+  ],
+  // Floor 9
+  [
+    ENEMIES[8], // Head of HR
+    {
+      floor: 9, name: "The Compliance Officer", emoji: "⚖️", spriteId: "manager", maxHp: 155, atk: 13, def: 18, types: ["strategy", "analytics"] as MoveType[],
+      moves: [
+        { name: "Regulatory Audit", dmg: 16, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+        { name: "Policy Violation Notice", dmg: 22, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } },
+        { name: "Risk Mitigation", dmg: 10, type: "strategy" as MoveType, heal: 16, status: { id: "motivated", target: "self" } },
+        { name: "Legal Hold", dmg: 30, type: "analytics" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+      ],
+      defeat: "Case dismissed. The paperwork dissolves.",
+      title: "THE COMPLIANCE OFFICER",
+    },
+  ],
+  // Floor 10: The Founder (fixed — final boss with phase 2)
+  [ENEMIES[9]],
 ];
 
 /** Pick a random enemy for each floor. Returns array of enemy IDs (name used as key). */
