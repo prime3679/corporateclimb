@@ -32,6 +32,12 @@ export interface Move {
   status?: StatusEffectOnMove;
 }
 
+export interface ClassPerk {
+  name: string;
+  desc: string;
+  icon: string;
+}
+
 export interface PlayerClass {
   id: string;
   name: string;
@@ -44,6 +50,25 @@ export interface PlayerClass {
   types: MoveType[];
   desc: string;
   moves: Move[];
+  perk: ClassPerk;
+}
+
+// ─── ACHIEVEMENTS ─────────────────────────────────────────────
+export type AchievementId =
+  | "first_climb"
+  | "triple_threat"
+  | "speed_runner"
+  | "iron_will"
+  | "glass_cannon"
+  | "ng_plus_1"
+  | "ng_plus_3"
+  | "damage_dealer";
+
+export interface AchievementDef {
+  id: AchievementId;
+  name: string;
+  desc: string;
+  icon: string;
 }
 
 export type MoveType = "strategy" | "influence" | "execution" | "analytics" | "technical" | "normal";
