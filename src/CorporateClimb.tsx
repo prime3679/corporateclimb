@@ -5,10 +5,11 @@ import { buildSpriteUrls } from "./sprites";
 import type { Screen, AnimState, DamagePopup, StatusInstance, StatusEffectOnMove, PlayerClass, Move, ItemId } from "./types";
 import {
   STATUS_DEFS, TYPE_COLORS, PLAYER_CLASSES, ENEMIES, HALLWAY_EVENTS, FONT_URL, ITEMS,
-  CLASS_STARTING_ITEMS, ALL_ITEM_IDS, ENEMY_POOLS,
+  CLASS_STARTING_ITEMS, ALL_ITEM_IDS, ENEMY_POOLS, ACHIEVEMENTS,
   getTypeMultiplier, saveGame, loadGame, clearSave,
   rollFloorEnemies, getFloorEnemy,
   scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
+  checkAchievements, getUnlockedAchievements,
 } from "./data";
 import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro } from "./screens";
 
@@ -89,9 +90,11 @@ export default function CorporateClimb() {
   // New Game+ level (0 = first playthrough)
   const [ngPlus, setNgPlus] = useState(0);
 
-  // Stats tracking for share card
+  // Stats tracking for share card + achievements
   const [totalTurns, setTotalTurns] = useState(0);
   const [totalDamageDealt, setTotalDamageDealt] = useState(0);
+  const [itemsUsed, setItemsUsed] = useState(0);
+  const [newAchievements, setNewAchievements] = useState<import("./types").AchievementId[]>([]);
 
   // Phase 2 boss tracking
   const [enemyPhase, setEnemyPhase] = useState<1 | 2>(1);
@@ -260,6 +263,7 @@ export default function CorporateClimb() {
 
     // Remove from inventory
     setInventory((inv) => inv.filter((_, i) => i !== itemIdx));
+    setItemsUsed((n) => n + 1);
     setBattleMode("fight");
     setTurn("waiting");
 
@@ -451,6 +455,7 @@ export default function CorporateClimb() {
     setNgPlus(0);
     setTotalTurns(0);
     setTotalDamageDealt(0);
+    setItemsUsed(0);
     setEnemyPhase(1);
     setScreen("floorIntro");
   };
@@ -541,8 +546,12 @@ export default function CorporateClimb() {
       const playerAtkMod = getStatusAtkMod(gs.playerStatuses);
       const enemyDefMod = getStatusDefMod(gs.enemyStatuses);
       const playerCritBonus = getStatusCritBonus(gs.playerStatuses);
+      // Class perks: Engineer +15% damage, Designer +15% crit
+      const perkDmgMult = gs.player!.id === "eng" ? 1.15 : 1;
+      const perkCritBonus = gs.player!.id === "design" ? 0.15 : 0;
       const typeResult = getTypeMultiplier(move.type, gs.enemy.types);
-      const [dmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus, typeResult.mult);
+      const [rawDmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus + perkCritBonus, typeResult.mult);
+      const dmg = Math.round(rawDmg * perkDmgMult);
       const newEnemyHp = Math.max(0, gs.enemyHp - dmg);
       setEnemyHp(newEnemyHp);
       setTotalDamageDealt((t) => t + dmg);
@@ -653,9 +662,23 @@ export default function CorporateClimb() {
 
   const handleVictoryContinue = () => {
     SFX.menuConfirm();
+    // PM perk: heal 5 HP after each battle
+    if (player?.id === "pm") {
+      setPlayerHp((hp) => Math.min(player.maxHp, hp + 5));
+    }
     if (floor >= ENEMY_POOLS.length - 1) {
       clearSave();
       saveBestNgPlus(ngPlus);
+      // Check achievements on win
+      const unlocked = checkAchievements({
+        classId: player?.id || "",
+        totalTurns,
+        totalDamageDealt,
+        ngLevel: ngPlus,
+        itemsUsed,
+        finalHp: playerHp,
+      });
+      setNewAchievements(unlocked);
       SFX.fanfare();
       setScreen("win");
     } else {
@@ -695,6 +718,7 @@ export default function CorporateClimb() {
     setDefBuff(0);
     setTotalTurns(0);
     setTotalDamageDealt(0);
+    setItemsUsed(0);
     setEnemyPhase(1);
     usedEventsRef.current.clear();
     const startItem = CLASS_STARTING_ITEMS[player.id];
@@ -717,6 +741,7 @@ export default function CorporateClimb() {
     setNgPlus(0);
     setTotalTurns(0);
     setTotalDamageDealt(0);
+    setItemsUsed(0);
     setEnemyPhase(1);
     setInventory([]);
     setFloorEnemyIds([]);
@@ -887,7 +912,7 @@ export default function CorporateClimb() {
           />
         )}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}
-        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} />}
+        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} newAchievements={newAchievements} allAchievements={ACHIEVEMENTS} unlockedAchievements={getUnlockedAchievements()} />}
       </div>
     </div>
   );

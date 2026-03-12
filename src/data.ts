@@ -1,4 +1,4 @@
-import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef } from "./types";
+import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef } from "./types";
 
 // ─── STATUS DEFINITIONS ─────────────────────────────────────
 export const STATUS_DEFS: Record<StatusId, StatusDef> = {
@@ -67,6 +67,7 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Ship MVP", dmg: 28, type: "execution", desc: "80/20 strikes. Maximum impact.", pp: 8 },
       { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 5, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
     ],
+    perk: { name: "Cross-Functional", desc: "Heals 5 HP after every battle", icon: "\u{1F91D}" },
   },
   {
     id: "eng",
@@ -85,6 +86,7 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Code Review Reject", dmg: 15, type: "technical", desc: "Nit-picks until they give up.", pp: 20, status: { id: "micromanaged", target: "enemy" } },
       { name: "Stack Overflow", dmg: 40, type: "analytics", desc: "Channels the collective wisdom. Huge damage.", pp: 4 },
     ],
+    perk: { name: "Optimization", desc: "+15% damage on all moves", icon: "\u{1F4A5}" },
   },
   {
     id: "design",
@@ -103,6 +105,7 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Figma Tornado", dmg: 26, type: "technical", desc: "200 frames of animated fury.", pp: 10 },
       { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 4, status: { id: "motivated", target: "self", chance: 0.5 } },
     ],
+    perk: { name: "Eye for Detail", desc: "+15% crit chance on all moves", icon: "\u{1F3AF}" },
   },
 ];
 
@@ -575,6 +578,93 @@ export function loadGame(): import("./types").SaveData | null {
 
 export function clearSave() {
   try { localStorage.removeItem(SAVE_KEY); } catch {}
+}
+
+// ─── ACHIEVEMENTS ────────────────────────────────────────────
+const ACHIEVEMENT_KEY = "corporate-climb-achievements";
+
+export const ACHIEVEMENTS: AchievementDef[] = [
+  { id: "first_climb", name: "First Day", desc: "Beat the game for the first time", icon: "\u{1F3C6}" },
+  { id: "triple_threat", name: "Triple Threat", desc: "Beat the game with all 3 classes", icon: "\u{1F451}" },
+  { id: "speed_runner", name: "Speed Runner", desc: "Win in under 50 turns", icon: "\u26A1" },
+  { id: "iron_will", name: "Iron Will", desc: "Win without using any items", icon: "\u{1F9CA}" },
+  { id: "glass_cannon", name: "Glass Cannon", desc: "Win with less than 15 HP", icon: "\u{1F4A2}" },
+  { id: "ng_plus_1", name: "Promoted", desc: "Beat NG+1", icon: "\u{1F4C8}" },
+  { id: "ng_plus_3", name: "C-Suite Material", desc: "Beat NG+3 or higher", icon: "\u{1F48E}" },
+  { id: "damage_dealer", name: "Damage Dealer", desc: "Deal 3000+ total damage in a run", icon: "\u{1F525}" },
+];
+
+export function getUnlockedAchievements(): Set<AchievementId> {
+  try {
+    const raw = localStorage.getItem(ACHIEVEMENT_KEY);
+    return raw ? new Set(JSON.parse(raw) as AchievementId[]) : new Set();
+  } catch { return new Set(); }
+}
+
+export function unlockAchievement(id: AchievementId): boolean {
+  const current = getUnlockedAchievements();
+  if (current.has(id)) return false;
+  current.add(id);
+  try { localStorage.setItem(ACHIEVEMENT_KEY, JSON.stringify([...current])); } catch {}
+  return true; // newly unlocked
+}
+
+export function getClassWins(): Set<string> {
+  try {
+    const raw = localStorage.getItem("corporate-climb-class-wins");
+    return raw ? new Set(JSON.parse(raw) as string[]) : new Set();
+  } catch { return new Set(); }
+}
+
+export function recordClassWin(classId: string) {
+  const wins = getClassWins();
+  wins.add(classId);
+  try { localStorage.setItem("corporate-climb-class-wins", JSON.stringify([...wins])); } catch {}
+}
+
+/** Check and unlock all applicable achievements after a win */
+export function checkAchievements(stats: {
+  classId: string;
+  totalTurns: number;
+  totalDamageDealt: number;
+  ngLevel: number;
+  itemsUsed: number;
+  finalHp: number;
+}): AchievementId[] {
+  const newlyUnlocked: AchievementId[] = [];
+
+  if (unlockAchievement("first_climb")) newlyUnlocked.push("first_climb");
+
+  recordClassWin(stats.classId);
+  if (getClassWins().size >= 3) {
+    if (unlockAchievement("triple_threat")) newlyUnlocked.push("triple_threat");
+  }
+
+  if (stats.totalTurns <= 50) {
+    if (unlockAchievement("speed_runner")) newlyUnlocked.push("speed_runner");
+  }
+
+  if (stats.itemsUsed === 0) {
+    if (unlockAchievement("iron_will")) newlyUnlocked.push("iron_will");
+  }
+
+  if (stats.finalHp < 15) {
+    if (unlockAchievement("glass_cannon")) newlyUnlocked.push("glass_cannon");
+  }
+
+  if (stats.ngLevel >= 1) {
+    if (unlockAchievement("ng_plus_1")) newlyUnlocked.push("ng_plus_1");
+  }
+
+  if (stats.ngLevel >= 3) {
+    if (unlockAchievement("ng_plus_3")) newlyUnlocked.push("ng_plus_3");
+  }
+
+  if (stats.totalDamageDealt >= 3000) {
+    if (unlockAchievement("damage_dealer")) newlyUnlocked.push("damage_dealer");
+  }
+
+  return newlyUnlocked;
 }
 
 // ─── FONT ────────────────────────────────────────────────────

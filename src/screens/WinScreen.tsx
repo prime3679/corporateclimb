@@ -1,5 +1,5 @@
 import { useState } from "react";
-import type { PlayerClass } from "../types";
+import type { PlayerClass, AchievementId, AchievementDef } from "../types";
 import { useSpriteUrls } from "../components/PixelSprite";
 
 interface WinScreenProps {
@@ -11,9 +11,12 @@ interface WinScreenProps {
   totalTurns: number;
   totalDamageDealt: number;
   floorsCleared: number;
+  newAchievements: AchievementId[];
+  allAchievements: AchievementDef[];
+  unlockedAchievements: Set<AchievementId>;
 }
 
-export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNgLevel, totalTurns, totalDamageDealt, floorsCleared }: WinScreenProps) {
+export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNgLevel, totalTurns, totalDamageDealt, floorsCleared, newAchievements, allAchievements, unlockedAchievements }: WinScreenProps) {
   const sprites = useSpriteUrls();
   const [shared, setShared] = useState(false);
 
@@ -122,6 +125,52 @@ export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNg
         >
           {shared ? "COPIED!" : "SHARE RESULT"}
         </button>
+      </div>
+
+      {/* Newly unlocked achievements */}
+      {newAchievements.length > 0 && (
+        <div style={{
+          background: "rgba(0,0,0,0.7)", borderRadius: 10, padding: "10px 14px",
+          maxWidth: 320, width: "100%", border: "2px solid #FFD54F",
+        }}>
+          <div style={{
+            fontFamily: "'Press Start 2P'", fontSize: 7, color: "#FFD54F",
+            textAlign: "center", marginBottom: 8, letterSpacing: 2,
+          }}>
+            NEW ACHIEVEMENTS!
+          </div>
+          {newAchievements.map(id => {
+            const ach = allAchievements.find(a => a.id === id);
+            if (!ach) return null;
+            return (
+              <div key={id} style={{
+                display: "flex", alignItems: "center", gap: 8, padding: "4px 0",
+                fontFamily: "'Press Start 2P'",
+              }}>
+                <span style={{ fontSize: 14 }}>{ach.icon}</span>
+                <div>
+                  <div style={{ fontSize: 7, color: "#FFF" }}>{ach.name}</div>
+                  <div style={{ fontSize: 6, color: "#90A4AE" }}>{ach.desc}</div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {/* Achievement progress */}
+      <div style={{
+        fontFamily: "'Press Start 2P'", fontSize: 7, color: "#4E342E",
+        opacity: 0.8, display: "flex", gap: 6, flexWrap: "wrap", justifyContent: "center",
+      }}>
+        {allAchievements.map(ach => (
+          <span key={ach.id} title={`${ach.name}: ${ach.desc}`} style={{
+            opacity: unlockedAchievements.has(ach.id) ? 1 : 0.3,
+            fontSize: 14,
+          }}>
+            {ach.icon}
+          </span>
+        ))}
       </div>
 
       {ngLevel > 0 && (
