@@ -360,6 +360,33 @@ export function getFloorEnemy(floor: number, enemyName: string): Enemy {
   return pool.find(e => e.name === enemyName) || pool[0];
 }
 
+// ─── NEW GAME+ ───────────────────────────────────────────────
+const NG_PLUS_KEY = "corporate-climb-ng-best";
+
+/** Scale an enemy's stats for NG+ (30% per NG+ level) */
+export function scaleEnemyForNgPlus(e: Enemy, ngLevel: number): Enemy {
+  if (ngLevel <= 0) return e;
+  const mult = 1 + ngLevel * 0.3;
+  return {
+    ...e,
+    maxHp: Math.round(e.maxHp * mult),
+    atk: Math.round(e.atk * mult),
+    def: Math.round(e.def * mult),
+    moves: e.moves.map(m => ({ ...m, dmg: Math.round(m.dmg * (1 + ngLevel * 0.15)) })),
+  };
+}
+
+export function getBestNgPlus(): number {
+  try { return parseInt(localStorage.getItem(NG_PLUS_KEY) || "0", 10) || 0; } catch { return 0; }
+}
+
+export function saveBestNgPlus(level: number) {
+  try {
+    const current = getBestNgPlus();
+    if (level > current) localStorage.setItem(NG_PLUS_KEY, String(level));
+  } catch {}
+}
+
 // ─── SAVE SYSTEM ─────────────────────────────────────────────
 const SAVE_KEY = "corporate-climb-save";
 

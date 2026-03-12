@@ -121,4 +121,5 @@ export interface SaveData {
   usedEvents: string[];
   inventory: ItemId[];
   floorEnemyIds?: string[]; // tracks which enemy variant was selected per floor
+  ngPlus?: number; // New Game+ level (0 = first playthrough)
 }

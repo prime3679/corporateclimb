@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { SFX } from "./sfx";
+import { Music } from "./music";
 import { buildSpriteUrls } from "./sprites";
 import type { Screen, AnimState, DamagePopup, StatusInstance, StatusEffectOnMove, PlayerClass, Move, ItemId } from "./types";
 import {
@@ -7,6 +8,7 @@ import {
   CLASS_STARTING_ITEMS, ALL_ITEM_IDS,
   getTypeMultiplier, saveGame, loadGame, clearSave,
   rollFloorEnemies, getFloorEnemy,
+  scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
 } from "./data";
 import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro } from "./screens";
 
@@ -74,6 +76,12 @@ export default function CorporateClimb() {
   // Enemy variants — rolled once per run
   const [floorEnemyIds, setFloorEnemyIds] = useState<string[]>([]);
 
+  // New Game+ level (0 = first playthrough)
+  const [ngPlus, setNgPlus] = useState(0);
+
+  // Music mute (persisted in localStorage)
+  const [muted, setMuted] = useState(() => localStorage.getItem("cc_muted") === "1");
+
   // Animation state
   const [playerAnim, setPlayerAnim] = useState<AnimState>("idle");
   const [enemyAnim, setEnemyAnim] = useState<AnimState>("idle");
@@ -84,10 +92,40 @@ export default function CorporateClimb() {
   // Battle sub-mode: "fight" or "items"
   const [battleMode, setBattleMode] = useState<"fight" | "items">("fight");
 
-  // Current enemy resolved from variant pool
-  const enemy = floorEnemyIds.length > 0
+  // Music: sync mute state on mount and when toggled
+  useEffect(() => {
+    Music.setMuted(muted);
+    localStorage.setItem("cc_muted", muted ? "1" : "0");
+  }, [muted]);
+
+  // Music: play track based on current screen
+  useEffect(() => {
+    switch (screen) {
+      case "title":
+      case "classSelect":
+        Music.playTitle();
+        break;
+      case "battle":
+        if (floor >= 5) Music.playBoss();
+        else Music.playBattle();
+        break;
+      case "hallwayEvent":
+      case "floorIntro":
+        Music.playEvent();
+        break;
+      case "victory":
+      case "win":
+      case "gameOver":
+        Music.stop();
+        break;
+    }
+  }, [screen, floor]);
+
+  // Current enemy resolved from variant pool, scaled for NG+
+  const rawEnemy = floorEnemyIds.length > 0
     ? getFloorEnemy(floor, floorEnemyIds[floor])
     : ENEMIES[floor] || ENEMIES[0];
+  const enemy = scaleEnemyForNgPlus(rawEnemy, ngPlus);
 
   // Ref to avoid stale closures
   const gsRef = useRef({ player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory });
@@ -357,6 +395,7 @@ export default function CorporateClimb() {
     usedEventsRef.current = new Set(save.usedEvents);
     setInventory(save.inventory || []);
     setFloorEnemyIds(save.floorEnemyIds || rollFloorEnemies());
+    setNgPlus(save.ngPlus || 0);
     setScreen("floorIntro");
   };
 
@@ -377,6 +416,7 @@ export default function CorporateClimb() {
     setInventory(startItem ? [startItem] : []);
     // Roll enemy variants for this run
     setFloorEnemyIds(rollFloorEnemies());
+    setNgPlus(0);
     setScreen("floorIntro");
   };
 
@@ -551,6 +591,7 @@ export default function CorporateClimb() {
     SFX.menuConfirm();
     if (floor >= ENEMIES.length - 1) {
       clearSave();
+      saveBestNgPlus(ngPlus);
       SFX.fanfare();
       setScreen("win");
     } else {
@@ -563,6 +604,7 @@ export default function CorporateClimb() {
           usedEvents: Array.from(usedEventsRef.current),
           inventory,
           floorEnemyIds,
+          ngPlus,
         });
       }
       const evt = pickRandomEvent();
@@ -573,6 +615,23 @@ export default function CorporateClimb() {
         setScreen("floorIntro");
       }
     }
+  };
+
+  const startNgPlus = () => {
+    if (!player) return;
+    const nextNg = ngPlus + 1;
+    SFX.menuConfirm();
+    setNgPlus(nextNg);
+    setPlayerHp(player.maxHp);
+    setPlayerPp(player.moves.map(m => m.pp));
+    setFloor(0);
+    setAtkBuff(0);
+    setDefBuff(0);
+    usedEventsRef.current.clear();
+    const startItem = CLASS_STARTING_ITEMS[player.id];
+    setInventory(startItem ? [startItem] : []);
+    setFloorEnemyIds(rollFloorEnemies());
+    setScreen("floorIntro");
   };
 
   const restart = () => {
@@ -586,6 +645,7 @@ export default function CorporateClimb() {
     setXpToNext(30);
     setAtkBuff(0);
     setDefBuff(0);
+    setNgPlus(0);
     setInventory([]);
     setFloorEnemyIds([]);
     usedEventsRef.current.clear();
@@ -688,6 +748,21 @@ export default function CorporateClimb() {
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
       `}</style>
 
+      {/* Mute toggle — always visible */}
+      <button
+        onClick={() => setMuted(m => !m)}
+        style={{
+          position: "absolute", top: 8, right: 8, zIndex: 100,
+          background: "rgba(0,0,0,0.5)", border: "2px solid rgba(255,255,255,0.2)",
+          borderRadius: 6, padding: "4px 8px", cursor: "pointer",
+          fontFamily: "'Press Start 2P'", fontSize: 8, color: "#FFD54F",
+          lineHeight: 1,
+        }}
+        title={muted ? "Unmute music" : "Mute music"}
+      >
+        {muted ? "🔇" : "🔊"}
+      </button>
+
       <div style={{ width: "100%", height: "100%" }}>
         {screen === "title" && <TitleScreen onStart={startGame} onContinue={loadGame() ? continueGame : undefined} />}
         {screen === "classSelect" && <ClassSelect onSelect={selectClass} />}
@@ -738,7 +813,7 @@ export default function CorporateClimb() {
           />
         )}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}
-        {screen === "win" && player && <WinScreen player={player} onRestart={restart} />}
+        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} />}
       </div>
     </div>
   );
