@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import type { PlayerClass, AchievementId, AchievementDef } from "../types";
 import { useSpriteUrls } from "../components/PixelSprite";
+import { SFX } from "../sfx";
 
 interface WinScreenProps {
   player: PlayerClass;
@@ -19,6 +20,12 @@ interface WinScreenProps {
 export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNgLevel, totalTurns, totalDamageDealt, floorsCleared, newAchievements, allAchievements, unlockedAchievements }: WinScreenProps) {
   const sprites = useSpriteUrls();
   const [shared, setShared] = useState(false);
+
+  useEffect(() => {
+    if (newAchievements.length > 0) {
+      setTimeout(() => SFX.achievementUnlock(), 800);
+    }
+  }, [newAchievements]);
 
   const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ""} Can you beat that? corporateclimb.vercel.app`;
 

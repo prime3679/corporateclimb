@@ -161,6 +161,30 @@ export const SFX = {
     setTimeout(() => playTone(1319, 0.15, "square", 0.1), 60);
   },
 
+  // Type effectiveness
+  superEffective() {
+    playTone(600, 0.08, "square", 0.12);
+    setTimeout(() => playTone(800, 0.08, "square", 0.12), 60);
+    setTimeout(() => playTone(1100, 0.12, "square", 0.14), 120);
+    setTimeout(() => playTone(1400, 0.18, "square", 0.1), 200);
+  },
+
+  notEffective() {
+    playTone(400, 0.15, "square", 0.08);
+    setTimeout(() => playTone(300, 0.2, "square", 0.06), 100);
+  },
+
+  achievementUnlock() {
+    const notes = [523, 659, 784, 1047, 1319];
+    notes.forEach((n, i) => {
+      setTimeout(() => playTone(n, 0.15, "sine", 0.1), i * 80);
+    });
+    setTimeout(() => {
+      playTone(1319, 0.4, "sine", 0.08);
+      playTone(1047, 0.4, "sine", 0.05);
+    }, 450);
+  },
+
   // Win fanfare
   fanfare() {
     const melody = [523, 523, 523, 698, 880, 784, 698, 880, 1047];

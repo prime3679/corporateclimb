@@ -11,7 +11,7 @@ import {
   scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
   checkAchievements, getUnlockedAchievements,
 } from "./data";
-import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro } from "./screens";
+import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro, RouteChoice } from "./screens";
 
 // ─── STRUGGLE MOVE (fallback when all PP depleted) ──────────
 const STRUGGLE_MOVE: Move = {
@@ -81,6 +81,9 @@ export default function CorporateClimb() {
   const [currentEvent, setCurrentEvent] = useState<import("./types").HallwayEvent | null>(null);
   const usedEventsRef = useRef<Set<string>>(new Set());
 
+  // Route choice (2 events to pick from)
+  const [routeOptions, setRouteOptions] = useState<[import("./types").HallwayEvent, import("./types").HallwayEvent] | null>(null);
+
   // Inventory
   const [inventory, setInventory] = useState<ItemId[]>([]);
 
@@ -131,6 +134,7 @@ export default function CorporateClimb() {
         break;
       case "hallwayEvent":
       case "floorIntro":
+      case "routeChoice":
         Music.playEvent();
         break;
       case "victory":
@@ -171,7 +175,7 @@ export default function CorporateClimb() {
       : player.moves
     : [];
 
-  const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean) => {
+  const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
     const popup: DamagePopup = {
       id: popupIdCounter++,
       value,
@@ -179,6 +183,8 @@ export default function CorporateClimb() {
       y: isEnemy ? 70 + Math.random() * 30 : 130 + Math.random() * 30,
       isCrit,
       isHeal,
+      label,
+      labelColor,
     };
     setDamagePopups((prev) => [...prev, popup]);
     setTimeout(() => {
@@ -373,8 +379,13 @@ export default function CorporateClimb() {
 
       setPlayerAnim("hit");
       triggerShake();
-      addDamagePopup(eDmg, false, eCrit, false);
-      if (eCrit) SFX.critHit(); else SFX.hit();
+      const eEffLabel = eTypeResult.mult > 1 ? "Super effective!" : eTypeResult.mult < 1 ? "Not effective..." : undefined;
+      const eEffColor = eTypeResult.mult > 1 ? "#4CAF50" : eTypeResult.mult < 1 ? "#FF9800" : undefined;
+      addDamagePopup(eDmg, false, eCrit, false, eEffLabel, eEffColor);
+      if (eTypeResult.mult > 1) SFX.superEffective();
+      else if (eTypeResult.mult < 1) SFX.notEffective();
+      else if (eCrit) SFX.critHit();
+      else SFX.hit();
 
       if (eMove.heal) {
         setEnemyHp((hp) => Math.min(gs.enemy.maxHp, hp + eMove.heal!));
@@ -485,6 +496,22 @@ export default function CorporateClimb() {
     return available[Math.floor(Math.random() * available.length)];
   };
 
+  const pickTwoEvents = (): [import("./types").HallwayEvent, import("./types").HallwayEvent] => {
+    let available = HALLWAY_EVENTS.filter((e) => !usedEventsRef.current.has(e.id));
+    if (available.length < 2) {
+      usedEventsRef.current.clear();
+      available = [...HALLWAY_EVENTS];
+    }
+    const shuffled = available.sort(() => Math.random() - 0.5);
+    return [shuffled[0], shuffled[1]];
+  };
+
+  const handleRoutePick = (event: import("./types").HallwayEvent) => {
+    SFX.menuConfirm();
+    setCurrentEvent(event);
+    setScreen("hallwayEvent");
+  };
+
   const handleEventChoice = (choiceIdx: number) => {
     if (!currentEvent || !player) return;
     const choice = currentEvent.choices[choiceIdx];
@@ -557,8 +584,13 @@ export default function CorporateClimb() {
       setTotalDamageDealt((t) => t + dmg);
       setEnemyAnim("hit");
       triggerShake();
-      addDamagePopup(dmg, true, isCrit, false);
-      if (isCrit) SFX.critHit(); else SFX.hit();
+      const effLabel = typeResult.mult > 1 ? "Super effective!" : typeResult.mult < 1 ? "Not effective..." : undefined;
+      const effColor = typeResult.mult > 1 ? "#4CAF50" : typeResult.mult < 1 ? "#FF9800" : undefined;
+      addDamagePopup(dmg, true, isCrit, false, effLabel, effColor);
+      if (typeResult.mult > 1) SFX.superEffective();
+      else if (typeResult.mult < 1) SFX.notEffective();
+      else if (isCrit) SFX.critHit();
+      else SFX.hit();
 
       let logMsg = `${gs.player!.name} used ${move.name}! ${dmg} damage!`;
       if (isCrit) logMsg += " Critical hit!";
@@ -696,13 +728,9 @@ export default function CorporateClimb() {
           totalDamageDealt,
         });
       }
-      const evt = pickRandomEvent();
-      if (evt) {
-        setCurrentEvent(evt);
-        setScreen("hallwayEvent");
-      } else {
-        setScreen("floorIntro");
-      }
+      const options = pickTwoEvents();
+      setRouteOptions(options);
+      setScreen("routeChoice");
     }
   };
 
@@ -872,6 +900,9 @@ export default function CorporateClimb() {
             playerHp={playerHp}
             playerMaxHp={player.maxHp}
           />
+        )}
+        {screen === "routeChoice" && routeOptions && (
+          <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
         {screen === "floorIntro" && <FloorIntro enemy={enemy} onReady={startBattle} />}
         {screen === "battle" && player && (

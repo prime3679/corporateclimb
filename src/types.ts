@@ -141,9 +141,11 @@ export interface DamagePopup {
   y: number;
   isCrit: boolean;
   isHeal: boolean;
+  label?: string; // "Super effective!" etc.
+  labelColor?: string;
 }
 
-export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent";
+export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent" | "routeChoice";
 
 export interface SaveData {
   classId: string;
