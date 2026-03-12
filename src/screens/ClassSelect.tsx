@@ -84,6 +84,18 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           ))}
         </div>
 
+        <div style={{
+          display: "flex", alignItems: "center", gap: 8, marginTop: 2,
+          padding: "6px 8px", background: "#FFF8E1", borderRadius: 6,
+          border: "2px solid #FFD54F",
+        }}>
+          <span style={{ fontSize: 16 }}>{cls.perk.icon}</span>
+          <div>
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#E65100" }}>{cls.perk.name}</div>
+            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: "#78909C", marginTop: 2 }}>{cls.perk.desc}</div>
+          </div>
+        </div>
+
         <div style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: "#263238", marginTop: 2 }}>MOVES:</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 4 }}>
           {cls.moves.map((m) => (
