@@ -42,6 +42,7 @@ export default function BattleScreen({
 }) {
   const isDark = floor >= 6;
   const fi = Math.min(floor - 1, 5);
+  const totalFloors = 10;
 
   const scenes = [
     { wall: "#E8E0D0", wallBot: "#D8D0B8", floor: "#C8B898", floorDk: "#B0A080", accent: "#90A4AE" },
@@ -137,7 +138,7 @@ export default function BattleScreen({
           color: isDark ? "#FFD54F88" : "#00000044",
           zIndex: 3,
         }}>
-          F{floor}/7
+          F{floor}/{totalFloors}
         </div>
 
         {damagePopups.map((p) => (

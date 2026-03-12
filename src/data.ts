@@ -1,4 +1,4 @@
-import type { StatusId, StatusDef, PlayerClass, Enemy, HallwayEvent, MoveType, ItemId, ItemDef } from "./types";
+import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef } from "./types";
 
 // ─── STATUS DEFINITIONS ─────────────────────────────────────
 export const STATUS_DEFS: Record<StatusId, StatusDef> = {
@@ -149,6 +149,54 @@ export const ENEMIES: Enemy[] = [
     moves: [{ name: "Golden Parachute", dmg: 10, type: "strategy" as MoveType, heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, type: "execution" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, type: "analytics" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
+  },
+  {
+    floor: 8, name: "The Consultant", emoji: "💼", spriteId: "vp", maxHp: 150, atk: 16, def: 11, types: ["strategy", "analytics"] as MoveType[],
+    moves: [
+      { name: "Deck of Recommendations", dmg: 18, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Billable Hours Blast", dmg: 24, type: "analytics" as MoveType },
+      { name: "Synergy Framework", dmg: 14, type: "strategy" as MoveType, heal: 10, status: { id: "micromanaged", target: "enemy", chance: 0.4 } },
+      { name: "Out-of-Scope Notice", dmg: 32, type: "execution" as MoveType },
+    ],
+    defeat: "Submits final invoice, disappears forever.",
+    title: "THE CONSULTANT",
+  },
+  {
+    floor: 9, name: "Head of HR", emoji: "📋", spriteId: "manager", maxHp: 160, atk: 14, def: 16, types: ["influence", "strategy"] as MoveType[],
+    moves: [
+      { name: "Mandatory Fun", dmg: 12, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.6 } },
+      { name: "Performance Improvement Plan", dmg: 20, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy" } },
+      { name: "Policy Override", dmg: 16, type: "influence" as MoveType, heal: 14 },
+      { name: "Culture Fit Assessment", dmg: 28, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+    ],
+    defeat: "Sends a mandatory training course as a parting gift.",
+    title: "HEAD OF HR",
+  },
+  {
+    floor: 10, name: "The Founder", emoji: "🚀", spriteId: "boss", maxHp: 200, atk: 18, def: 14, types: ["strategy", "influence", "execution"] as MoveType[],
+    moves: [
+      { name: "Vision Statement", dmg: 20, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Move Fast", dmg: 28, type: "execution" as MoveType, status: { id: "caffeinated", target: "self" } },
+      { name: "We're a Family", dmg: 12, type: "influence" as MoveType, heal: 20 },
+      { name: "Disrupt the Market", dmg: 38, type: "strategy" as MoveType },
+    ],
+    defeat: "The company is yours now. All of it.",
+    title: "THE FOUNDER",
+    phase2: {
+      name: "The Founder (Pivoting)",
+      emoji: "🔥",
+      maxHp: 120,
+      atk: 22,
+      def: 12,
+      types: ["execution", "strategy", "technical"] as MoveType[],
+      moves: [
+        { name: "Pivot Everything", dmg: 22, type: "execution" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+        { name: "Blame the Market", dmg: 16, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.7 } },
+        { name: "Emergency Board Call", dmg: 30, type: "strategy" as MoveType, heal: 15 },
+        { name: "Going Dark", dmg: 45, type: "technical" as MoveType },
+      ],
+      taunt: "The Founder grins. 'Time to pivot.'",
+    } as EnemyPhase2,
   },
 ];
 
@@ -341,12 +389,15 @@ export const ENEMY_POOLS: Enemy[][] = [
       title: "THE MICROMANAGER",
     },
   ],
-  // Floors 6-7: fixed (no variants)
+  // Floors 6-10: fixed (no variants)
   [ENEMIES[5]], // VP of Synergy
   [ENEMIES[6]], // C-Suite Boss
+  [ENEMIES[7]], // The Consultant
+  [ENEMIES[8]], // Head of HR
+  [ENEMIES[9]], // The Founder
 ];
 
-/** Pick a random enemy for each floor. Returns array of 7 enemy IDs (name used as key). */
+/** Pick a random enemy for each floor. Returns array of enemy IDs (name used as key). */
 export function rollFloorEnemies(): string[] {
   return ENEMY_POOLS.map(pool => {
     const picked = pool[Math.floor(Math.random() * pool.length)];
@@ -367,12 +418,20 @@ const NG_PLUS_KEY = "corporate-climb-ng-best";
 export function scaleEnemyForNgPlus(e: Enemy, ngLevel: number): Enemy {
   if (ngLevel <= 0) return e;
   const mult = 1 + ngLevel * 0.3;
+  const dmgMult = 1 + ngLevel * 0.15;
   return {
     ...e,
     maxHp: Math.round(e.maxHp * mult),
     atk: Math.round(e.atk * mult),
     def: Math.round(e.def * mult),
-    moves: e.moves.map(m => ({ ...m, dmg: Math.round(m.dmg * (1 + ngLevel * 0.15)) })),
+    moves: e.moves.map(m => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
+    phase2: e.phase2 ? {
+      ...e.phase2,
+      maxHp: Math.round(e.phase2.maxHp * mult),
+      atk: e.phase2.atk ? Math.round(e.phase2.atk * mult) : undefined,
+      def: e.phase2.def ? Math.round(e.phase2.def * mult) : undefined,
+      moves: e.phase2.moves.map(m => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
+    } : undefined,
   };
 }
 
@@ -400,7 +459,7 @@ export function loadGame(): import("./types").SaveData | null {
     if (!raw) return null;
     const data = JSON.parse(raw) as import("./types").SaveData;
     if (!PLAYER_CLASSES.find(c => c.id === data.classId)) return null;
-    if (data.floor < 0 || data.floor >= ENEMIES.length) return null;
+    if (data.floor < 0 || data.floor >= ENEMY_POOLS.length) return null;
     return data;
   } catch { return null; }
 }

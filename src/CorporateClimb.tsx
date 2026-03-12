@@ -5,7 +5,7 @@ import { buildSpriteUrls } from "./sprites";
 import type { Screen, AnimState, DamagePopup, StatusInstance, StatusEffectOnMove, PlayerClass, Move, ItemId } from "./types";
 import {
   STATUS_DEFS, TYPE_COLORS, PLAYER_CLASSES, ENEMIES, HALLWAY_EVENTS, FONT_URL, ITEMS,
-  CLASS_STARTING_ITEMS, ALL_ITEM_IDS,
+  CLASS_STARTING_ITEMS, ALL_ITEM_IDS, ENEMY_POOLS,
   getTypeMultiplier, saveGame, loadGame, clearSave,
   rollFloorEnemies, getFloorEnemy,
   scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
@@ -89,6 +89,13 @@ export default function CorporateClimb() {
   // New Game+ level (0 = first playthrough)
   const [ngPlus, setNgPlus] = useState(0);
 
+  // Stats tracking for share card
+  const [totalTurns, setTotalTurns] = useState(0);
+  const [totalDamageDealt, setTotalDamageDealt] = useState(0);
+
+  // Phase 2 boss tracking
+  const [enemyPhase, setEnemyPhase] = useState<1 | 2>(1);
+
   // Music mute (persisted in localStorage)
   const [muted, setMuted] = useState(() => localStorage.getItem("cc_muted") === "1");
 
@@ -135,11 +142,23 @@ export default function CorporateClimb() {
   const rawEnemy = floorEnemyIds.length > 0
     ? getFloorEnemy(floor, floorEnemyIds[floor])
     : ENEMIES[floor] || ENEMIES[0];
-  const enemy = scaleEnemyForNgPlus(rawEnemy, ngPlus);
+  const scaledEnemy = scaleEnemyForNgPlus(rawEnemy, ngPlus);
+
+  // Apply phase 2 overrides if active
+  const enemy: import("./types").Enemy = (enemyPhase === 2 && scaledEnemy.phase2) ? {
+    ...scaledEnemy,
+    name: scaledEnemy.phase2.name ?? scaledEnemy.name,
+    emoji: scaledEnemy.phase2.emoji ?? scaledEnemy.emoji,
+    maxHp: scaledEnemy.phase2.maxHp,
+    atk: scaledEnemy.phase2.atk ?? scaledEnemy.atk,
+    def: scaledEnemy.phase2.def ?? scaledEnemy.def,
+    types: scaledEnemy.phase2.types ?? scaledEnemy.types,
+    moves: scaledEnemy.phase2.moves,
+  } : scaledEnemy;
 
   // Ref to avoid stale closures
-  const gsRef = useRef({ player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory });
-  gsRef.current = { player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory };
+  const gsRef = useRef({ player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase });
+  gsRef.current = { player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase };
 
   // ─── Determine active moves (regular or Struggle) ─────────
   const allPpDepleted = player ? playerPp.every((pp) => pp <= 0) : false;
@@ -406,6 +425,9 @@ export default function CorporateClimb() {
     setInventory(save.inventory || []);
     setFloorEnemyIds(save.floorEnemyIds || rollFloorEnemies());
     setNgPlus(save.ngPlus || 0);
+    setTotalTurns(save.totalTurns || 0);
+    setTotalDamageDealt(save.totalDamageDealt || 0);
+    setEnemyPhase(save.enemyPhase || 1);
     setScreen("floorIntro");
   };
 
@@ -427,10 +449,14 @@ export default function CorporateClimb() {
     // Roll enemy variants for this run
     setFloorEnemyIds(rollFloorEnemies());
     setNgPlus(0);
+    setTotalTurns(0);
+    setTotalDamageDealt(0);
+    setEnemyPhase(1);
     setScreen("floorIntro");
   };
 
   const startBattle = () => {
+    setEnemyPhase(1);
     setEnemyHp(enemy.maxHp);
     setLog([`A wild ${enemy.name} appeared!`]);
     setTurn("player");
@@ -493,6 +519,9 @@ export default function CorporateClimb() {
     const gs = gsRef.current;
     if (gs.turn !== "player" || !gs.player) return;
 
+    // Track turns
+    setTotalTurns((t) => t + 1);
+
     const isStruggling = gs.playerPp.every((pp) => pp <= 0);
     const move = isStruggling ? STRUGGLE_MOVE : gs.player.moves[moveIdx];
 
@@ -516,6 +545,7 @@ export default function CorporateClimb() {
       const [dmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus, typeResult.mult);
       const newEnemyHp = Math.max(0, gs.enemyHp - dmg);
       setEnemyHp(newEnemyHp);
+      setTotalDamageDealt((t) => t + dmg);
       setEnemyAnim("hit");
       triggerShake();
       addDamagePopup(dmg, true, isCrit, false);
@@ -553,6 +583,30 @@ export default function CorporateClimb() {
       setTurn("waiting");
 
       setTimeout(() => setEnemyAnim("idle"), 400);
+
+      // Phase 2 transition: check if enemy has phase2 and we just crossed 50% threshold
+      const baseEnemy = scaleEnemyForNgPlus(
+        floorEnemyIds.length > 0 ? getFloorEnemy(gs.floor, floorEnemyIds[gs.floor]) : ENEMIES[gs.floor] || ENEMIES[0],
+        ngPlus
+      );
+      if (gs.enemyPhase === 1 && baseEnemy.phase2 && newEnemyHp > 0 && newEnemyHp <= baseEnemy.maxHp * 0.5) {
+        // Phase 2 transition!
+
+        setTimeout(() => {
+          setLog((l) => [...l, `💥 ${baseEnemy.phase2!.taunt}`]);
+          setTimeout(() => {
+            setLog((l) => [...l, "⚠️ PHASE 2"]);
+            setEnemyPhase(2);
+            setEnemyHp(baseEnemy.phase2!.maxHp);
+            setEnemyStatuses([]);
+
+            triggerShake();
+            SFX.bossIntro();
+            setTimeout(() => setTurn("player"), 800);
+          }, 500);
+        }, 600);
+        return;
+      }
 
       if (newEnemyHp <= 0) {
         setTimeout(() => { setEnemyAnim("faint"); SFX.faint(); }, 500);
@@ -595,11 +649,11 @@ export default function CorporateClimb() {
       }, 800);
     }, 350);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [doEnemyTurn]);
+  }, [doEnemyTurn, ngPlus, floorEnemyIds]);
 
   const handleVictoryContinue = () => {
     SFX.menuConfirm();
-    if (floor >= ENEMIES.length - 1) {
+    if (floor >= ENEMY_POOLS.length - 1) {
       clearSave();
       saveBestNgPlus(ngPlus);
       SFX.fanfare();
@@ -615,6 +669,8 @@ export default function CorporateClimb() {
           inventory,
           floorEnemyIds,
           ngPlus,
+          totalTurns,
+          totalDamageDealt,
         });
       }
       const evt = pickRandomEvent();
@@ -637,6 +693,9 @@ export default function CorporateClimb() {
     setFloor(0);
     setAtkBuff(0);
     setDefBuff(0);
+    setTotalTurns(0);
+    setTotalDamageDealt(0);
+    setEnemyPhase(1);
     usedEventsRef.current.clear();
     const startItem = CLASS_STARTING_ITEMS[player.id];
     setInventory(startItem ? [startItem] : []);
@@ -656,6 +715,9 @@ export default function CorporateClimb() {
     setAtkBuff(0);
     setDefBuff(0);
     setNgPlus(0);
+    setTotalTurns(0);
+    setTotalDamageDealt(0);
+    setEnemyPhase(1);
     setInventory([]);
     setFloorEnemyIds([]);
     usedEventsRef.current.clear();
@@ -825,7 +887,7 @@ export default function CorporateClimb() {
           />
         )}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}
-        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} />}
+        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} />}
       </div>
     </div>
   );

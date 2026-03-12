@@ -56,6 +56,17 @@ export interface EnemyMove {
   status?: StatusEffectOnMove;
 }
 
+export interface EnemyPhase2 {
+  name?: string;
+  emoji?: string;
+  maxHp: number;
+  atk?: number;
+  def?: number;
+  types?: MoveType[];
+  moves: EnemyMove[];
+  taunt: string;
+}
+
 export interface Enemy {
   floor: number;
   name: string;
@@ -68,6 +79,7 @@ export interface Enemy {
   moves: EnemyMove[];
   defeat: string;
   title: string;
+  phase2?: EnemyPhase2;
 }
 
 export interface HallwayEvent {
@@ -122,4 +134,7 @@ export interface SaveData {
   inventory: ItemId[];
   floorEnemyIds?: string[]; // tracks which enemy variant was selected per floor
   ngPlus?: number; // New Game+ level (0 = first playthrough)
+  totalTurns?: number;
+  totalDamageDealt?: number;
+  enemyPhase?: 1 | 2;
 }
