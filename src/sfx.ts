@@ -161,6 +161,11 @@ export const SFX = {
     setTimeout(() => playTone(1319, 0.15, "square", 0.1), 60);
   },
 
+  miss() {
+    playTone(300, 0.08, "triangle", 0.06);
+    setTimeout(() => playTone(200, 0.15, "triangle", 0.04), 80);
+  },
+
   // Type effectiveness
   superEffective() {
     playTone(600, 0.08, "square", 0.12);

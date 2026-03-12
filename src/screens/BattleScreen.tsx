@@ -149,7 +149,7 @@ export default function BattleScreen({
       <div style={{ padding: "0 10px 10px", display: "flex", flexDirection: "column", gap: 6 }}>
         {log.length > 0 && (
           <TextBox
-            lines={[log[log.length - 1]]}
+            lines={log.length >= 2 ? [log[log.length - 2], log[log.length - 1]] : [log[log.length - 1]]}
             showArrow={turn !== "player"}
             onAdvance={() => {}}
           />

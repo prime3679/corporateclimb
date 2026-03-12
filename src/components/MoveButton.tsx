@@ -31,7 +31,7 @@ export default function MoveButton({ move, onClick, disabled }: { move: Move; on
         <TypeBadge type={move.type} />
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 7, color: "#78909C" }}>
-        <span>PWR {move.dmg}{move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ""}</span>
+        <span>PWR {move.dmg}{move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ""}{move.acc != null && move.acc < 100 ? ` ${move.acc}%` : ""}</span>
         <span>PP {move.pp}</span>
       </div>
     </button>

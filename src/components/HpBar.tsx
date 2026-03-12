@@ -33,13 +33,11 @@ export default function HpBar({ current, max, label, isEnemy }: { current: numbe
           }} />
         </div>
       </div>
-      {!isEnemy && (
-        <div style={{ textAlign: "right", marginTop: 2 }}>
-          <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#383838" }}>
-            {Math.max(0, current)}<span style={{ color: "#888", fontSize: 7 }}> / {max}</span>
-          </span>
-        </div>
-      )}
+      <div style={{ textAlign: "right", marginTop: 2 }}>
+        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: "#383838" }}>
+          {Math.max(0, current)}<span style={{ color: "#888", fontSize: 7 }}> / {max}</span>
+        </span>
+      </div>
     </div>
   );
 }

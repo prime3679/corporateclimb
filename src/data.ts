@@ -64,8 +64,8 @@ export const PLAYER_CLASSES: PlayerClass[] = [
     moves: [
       { name: "Prioritize Backlog", dmg: 18, type: "strategy", desc: "Ruthlessly cuts scope. Hits hard.", pp: 15, status: { id: "focused", target: "self", chance: 0.4 } },
       { name: "Stakeholder Align", dmg: 12, type: "influence", desc: "Forces agreement through sheer will.", pp: 20, heal: 8, status: { id: "motivated", target: "self" } },
-      { name: "Ship MVP", dmg: 28, type: "execution", desc: "80/20 strikes. Maximum impact.", pp: 8 },
-      { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 5, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Ship MVP", dmg: 28, type: "execution", desc: "80/20 strikes. Maximum impact.", pp: 6, acc: 90 },
+      { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 3, acc: 80, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
     ],
     perk: { name: "Cross-Functional", desc: "Heals 5 HP after every battle", icon: "\u{1F91D}" },
   },
@@ -82,9 +82,9 @@ export const PLAYER_CLASSES: PlayerClass[] = [
     desc: "Writes code and rewrites everything else. Glass cannon.",
     moves: [
       { name: "Refactor Everything", dmg: 22, type: "technical", desc: "Rewrites the opponent from scratch.", pp: 12, status: { id: "motivated", target: "self", chance: 0.4 } },
-      { name: "Deploy to Prod", dmg: 30, type: "execution", desc: "YOLO push on Friday. Risky but devastating.", pp: 8, status: { id: "caffeinated", target: "self" } },
-      { name: "Code Review Reject", dmg: 15, type: "technical", desc: "Nit-picks until they give up.", pp: 20, status: { id: "micromanaged", target: "enemy" } },
-      { name: "Stack Overflow", dmg: 40, type: "analytics", desc: "Channels the collective wisdom. Huge damage.", pp: 4 },
+      { name: "Deploy to Prod", dmg: 30, type: "execution", desc: "YOLO push on Friday. Risky but devastating.", pp: 5, acc: 85, status: { id: "caffeinated", target: "self" } },
+      { name: "Code Review Reject", dmg: 15, type: "technical", desc: "Nit-picks until they give up.", pp: 15, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Stack Overflow", dmg: 40, type: "analytics", desc: "Channels the collective wisdom. Huge damage.", pp: 3, acc: 75 },
     ],
     perk: { name: "Optimization", desc: "+15% damage on all moves", icon: "\u{1F4A5}" },
   },
@@ -102,8 +102,8 @@ export const PLAYER_CLASSES: PlayerClass[] = [
     moves: [
       { name: "Pixel Perfect Punch", dmg: 20, type: "execution", desc: "That 1px misalignment? Fixed violently.", pp: 15, status: { id: "focused", target: "self", chance: 0.3 } },
       { name: "User Research Beam", dmg: 16, type: "analytics", desc: "\u201CActually, users said\u2026\u201D", pp: 18, heal: 6, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
-      { name: "Figma Tornado", dmg: 26, type: "technical", desc: "200 frames of animated fury.", pp: 10 },
-      { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 4, status: { id: "motivated", target: "self", chance: 0.5 } },
+      { name: "Figma Tornado", dmg: 26, type: "technical", desc: "200 frames of animated fury.", pp: 8, acc: 90 },
+      { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 3, acc: 75, status: { id: "motivated", target: "self", chance: 0.5 } },
     ],
     perk: { name: "Eye for Detail", desc: "+15% crit chance on all moves", icon: "\u{1F3AF}" },
   },
@@ -112,60 +112,60 @@ export const PLAYER_CLASSES: PlayerClass[] = [
 // ─── ENEMIES ─────────────────────────────────────────────────
 export const ENEMIES: Enemy[] = [
   {
-    floor: 1, name: "Intern", emoji: "🥤", spriteId: "intern", maxHp: 50, atk: 6, def: 4, types: ["normal"] as MoveType[],
-    moves: [{ name: "Eager Question", dmg: 8, type: "normal" as MoveType }, { name: "Coffee Run", dmg: 5, type: "normal" as MoveType, heal: 10 }],
+    floor: 1, name: "Intern", emoji: "🥤", spriteId: "intern", maxHp: 70, atk: 8, def: 5, types: ["normal"] as MoveType[],
+    moves: [{ name: "Eager Question", dmg: 10, type: "normal" as MoveType }, { name: "Coffee Run", dmg: 6, type: "normal" as MoveType, heal: 12 }],
     defeat: "The intern learned a valuable lesson today.",
     title: "THE EAGER INTERN",
   },
   {
-    floor: 2, name: "Recruiter", emoji: "📞", spriteId: "recruiter", maxHp: 65, atk: 9, def: 5, types: ["influence"] as MoveType[],
-    moves: [{ name: "LinkedIn Spam", dmg: 10, type: "influence" as MoveType }, { name: "Lowball Offer", dmg: 14, type: "strategy" as MoveType }],
+    floor: 2, name: "Recruiter", emoji: "📞", spriteId: "recruiter", maxHp: 85, atk: 11, def: 6, types: ["influence"] as MoveType[],
+    moves: [{ name: "LinkedIn Spam", dmg: 12, type: "influence" as MoveType }, { name: "Lowball Offer", dmg: 16, type: "strategy" as MoveType }],
     defeat: "\u201CLet\u2019s circle back when you have more budget.\u201D",
     title: "THE PERSISTENT RECRUITER",
   },
   {
-    floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 75, atk: 11, def: 6, types: ["execution"] as MoveType[],
-    moves: [{ name: "Humble Brag", dmg: 14, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 18, type: "execution" as MoveType }, { name: "Volunteer as Tribute", dmg: 10, type: "strategy" as MoveType, heal: 12, status: { id: "motivated", target: "self" } }],
+    floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 95, atk: 13, def: 7, types: ["execution"] as MoveType[],
+    moves: [{ name: "Humble Brag", dmg: 16, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 20, type: "execution" as MoveType }, { name: "Volunteer as Tribute", dmg: 12, type: "strategy" as MoveType, heal: 14, status: { id: "motivated", target: "self" } }],
     defeat: "\"I guess even 110% wasn't enough today.\"",
     title: "THE OVERACHIEVER",
   },
   {
-    floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 80, atk: 10, def: 8, types: ["strategy", "execution"] as MoveType[],
-    moves: [{ name: "Standup Ambush", dmg: 12, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 16, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 10, type: "influence" as MoveType, heal: 8 }],
+    floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 105, atk: 13, def: 9, types: ["strategy", "execution"] as MoveType[],
+    moves: [{ name: "Standup Ambush", dmg: 14, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 18, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 12, type: "influence" as MoveType, heal: 10 }],
     defeat: "The daily standup has been cancelled. Forever.",
     title: "THE RELENTLESS SCRUM MASTER",
   },
   {
-    floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 100, atk: 12, def: 10, types: ["influence", "strategy"] as MoveType[],
-    moves: [{ name: "Unnecessary Meeting", dmg: 14, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 18, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 8, type: "influence" as MoveType, heal: 15, status: { id: "motivated", target: "self" } }],
+    floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 125, atk: 14, def: 11, types: ["influence", "strategy"] as MoveType[],
+    moves: [{ name: "Unnecessary Meeting", dmg: 16, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 20, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 10, type: "influence" as MoveType, heal: 18, status: { id: "motivated", target: "self" } }],
     defeat: "\u201CPer my last email\u2026 I resign.\u201D",
     title: "THE MIDDLE MANAGER",
   },
   {
-    floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 130, atk: 15, def: 12, types: ["influence", "analytics"] as MoveType[],
-    moves: [{ name: "Buzzword Barrage", dmg: 16, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 22, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 12, type: "influence" as MoveType, heal: 12, status: { id: "motivated", target: "self" } }],
+    floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 155, atk: 17, def: 13, types: ["influence", "analytics"] as MoveType[],
+    moves: [{ name: "Buzzword Barrage", dmg: 18, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 24, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 14, type: "influence" as MoveType, heal: 14, status: { id: "motivated", target: "self" } }],
     defeat: "Synergy has been disrupted. The paradigm shifts.",
     title: "THE VP OF SYNERGY",
   },
   {
-    floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 180, atk: 20, def: 15, types: ["strategy", "influence"] as MoveType[],
-    moves: [{ name: "Golden Parachute", dmg: 10, type: "strategy" as MoveType, heal: 25, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 28, type: "execution" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 35, type: "analytics" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 22, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }],
+    floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 210, atk: 22, def: 16, types: ["strategy", "influence"] as MoveType[],
+    moves: [{ name: "Golden Parachute", dmg: 12, type: "strategy" as MoveType, heal: 28, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 30, type: "execution" as MoveType, acc: 90, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 38, type: "analytics" as MoveType, acc: 85, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 24, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
   },
   {
-    floor: 8, name: "The Consultant", emoji: "💼", spriteId: "vp", maxHp: 150, atk: 16, def: 11, types: ["strategy", "analytics"] as MoveType[],
+    floor: 8, name: "The Consultant", emoji: "💼", spriteId: "vp", maxHp: 175, atk: 18, def: 13, types: ["strategy", "analytics"] as MoveType[],
     moves: [
       { name: "Deck of Recommendations", dmg: 18, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
       { name: "Billable Hours Blast", dmg: 24, type: "analytics" as MoveType },
       { name: "Synergy Framework", dmg: 14, type: "strategy" as MoveType, heal: 10, status: { id: "micromanaged", target: "enemy", chance: 0.4 } },
-      { name: "Out-of-Scope Notice", dmg: 32, type: "execution" as MoveType },
+      { name: "Out-of-Scope Notice", dmg: 32, type: "execution" as MoveType, acc: 85 },
     ],
     defeat: "Submits final invoice, disappears forever.",
     title: "THE CONSULTANT",
   },
   {
-    floor: 9, name: "Head of HR", emoji: "📋", spriteId: "manager", maxHp: 160, atk: 14, def: 16, types: ["influence", "strategy"] as MoveType[],
+    floor: 9, name: "Head of HR", emoji: "📋", spriteId: "manager", maxHp: 185, atk: 16, def: 18, types: ["influence", "strategy"] as MoveType[],
     moves: [
       { name: "Mandatory Fun", dmg: 12, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.6 } },
       { name: "Performance Improvement Plan", dmg: 20, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy" } },
@@ -176,12 +176,12 @@ export const ENEMIES: Enemy[] = [
     title: "HEAD OF HR",
   },
   {
-    floor: 10, name: "The Founder", emoji: "🚀", spriteId: "boss", maxHp: 200, atk: 18, def: 14, types: ["strategy", "influence", "execution"] as MoveType[],
+    floor: 10, name: "The Founder", emoji: "🚀", spriteId: "boss", maxHp: 240, atk: 20, def: 16, types: ["strategy", "influence", "execution"] as MoveType[],
     moves: [
       { name: "Vision Statement", dmg: 20, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
       { name: "Move Fast", dmg: 28, type: "execution" as MoveType, status: { id: "caffeinated", target: "self" } },
       { name: "We're a Family", dmg: 12, type: "influence" as MoveType, heal: 20 },
-      { name: "Disrupt the Market", dmg: 38, type: "strategy" as MoveType },
+      { name: "Disrupt the Market", dmg: 38, type: "strategy" as MoveType, acc: 85 },
     ],
     defeat: "The company is yours now. All of it.",
     title: "THE FOUNDER",
@@ -196,7 +196,7 @@ export const ENEMIES: Enemy[] = [
         { name: "Pivot Everything", dmg: 22, type: "execution" as MoveType, status: { id: "micromanaged", target: "enemy" } },
         { name: "Blame the Market", dmg: 16, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.7 } },
         { name: "Emergency Board Call", dmg: 30, type: "strategy" as MoveType, heal: 15 },
-        { name: "Going Dark", dmg: 45, type: "technical" as MoveType },
+        { name: "Going Dark", dmg: 45, type: "technical" as MoveType, acc: 80 },
       ],
       taunt: "The Founder grins. 'Time to pivot.'",
     } as EnemyPhase2,
@@ -212,7 +212,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     emoji: "\u2615",
     choices: [
       { label: "Grab a double shot", effect: { hp: 25 }, result: "The caffeine hits immediately. You feel alive again.", isGood: true },
-      { label: "Take the whole pot", effect: { hp: 40, def: -1 }, result: "You chug the entire pot. Jittery but ENERGIZED. Your hands won't stop shaking though.", isGood: true },
+      { label: "Take the whole pot", effect: { hp: 40, def: -2 }, result: "You chug the entire pot. Jittery but ENERGIZED. Your hands won't stop shaking though.", isGood: true },
       { label: "Pass \u2014 stay focused", effect: { atk: 1 }, result: "Discipline over comfort. Your resolve strengthens.", isGood: true },
     ],
   },
@@ -233,9 +233,9 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     desc: "HR ambushes you. \"We need you for a quick sensitivity training. It'll only take an hour.\"",
     emoji: "\uD83D\uDCCB",
     choices: [
-      { label: "Attend willingly", effect: { def: 2, hp: -15 }, result: "It was NOT quick. But you learned about \"psychological safety\" which is... something.", isGood: true },
+      { label: "Attend willingly", effect: { def: 2, hp: -25 }, result: "It was NOT quick. But you learned about \"psychological safety\" which is... something.", isGood: true },
       { label: "Fake a meeting conflict", effect: { atk: 1 }, result: "\"Sorry, syncing with stakeholders!\" You dodge it smoothly. Confidence boost.", isGood: true },
-      { label: "Actually engage", effect: { def: 3, hp: -20, ppRestore: 2 }, result: "You genuinely participate. HR is shocked. You feel weirdly refreshed.", isGood: true },
+      { label: "Actually engage", effect: { def: 3, hp: -30, ppRestore: 2 }, result: "You genuinely participate. HR is shocked. You feel weirdly refreshed.", isGood: true },
     ],
   },
   {
@@ -244,7 +244,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     desc: "The supply closet is unlocked. Inside: premium sticky notes, a Red Bull, and someone's hidden snack stash.",
     emoji: "\uD83D\uDCE6",
     choices: [
-      { label: "Grab the Red Bull", effect: { hp: 30, atk: 1 }, result: "Wings acquired. You feel unstoppable (for about 45 minutes).", isGood: true },
+      { label: "Grab the Red Bull", effect: { hp: 20, atk: 1 }, result: "Wings acquired. You feel unstoppable (for about 45 minutes).", isGood: true },
       { label: "Raid the snack stash", effect: { hp: 20, ppRestore: 3 }, result: "Trail mix, protein bars, and... is that a full sleeve of Oreos? Jackpot.", isGood: true },
       { label: "Take the sticky notes", effect: { def: 2 }, result: "Premium 3M Super Sticky notes. Your organizational armor is now impenetrable.", isGood: true },
     ],
@@ -257,7 +257,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     choices: [
       { label: "Pitch your idea", effect: { atk: 3, hp: -15 }, result: "\"Interesting. Send me a deck.\" Your heart is POUNDING but your confidence soars.", isGood: true },
       { label: "Make small talk", effect: { def: 1, hp: 10 }, result: "\"Nice weather, right?\" The CEO smiles. You survive. That's a win.", isGood: true },
-      { label: "Stare at your phone", effect: { hp: -5 }, result: "The CEO notices. Noted. Literally \u2014 they wrote something down.", isGood: false },
+      { label: "Stare at your phone", effect: { hp: -20, def: -1 }, result: "The CEO notices. Noted. Literally \u2014 they wrote something down. Your reputation takes a hit.", isGood: false },
     ],
   },
   {
@@ -277,7 +277,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     desc: "Someone you barely know is having a birthday in the break room. There's cake.",
     emoji: "\uD83C\uDF82",
     choices: [
-      { label: "Eat cake, sing along", effect: { hp: 35, ppRestore: 2 }, result: "The cake is surprisingly good. Costco sheet cake never disappoints.", isGood: true },
+      { label: "Eat cake, sing along", effect: { hp: 25, ppRestore: 2 }, result: "The cake is surprisingly good. Costco sheet cake never disappoints.", isGood: true },
       { label: "Take cake, skip singing", effect: { hp: 20 }, result: "You ninja a corner piece and disappear. Efficient.", isGood: true },
       { label: "Skip it entirely", effect: { atk: 1 }, result: "\"Too busy crushing it.\" You channel the grind energy.", isGood: true },
     ],
@@ -299,7 +299,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     desc: "The CEO is doing a surprise all-hands. Attendance is 'optional' (it's not optional).",
     emoji: "📢",
     choices: [
-      { label: "Ask a tough question", effect: { atk: 3, hp: -20 }, result: "\"Great question.\" Dead silence. You're either a hero or unemployable. Either way — power move.", isGood: true },
+      { label: "Ask a tough question", effect: { atk: 3, hp: -30 }, result: "\"Great question.\" Dead silence. You're either a hero or unemployable. Either way — power move.", isGood: true },
       { label: "Clap at the right moments", effect: { def: 2, hp: 10 }, result: "You master the art of strategic applause. Leadership notices. You're 'aligned.'", isGood: true },
       { label: "Multitask through it", effect: { ppRestore: 3 }, result: "You clear 47 Slack messages. The CEO drones on. Efficient.", isGood: true },
     ],
@@ -310,7 +310,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     desc: "Someone organized a team lunch at that expensive sushi place. Your card is already on file.",
     emoji: "🍣",
     choices: [
-      { label: "Order the omakase", effect: { hp: 40, def: -1 }, result: "Best meal in months. Your wallet screams. Your soul sings.", isGood: true },
+      { label: "Order the omakase", effect: { hp: 30, def: -2 }, result: "Best meal in months. Your wallet screams. Your soul sings.", isGood: true },
       { label: "Just get the bento box", effect: { hp: 25, atk: 1 }, result: "Sensible and satisfying. You save money AND feel good. The rarest corporate combo.", isGood: true },
       { label: "Expense it", effect: { atk: 2, def: 1 }, result: "\"Business development lunch.\" You'll deal with finance later. Confidence surges.", isGood: true },
     ],
@@ -333,7 +333,7 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
     emoji: "😰",
     choices: [
       { label: "Prep talking points", effect: { atk: 2, def: 2 }, result: "You walk in armed with receipts. The 'quick chat' becomes a promotion conversation.", isGood: true },
-      { label: "Wing it", effect: { atk: 4, hp: -15 }, result: "You speak from the heart. Raw. Unfiltered. They're either impressed or concerned. ATK goes way up.", isGood: true },
+      { label: "Wing it", effect: { atk: 4, hp: -25 }, result: "You speak from the heart. Raw. Unfiltered. They're either impressed or concerned. ATK goes way up.", isGood: true },
       { label: "Reschedule", effect: { hp: 20, ppRestore: 2 }, result: "\"Can we do Thursday?\" Bought yourself time and mental space.", isGood: true },
     ],
   },
@@ -400,8 +400,8 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[0], // Intern
     {
-      floor: 1, name: "The Coffee Runner", emoji: "\u2615", spriteId: "intern", maxHp: 45, atk: 5, def: 6, types: ["normal"] as MoveType[],
-      moves: [{ name: "Latte Splash", dmg: 10, type: "normal" as MoveType }, { name: "Oat Milk Shield", dmg: 4, type: "normal" as MoveType, heal: 12 }],
+      floor: 1, name: "The Coffee Runner", emoji: "\u2615", spriteId: "intern", maxHp: 65, atk: 7, def: 7, types: ["normal"] as MoveType[],
+      moves: [{ name: "Latte Splash", dmg: 12, type: "normal" as MoveType }, { name: "Oat Milk Shield", dmg: 5, type: "normal" as MoveType, heal: 14 }],
       defeat: "\"I just wanted to get the order right...\"",
       title: "THE COFFEE RUNNER",
     },
@@ -410,8 +410,8 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[1], // Recruiter
     {
-      floor: 2, name: "The Ghosting Recruiter", emoji: "\uD83D\uDC7B", spriteId: "recruiter", maxHp: 60, atk: 10, def: 4, types: ["influence"] as MoveType[],
-      moves: [{ name: "Read Receipt", dmg: 12, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"We'll Be In Touch\"", dmg: 8, type: "strategy" as MoveType }],
+      floor: 2, name: "The Ghosting Recruiter", emoji: "\uD83D\uDC7B", spriteId: "recruiter", maxHp: 80, atk: 12, def: 5, types: ["influence"] as MoveType[],
+      moves: [{ name: "Read Receipt", dmg: 14, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"We'll Be In Touch\"", dmg: 10, type: "strategy" as MoveType }],
       defeat: "\"Let me check with my hiring manager and get back to you. (They won't.)\"",
       title: "THE GHOSTING RECRUITER",
     },
@@ -420,8 +420,8 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[2], // Overachiever
     {
-      floor: 3, name: "The Credit Thief", emoji: "\uD83E\uDD78", spriteId: "overachiever", maxHp: 70, atk: 12, def: 5, types: ["influence"] as MoveType[],
-      moves: [{ name: "Steal the Spotlight", dmg: 16, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"WE Did This\"", dmg: 12, type: "strategy" as MoveType, heal: 8, status: { id: "motivated", target: "self" } }],
+      floor: 3, name: "The Credit Thief", emoji: "\uD83E\uDD78", spriteId: "overachiever", maxHp: 90, atk: 14, def: 6, types: ["influence"] as MoveType[],
+      moves: [{ name: "Steal the Spotlight", dmg: 18, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"WE Did This\"", dmg: 14, type: "strategy" as MoveType, heal: 10, status: { id: "motivated", target: "self" } }],
       defeat: "\"Fine, I'll put your name on the deck. In size 8 font.\"",
       title: "THE CREDIT THIEF",
     },
@@ -430,8 +430,8 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[3], // Scrum Master
     {
-      floor: 4, name: "The Scope Creeper", emoji: "\uD83D\uDC1B", spriteId: "scrum", maxHp: 85, atk: 11, def: 7, types: ["strategy", "execution"] as MoveType[],
-      moves: [{ name: "\"One More Thing\"", dmg: 14, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Feature Bloat", dmg: 18, type: "execution" as MoveType }, { name: "Moving Goalposts", dmg: 8, type: "strategy" as MoveType, heal: 10 }],
+      floor: 4, name: "The Scope Creeper", emoji: "\uD83D\uDC1B", spriteId: "scrum", maxHp: 100, atk: 13, def: 8, types: ["strategy", "execution"] as MoveType[],
+      moves: [{ name: "\"One More Thing\"", dmg: 16, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Feature Bloat", dmg: 20, type: "execution" as MoveType }, { name: "Moving Goalposts", dmg: 10, type: "strategy" as MoveType, heal: 12 }],
       defeat: "\"I know we said MVP but what if we also added...\" No. Stop.",
       title: "THE SCOPE CREEPER",
     },
@@ -440,8 +440,8 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[4], // Middle Manager
     {
-      floor: 5, name: "The Micromanager", emoji: "\uD83D\uDD0D", spriteId: "manager", maxHp: 95, atk: 11, def: 12, types: ["influence", "strategy"] as MoveType[],
-      moves: [{ name: "Check-In Barrage", dmg: 12, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Calendar Tetris", dmg: 16, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Status Report Demand", dmg: 10, type: "influence" as MoveType, heal: 10, status: { id: "motivated", target: "self" } }],
+      floor: 5, name: "The Micromanager", emoji: "\uD83D\uDD0D", spriteId: "manager", maxHp: 120, atk: 13, def: 13, types: ["influence", "strategy"] as MoveType[],
+      moves: [{ name: "Check-In Barrage", dmg: 14, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Calendar Tetris", dmg: 18, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Status Report Demand", dmg: 12, type: "influence" as MoveType, heal: 12, status: { id: "motivated", target: "self" } }],
       defeat: "\"But how will I know you're working if I can't see your screen?!\"",
       title: "THE MICROMANAGER",
     },
@@ -450,7 +450,7 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[5], // VP of Synergy
     {
-      floor: 6, name: "The Data Tyrant", emoji: "📊", spriteId: "vp", maxHp: 125, atk: 14, def: 14, types: ["analytics", "strategy"] as MoveType[],
+      floor: 6, name: "The Data Tyrant", emoji: "📊", spriteId: "vp", maxHp: 150, atk: 16, def: 15, types: ["analytics", "strategy"] as MoveType[],
       moves: [
         { name: "Dashboard Interrogation", dmg: 18, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.5 } },
         { name: "KPI Guillotine", dmg: 24, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
@@ -464,7 +464,7 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[6], // C-Suite Boss
     {
-      floor: 7, name: "The Board Member", emoji: "🏛️", spriteId: "boss", maxHp: 170, atk: 18, def: 16, types: ["influence", "analytics"] as MoveType[],
+      floor: 7, name: "The Board Member", emoji: "🏛️", spriteId: "boss", maxHp: 200, atk: 20, def: 17, types: ["influence", "analytics"] as MoveType[],
       moves: [
         { name: "Shareholder Pressure", dmg: 20, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
         { name: "Fiduciary Fury", dmg: 30, type: "analytics" as MoveType },
@@ -479,7 +479,7 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[7], // The Consultant
     {
-      floor: 8, name: "The Agency Creative", emoji: "🎬", spriteId: "vp", maxHp: 140, atk: 17, def: 10, types: ["execution", "technical"] as MoveType[],
+      floor: 8, name: "The Agency Creative", emoji: "🎬", spriteId: "vp", maxHp: 165, atk: 19, def: 12, types: ["execution", "technical"] as MoveType[],
       moves: [
         { name: "Mood Board Assault", dmg: 20, type: "execution" as MoveType, status: { id: "focused", target: "self", chance: 0.4 } },
         { name: "Brand Guidelines Bomb", dmg: 26, type: "technical" as MoveType },
@@ -494,7 +494,7 @@ export const ENEMY_POOLS: Enemy[][] = [
   [
     ENEMIES[8], // Head of HR
     {
-      floor: 9, name: "The Compliance Officer", emoji: "⚖️", spriteId: "manager", maxHp: 155, atk: 13, def: 18, types: ["strategy", "analytics"] as MoveType[],
+      floor: 9, name: "The Compliance Officer", emoji: "⚖️", spriteId: "manager", maxHp: 180, atk: 15, def: 20, types: ["strategy", "analytics"] as MoveType[],
       moves: [
         { name: "Regulatory Audit", dmg: 16, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
         { name: "Policy Violation Notice", dmg: 22, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } },
