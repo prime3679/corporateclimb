@@ -44,7 +44,17 @@ let popupIdCounter = 0;
 // ─── MAIN GAME ───────────────────────────────────────────────
 export default function CorporateClimb() {
   const spritesReady = useSpritePreloader();
-  const [screen, setScreen] = useState<Screen>("title");
+  const [screen, setScreenRaw] = useState<Screen>("title");
+  const [fadeClass, setFadeClass] = useState<"in" | "out">("in");
+
+  // Wrap screen changes in a fade transition
+  const setScreen = useCallback((next: Screen) => {
+    setFadeClass("out");
+    setTimeout(() => {
+      setScreenRaw(next);
+      setFadeClass("in");
+    }, 200);
+  }, []);
   const [player, setPlayer] = useState<PlayerClass | null>(null);
   const [floor, setFloor] = useState(0);
   const [playerHp, setPlayerHp] = useState(0);
@@ -740,11 +750,13 @@ export default function CorporateClimb() {
           90% { transform: translate(-1px, 0px); }
         }
 
-        .sprite-idle { animation: sprite-breathe 2s ease-in-out infinite; }
+        .sprite-idle { }
         .sprite-attack { animation: sprite-attack-right 0.5s ease-out; }
         .sprite-hit { animation: sprite-hit-flash 0.4s ease-out; }
         .sprite-faint { animation: sprite-faint 0.8s ease-out forwards; }
         .screen-shake { animation: screen-shake-anim 0.3s ease-out; }
+        .screen-fade-in { opacity: 1; transition: opacity 0.2s ease-in; }
+        .screen-fade-out { opacity: 0; transition: opacity 0.2s ease-out; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
       `}</style>
 
@@ -763,7 +775,7 @@ export default function CorporateClimb() {
         {muted ? "🔇" : "🔊"}
       </button>
 
-      <div style={{ width: "100%", height: "100%" }}>
+      <div className={fadeClass === "in" ? "screen-fade-in" : "screen-fade-out"} style={{ width: "100%", height: "100%" }}>
         {screen === "title" && <TitleScreen onStart={startGame} onContinue={loadGame() ? continueGame : undefined} />}
         {screen === "classSelect" && <ClassSelect onSelect={selectClass} />}
         {screen === "hallwayEvent" && currentEvent && player && (
