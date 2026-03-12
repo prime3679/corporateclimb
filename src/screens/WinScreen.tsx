@@ -1,7 +1,15 @@
 import type { PlayerClass } from "../types";
 import { useSpriteUrls } from "../components/PixelSprite";
 
-export default function WinScreen({ player, onRestart }: { player: PlayerClass; onRestart: () => void }) {
+interface WinScreenProps {
+  player: PlayerClass;
+  onRestart: () => void;
+  onNgPlus: () => void;
+  ngLevel: number;
+  bestNgLevel: number;
+}
+
+export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNgLevel }: WinScreenProps) {
   const sprites = useSpriteUrls();
   return (
     <div style={{
@@ -50,16 +58,45 @@ export default function WinScreen({ player, onRestart }: { player: PlayerClass; 
         tower. The corner office is yours.<br /><br />
         ...but at what cost?
       </div>
-      <button
-        onClick={onRestart}
-        style={{
-          fontFamily: "'Press Start 2P'", fontSize: 11, padding: "14px 30px",
-          background: "#263238", border: "4px solid #263238", borderRadius: 10,
-          cursor: "pointer", boxShadow: "6px 6px 0 rgba(0,0,0,0.3)", color: "#FFC107",
-        }}
-      >
-        PLAY AGAIN
-      </button>
+
+      {ngLevel > 0 && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 8, color: "#E65100",
+          background: "rgba(0,0,0,0.15)", padding: "6px 14px", borderRadius: 8,
+        }}>
+          NG+{ngLevel} CLEARED!
+        </div>
+      )}
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 10, alignItems: "center" }}>
+        <button
+          onClick={onNgPlus}
+          style={{
+            fontFamily: "'Press Start 2P'", fontSize: 11, padding: "14px 30px",
+            background: "#E65100", border: "4px solid #263238", borderRadius: 10,
+            cursor: "pointer", boxShadow: "6px 6px 0 rgba(0,0,0,0.3)", color: "#FFF",
+          }}
+        >
+          NEW GAME+ {ngLevel + 1}
+        </button>
+        <button
+          onClick={onRestart}
+          style={{
+            fontFamily: "'Press Start 2P'", fontSize: 9, padding: "10px 24px",
+            background: "#263238", border: "3px solid #263238", borderRadius: 8,
+            cursor: "pointer", boxShadow: "4px 4px 0 rgba(0,0,0,0.3)", color: "#FFC107",
+          }}
+        >
+          RESTART
+        </button>
+        {bestNgLevel > 0 && (
+          <div style={{
+            fontFamily: "'Press Start 2P'", fontSize: 7, color: "#4E342E", opacity: 0.7,
+          }}>
+            BEST: NG+{bestNgLevel}
+          </div>
+        )}
+      </div>
     </div>
   );
 }
