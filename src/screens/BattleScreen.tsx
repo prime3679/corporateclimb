@@ -161,8 +161,8 @@ export default function BattleScreen({
               <button
                 onClick={() => onSetBattleMode("fight")}
                 style={{
-                  fontFamily: "'Press Start 2P'", fontSize: 8,
-                  padding: "6px 14px",
+                  fontFamily: "'Press Start 2P'", fontSize: 9,
+                  padding: "12px 18px",
                   background: battleMode === "fight" ? "#FFC107" : "#455A64",
                   color: battleMode === "fight" ? "#263238" : "#B0BEC5",
                   border: "2px solid #263238",
@@ -176,8 +176,8 @@ export default function BattleScreen({
               <button
                 onClick={() => onSetBattleMode("items")}
                 style={{
-                  fontFamily: "'Press Start 2P'", fontSize: 8,
-                  padding: "6px 14px",
+                  fontFamily: "'Press Start 2P'", fontSize: 9,
+                  padding: "12px 18px",
                   background: battleMode === "items" ? "#FFC107" : "#455A64",
                   color: battleMode === "items" ? "#263238" : "#B0BEC5",
                   border: "2px solid #263238",
@@ -248,7 +248,7 @@ function ItemButton({ item, onClick }: { item: import("../types").ItemDef; onCli
       onMouseLeave={() => setHover(false)}
       style={{
         fontFamily: "'Press Start 2P'", fontSize: 9,
-        padding: "10px 8px",
+        padding: "14px 10px",
         background: hover ? "#E8F5E9" : "#FFFFFF",
         border: "3px solid #263238",
         borderRadius: 8,
@@ -263,9 +263,9 @@ function ItemButton({ item, onClick }: { item: import("../types").ItemDef; onCli
     >
       <div style={{ display: "flex", alignItems: "center", gap: 6, width: "100%" }}>
         <span style={{ fontSize: 14 }}>{item.emoji}</span>
-        <span style={{ color: "#263238", fontSize: 8 }}>{item.name}</span>
+        <span style={{ color: "#263238", fontSize: 9 }}>{item.name}</span>
       </div>
-      <div style={{ fontSize: 6, color: "#78909C", lineHeight: 1.6 }}>
+      <div style={{ fontSize: 7, color: "#78909C", lineHeight: 1.6 }}>
         {item.desc}
       </div>
     </button>

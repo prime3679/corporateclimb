@@ -13,7 +13,7 @@ export default function MoveButton({ move, onClick, disabled }: { move: Move; on
       onMouseLeave={() => setHover(false)}
       style={{
         fontFamily: "'Press Start 2P'", fontSize: 9,
-        padding: "10px 8px",
+        padding: "14px 10px",
         background: disabled ? "#BDBDBD" : hover ? "#FFF3E0" : "#FFFFFF",
         border: `3px solid ${disabled ? "#9E9E9E" : "#263238"}`,
         borderRadius: 8,
