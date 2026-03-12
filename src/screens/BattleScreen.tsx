@@ -89,16 +89,16 @@ export default function BattleScreen({
         }} />
       )}
 
-      <div style={{ flex: 1, position: "relative", minHeight: 300 }}>
+      <div style={{ flex: 1, position: "relative", minHeight: 220 }}>
         <div style={{
           position: "absolute", top: "44%", right: 10,
-          width: 200, height: 36,
+          width: 150, height: 28,
           background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
           borderRadius: "50%",
           zIndex: 1,
         }} />
         <div style={{ position: "absolute", top: "2%", right: 20, zIndex: 2 }}>
-          <PixelSprite spriteId={enemy.spriteId} size={220} animState={enemyAnim} flip />
+          <PixelSprite spriteId={enemy.spriteId} size={160} animState={enemyAnim} flip />
         </div>
         <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
           <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
@@ -115,13 +115,13 @@ export default function BattleScreen({
 
         <div style={{
           position: "absolute", bottom: "2%", left: 0,
-          width: 220, height: 36,
+          width: 170, height: 28,
           background: `radial-gradient(ellipse, ${isDark ? "#38182866" : "#00000022"} 0%, transparent 70%)`,
           borderRadius: "50%",
           zIndex: 1,
         }} />
         <div style={{ position: "absolute", bottom: "4%", left: 10, zIndex: 2 }}>
-          <PixelSprite spriteId={player.spriteId} size={240} animState={playerAnim} />
+          <PixelSprite spriteId={player.spriteId} size={180} animState={playerAnim} />
         </div>
         <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
           <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
