@@ -360,6 +360,18 @@ export default function CorporateClimb() {
 
     setTimeout(() => {
       setEnemyAnim("idle");
+
+      // Enemy accuracy check
+      const eMoveAcc = eMove.acc ?? 100;
+      if (Math.random() * 100 >= eMoveAcc) {
+        SFX.miss();
+        setLog((l) => [...l, `${gs.enemy.name} used ${eMove.name}! But it missed!`]);
+        addDamagePopup(0, false, false, false, "MISS!", "#78909C");
+        tickStatuses(setPlayerStatuses);
+        setTimeout(() => { setTurn("player"); }, 500);
+        return;
+      }
+
       const enemyAtkMod = getStatusAtkMod(gs.enemyStatuses);
       const playerDefMod = getStatusDefMod(gs.playerStatuses);
       const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses);
@@ -570,6 +582,18 @@ export default function CorporateClimb() {
 
     setTimeout(() => {
       setPlayerAnim("idle");
+
+      // Accuracy check
+      const moveAcc = move.acc ?? 100;
+      if (Math.random() * 100 >= moveAcc) {
+        SFX.miss();
+        setLog((l) => [...l, `${gs.player!.name} used ${move.name}! But it missed!`]);
+        addDamagePopup(0, true, false, false, "MISS!", "#78909C");
+        setTurn("waiting");
+        setTimeout(() => doEnemyTurn(), 800);
+        return;
+      }
+
       const playerAtkMod = getStatusAtkMod(gs.playerStatuses);
       const enemyDefMod = getStatusDefMod(gs.enemyStatuses);
       const playerCritBonus = getStatusCritBonus(gs.playerStatuses);

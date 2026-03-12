@@ -28,6 +28,7 @@ export interface Move {
   type: string;
   desc: string;
   pp: number;
+  acc?: number; // 0-100, default 100 (always hits)
   heal?: number;
   status?: StatusEffectOnMove;
 }
@@ -77,6 +78,7 @@ export interface EnemyMove {
   name: string;
   dmg: number;
   type?: MoveType;
+  acc?: number; // 0-100, default 100
   heal?: number;
   status?: StatusEffectOnMove;
 }
