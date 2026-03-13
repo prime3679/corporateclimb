@@ -11,6 +11,7 @@ import {
   scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
   checkAchievements, getUnlockedAchievements,
   getPromotion, getEffectivePlayer, getAct,
+  getStatusAtkMod, getStatusDefMod, getStatusCritBonus, getBurnDamage,
 } from "./data";
 import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro, RouteChoice } from "./screens";
 import PromotionScreen from "./screens/PromotionScreen";
@@ -242,32 +243,6 @@ export default function CorporateClimb() {
     setStatuses((prev) =>
       prev.map((s) => ({ ...s, turnsLeft: s.turnsLeft - 1 })).filter((s) => s.turnsLeft > 0)
     );
-  };
-
-  const getStatusAtkMod = (statuses: StatusInstance[]): number => {
-    let mod = 0;
-    for (const s of statuses) {
-      if (s.id === "motivated") mod += 4;
-      if (s.id === "micromanaged") mod -= 4;
-    }
-    return mod;
-  };
-
-  const getStatusDefMod = (statuses: StatusInstance[]): number => {
-    let mod = 0;
-    for (const s of statuses) {
-      if (s.id === "caffeinated") mod -= 3;
-      if (s.id === "demoralized") mod -= 3;
-    }
-    return mod;
-  };
-
-  const getStatusCritBonus = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === "focused") ? 0.2 : 0;
-  };
-
-  const getBurnDamage = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === "burned_out") ? 8 : 0;
   };
 
   // ─── Item use (consumes a turn) ───────────────────────────

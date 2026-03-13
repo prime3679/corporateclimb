@@ -1,4 +1,4 @@
-import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef, PromotionTier, Move } from "./types";
+import type { StatusId, StatusDef, StatusInstance, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef, PromotionTier, Move } from "./types";
 
 // ─── CONSTANTS ──────────────────────────────────────────────
 export const TOTAL_FLOORS = 30;
@@ -17,6 +17,32 @@ export const STATUS_DEFS: Record<StatusId, StatusDef> = {
   micromanaged:  { id: "micromanaged",  name: "Micromanaged",  icon: "\u{1F441}\uFE0F",  color: "#B71C1C", duration: 2, desc: "-ATK" },
   demoralized:   { id: "demoralized",   name: "Demoralized",   icon: "\u{1F4C9}", color: "#4A148C", duration: 2, desc: "-DEF" },
   burned_out:    { id: "burned_out",    name: "Burned Out",    icon: "\u{1F6AB}", color: "#616161", duration: 3, desc: "DoT" },
+};
+
+export const getStatusAtkMod = (statuses: StatusInstance[]): number => {
+  let mod = 0;
+  for (const s of statuses) {
+    if (s.id === "motivated") mod += 4;
+    if (s.id === "micromanaged") mod -= 4;
+  }
+  return mod;
+};
+
+export const getStatusDefMod = (statuses: StatusInstance[]): number => {
+  let mod = 0;
+  for (const s of statuses) {
+    if (s.id === "caffeinated") mod -= 3;
+    if (s.id === "demoralized") mod -= 3;
+  }
+  return mod;
+};
+
+export const getStatusCritBonus = (statuses: StatusInstance[]): number => {
+  return statuses.some((s) => s.id === "focused") ? 0.2 : 0;
+};
+
+export const getBurnDamage = (statuses: StatusInstance[]): number => {
+  return statuses.some((s) => s.id === "burned_out") ? 8 : 0;
 };
 
 // ─── TYPE SYSTEM ─────────────────────────────────────────────
