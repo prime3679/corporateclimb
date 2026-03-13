@@ -486,7 +486,8 @@ export default function CorporateClimb() {
   const startBattle = () => {
     setEnemyPhase(1);
     setEnemyHp(enemy.maxHp);
-    setLog([`A wild ${enemy.name} appeared!`]);
+    const intro = enemy.name.startsWith("The ") ? `${enemy.name} appeared!` : `A wild ${enemy.name} appeared!`;
+    setLog([intro]);
     setTurn("player");
     setBattleMode("fight");
     setPlayerAnim("idle");

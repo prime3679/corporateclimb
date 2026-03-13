@@ -207,6 +207,7 @@ export default function BattleScreen({
                   <MoveButton
                     key={m.name}
                     move={m}
+                    currentPp={i < playerPp.length ? playerPp[i] : m.pp}
                     disabled={i < playerPp.length && playerPp[i] <= 0}
                     onClick={() => onMove(i)}
                   />

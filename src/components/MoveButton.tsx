@@ -3,7 +3,7 @@ import type { Move } from "../types";
 import { STATUS_DEFS } from "../data";
 import TypeBadge from "./TypeBadge";
 
-export default function MoveButton({ move, onClick, disabled }: { move: Move; onClick: () => void; disabled: boolean }) {
+export default function MoveButton({ move, currentPp, onClick, disabled }: { move: Move; currentPp?: number; onClick: () => void; disabled: boolean }) {
   const [hover, setHover] = useState(false);
   return (
     <button
@@ -32,7 +32,7 @@ export default function MoveButton({ move, onClick, disabled }: { move: Move; on
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", width: "100%", fontSize: 7, color: "#78909C" }}>
         <span>PWR {move.dmg}{move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ""}{move.acc != null && move.acc < 100 ? ` ${move.acc}%` : ""}</span>
-        <span>PP {move.pp}</span>
+        <span>PP {currentPp ?? move.pp}/{move.pp}</span>
       </div>
     </button>
   );
