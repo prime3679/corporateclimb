@@ -1,9 +1,10 @@
-import { useMemo } from "react";
 import type { AnimState } from "../types";
 import { buildSpriteUrls } from "../sprites";
 
+const SPRITE_URLS = buildSpriteUrls();
+
 function useSpriteUrls(): Record<string, string> {
-  return useMemo(() => buildSpriteUrls(), []);
+  return SPRITE_URLS;
 }
 
 export { useSpriteUrls };
