@@ -38,8 +38,8 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
             }}
           >
-            <div className="sprite-idle" style={{ width: 48, height: 48 }}>
-              <img src={sprites[c.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto" }} draggable={false} />
+            <div className="sprite-idle" style={{ width: 52, height: 52 }}>
+              <img src={sprites[c.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "4%" }} draggable={false} />
             </div>
             <span style={{
               fontFamily: "'Press Start 2P'", fontSize: 7,

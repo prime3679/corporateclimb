@@ -33,8 +33,7 @@ export default function PixelSprite({
     <div
       className={animClass}
       style={{
-        maxHeight: size,
-        width: size * 0.8,
+        width: size,
         position: "relative",
         overflow: "visible",
         transform: flip ? "scaleX(-1)" : "none",
@@ -47,10 +46,9 @@ export default function PixelSprite({
           style={{
             width: "100%",
             height: "auto",
-            maxHeight: size,
-            objectFit: "contain",
             imageRendering: "auto",
             display: "block",
+            padding: "2%",
           }}
           draggable={false}
         />
