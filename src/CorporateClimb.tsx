@@ -486,7 +486,9 @@ export default function CorporateClimb() {
   const startBattle = () => {
     setEnemyPhase(1);
     setEnemyHp(enemy.maxHp);
-    const intro = enemy.name.startsWith("The ") ? `${enemy.name} appeared!` : `A wild ${enemy.name} appeared!`;
+    const intro = enemy.taunt
+      ? `"${enemy.taunt}"`
+      : enemy.name.startsWith("The ") ? `${enemy.name} appeared!` : `A wild ${enemy.name} appeared!`;
     setLog([intro]);
     setTurn("player");
     setBattleMode("fight");
@@ -929,7 +931,7 @@ export default function CorporateClimb() {
         {screen === "routeChoice" && routeOptions && (
           <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
-        {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} onReady={startBattle} />}
+        {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} player={player ?? undefined} onReady={startBattle} />}
         {screen === "battle" && player && (
           <BattleScreen
             player={player}

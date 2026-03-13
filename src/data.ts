@@ -68,6 +68,9 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Data-Driven Roast", dmg: 35, type: "analytics", desc: "Destroys arguments with metrics.", pp: 3, acc: 80, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
     ],
     perk: { name: "Cross-Functional", desc: "Heals 5 HP after every battle", icon: "\u{1F91D}" },
+    intro: "Armed with a roadmap and ruthless prioritization, you step into the lobby.",
+    winText: "You didn't just climb the ladder — you redefined it.",
+    winTitle: "Chief Product Officer",
   },
   {
     id: "eng",
@@ -87,6 +90,9 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Stack Overflow", dmg: 40, type: "analytics", desc: "Channels the collective wisdom. Huge damage.", pp: 3, acc: 75 },
     ],
     perk: { name: "Optimization", desc: "+15% damage on all moves", icon: "\u{1F4A5}" },
+    intro: "You crack your knuckles. Time to ship.",
+    winText: "You refactored the entire org chart.",
+    winTitle: "Chief Technology Officer",
   },
   {
     id: "design",
@@ -106,6 +112,9 @@ export const PLAYER_CLASSES: PlayerClass[] = [
       { name: "Design System Slam", dmg: 38, type: "strategy", desc: "Enforces consistency. Crushing blow.", pp: 3, acc: 75, status: { id: "motivated", target: "self", chance: 0.5 } },
     ],
     perk: { name: "Eye for Detail", desc: "+15% crit chance on all moves", icon: "\u{1F3AF}" },
+    intro: "You see what others can't. That's your edge.",
+    winText: "You redesigned the company from the inside out.",
+    winTitle: "Chief Design Officer",
   },
 ];
 
@@ -116,42 +125,49 @@ export const ENEMIES: Enemy[] = [
     moves: [{ name: "Eager Question", dmg: 10, type: "normal" as MoveType }, { name: "Coffee Run", dmg: 6, type: "normal" as MoveType, heal: 12 }],
     defeat: "The intern learned a valuable lesson today.",
     title: "THE EAGER INTERN",
+    taunt: "Oh great, another new hire who thinks they're special.",
   },
   {
     floor: 2, name: "Recruiter", emoji: "📞", spriteId: "recruiter", maxHp: 85, atk: 11, def: 6, types: ["influence"] as MoveType[],
     moves: [{ name: "LinkedIn Spam", dmg: 12, type: "influence" as MoveType }, { name: "Lowball Offer", dmg: 16, type: "strategy" as MoveType }],
     defeat: "\u201CLet\u2019s circle back when you have more budget.\u201D",
     title: "THE PERSISTENT RECRUITER",
+    taunt: "I found your profile. Let's chat about an exciting opportunity.",
   },
   {
     floor: 3, name: "The Overachiever", emoji: "🏆", spriteId: "overachiever", maxHp: 95, atk: 13, def: 7, types: ["execution"] as MoveType[],
     moves: [{ name: "Humble Brag", dmg: 16, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Extra Credit", dmg: 20, type: "execution" as MoveType }, { name: "Volunteer as Tribute", dmg: 12, type: "strategy" as MoveType, heal: 14, status: { id: "motivated", target: "self" } }],
     defeat: "\"I guess even 110% wasn't enough today.\"",
     title: "THE OVERACHIEVER",
+    taunt: "I already finished my OKRs for next quarter. Have you?",
   },
   {
     floor: 4, name: "Scrum Master", emoji: "📝", spriteId: "scrum", maxHp: 105, atk: 13, def: 9, types: ["strategy", "execution"] as MoveType[],
     moves: [{ name: "Standup Ambush", dmg: 14, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Sprint Overload", dmg: 18, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Retro Guilt Trip", dmg: 12, type: "influence" as MoveType, heal: 10 }],
     defeat: "The daily standup has been cancelled. Forever.",
     title: "THE RELENTLESS SCRUM MASTER",
+    taunt: "This isn't on the sprint board. I'm going to need a ticket.",
   },
   {
     floor: 5, name: "Middle Manager", emoji: "👔", spriteId: "manager", maxHp: 125, atk: 14, def: 11, types: ["influence", "strategy"] as MoveType[],
     moves: [{ name: "Unnecessary Meeting", dmg: 16, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Passive-Aggressive Email", dmg: 20, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "Take Credit", dmg: 10, type: "influence" as MoveType, heal: 18, status: { id: "motivated", target: "self" } }],
     defeat: "\u201CPer my last email\u2026 I resign.\u201D",
     title: "THE MIDDLE MANAGER",
+    taunt: "I don't see this meeting on the calendar.",
   },
   {
     floor: 6, name: "VP of Synergy", emoji: "🎯", spriteId: "vp", maxHp: 155, atk: 17, def: 13, types: ["influence", "analytics"] as MoveType[],
     moves: [{ name: "Buzzword Barrage", dmg: 18, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.6 } }, { name: "Pivot Strategy", dmg: 24, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } }, { name: "Executive Presence", dmg: 14, type: "influence" as MoveType, heal: 14, status: { id: "motivated", target: "self" } }],
     defeat: "Synergy has been disrupted. The paradigm shifts.",
     title: "THE VP OF SYNERGY",
+    taunt: "Let's take this offline. Actually, let's not.",
   },
   {
     floor: 7, name: "C-Suite Boss", emoji: "👑", spriteId: "boss", maxHp: 210, atk: 22, def: 16, types: ["strategy", "influence"] as MoveType[],
     moves: [{ name: "Golden Parachute", dmg: 12, type: "strategy" as MoveType, heal: 28, status: { id: "motivated", target: "self" } }, { name: "Hostile Takeover", dmg: 30, type: "execution" as MoveType, acc: 90, status: { id: "demoralized", target: "enemy", chance: 0.6 } }, { name: "Board Meeting Beam", dmg: 38, type: "analytics" as MoveType, acc: 85, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Layoff Wave", dmg: 24, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }],
     defeat: "The corner office is yours. Was it worth it?",
     title: "THE C-SUITE FINAL BOSS",
+    taunt: "Security, who let this person onto my floor?",
   },
   {
     floor: 8, name: "The Consultant", emoji: "💼", spriteId: "vp", maxHp: 175, atk: 18, def: 13, types: ["strategy", "analytics"] as MoveType[],
@@ -163,6 +179,7 @@ export const ENEMIES: Enemy[] = [
     ],
     defeat: "Submits final invoice, disappears forever.",
     title: "THE CONSULTANT",
+    taunt: "My rate is $400/hour. This fight is already on the clock.",
   },
   {
     floor: 9, name: "Head of HR", emoji: "📋", spriteId: "manager", maxHp: 185, atk: 16, def: 18, types: ["influence", "strategy"] as MoveType[],
@@ -174,6 +191,7 @@ export const ENEMIES: Enemy[] = [
     ],
     defeat: "Sends a mandatory training course as a parting gift.",
     title: "HEAD OF HR",
+    taunt: "We need to talk. Close the door.",
   },
   {
     floor: 10, name: "The Founder", emoji: "🚀", spriteId: "boss", maxHp: 240, atk: 20, def: 16, types: ["strategy", "influence", "execution"] as MoveType[],
@@ -185,6 +203,7 @@ export const ENEMIES: Enemy[] = [
     ],
     defeat: "The company is yours now. All of it.",
     title: "THE FOUNDER",
+    taunt: "I built this company from nothing. You ARE nothing.",
     phase2: {
       name: "The Founder (Pivoting)",
       emoji: "🔥",
@@ -404,6 +423,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       moves: [{ name: "Latte Splash", dmg: 12, type: "normal" as MoveType }, { name: "Oat Milk Shield", dmg: 5, type: "normal" as MoveType, heal: 14 }],
       defeat: "\"I just wanted to get the order right...\"",
       title: "THE COFFEE RUNNER",
+      taunt: "Venti oat milk latte with two pumps of ambition, coming up!",
     },
   ],
   // Floor 2
@@ -414,6 +434,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       moves: [{ name: "Read Receipt", dmg: 14, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"We'll Be In Touch\"", dmg: 10, type: "strategy" as MoveType }],
       defeat: "\"Let me check with my hiring manager and get back to you. (They won't.)\"",
       title: "THE GHOSTING RECRUITER",
+      taunt: "I'll get back to you. Maybe.",
     },
   ],
   // Floor 3
@@ -424,6 +445,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       moves: [{ name: "Steal the Spotlight", dmg: 18, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } }, { name: "\"WE Did This\"", dmg: 14, type: "strategy" as MoveType, heal: 10, status: { id: "motivated", target: "self" } }],
       defeat: "\"Fine, I'll put your name on the deck. In size 8 font.\"",
       title: "THE CREDIT THIEF",
+      taunt: "Great work on that project. I'll present it to leadership.",
     },
   ],
   // Floor 4
@@ -434,6 +456,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       moves: [{ name: "\"One More Thing\"", dmg: 16, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } }, { name: "Feature Bloat", dmg: 20, type: "execution" as MoveType }, { name: "Moving Goalposts", dmg: 10, type: "strategy" as MoveType, heal: 12 }],
       defeat: "\"I know we said MVP but what if we also added...\" No. Stop.",
       title: "THE SCOPE CREEPER",
+      taunt: "Before we start, I just have one small addition...",
     },
   ],
   // Floor 5
@@ -444,6 +467,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       moves: [{ name: "Check-In Barrage", dmg: 14, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } }, { name: "Calendar Tetris", dmg: 18, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } }, { name: "Status Report Demand", dmg: 12, type: "influence" as MoveType, heal: 12, status: { id: "motivated", target: "self" } }],
       defeat: "\"But how will I know you're working if I can't see your screen?!\"",
       title: "THE MICROMANAGER",
+      taunt: "I noticed you were idle on Slack for 3 minutes. Everything okay?",
     },
   ],
   // Floor 6
@@ -458,6 +482,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       ],
       defeat: "The dashboard goes dark. No more red numbers.",
       title: "THE DATA TYRANT",
+      taunt: "Show me the numbers. ALL of them.",
     },
   ],
   // Floor 7
@@ -473,6 +498,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       ],
       defeat: "The board adjourns. Your motion carries.",
       title: "THE BOARD MEMBER",
+      taunt: "This better be worth my time. I bill by the quarter.",
     },
   ],
   // Floor 8
@@ -488,6 +514,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       ],
       defeat: "The retainer has been terminated. No more revisions.",
       title: "THE AGENCY CREATIVE",
+      taunt: "This is just v1. Wait until you see the mood board.",
     },
   ],
   // Floor 9
@@ -503,6 +530,7 @@ export const ENEMY_POOLS: Enemy[][] = [
       ],
       defeat: "Case dismissed. The paperwork dissolves.",
       title: "THE COMPLIANCE OFFICER",
+      taunt: "I'm going to need that in writing. Notarized.",
     },
   ],
   // Floor 10: The Founder (fixed — final boss with phase 2)

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import type { Enemy } from "../types";
+import type { Enemy, PlayerClass } from "../types";
 import { TYPE_COLORS, TYPE_LABELS } from "../data";
 import { useSpriteUrls } from "../components/PixelSprite";
 
@@ -18,7 +18,20 @@ const FLOOR_LABELS: Record<number, string> = {
   9: "Boardroom",
 };
 
-export default function FloorIntro({ enemy, floor, onReady }: { enemy: Enemy; floor: number; onReady: () => void }) {
+const FLOOR_FLAVOR: Record<number, string> = {
+  0: "First day. No badge, no desk, no respect.",
+  1: "You've survived orientation. Barely.",
+  2: "The walls are short but the egos are tall.",
+  3: "No walls now. Nowhere to hide.",
+  4: "People are starting to notice you.",
+  5: "You've survived the floor plan. Now comes politics.",
+  6: "The air is thinner up here. The stakes are real.",
+  7: "Corner offices. Glass walls. Everyone's watching.",
+  8: "One floor to go. The elevator needs a key card.",
+  9: "One seat left at the table.",
+};
+
+export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: Enemy; floor: number; player?: PlayerClass; onReady: () => void }) {
   const [show, setShow] = useState(false);
   const sprites = useSpriteUrls();
 
@@ -74,6 +87,32 @@ export default function FloorIntro({ enemy, floor, onReady }: { enemy: Enemy; fl
       }}>
         {FLOOR_LABELS[floor] || `Floor ${floor + 1}`}
       </div>
+
+      {/* Floor flavor text */}
+      {FLOOR_FLAVOR[floor] && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 7, color: "#90A4AE",
+          fontStyle: "italic", textAlign: "center", lineHeight: 2,
+          maxWidth: 300, padding: "0 12px",
+          opacity: show ? 1 : 0,
+          transition: "opacity 0.6s ease 0.3s",
+        }}>
+          {FLOOR_FLAVOR[floor]}
+        </div>
+      )}
+
+      {/* Class intro on first floor */}
+      {floor === 0 && player?.intro && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 7, color: "#FFC107",
+          textAlign: "center", lineHeight: 2,
+          maxWidth: 300, padding: "0 12px",
+          opacity: show ? 1 : 0,
+          transition: "opacity 0.7s ease 0.4s",
+        }}>
+          {player.intro}
+        </div>
+      )}
 
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 10, color: "#F44336",

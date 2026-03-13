@@ -79,8 +79,21 @@ export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNg
         textAlign: "center", lineHeight: 1.8,
         textShadow: "2px 2px 0 rgba(255,255,255,0.5)",
       }}>
-        YOU CLIMBED THE<br />CORPORATE LADDER!
+        {player.winTitle ? (
+          <>{player.winTitle}</>
+        ) : (
+          <>YOU CLIMBED THE<br />CORPORATE LADDER!</>
+        )}
       </div>
+      {player.winText && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 8, color: "#4E342E",
+          textAlign: "center", lineHeight: 2, maxWidth: 300,
+          fontStyle: "italic",
+        }}>
+          {player.winText}
+        </div>
+      )}
 
       {/* Share Card */}
       <div style={{

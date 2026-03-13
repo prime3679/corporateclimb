@@ -52,6 +52,9 @@ export interface PlayerClass {
   desc: string;
   moves: Move[];
   perk: ClassPerk;
+  intro?: string;
+  winText?: string;
+  winTitle?: string;
 }
 
 // ─── ACHIEVEMENTS ─────────────────────────────────────────────
@@ -106,6 +109,7 @@ export interface Enemy {
   moves: EnemyMove[];
   defeat: string;
   title: string;
+  taunt?: string;
   phase2?: EnemyPhase2;
 }
 

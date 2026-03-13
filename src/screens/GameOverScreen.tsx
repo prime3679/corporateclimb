@@ -1,3 +1,16 @@
+const DEFEAT_FLAVOR: [number, number, string][] = [
+  [1, 3, "HR sends a polite rejection email. Better luck next quarter."],
+  [4, 6, "Your badge stops working on Monday. So close to management."],
+  [7, 10, "Security escorts you out. You could see the corner office from here."],
+];
+
+function getDefeatText(floor: number): string {
+  for (const [lo, hi, text] of DEFEAT_FLAVOR) {
+    if (floor >= lo && floor <= hi) return text;
+  }
+  return "The corporate ladder claims another soul.";
+}
+
 export default function GameOverScreen({ floor, onRestart }: { floor: number; onRestart: () => void }) {
   return (
     <div style={{
@@ -17,8 +30,14 @@ export default function GameOverScreen({ floor, onRestart }: { floor: number; on
         textAlign: "center", lineHeight: 2.4, maxWidth: 280,
       }}>
         You were eliminated on<br />
-        Floor {floor}.<br /><br />
-        The corporate ladder<br />claims another soul.
+        Floor {floor}.
+      </div>
+      <div style={{
+        fontFamily: "'Press Start 2P'", fontSize: 7, color: "#78909C",
+        textAlign: "center", lineHeight: 2.2, maxWidth: 280,
+        fontStyle: "italic",
+      }}>
+        {getDefeatText(floor)}
       </div>
       <button
         onClick={onRestart}
