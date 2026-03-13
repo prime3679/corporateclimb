@@ -929,7 +929,7 @@ export default function CorporateClimb() {
         {screen === "routeChoice" && routeOptions && (
           <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
-        {screen === "floorIntro" && <FloorIntro enemy={enemy} onReady={startBattle} />}
+        {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} onReady={startBattle} />}
         {screen === "battle" && player && (
           <BattleScreen
             player={player}
