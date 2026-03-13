@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { SFX } from "./sfx";
 import { Music } from "./music";
 import { buildSpriteUrls } from "./sprites";
@@ -157,7 +157,7 @@ export default function CorporateClimb() {
   const rawEnemy = floorEnemyIds.length > 0
     ? getFloorEnemy(floor, floorEnemyIds[floor])
     : ENEMIES[floor] || ENEMIES[0];
-  const scaledEnemy = scaleEnemyForNgPlus(rawEnemy, ngPlus);
+  const scaledEnemy = useMemo(() => scaleEnemyForNgPlus(rawEnemy, ngPlus), [rawEnemy, ngPlus]);
 
   // Apply phase 2 overrides if active
   const enemy: import("./types").Enemy = (enemyPhase === 2 && scaledEnemy.phase2) ? {
