@@ -23,13 +23,19 @@ function playTone(freq: number, duration: number, type: OscillatorType = "square
   osc.stop(c.currentTime + duration);
 }
 
+const noiseBuffers = new Map<number, AudioBuffer>();
+
 function playNoise(duration: number, volume = 0.08) {
   const c = getCtx();
-  const bufferSize = c.sampleRate * duration;
-  const buffer = c.createBuffer(1, bufferSize, c.sampleRate);
-  const data = buffer.getChannelData(0);
-  for (let i = 0; i < bufferSize; i++) {
-    data[i] = Math.random() * 2 - 1;
+  let buffer = noiseBuffers.get(duration);
+  if (!buffer) {
+    const bufferSize = c.sampleRate * duration;
+    buffer = c.createBuffer(1, bufferSize, c.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) {
+      data[i] = Math.random() * 2 - 1;
+    }
+    noiseBuffers.set(duration, buffer);
   }
   const src = c.createBufferSource();
   src.buffer = buffer;
