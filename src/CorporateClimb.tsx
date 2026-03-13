@@ -545,7 +545,7 @@ export default function CorporateClimb() {
     const eff = choice.effect;
 
     if (eff.hp) {
-      setPlayerHp((hp) => Math.max(1, Math.min(player.maxHp + atkBuff * 5, hp + eff.hp!)));
+      setPlayerHp((hp) => Math.max(1, Math.min((effectivePlayer || player).maxHp + atkBuff * 5, hp + eff.hp!)));
     }
     if (eff.atk) setAtkBuff((b) => b + eff.atk!);
     if (eff.def) setDefBuff((b) => b + eff.def!);
@@ -703,7 +703,7 @@ export default function CorporateClimb() {
             setLevel((l) => l + 1);
             setXp(newXp - gs.xpToNext);
             setXpToNext((x) => x + 25);
-            setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp + 10, hp + 20));
+            setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + 20));
             setTimeout(() => SFX.levelUp(), 600);
           } else {
             setXp(newXp);
