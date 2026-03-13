@@ -45,6 +45,45 @@ function useSpritePreloader(): boolean {
 
 let popupIdCounter = 0;
 
+const getStatusAtkMod = (statuses: StatusInstance[]): number => {
+  let mod = 0;
+  for (const s of statuses) {
+    if (s.id === "motivated") mod += 4;
+    if (s.id === "micromanaged") mod -= 4;
+  }
+  return mod;
+};
+
+const getStatusDefMod = (statuses: StatusInstance[]): number => {
+  let mod = 0;
+  for (const s of statuses) {
+    if (s.id === "caffeinated") mod -= 3;
+    if (s.id === "demoralized") mod -= 3;
+  }
+  return mod;
+};
+
+const getStatusCritBonus = (statuses: StatusInstance[]): number => {
+  return statuses.some((s) => s.id === "focused") ? 0.2 : 0;
+};
+
+const getBurnDamage = (statuses: StatusInstance[]): number => {
+  return statuses.some((s) => s.id === "burned_out") ? 8 : 0;
+};
+
+const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0, typeMult: number = 1): [number, boolean] => {
+  const variance = 0.85 + Math.random() * 0.3;
+  const isCrit = Math.random() < (0.1 + critBonus);
+  const crit = isCrit ? 1.5 : 1;
+  return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit * typeMult)), isCrit];
+};
+
+const tickStatuses = (setStatuses: React.Dispatch<React.SetStateAction<StatusInstance[]>>) => {
+  setStatuses((prev) =>
+    prev.map((s) => ({ ...s, turnsLeft: s.turnsLeft - 1 })).filter((s) => s.turnsLeft > 0)
+  );
+};
+
 // ─── MAIN GAME ───────────────────────────────────────────────
 export default function CorporateClimb() {
   const spritesReady = useSpritePreloader();
@@ -187,7 +226,7 @@ export default function CorporateClimb() {
       : effectivePlayer.moves
     : [];
 
-  const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
+  const addDamagePopup = useCallback((value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
     const popup: DamagePopup = {
       id: popupIdCounter++,
       value,
@@ -202,19 +241,19 @@ export default function CorporateClimb() {
     setTimeout(() => {
       setDamagePopups((prev) => prev.filter((p) => p.id !== popup.id));
     }, 1100);
-  };
+  }, []);
 
-  const triggerShake = () => {
+  const triggerShake = useCallback(() => {
     setScreenShake(true);
     setTimeout(() => setScreenShake(false), 300);
-  };
+  }, []);
 
-  const flashMoveType = (type: string) => {
+  const flashMoveType = useCallback((type: string) => {
     setMoveTypeColor(TYPE_COLORS[type] || null);
     setTimeout(() => setMoveTypeColor(null), 400);
-  };
+  }, []);
 
-  const applyStatus = (statusEffect: StatusEffectOnMove, isPlayerAttacking: boolean) => {
+  const applyStatus = useCallback((statusEffect: StatusEffectOnMove, isPlayerAttacking: boolean) => {
     const chance = statusEffect.chance ?? 1;
     if (Math.random() > chance) return null;
 
@@ -236,91 +275,9 @@ export default function CorporateClimb() {
       });
     }
     return def;
-  };
-
-  const tickStatuses = (setStatuses: typeof setPlayerStatuses) => {
-    setStatuses((prev) =>
-      prev.map((s) => ({ ...s, turnsLeft: s.turnsLeft - 1 })).filter((s) => s.turnsLeft > 0)
-    );
-  };
-
-  const getStatusAtkMod = (statuses: StatusInstance[]): number => {
-    let mod = 0;
-    for (const s of statuses) {
-      if (s.id === "motivated") mod += 4;
-      if (s.id === "micromanaged") mod -= 4;
-    }
-    return mod;
-  };
-
-  const getStatusDefMod = (statuses: StatusInstance[]): number => {
-    let mod = 0;
-    for (const s of statuses) {
-      if (s.id === "caffeinated") mod -= 3;
-      if (s.id === "demoralized") mod -= 3;
-    }
-    return mod;
-  };
-
-  const getStatusCritBonus = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === "focused") ? 0.2 : 0;
-  };
-
-  const getBurnDamage = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === "burned_out") ? 8 : 0;
-  };
-
-  // ─── Item use (consumes a turn) ───────────────────────────
-  const useItem = useCallback((itemIdx: number) => {
-    const gs = gsRef.current;
-    if (gs.turn !== "player" || !gs.player) return;
-
-    const itemId = gs.inventory[itemIdx];
-    if (!itemId) return;
-    const item = ITEMS[itemId];
-
-    // Remove from inventory
-    setInventory((inv) => inv.filter((_, i) => i !== itemIdx));
-    setItemsUsed((n) => n + 1);
-    setBattleMode("fight");
-    setTurn("waiting");
-
-    let logMsg = `Used ${item.name}!`;
-    SFX.heal();
-
-    if (item.effect.hp) {
-      const healAmt = Math.min(item.effect.hp, gs.player.maxHp - gs.playerHp);
-      if (healAmt > 0) {
-        setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt));
-        addDamagePopup(healAmt, false, false, true);
-        logMsg += ` Restored ${healAmt} HP!`;
-      }
-    }
-    if (item.effect.atk) {
-      setAtkBuff((b) => b + item.effect.atk!);
-      logMsg += ` ATK +${item.effect.atk}!`;
-    }
-    if (item.effect.def) {
-      setDefBuff((b) => b + item.effect.def!);
-      logMsg += ` DEF +${item.effect.def}!`;
-    }
-    if (item.effect.ppRestore) {
-      setPlayerPp((pp) => pp.map((v, i) => Math.min(gs.player!.moves[i].pp, v + item.effect.ppRestore!)));
-      logMsg += " PP restored!";
-    }
-    if (item.effect.status) {
-      applyStatus({ id: item.effect.status.id, target: "self", chance: 1 }, true);
-      logMsg += ` ${STATUS_DEFS[item.effect.status.id].name}!`;
-    }
-
-    setLog((l) => [...l, logMsg]);
-
-    // Enemy turn after item use
-    setTimeout(() => {
-      doEnemyTurn();
-    }, 600);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+
 
   // ─── Enemy turn (extracted for reuse after item use) ───────
   const doEnemyTurn = useCallback(() => {
@@ -437,8 +394,58 @@ export default function CorporateClimb() {
         setTurn("player");
       }, 500);
     }, 300);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [addDamagePopup, applyStatus, setScreen, triggerShake]);
+
+  // ─── Item use (consumes a turn) ───────────────────────────
+  const useItem = useCallback((itemIdx: number) => {
+    const gs = gsRef.current;
+    if (gs.turn !== "player" || !gs.player) return;
+
+    const itemId = gs.inventory[itemIdx];
+    if (!itemId) return;
+    const item = ITEMS[itemId];
+
+    // Remove from inventory
+    setInventory((inv) => inv.filter((_, i) => i !== itemIdx));
+    setItemsUsed((n) => n + 1);
+    setBattleMode("fight");
+    setTurn("waiting");
+
+    let logMsg = `Used ${item.name}!`;
+    SFX.heal();
+
+    if (item.effect.hp) {
+      const healAmt = Math.min(item.effect.hp, gs.player.maxHp - gs.playerHp);
+      if (healAmt > 0) {
+        setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt));
+        addDamagePopup(healAmt, false, false, true);
+        logMsg += ` Restored ${healAmt} HP!`;
+      }
+    }
+    if (item.effect.atk) {
+      setAtkBuff((b) => b + item.effect.atk!);
+      logMsg += ` ATK +${item.effect.atk}!`;
+    }
+    if (item.effect.def) {
+      setDefBuff((b) => b + item.effect.def!);
+      logMsg += ` DEF +${item.effect.def}!`;
+    }
+    if (item.effect.ppRestore) {
+      setPlayerPp((pp) => pp.map((v, i) => Math.min(gs.player!.moves[i].pp, v + item.effect.ppRestore!)));
+      logMsg += " PP restored!";
+    }
+    if (item.effect.status) {
+      applyStatus({ id: item.effect.status.id, target: "self", chance: 1 }, true);
+      logMsg += ` ${STATUS_DEFS[item.effect.status.id].name}!`;
+    }
+
+    setLog((l) => [...l, logMsg]);
+
+    // Enemy turn after item use
+    setTimeout(() => {
+      doEnemyTurn();
+    }, 600);
+  }, [addDamagePopup, applyStatus, doEnemyTurn]);
 
   const startGame = () => {
     clearSave();
@@ -566,13 +573,6 @@ export default function CorporateClimb() {
     setTimeout(() => {
       setScreen("floorIntro");
     }, 0);
-  };
-
-  const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0, typeMult: number = 1): [number, boolean] => {
-    const variance = 0.85 + Math.random() * 0.3;
-    const isCrit = Math.random() < (0.1 + critBonus);
-    const crit = isCrit ? 1.5 : 1;
-    return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit * typeMult)), isCrit];
   };
 
   const doPlayerMove = useCallback((moveIdx: number) => {
