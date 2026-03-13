@@ -805,6 +805,8 @@ export default function CorporateClimb() {
 
   const handlePromotionContinue = () => {
     SFX.menuConfirm();
+    const fullHp = effectivePlayer?.maxHp ?? player!.maxHp;
+    setPlayerHp(fullHp);
     setPendingPromotion(null);
     if (pendingActTransition) {
       setScreen("actTransition");

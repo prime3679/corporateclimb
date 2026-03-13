@@ -128,7 +128,7 @@ export default function BattleScreen({
           borderRadius: "50%",
           zIndex: 1,
         }} />
-        <div style={{ position: "absolute", top: "2%", right: 20, zIndex: 2 }}>
+        <div style={{ position: "absolute", top: "2%", right: 20, zIndex: 2, overflow: "visible" }}>
           <PixelSprite spriteId={enemy.spriteId} size={160} animState={enemyAnim} flip />
         </div>
         <div style={{ position: "absolute", top: 12, left: 8, zIndex: 4 }}>
@@ -151,7 +151,7 @@ export default function BattleScreen({
           borderRadius: "50%",
           zIndex: 1,
         }} />
-        <div style={{ position: "absolute", bottom: "4%", left: 10, zIndex: 2 }}>
+        <div style={{ position: "absolute", bottom: "4%", left: 10, zIndex: 2, overflow: "visible" }}>
           <PixelSprite spriteId={player.spriteId} size={180} animState={playerAnim} />
         </div>
         <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
