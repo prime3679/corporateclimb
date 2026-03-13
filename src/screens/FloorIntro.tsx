@@ -1,24 +1,24 @@
 import { useState, useEffect } from "react";
 import type { Enemy, PlayerClass } from "../types";
-import { TYPE_COLORS, TYPE_LABELS } from "../data";
+import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct } from "../data";
 import { useSpriteUrls } from "../components/PixelSprite";
 
-const TOTAL_FLOORS = 10;
-
 const FLOOR_LABELS: Record<number, string> = {
-  0: "Lobby",
-  1: "Mailroom",
-  2: "Cubicle Farm",
-  3: "Open Office",
-  4: "Team Lead",
-  5: "Manager Suite",
-  6: "Director Floor",
-  7: "VP Wing",
-  8: "C-Suite",
-  9: "Boardroom",
+  // Act 1: Individual Contributor
+  0: "Lobby", 1: "Mailroom", 2: "Cubicle Farm", 3: "Open Office", 4: "Team Lead",
+  5: "Manager Suite", 6: "Director Floor", 7: "VP Wing", 8: "C-Suite", 9: "Boardroom",
+  // Act 2: Management
+  10: "Conference Room", 11: "Budget Office", 12: "Reorg Zone", 13: "Politics Floor",
+  14: "Town Hall", 15: "Offsite Retreat", 16: "Headcount Review", 17: "War Room",
+  18: "Strategy Floor", 19: "Corner Office Antechamber",
+  // Act 3: Executive
+  20: "Executive Lounge", 21: "Investor Relations", 22: "M&A Floor", 23: "Crisis Management",
+  24: "Global HQ", 25: "Board Prep Room", 26: "Shareholder Gallery", 27: "Regulatory Tower",
+  28: "CEO Antechamber", 29: "The Trading Floor",
 };
 
 const FLOOR_FLAVOR: Record<number, string> = {
+  // Act 1
   0: "First day. No badge, no desk, no respect.",
   1: "You've survived orientation. Barely.",
   2: "The walls are short but the egos are tall.",
@@ -29,6 +29,34 @@ const FLOOR_FLAVOR: Record<number, string> = {
   7: "Corner offices. Glass walls. Everyone's watching.",
   8: "One floor to go. The elevator needs a key card.",
   9: "One seat left at the table.",
+  // Act 2
+  10: "Welcome to management. The rules are different here.",
+  11: "Every dollar has a gatekeeper. Every gatekeeper has an agenda.",
+  12: "The org chart changes weekly. Your enemies change daily.",
+  13: "It's not about what you know. It's about who you know.",
+  14: "The crowd is restless. Leadership is watching.",
+  15: "Mandatory fun. Maximum discomfort.",
+  16: "They're cutting headcount. Don't give them a reason.",
+  17: "Nobody agrees. Everyone blames you. Welcome to cross-functional.",
+  18: "They bill by the hour. You pay by the sanity.",
+  19: "One person stands between you and the executive floor.",
+  // Act 3
+  20: "The boardroom smells like leather and existential dread.",
+  21: "They're circling. They can smell weakness.",
+  22: "Due diligence is just a fancy word for 'we're looking for reasons to destroy you.'",
+  23: "The stock is dropping. The press is calling. Stay calm.",
+  24: "Everyone in this room is smiling. Nobody means it.",
+  25: "The truth is a weapon. In the right hands.",
+  26: "Everything has a price. Including your principles.",
+  27: "The investigation is formal. The consequences are real.",
+  28: "Your rival has the same dream. Only one of you wakes up.",
+  29: "Ring the bell. End the game. Begin the legacy.",
+};
+
+const ACT_NAMES: Record<number, string> = {
+  1: "INDIVIDUAL CONTRIBUTOR",
+  2: "MANAGEMENT",
+  3: "EXECUTIVE",
 };
 
 export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: Enemy; floor: number; player?: PlayerClass; onReady: () => void }) {
@@ -46,6 +74,19 @@ export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: E
       background: "#0D0D0D",
       cursor: "pointer",
     }} onClick={onReady}>
+      {/* Act header on act boundaries */}
+      {(floor === 0 || floor === 10 || floor === 20) && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 8, color: "#FFC107",
+          letterSpacing: 3, textAlign: "center",
+          opacity: show ? 1 : 0,
+          transition: "opacity 0.5s ease",
+          textShadow: "1px 1px 0 #E65100",
+        }}>
+          ACT {getAct(floor)}: {ACT_NAMES[getAct(floor)]}
+        </div>
+      )}
+
       {/* Progress ladder */}
       <div style={{
         display: "flex", alignItems: "center", gap: 3,

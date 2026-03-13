@@ -151,7 +151,16 @@ export interface DamagePopup {
   labelColor?: string;
 }
 
-export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent" | "routeChoice";
+export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent" | "routeChoice" | "promotion" | "actTransition";
+
+// ─── PROMOTIONS ─────────────────────────────────────────────
+
+export interface PromotionTier {
+  floor: number;
+  title: string;
+  statBoost?: { maxHp?: number; atk?: number; def?: number };
+  moveUpgrades?: { fromName: string; to: Move }[];
+}
 
 export interface SaveData {
   classId: string;

@@ -1,4 +1,13 @@
-import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef } from "./types";
+import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef, PromotionTier, Move } from "./types";
+
+// ─── CONSTANTS ──────────────────────────────────────────────
+export const TOTAL_FLOORS = 30;
+
+export function getAct(floor: number): 1 | 2 | 3 {
+  if (floor < 10) return 1;
+  if (floor < 20) return 2;
+  return 3;
+}
 
 // ─── STATUS DEFINITIONS ─────────────────────────────────────
 export const STATUS_DEFS: Record<StatusId, StatusDef> = {
@@ -117,6 +126,62 @@ export const PLAYER_CLASSES: PlayerClass[] = [
     winTitle: "Chief Design Officer",
   },
 ];
+
+// ─── PROMOTION TRACKS ───────────────────────────────────────
+export const PROMOTION_TRACKS: Record<string, PromotionTier[]> = {
+  pm: [
+    { floor: 0, title: "Product Manager" },
+    { floor: 5, title: "Senior PM", statBoost: { maxHp: 10, atk: 2, def: 1 } },
+    { floor: 10, title: "Director of Product", statBoost: { maxHp: 15, atk: 2, def: 2 }, moveUpgrades: [{ fromName: "Prioritize Backlog", to: { name: "Strategic Roadmap", dmg: 24, type: "strategy", desc: "Sees three quarters ahead.", pp: 15, status: { id: "focused", target: "self", chance: 0.5 } } }] },
+    { floor: 15, title: "VP Product", statBoost: { maxHp: 15, atk: 3, def: 2 } },
+    { floor: 20, title: "SVP Product", statBoost: { maxHp: 20, atk: 3, def: 3 }, moveUpgrades: [{ fromName: "Ship MVP", to: { name: "Launch Platform", dmg: 36, type: "execution", desc: "Ship the whole ecosystem.", pp: 6, acc: 90, status: { id: "motivated", target: "self", chance: 0.4 } } }] },
+    { floor: 25, title: "Chief Product Officer", statBoost: { maxHp: 20, atk: 4, def: 3 } },
+  ],
+  eng: [
+    { floor: 0, title: "Senior Engineer" },
+    { floor: 5, title: "Staff Engineer", statBoost: { maxHp: 8, atk: 3, def: 1 } },
+    { floor: 10, title: "Engineering Manager", statBoost: { maxHp: 12, atk: 3, def: 2 }, moveUpgrades: [{ fromName: "Refactor Everything", to: { name: "Architecture Review", dmg: 28, type: "technical", desc: "Redesigns the entire system.", pp: 12, status: { id: "motivated", target: "self", chance: 0.5 } } }] },
+    { floor: 15, title: "VP Engineering", statBoost: { maxHp: 15, atk: 4, def: 2 } },
+    { floor: 20, title: "SVP Engineering", statBoost: { maxHp: 18, atk: 4, def: 3 }, moveUpgrades: [{ fromName: "Deploy to Prod", to: { name: "Ship to Scale", dmg: 38, type: "execution", desc: "Multi-region deploy. Zero downtime.", pp: 5, acc: 85, status: { id: "caffeinated", target: "self" } } }] },
+    { floor: 25, title: "Chief Technology Officer", statBoost: { maxHp: 20, atk: 5, def: 3 } },
+  ],
+  design: [
+    { floor: 0, title: "UX Designer" },
+    { floor: 5, title: "Senior Designer", statBoost: { maxHp: 8, atk: 2, def: 2 } },
+    { floor: 10, title: "Design Lead", statBoost: { maxHp: 12, atk: 2, def: 3 }, moveUpgrades: [{ fromName: "Pixel Perfect Punch", to: { name: "Design Critique", dmg: 26, type: "execution", desc: "Your feedback cuts deep.", pp: 15, status: { id: "focused", target: "self", chance: 0.4 } } }] },
+    { floor: 15, title: "VP Design", statBoost: { maxHp: 15, atk: 3, def: 3 } },
+    { floor: 20, title: "SVP Design", statBoost: { maxHp: 18, atk: 3, def: 4 }, moveUpgrades: [{ fromName: "Figma Tornado", to: { name: "Design System Overhaul", dmg: 34, type: "technical", desc: "Rebuilds the entire visual language.", pp: 8, acc: 90, status: { id: "motivated", target: "self", chance: 0.4 } } }] },
+    { floor: 25, title: "Chief Design Officer", statBoost: { maxHp: 20, atk: 4, def: 4 } },
+  ],
+};
+
+export function getPromotion(classId: string, floor: number): PromotionTier {
+  const track = PROMOTION_TRACKS[classId] || [];
+  return [...track].reverse().find(t => floor >= t.floor) || track[0];
+}
+
+export function getEffectivePlayer(base: PlayerClass, classId: string, currentFloor: number): PlayerClass {
+  const track = PROMOTION_TRACKS[classId] || [];
+  let maxHp = base.maxHp;
+  let atk = base.atk;
+  let def = base.def;
+  let moves = [...base.moves];
+  for (const tier of track) {
+    if (currentFloor < tier.floor) break;
+    if (tier.statBoost) {
+      maxHp += tier.statBoost.maxHp || 0;
+      atk += tier.statBoost.atk || 0;
+      def += tier.statBoost.def || 0;
+    }
+    if (tier.moveUpgrades) {
+      for (const up of tier.moveUpgrades) {
+        const idx = moves.findIndex(m => m.name === up.fromName);
+        if (idx >= 0) moves[idx] = up.to;
+      }
+    }
+  }
+  return { ...base, maxHp, atk, def, moves };
+}
 
 // ─── ENEMIES ─────────────────────────────────────────────────
 export const ENEMIES: Enemy[] = [
@@ -533,8 +598,296 @@ export const ENEMY_POOLS: Enemy[][] = [
       taunt: "I'm going to need that in writing. Notarized.",
     },
   ],
-  // Floor 10: The Founder (fixed — final boss with phase 2)
+  // Floor 10: The Founder (Act 1 boss with phase 2)
   [ENEMIES[9]],
+
+  // ═══ ACT 2: MANAGEMENT (Floors 11-20, 0-indexed 10-19) ═══
+
+  // Floor 11
+  [{
+    floor: 11, name: "The Reorg Survivor", emoji: "🔄", spriteId: "manager", maxHp: 260, atk: 22, def: 17, types: ["strategy", "influence"] as MoveType[],
+    moves: [
+      { name: "Pivot Punch", dmg: 22, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
+      { name: "Org Chart Shuffle", dmg: 18, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Survival Instinct", dmg: 14, type: "strategy" as MoveType, heal: 18, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"I've survived six reorgs. I can't survive you.\"",
+    title: "THE REORG SURVIVOR",
+    taunt: "I've been here longer than the mission statement.",
+  }],
+  // Floor 12
+  [{
+    floor: 12, name: "The Budget Gatekeeper", emoji: "🔒", spriteId: "vp", maxHp: 275, atk: 23, def: 18, types: ["analytics", "strategy"] as MoveType[],
+    moves: [
+      { name: "Budget Denied", dmg: 24, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Fiscal Audit", dmg: 18, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Cost Optimization", dmg: 12, type: "analytics" as MoveType, heal: 16 },
+    ],
+    defeat: "\"Fine. I'll approve the line item. This once.\"",
+    title: "THE BUDGET GATEKEEPER",
+    taunt: "Where's the ROI on you, exactly?",
+  }],
+  // Floor 13
+  [{
+    floor: 13, name: "The Skip-Level Politician", emoji: "🪜", spriteId: "vp", maxHp: 290, atk: 24, def: 18, types: ["influence", "strategy"] as MoveType[],
+    moves: [
+      { name: "Go Over Your Head", dmg: 26, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Political Maneuver", dmg: 20, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.4 } },
+      { name: "Alliance Building", dmg: 14, type: "influence" as MoveType, heal: 16, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"I suppose going over YOUR head won't work either.\"",
+    title: "THE SKIP-LEVEL POLITICIAN",
+    taunt: "I already talked to your boss's boss about this.",
+  }],
+  // Floor 14
+  [{
+    floor: 14, name: "The OKR Fanatic", emoji: "📊", spriteId: "scrum", maxHp: 300, atk: 25, def: 19, types: ["analytics", "execution"] as MoveType[],
+    moves: [
+      { name: "KR Interrogation", dmg: 22, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Alignment Check", dmg: 26, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+      { name: "Metric Mastery", dmg: 16, type: "analytics" as MoveType, heal: 14, status: { id: "focused", target: "self" } },
+    ],
+    defeat: "\"My key results... they're all red...\"",
+    title: "THE OKR FANATIC",
+    taunt: "If it's not measurable, it doesn't exist.",
+  }],
+  // Floor 15
+  [{
+    floor: 15, name: "The Town Hall Heckler", emoji: "📢", spriteId: "overachiever", maxHp: 315, atk: 26, def: 20, types: ["influence", "execution"] as MoveType[],
+    moves: [
+      { name: "Public Callout", dmg: 28, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Disruptive Question", dmg: 22, type: "execution" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.4 } },
+      { name: "Crowd Energy", dmg: 16, type: "influence" as MoveType, heal: 16, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"Okay fine, I'll hold my questions until the end.\"",
+    title: "THE TOWN HALL HECKLER",
+    taunt: "Quick question that's actually a 10-minute speech.",
+  }],
+  // Floor 16
+  [{
+    floor: 16, name: "The Offsite Facilitator", emoji: "🏕️", spriteId: "recruiter", maxHp: 330, atk: 27, def: 21, types: ["influence", "strategy"] as MoveType[],
+    moves: [
+      { name: "Trust Fall Attack", dmg: 24, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+      { name: "Breakout Session Blast", dmg: 28, type: "strategy" as MoveType },
+      { name: "Team Building Exercise", dmg: 14, type: "influence" as MoveType, heal: 18, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"The real deliverable was the friends we made along the way.\"",
+    title: "THE OFFSITE FACILITATOR",
+    taunt: "Everyone find a partner. We're doing improv.",
+  }],
+  // Floor 17
+  [{
+    floor: 17, name: "The Headcount Freeze", emoji: "🧊", spriteId: "manager", maxHp: 345, atk: 28, def: 22, types: ["strategy", "analytics"] as MoveType[],
+    moves: [
+      { name: "Hiring Freeze", dmg: 26, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+      { name: "Attrition Wave", dmg: 30, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
+      { name: "Backfill Denial", dmg: 18, type: "strategy" as MoveType, heal: 16 },
+    ],
+    defeat: "\"Fine. You can have ONE headcount. Junior level.\"",
+    title: "THE HEADCOUNT FREEZE",
+    taunt: "Do more with less. That's not a suggestion.",
+  }],
+  // Floor 18
+  [{
+    floor: 18, name: "The Cross-Functional Blocker", emoji: "🚧", spriteId: "scrum", maxHp: 360, atk: 29, def: 23, types: ["strategy", "execution"] as MoveType[],
+    moves: [
+      { name: "Scope Expansion", dmg: 28, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+      { name: "Dependency Lock", dmg: 24, type: "execution" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "RACI Confusion", dmg: 32, type: "strategy" as MoveType, acc: 85 },
+      { name: "Process Shield", dmg: 14, type: "execution" as MoveType, heal: 18, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"I was just following the process...\"",
+    title: "THE CROSS-FUNCTIONAL BLOCKER",
+    taunt: "That's not in our team's charter. File a request.",
+  }],
+  // Floor 19
+  [{
+    floor: 19, name: "The Strategy Consultant", emoji: "💎", spriteId: "vp", maxHp: 380, atk: 30, def: 23, types: ["analytics", "strategy"] as MoveType[],
+    moves: [
+      { name: "Framework Overload", dmg: 30, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.5 } },
+      { name: "2x2 Matrix", dmg: 26, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
+      { name: "Engagement Extension", dmg: 18, type: "analytics" as MoveType, heal: 20, status: { id: "motivated", target: "self" } },
+      { name: "McKinsey Slide", dmg: 36, type: "strategy" as MoveType, acc: 80 },
+    ],
+    defeat: "\"Per our analysis, I was wrong. Invoice still applies.\"",
+    title: "THE STRATEGY CONSULTANT",
+    taunt: "We've prepared a 200-slide deck. Let's begin.",
+  }],
+  // Floor 20: Act 2 boss (Chief of Staff) — with phase2
+  [{
+    floor: 20, name: "The Chief of Staff", emoji: "🗝️", spriteId: "boss", maxHp: 400, atk: 32, def: 24, types: ["strategy", "influence"] as MoveType[],
+    moves: [
+      { name: "Executive Agenda", dmg: 28, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Information Gatekeep", dmg: 24, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Calendar Control", dmg: 20, type: "strategy" as MoveType, heal: 22, status: { id: "motivated", target: "self" } },
+      { name: "Boardroom Whisper", dmg: 36, type: "influence" as MoveType, acc: 85, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+    ],
+    defeat: "\"You've earned your seat. The CEO will see you now.\"",
+    title: "THE CHIEF OF STAFF",
+    taunt: "Nobody gets to the top without going through me.",
+    phase2: {
+      name: "The Chief of Staff (Unleashed)",
+      emoji: "⚡",
+      maxHp: 180,
+      atk: 34,
+      def: 20,
+      types: ["strategy", "influence", "execution"] as MoveType[],
+      moves: [
+        { name: "Full Authority", dmg: 32, type: "strategy" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+        { name: "Executive Override", dmg: 28, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+        { name: "Power Consolidation", dmg: 20, type: "influence" as MoveType, heal: 24 },
+        { name: "Kill the Initiative", dmg: 42, type: "strategy" as MoveType, acc: 80 },
+      ],
+      taunt: "Gloves off. I didn't get here by being nice.",
+    } as EnemyPhase2,
+  }],
+
+  // ═══ ACT 3: EXECUTIVE (Floors 21-30, 0-indexed 20-29) ═══
+
+  // Floor 21
+  [{
+    floor: 21, name: "The Activist Investor", emoji: "📈", spriteId: "boss", maxHp: 420, atk: 34, def: 25, types: ["analytics", "influence"] as MoveType[],
+    moves: [
+      { name: "Shareholder Letter", dmg: 30, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Proxy Fight", dmg: 34, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy", chance: 0.4 } },
+      { name: "Short Position", dmg: 20, type: "analytics" as MoveType, heal: 20, status: { id: "motivated", target: "self" } },
+    ],
+    defeat: "\"Fine. I'll liquidate my position. You win this round.\"",
+    title: "THE ACTIVIST INVESTOR",
+    taunt: "Your margins are a joke. I bought 12% of this company.",
+  }],
+  // Floor 22
+  [{
+    floor: 22, name: "The M&A Shark", emoji: "🦈", spriteId: "boss", maxHp: 435, atk: 35, def: 26, types: ["strategy", "execution"] as MoveType[],
+    moves: [
+      { name: "Hostile Bid", dmg: 34, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Due Diligence Strike", dmg: 28, type: "execution" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Poison Pill", dmg: 18, type: "strategy" as MoveType, heal: 22 },
+      { name: "Leveraged Buyout", dmg: 40, type: "execution" as MoveType, acc: 80 },
+    ],
+    defeat: "\"The deal is dead. You've earned my respect.\"",
+    title: "THE M&A SHARK",
+    taunt: "I'm not here to negotiate. I'm here to acquire.",
+  }],
+  // Floor 23
+  [{
+    floor: 23, name: "The Regulatory Auditor", emoji: "⚖️", spriteId: "manager", maxHp: 450, atk: 34, def: 28, types: ["analytics", "strategy"] as MoveType[],
+    moves: [
+      { name: "Compliance Trap", dmg: 28, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Audit Finding", dmg: 32, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Remediation Plan", dmg: 18, type: "analytics" as MoveType, heal: 22, status: { id: "motivated", target: "self" } },
+      { name: "Cease and Desist", dmg: 38, type: "strategy" as MoveType, acc: 85, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+    ],
+    defeat: "\"No further findings. You're... clean.\"",
+    title: "THE REGULATORY AUDITOR",
+    taunt: "Section 14(a), subsection 3. You're in violation.",
+  }],
+  // Floor 24
+  [{
+    floor: 24, name: "The PR Crisis", emoji: "🔥", spriteId: "recruiter", maxHp: 465, atk: 36, def: 27, types: ["influence", "execution"] as MoveType[],
+    moves: [
+      { name: "Viral Scandal", dmg: 34, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } },
+      { name: "Media Frenzy", dmg: 30, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+      { name: "Crisis Comms", dmg: 18, type: "influence" as MoveType, heal: 22 },
+      { name: "Reputation Nuke", dmg: 42, type: "execution" as MoveType, acc: 80 },
+    ],
+    defeat: "\"The news cycle moves on. You survived the headlines.\"",
+    title: "THE PR CRISIS",
+    taunt: "Trending #1. And not in the good way.",
+  }],
+  // Floor 25
+  [{
+    floor: 25, name: "The Board Observer", emoji: "👁️", spriteId: "boss", maxHp: 480, atk: 37, def: 29, types: ["analytics", "influence"] as MoveType[],
+    moves: [
+      { name: "Silent Judgment", dmg: 30, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Written Dissent", dmg: 34, type: "influence" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Abstain", dmg: 12, type: "analytics" as MoveType, heal: 26, status: { id: "motivated", target: "self" } },
+      { name: "No-Confidence Vote", dmg: 44, type: "influence" as MoveType, acc: 80, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+    ],
+    defeat: "\"I've seen enough. You have my vote.\"",
+    title: "THE BOARD OBSERVER",
+    taunt: "Don't mind me. I'm just... observing.",
+  }],
+  // Floor 26
+  [{
+    floor: 26, name: "The Whistleblower", emoji: "📣", spriteId: "overachiever", maxHp: 500, atk: 38, def: 28, types: ["execution", "technical"] as MoveType[],
+    moves: [
+      { name: "Leak to Press", dmg: 36, type: "execution" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Evidence Drop", dmg: 32, type: "technical" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Moral High Ground", dmg: 20, type: "execution" as MoveType, heal: 24, status: { id: "motivated", target: "self" } },
+      { name: "Full Exposure", dmg: 46, type: "technical" as MoveType, acc: 75 },
+    ],
+    defeat: "\"The truth is out. I've done my part.\"",
+    title: "THE WHISTLEBLOWER",
+    taunt: "I know what you did last fiscal quarter.",
+  }],
+  // Floor 27
+  [{
+    floor: 27, name: "The PE Partner", emoji: "🏦", spriteId: "boss", maxHp: 520, atk: 39, def: 30, types: ["strategy", "analytics"] as MoveType[],
+    moves: [
+      { name: "Strip and Flip", dmg: 36, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+      { name: "Debt Load", dmg: 34, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.4 } },
+      { name: "Portfolio Synergy", dmg: 20, type: "strategy" as MoveType, heal: 24, status: { id: "motivated", target: "self" } },
+      { name: "Exit Multiple", dmg: 48, type: "analytics" as MoveType, acc: 75 },
+    ],
+    defeat: "\"You're not for sale. Noted.\"",
+    title: "THE PE PARTNER",
+    taunt: "Everything has a price. Let's find yours.",
+  }],
+  // Floor 28
+  [{
+    floor: 28, name: "The SEC Investigator", emoji: "🔍", spriteId: "manager", maxHp: 540, atk: 40, def: 31, types: ["analytics", "strategy"] as MoveType[],
+    moves: [
+      { name: "Subpoena Storm", dmg: 36, type: "analytics" as MoveType, status: { id: "micromanaged", target: "enemy" } },
+      { name: "Formal Inquiry", dmg: 34, type: "strategy" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Plea Bargain", dmg: 20, type: "analytics" as MoveType, heal: 24 },
+      { name: "Federal Indictment", dmg: 50, type: "strategy" as MoveType, acc: 75, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+    ],
+    defeat: "\"Case closed. You're free to go.\"",
+    title: "THE SEC INVESTIGATOR",
+    taunt: "We've been watching you for a long time.",
+  }],
+  // Floor 29
+  [{
+    floor: 29, name: "The Rival CEO", emoji: "⚔️", spriteId: "boss", maxHp: 560, atk: 42, def: 32, types: ["strategy", "influence", "execution"] as MoveType[],
+    moves: [
+      { name: "Talent Poaching", dmg: 36, type: "influence" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Market Disruption", dmg: 40, type: "execution" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.4 } },
+      { name: "Strategic Alliance", dmg: 22, type: "strategy" as MoveType, heal: 26, status: { id: "motivated", target: "self" } },
+      { name: "Corporate Espionage", dmg: 50, type: "strategy" as MoveType, acc: 80 },
+    ],
+    defeat: "\"Well played. See you at the next earnings call.\"",
+    title: "THE RIVAL CEO",
+    taunt: "Your company? I'll be buying it by Q4.",
+  }],
+  // Floor 30: The IPO (Final Boss) — with phase2
+  [{
+    floor: 30, name: "The IPO", emoji: "🔔", spriteId: "boss", maxHp: 600, atk: 44, def: 34, types: ["strategy", "influence", "execution"] as MoveType[],
+    moves: [
+      { name: "Roadshow Pressure", dmg: 38, type: "influence" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+      { name: "Valuation Crush", dmg: 42, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.5 } },
+      { name: "Quiet Period", dmg: 22, type: "strategy" as MoveType, heal: 28, status: { id: "motivated", target: "self" } },
+      { name: "Price the Offering", dmg: 52, type: "strategy" as MoveType, acc: 80 },
+    ],
+    defeat: "The bell rings. The stock soars. It's yours.",
+    title: "THE IPO",
+    taunt: "The market doesn't care about your feelings.",
+    phase2: {
+      name: "The Market Correction",
+      emoji: "📉",
+      maxHp: 280,
+      atk: 46,
+      def: 28,
+      types: ["analytics", "strategy", "execution"] as MoveType[],
+      moves: [
+        { name: "Bear Market", dmg: 40, type: "analytics" as MoveType, status: { id: "demoralized", target: "enemy", chance: 0.6 } },
+        { name: "Margin Call", dmg: 36, type: "strategy" as MoveType, status: { id: "burned_out", target: "enemy", chance: 0.5 } },
+        { name: "Dead Cat Bounce", dmg: 24, type: "execution" as MoveType, heal: 30 },
+        { name: "Flash Crash", dmg: 58, type: "analytics" as MoveType, acc: 75 },
+      ],
+      taunt: "The market corrects. Can you?",
+    } as EnemyPhase2,
+  }],
 ];
 
 /** Pick a random enemy for each floor. Returns array of enemy IDs (name used as key). */

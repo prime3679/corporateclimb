@@ -1,7 +1,9 @@
 const DEFEAT_FLAVOR: [number, number, string][] = [
-  [1, 3, "HR sends a polite rejection email. Better luck next quarter."],
-  [4, 6, "Your badge stops working on Monday. So close to management."],
-  [7, 10, "Security escorts you out. You could see the corner office from here."],
+  [1, 5, "HR sends a polite rejection email. Better luck next quarter."],
+  [6, 10, "Your badge stops working on Monday. So close to management."],
+  [11, 15, "Security escorts you out. You could see the corner office from here."],
+  [16, 20, "The board sends a form letter. Your parking spot is already reassigned."],
+  [21, 30, "Your resignation makes the front page. At least they spelled your name right."],
 ];
 
 function getDefeatText(floor: number): string {

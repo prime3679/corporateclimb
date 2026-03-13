@@ -79,12 +79,17 @@ export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNg
         textAlign: "center", lineHeight: 1.8,
         textShadow: "2px 2px 0 rgba(255,255,255,0.5)",
       }}>
-        {player.winTitle ? (
-          <>{player.winTitle}</>
-        ) : (
-          <>YOU CLIMBED THE<br />CORPORATE LADDER!</>
-        )}
+        YOU CLIMBED THE<br />CORPORATE LADDER!
       </div>
+      {player.winTitle && (
+        <div style={{
+          fontFamily: "'Press Start 2P'", fontSize: 10, color: "#E65100",
+          textAlign: "center",
+          textShadow: "1px 1px 0 rgba(255,255,255,0.3)",
+        }}>
+          {player.winTitle}
+        </div>
+      )}
       {player.winText && (
         <div style={{
           fontFamily: "'Press Start 2P'", fontSize: 8, color: "#4E342E",

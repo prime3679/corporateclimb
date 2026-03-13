@@ -7,3 +7,5 @@ export { default as WinScreen } from "./WinScreen";
 export { default as HallwayEventScreen } from "./HallwayEventScreen";
 export { default as FloorIntro } from "./FloorIntro";
 export { default as RouteChoice } from "./RouteChoice";
+export { default as PromotionScreen } from "./PromotionScreen";
+export { default as ActTransitionScreen } from "./ActTransitionScreen";

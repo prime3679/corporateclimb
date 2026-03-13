@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { PlayerClass, Enemy, AnimState, DamagePopup, StatusInstance, Move, ItemId } from "../types";
-import { TYPE_COLORS, TYPE_LABELS, ITEMS } from "../data";
+import { TYPE_COLORS, TYPE_LABELS, ITEMS, TOTAL_FLOORS, getAct } from "../data";
 import PixelSprite from "../components/PixelSprite";
 import HpBar from "../components/HpBar";
 import StatusBadges from "../components/StatusBadges";
@@ -14,6 +14,7 @@ export default function BattleScreen({
   playerAnim, enemyAnim, damagePopups, screenShake, moveTypeColor,
   playerStatuses, enemyStatuses, activeMoves,
   inventory, battleMode, onSetBattleMode,
+  promotionTitle, playerMaxHp,
 }: {
   player: PlayerClass;
   enemy: Enemy;
@@ -39,19 +40,40 @@ export default function BattleScreen({
   inventory: ItemId[];
   battleMode: "fight" | "items";
   onSetBattleMode: (mode: "fight" | "items") => void;
+  promotionTitle?: string;
+  playerMaxHp: number;
 }) {
-  const isDark = floor >= 6;
-  const fi = Math.min(floor - 1, 5);
-  const totalFloors = 10;
+  const act = getAct(floor);
+  const isDark = act >= 2;
+  const totalFloors = TOTAL_FLOORS;
 
-  const scenes = [
-    { wall: "#E8E0D0", wallBot: "#D8D0B8", floor: "#C8B898", floorDk: "#B0A080", accent: "#90A4AE" },
-    { wall: "#D6E8F0", wallBot: "#B8D4E8", floor: "#90A4AE", floorDk: "#78909C", accent: "#1565C0" },
-    { wall: "#F5E8D0", wallBot: "#E8D8B8", floor: "#A08060", floorDk: "#886848", accent: "#F9A825" },
-    { wall: "#D8D8D8", wallBot: "#C0C0C0", floor: "#909090", floorDk: "#787878", accent: "#607D8B" },
-    { wall: "#D8C8F0", wallBot: "#C0A8E0", floor: "#8860C0", floorDk: "#6840A0", accent: "#FFD54F" },
-    { wall: "#181828", wallBot: "#101020", floor: "#201018", floorDk: "#100810", accent: "#FFD700" },
-  ];
+  // Act 1: warm office, Act 2: cool corporate, Act 3: dark executive
+  type ScenePalette = { wall: string; wallBot: string; floor: string; floorDk: string; accent: string };
+  const actScenes: Record<number, ScenePalette[]> = {
+    1: [
+      { wall: "#E8E0D0", wallBot: "#D8D0B8", floor: "#C8B898", floorDk: "#B0A080", accent: "#90A4AE" },
+      { wall: "#D6E8F0", wallBot: "#B8D4E8", floor: "#90A4AE", floorDk: "#78909C", accent: "#1565C0" },
+      { wall: "#F5E8D0", wallBot: "#E8D8B8", floor: "#A08060", floorDk: "#886848", accent: "#F9A825" },
+      { wall: "#D8D8D8", wallBot: "#C0C0C0", floor: "#909090", floorDk: "#787878", accent: "#607D8B" },
+      { wall: "#D8C8F0", wallBot: "#C0A8E0", floor: "#8860C0", floorDk: "#6840A0", accent: "#FFD54F" },
+    ],
+    2: [
+      { wall: "#C8D8E8", wallBot: "#A8C0D8", floor: "#6080A0", floorDk: "#486888", accent: "#78909C" },
+      { wall: "#B8C8D8", wallBot: "#98B0C8", floor: "#507090", floorDk: "#385870", accent: "#607D8B" },
+      { wall: "#A8B8C8", wallBot: "#8898B0", floor: "#405870", floorDk: "#304058", accent: "#546E7A" },
+      { wall: "#98A8B8", wallBot: "#7888A0", floor: "#384860", floorDk: "#283848", accent: "#455A64" },
+      { wall: "#202838", wallBot: "#182030", floor: "#281828", floorDk: "#181020", accent: "#B8860B" },
+    ],
+    3: [
+      { wall: "#282030", wallBot: "#201828", floor: "#181020", floorDk: "#100810", accent: "#B8860B" },
+      { wall: "#201828", wallBot: "#181020", floor: "#140C18", floorDk: "#0C0810", accent: "#DAA520" },
+      { wall: "#1C1424", wallBot: "#140C1C", floor: "#100814", floorDk: "#08040C", accent: "#FFD700" },
+      { wall: "#181020", wallBot: "#100818", floor: "#0C0410", floorDk: "#080008", accent: "#FFD700" },
+      { wall: "#100818", wallBot: "#080410", floor: "#06020C", floorDk: "#040006", accent: "#FFD700" },
+    ],
+  };
+  const scenes = actScenes[act] || actScenes[1];
+  const fi = Math.min((floor % 10), scenes.length - 1);
   const sc = scenes[fi];
 
   return (
@@ -64,7 +86,7 @@ export default function BattleScreen({
         overflow: "hidden",
       }}
     >
-      {fi < 5 && (
+      {act === 1 && (
         <>
           <div style={{ position: "absolute", top: "54%", left: 0, right: 0, height: 4, background: sc.accent, opacity: 0.4, zIndex: 1 }} />
           {[60, 70, 82].map((pct, i) => (
@@ -72,7 +94,15 @@ export default function BattleScreen({
           ))}
         </>
       )}
-      {fi === 5 && (
+      {act === 2 && (
+        <>
+          <div style={{ position: "absolute", top: "53%", left: 0, right: 0, height: 4, background: sc.accent, opacity: 0.5, zIndex: 1 }} />
+          {[62, 74].map((pct, i) => (
+            <div key={i} style={{ position: "absolute", top: `${pct}%`, left: 0, right: 0, height: 1, background: sc.floorDk, opacity: 0.15, zIndex: 1 }} />
+          ))}
+        </>
+      )}
+      {act === 3 && (
         <>
           <div style={{ position: "absolute", top: "53%", left: 0, right: 0, height: 5, background: "linear-gradient(90deg, #B8860B, #FFD700, #B8860B)", opacity: 0.6, zIndex: 1 }} />
           <div style={{ position: "absolute", top: "55%", bottom: 0, left: "35%", right: "35%", background: "linear-gradient(180deg, #8B0000 0%, #B71C1C 100%)", opacity: 0.3, zIndex: 1 }} />
@@ -125,7 +155,7 @@ export default function BattleScreen({
           <PixelSprite spriteId={player.spriteId} size={180} animState={playerAnim} />
         </div>
         <div style={{ position: "absolute", bottom: 6, right: 8, zIndex: 4 }}>
-          <HpBar current={playerHp} max={player.maxHp} label={player.name.toUpperCase()} />
+          <HpBar current={playerHp} max={playerMaxHp} label={(promotionTitle || player.name).toUpperCase()} />
           <StatusBadges statuses={playerStatuses} />
           <div style={{ marginTop: 2 }}>
             <XpBar xp={xp} xpToNext={xpToNext} level={level} />

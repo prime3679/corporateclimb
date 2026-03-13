@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { SFX } from "./sfx";
 import { Music } from "./music";
 import { buildSpriteUrls } from "./sprites";
-import type { Screen, AnimState, DamagePopup, StatusInstance, StatusEffectOnMove, PlayerClass, Move, ItemId } from "./types";
+import type { Screen, AnimState, DamagePopup, StatusInstance, StatusEffectOnMove, PlayerClass, Move, ItemId, PromotionTier } from "./types";
 import {
   STATUS_DEFS, TYPE_COLORS, PLAYER_CLASSES, ENEMIES, HALLWAY_EVENTS, FONT_URL, ITEMS,
   CLASS_STARTING_ITEMS, ALL_ITEM_IDS, ENEMY_POOLS, ACHIEVEMENTS,
@@ -10,8 +10,11 @@ import {
   rollFloorEnemies, getFloorEnemy,
   scaleEnemyForNgPlus, getBestNgPlus, saveBestNgPlus,
   checkAchievements, getUnlockedAchievements,
+  getPromotion, getEffectivePlayer, getAct,
 } from "./data";
 import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro, RouteChoice } from "./screens";
+import PromotionScreen from "./screens/PromotionScreen";
+import ActTransitionScreen from "./screens/ActTransitionScreen";
 
 // ─── STRUGGLE MOVE (fallback when all PP depleted) ──────────
 const STRUGGLE_MOVE: Move = {
@@ -115,6 +118,11 @@ export default function CorporateClimb() {
   // Battle sub-mode: "fight" or "items"
   const [battleMode, setBattleMode] = useState<"fight" | "items">("fight");
 
+  // Promotion / act transition state
+  const [pendingPromotion, setPendingPromotion] = useState<{ old: PromotionTier; new: PromotionTier } | null>(null);
+  const [pendingActTransition, setPendingActTransition] = useState<number | null>(null);
+  const [nextFloorAfterScreens, setNextFloorAfterScreens] = useState<number | null>(null);
+
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
     Music.setMuted(muted);
@@ -129,7 +137,7 @@ export default function CorporateClimb() {
         Music.playTitle();
         break;
       case "battle":
-        if (floor >= 5) Music.playBoss();
+        if (floor % 10 >= 8) Music.playBoss();
         else Music.playBattle();
         break;
       case "hallwayEvent":
@@ -163,16 +171,20 @@ export default function CorporateClimb() {
     moves: scaledEnemy.phase2.moves,
   } : scaledEnemy;
 
+  // Derive effective player with promotion boosts
+  const effectivePlayer = player ? getEffectivePlayer(player, player.id, floor) : null;
+  const promotionTier = player ? getPromotion(player.id, floor) : null;
+
   // Ref to avoid stale closures
-  const gsRef = useRef({ player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase });
-  gsRef.current = { player, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase };
+  const gsRef = useRef({ player, effectivePlayer, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase });
+  gsRef.current = { player, effectivePlayer, playerHp, enemyHp, playerPp, level, atkBuff, defBuff, xp, xpToNext, floor, enemy, turn, playerStatuses, enemyStatuses, inventory, enemyPhase };
 
   // ─── Determine active moves (regular or Struggle) ─────────
   const allPpDepleted = player ? playerPp.every((pp) => pp <= 0) : false;
-  const activeMoves: Move[] = player
+  const activeMoves: Move[] = effectivePlayer
     ? allPpDepleted
       ? [STRUGGLE_MOVE]
-      : player.moves
+      : effectivePlayer.moves
     : [];
 
   const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
@@ -279,7 +291,7 @@ export default function CorporateClimb() {
     if (item.effect.hp) {
       const healAmt = Math.min(item.effect.hp, gs.player.maxHp - gs.playerHp);
       if (healAmt > 0) {
-        setPlayerHp((hp) => Math.min(gs.player!.maxHp, hp + healAmt));
+        setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt));
         addDamagePopup(healAmt, false, false, true);
         logMsg += ` Restored ${healAmt} HP!`;
       }
@@ -337,7 +349,7 @@ export default function CorporateClimb() {
       if (moves.length <= 1) return moves[0];
 
       const eHpPct = gs.enemyHp / gs.enemy.maxHp;
-      const pHpPct = gs.playerHp / gs.player!.maxHp;
+      const pHpPct = gs.playerHp / (gs.effectivePlayer || gs.player!).maxHp;
 
       if (eHpPct < 0.35) {
         const healMove = moves.find(m => m.heal && m.heal > 0);
@@ -376,7 +388,7 @@ export default function CorporateClimb() {
       const playerDefMod = getStatusDefMod(gs.playerStatuses);
       const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses);
       const eTypeResult = getTypeMultiplier(eMove.type || "normal", gs.player!.types);
-      const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, gs.player!.def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus, eTypeResult.mult);
+      const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, (gs.effectivePlayer || gs.player!).def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus, eTypeResult.mult);
 
       let eLog = `${gs.enemy.name} used ${eMove.name}! ${eDmg} damage!`;
       if (eCrit) eLog += " Critical hit!";
@@ -497,7 +509,7 @@ export default function CorporateClimb() {
     setDamagePopups([]);
     setPlayerStatuses([]);
     setEnemyStatuses([]);
-    if (floor >= 5) SFX.bossIntro();
+    if (floor % 10 >= 8) SFX.bossIntro();
     else SFX.enemyAppear();
     setScreen("battle");
   };
@@ -538,7 +550,8 @@ export default function CorporateClimb() {
     if (eff.atk) setAtkBuff((b) => b + eff.atk!);
     if (eff.def) setDefBuff((b) => b + eff.def!);
     if (eff.ppRestore) {
-      setPlayerPp((pp) => pp.map((v, i) => Math.min(player.moves[i].pp, v + eff.ppRestore!)));
+      const moves = effectivePlayer?.moves || player.moves;
+      setPlayerPp((pp) => pp.map((v, i) => Math.min(moves[i].pp, v + eff.ppRestore!)));
     }
 
     // Item reward from events (30% chance, if inventory not full)
@@ -570,7 +583,7 @@ export default function CorporateClimb() {
     setTotalTurns((t) => t + 1);
 
     const isStruggling = gs.playerPp.every((pp) => pp <= 0);
-    const move = isStruggling ? STRUGGLE_MOVE : gs.player.moves[moveIdx];
+    const move = isStruggling ? STRUGGLE_MOVE : (gs.effectivePlayer || gs.player).moves[moveIdx];
 
     if (!isStruggling) {
       const newPp = [...gs.playerPp];
@@ -604,7 +617,7 @@ export default function CorporateClimb() {
       const perkDmgMult = gs.player!.id === "eng" ? 1.15 : 1;
       const perkCritBonus = gs.player!.id === "design" ? 0.15 : 0;
       const typeResult = getTypeMultiplier(move.type, gs.enemy.types);
-      const [rawDmg, isCrit] = calcDamage(gs.player!.atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus + perkCritBonus, typeResult.mult);
+      const [rawDmg, isCrit] = calcDamage((gs.effectivePlayer || gs.player!).atk + gs.level * 2 + gs.atkBuff + playerAtkMod, gs.enemy.def + enemyDefMod, move.dmg, playerCritBonus + perkCritBonus, typeResult.mult);
       const dmg = Math.round(rawDmg * perkDmgMult);
       const newEnemyHp = Math.max(0, gs.enemyHp - dmg);
       setEnemyHp(newEnemyHp);
@@ -638,8 +651,8 @@ export default function CorporateClimb() {
       }
 
       if (move.heal) {
-        const healAmt = Math.min(move.heal + gs.level, gs.player!.maxHp - gs.playerHp);
-        setPlayerHp((hp) => Math.min(gs.player!.maxHp, hp + healAmt));
+        const healAmt = Math.min(move.heal + gs.level, (gs.effectivePlayer || gs.player!).maxHp - gs.playerHp);
+        setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt));
         if (healAmt > 0) {
           logMsg += ` Recovered ${healAmt} HP!`;
           addDamagePopup(healAmt, false, false, true);
@@ -678,7 +691,7 @@ export default function CorporateClimb() {
 
       if (newEnemyHp <= 0) {
         setTimeout(() => { setEnemyAnim("faint"); SFX.faint(); }, 500);
-        const gained = 15 + gs.floor * 10;
+        const gained = 15 + gs.floor * 7;
         const newXp = gs.xp + gained;
         const didLevel = newXp >= gs.xpToNext;
         setXpGained(gained);
@@ -689,8 +702,8 @@ export default function CorporateClimb() {
           if (didLevel) {
             setLevel((l) => l + 1);
             setXp(newXp - gs.xpToNext);
-            setXpToNext((x) => x + 20);
-            setPlayerHp((hp) => Math.min(gs.player!.maxHp + 10, hp + 20));
+            setXpToNext((x) => x + 25);
+            setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp + 10, hp + 20));
             setTimeout(() => SFX.levelUp(), 600);
           } else {
             setXp(newXp);
@@ -719,16 +732,21 @@ export default function CorporateClimb() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [doEnemyTurn, ngPlus, floorEnemyIds]);
 
+  const proceedToRouteChoice = () => {
+    const options = pickTwoEvents();
+    setRouteOptions(options);
+    setScreen("routeChoice");
+  };
+
   const handleVictoryContinue = () => {
     SFX.menuConfirm();
-    // PM perk: heal 5 HP after each battle
-    if (player?.id === "pm") {
-      setPlayerHp((hp) => Math.min(player.maxHp, hp + 5));
+    // PM perk: heal 5 HP after each battle (use effective maxHp)
+    if (player?.id === "pm" && effectivePlayer) {
+      setPlayerHp((hp) => Math.min(effectivePlayer.maxHp, hp + 5));
     }
     if (floor >= ENEMY_POOLS.length - 1) {
       clearSave();
       saveBestNgPlus(ngPlus);
-      // Check achievements on win
       const unlocked = checkAchievements({
         classId: player?.id || "",
         totalTurns,
@@ -755,10 +773,52 @@ export default function CorporateClimb() {
           totalDamageDealt,
         });
       }
-      const options = pickTwoEvents();
-      setRouteOptions(options);
-      setScreen("routeChoice");
+
+      // Check for promotion
+      const prevPromo = player ? getPromotion(player.id, floor) : null;
+      const nextPromo = player ? getPromotion(player.id, nextFloor) : null;
+      const hasPromotion = prevPromo && nextPromo && prevPromo.title !== nextPromo.title;
+
+      // Check for act transition
+      const prevAct = getAct(floor);
+      const nextAct = getAct(nextFloor);
+      const hasActTransition = prevAct !== nextAct;
+
+      if (hasPromotion || hasActTransition) {
+        setNextFloorAfterScreens(nextFloor);
+        if (hasPromotion && prevPromo && nextPromo) {
+          setPendingPromotion({ old: prevPromo, new: nextPromo });
+          if (hasActTransition) {
+            setPendingActTransition(nextAct);
+          }
+          SFX.fanfare();
+          setScreen("promotion");
+        } else if (hasActTransition) {
+          setPendingActTransition(nextAct);
+          setScreen("actTransition");
+        }
+      } else {
+        proceedToRouteChoice();
+      }
     }
+  };
+
+  const handlePromotionContinue = () => {
+    SFX.menuConfirm();
+    setPendingPromotion(null);
+    if (pendingActTransition) {
+      setScreen("actTransition");
+    } else {
+      setNextFloorAfterScreens(null);
+      proceedToRouteChoice();
+    }
+  };
+
+  const handleActTransitionContinue = () => {
+    SFX.menuConfirm();
+    setPendingActTransition(null);
+    setNextFloorAfterScreens(null);
+    proceedToRouteChoice();
   };
 
   const startNgPlus = () => {
@@ -925,16 +985,16 @@ export default function CorporateClimb() {
             event={currentEvent}
             onChoice={handleEventChoice}
             playerHp={playerHp}
-            playerMaxHp={player.maxHp}
+            playerMaxHp={effectivePlayer?.maxHp || player.maxHp}
           />
         )}
         {screen === "routeChoice" && routeOptions && (
           <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
         {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} player={player ?? undefined} onReady={startBattle} />}
-        {screen === "battle" && player && (
+        {screen === "battle" && player && effectivePlayer && (
           <BattleScreen
-            player={player}
+            player={effectivePlayer}
             enemy={enemy}
             playerHp={playerHp}
             enemyHp={enemyHp}
@@ -958,6 +1018,8 @@ export default function CorporateClimb() {
             inventory={inventory}
             battleMode={battleMode}
             onSetBattleMode={setBattleMode}
+            promotionTitle={promotionTier?.title}
+            playerMaxHp={effectivePlayer.maxHp}
           />
         )}
         {screen === "victory" && (
@@ -969,8 +1031,19 @@ export default function CorporateClimb() {
             onContinue={handleVictoryContinue}
           />
         )}
+        {screen === "promotion" && player && pendingPromotion && (
+          <PromotionScreen
+            player={player}
+            oldTier={pendingPromotion.old}
+            newTier={pendingPromotion.new}
+            onContinue={handlePromotionContinue}
+          />
+        )}
+        {screen === "actTransition" && pendingActTransition && (
+          <ActTransitionScreen act={pendingActTransition} onContinue={handleActTransitionContinue} />
+        )}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}
-        {screen === "win" && player && <WinScreen player={player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} newAchievements={newAchievements} allAchievements={ACHIEVEMENTS} unlockedAchievements={getUnlockedAchievements()} />}
+        {screen === "win" && player && <WinScreen player={effectivePlayer || player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} newAchievements={newAchievements} allAchievements={ACHIEVEMENTS} unlockedAchievements={getUnlockedAchievements()} />}
       </div>
     </div>
   );
