@@ -48,7 +48,8 @@ export default function PixelSprite({
             height: "auto",
             imageRendering: "auto",
             display: "block",
-            padding: "2%",
+            padding: "5%",
+            objectFit: "contain",
           }}
           draggable={false}
         />

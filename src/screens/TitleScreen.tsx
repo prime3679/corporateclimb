@@ -64,8 +64,8 @@ export default function TitleScreen({ onStart, onContinue }: { onStart: () => vo
         position: "relative", zIndex: 1, margin: "8px 0",
       }}>
         {["product_manager", "eng", "design"].map((id) => (
-          <div key={id} className="sprite-idle" style={{ width: 48, height: 48 }}>
-            <img src={sprites[id]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto" }} draggable={false} />
+          <div key={id} className="sprite-idle" style={{ width: 48, height: 56 }}>
+            <img src={sprites[id]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "5%", objectFit: "contain" }} draggable={false} />
           </div>
         ))}
       </div>
