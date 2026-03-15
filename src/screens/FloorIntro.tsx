@@ -190,7 +190,7 @@ export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: E
         transition: "opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s",
         transform: show ? "scale(1)" : "scale(0.5)",
       }}>
-        <img src={sprites[enemy.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "5%", objectFit: "contain" }} draggable={false} />
+        <img src={sprites[enemy.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain" }} draggable={false} />
       </div>
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 8, color: "#616161",

@@ -41,7 +41,7 @@ export default function PromotionScreen({ player, oldTier, newTier, onContinue }
         transition: "opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s",
         transform: show ? "scale(1)" : "scale(0.8)",
       }}>
-        <img src={sprites[player.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "5%", objectFit: "contain" }} draggable={false} />
+        <img src={sprites[player.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain" }} draggable={false} />
       </div>
 
       {/* Old title fading out */}

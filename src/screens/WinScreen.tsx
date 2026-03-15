@@ -72,7 +72,7 @@ export default function WinScreen({ player, onRestart, onNgPlus, ngLevel, bestNg
         &#x2726; CONGRATULATIONS &#x2726;
       </div>
       <div className="sprite-idle" style={{ width: 80, height: 92 }}>
-        <img src={sprites[player.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "5%", objectFit: "contain" }} draggable={false} />
+        <img src={sprites[player.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain" }} draggable={false} />
       </div>
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 14, color: "#263238",
