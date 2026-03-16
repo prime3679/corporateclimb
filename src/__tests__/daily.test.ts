@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSeededRandom, getDailySeed, getDailyModifier, DAILY_MODIFIERS } from "../daily";
+import { createSeededRandom, getDailySeed, getDailyModifier, DAILY_MODIFIERS, getDailyFloorMap, calculateDailyScore, DAILY_FLOOR_COUNT } from "../daily";
 
 describe("createSeededRandom", () => {
   it("produces deterministic sequence from same seed", () => {
@@ -52,5 +52,39 @@ describe("getDailyModifier", () => {
   it("returns a valid modifier", () => {
     const m = getDailyModifier(20260316);
     expect(DAILY_MODIFIERS.find(mod => mod.id === m.id)).toBeDefined();
+  });
+});
+
+describe("getDailyFloorMap", () => {
+  it("returns exactly DAILY_FLOOR_COUNT floors", () => {
+    const floors = getDailyFloorMap(20260316);
+    expect(floors.length).toBe(DAILY_FLOOR_COUNT);
+  });
+
+  it("returns same mapping for same seed", () => {
+    const f1 = getDailyFloorMap(20260316);
+    const f2 = getDailyFloorMap(20260316);
+    expect(f1).toEqual(f2);
+  });
+
+  it("picks from harder pools (floor index >= 4)", () => {
+    const floors = getDailyFloorMap(20260316);
+    floors.forEach(f => {
+      expect(f).toBeGreaterThanOrEqual(4);
+    });
+  });
+});
+
+describe("calculateDailyScore", () => {
+  it("rewards winning", () => {
+    const won = calculateDailyScore({ floorsCleared: 15, totalTurns: 40, totalDamageDealt: 2000, hpRemaining: 50, won: true });
+    const lost = calculateDailyScore({ floorsCleared: 10, totalTurns: 40, totalDamageDealt: 2000, hpRemaining: 0, won: false });
+    expect(won).toBeGreaterThan(lost);
+  });
+
+  it("penalizes slow play", () => {
+    const fast = calculateDailyScore({ floorsCleared: 15, totalTurns: 30, totalDamageDealt: 2000, hpRemaining: 50, won: true });
+    const slow = calculateDailyScore({ floorsCleared: 15, totalTurns: 80, totalDamageDealt: 2000, hpRemaining: 50, won: true });
+    expect(fast).toBeGreaterThan(slow);
   });
 });

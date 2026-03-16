@@ -1,4 +1,5 @@
 import type { DailyModifier } from "./types";
+import { ENEMY_POOLS } from "./data";
 
 /** Mulberry32 PRNG — deterministic, fast, good distribution */
 export function createSeededRandom(seed: number): () => number {
@@ -57,4 +58,43 @@ export function getDailyModifier(seed: number): DailyModifier {
   const rng = createSeededRandom(seed);
   const idx = Math.floor(rng() * DAILY_MODIFIERS.length);
   return DAILY_MODIFIERS[idx];
+}
+
+// ─── FLOOR MAPPING & SCORING ────────────────────────────────
+
+export const DAILY_FLOOR_COUNT = 15;
+
+// Hard floor indices from the normal game (0-indexed, skipping the easy early floors)
+const HARD_FLOOR_INDICES = [4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 24, 25, 26, 27, 28, 29];
+
+/** Build a 15-floor gauntlet from the harder enemy pools */
+export function getDailyFloorMap(seed: number): number[] {
+  const rng = createSeededRandom(seed + 1);
+  const shuffled = [...HARD_FLOOR_INDICES].sort(() => rng() - 0.5);
+  return shuffled.slice(0, DAILY_FLOOR_COUNT).sort((a, b) => a - b);
+}
+
+/** Roll enemy names for each daily floor using seeded RNG */
+export function rollDailyEnemies(seed: number, floorMap: number[]): string[] {
+  const rng = createSeededRandom(seed + 2);
+  return floorMap.map(floorIdx => {
+    const pool = ENEMY_POOLS[floorIdx] || ENEMY_POOLS[0];
+    return pool[Math.floor(rng() * pool.length)].name;
+  });
+}
+
+export function calculateDailyScore(stats: {
+  floorsCleared: number;
+  totalTurns: number;
+  totalDamageDealt: number;
+  hpRemaining: number;
+  won: boolean;
+}): number {
+  return Math.max(0,
+    stats.floorsCleared * 200
+    - stats.totalTurns * 5
+    + Math.floor(stats.totalDamageDealt / 10)
+    + (stats.won ? 1000 : 0)
+    + stats.hpRemaining * 2
+  );
 }
