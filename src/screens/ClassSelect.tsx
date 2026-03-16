@@ -38,8 +38,8 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               display: "flex", flexDirection: "column", alignItems: "center", gap: 8,
             }}
           >
-            <div className="sprite-idle" style={{ width: 52, height: 52 }}>
-              <img src={sprites[c.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "4%" }} draggable={false} />
+            <div className="sprite-idle" style={{ width: 52, height: 60 }}>
+              <img src={sprites[c.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain" }} draggable={false} />
             </div>
             <span style={{
               fontFamily: "'Press Start 2P'", fontSize: 7,
@@ -58,8 +58,8 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         flex: 1, display: "flex", flexDirection: "column", gap: 8, overflow: "auto",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 2 }}>
-          <div style={{ width: 40, height: 40 }}>
-            <img src={sprites[cls.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto" }} draggable={false} />
+          <div style={{ width: 40, height: 46 }}>
+            <img src={sprites[cls.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain" }} draggable={false} />
           </div>
           <div>
             <div style={{ fontFamily: "'Press Start 2P'", fontSize: 10, color: "#263238" }}>{cls.name}</div>

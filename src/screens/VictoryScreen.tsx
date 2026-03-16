@@ -18,8 +18,8 @@ export default function VictoryScreen({ enemy, xpGained, onContinue, leveledUp, 
       }}>
         &#x2726; VICTORY &#x2726;
       </div>
-      <div style={{ width: 80, height: 80, opacity: 0.5 }}>
-        <img src={sprites[enemy.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", filter: "grayscale(1)" }} draggable={false} />
+      <div style={{ width: 80, height: 92, opacity: 0.5 }}>
+        <img src={sprites[enemy.spriteId]} alt="" style={{ width: "100%", height: "100%", imageRendering: "auto", padding: "8% 2% 0 2%", objectFit: "contain", filter: "grayscale(1)" }} draggable={false} />
       </div>
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 11, color: "#FFFFFF",
