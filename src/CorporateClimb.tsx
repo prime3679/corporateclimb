@@ -956,6 +956,7 @@ export default function CorporateClimb() {
 
         .sprite-idle { animation: sprite-breathe 2.5s ease-in-out infinite; }
         .sprite-attack { animation: sprite-attack-right 0.5s ease-out; }
+        .sprite-attack-left { animation: sprite-attack-left 0.5s ease-out; }
         .sprite-hit { animation: sprite-hit-flash 0.4s ease-out; }
         .sprite-faint { animation: sprite-faint 0.8s ease-out forwards; }
         .screen-shake { animation: screen-shake-anim 0.3s ease-out; }
