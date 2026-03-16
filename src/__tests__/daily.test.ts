@@ -1,5 +1,5 @@
-import { describe, it, expect } from "vitest";
-import { createSeededRandom, getDailySeed, getDailyModifier, DAILY_MODIFIERS, getDailyFloorMap, calculateDailyScore, DAILY_FLOOR_COUNT } from "../daily";
+import { describe, it, expect, beforeEach } from "vitest";
+import { createSeededRandom, getDailySeed, getDailyModifier, DAILY_MODIFIERS, getDailyFloorMap, calculateDailyScore, DAILY_FLOOR_COUNT, saveDailyResult, getDailyResult, hasPlayedToday } from "../daily";
 
 describe("createSeededRandom", () => {
   it("produces deterministic sequence from same seed", () => {
@@ -86,5 +86,26 @@ describe("calculateDailyScore", () => {
     const fast = calculateDailyScore({ floorsCleared: 15, totalTurns: 30, totalDamageDealt: 2000, hpRemaining: 50, won: true });
     const slow = calculateDailyScore({ floorsCleared: 15, totalTurns: 80, totalDamageDealt: 2000, hpRemaining: 50, won: true });
     expect(fast).toBeGreaterThan(slow);
+  });
+});
+
+describe("daily result persistence", () => {
+  beforeEach(() => { localStorage.clear(); });
+
+  it("saves and retrieves a daily result", () => {
+    const result = { seed: 20260316, classId: "pm", score: 3500, floorsCleared: 15, totalTurns: 35, totalDamageDealt: 2500, hpRemaining: 40, won: true, modifierId: "crunch_time" };
+    saveDailyResult(result);
+    const loaded = getDailyResult(20260316);
+    expect(loaded).toEqual(result);
+  });
+
+  it("hasPlayedToday returns false when no result", () => {
+    expect(hasPlayedToday()).toBe(false);
+  });
+
+  it("hasPlayedToday returns true after saving today's result", () => {
+    const seed = getDailySeed();
+    saveDailyResult({ seed, classId: "pm", score: 1000, floorsCleared: 5, totalTurns: 20, totalDamageDealt: 800, hpRemaining: 0, won: false, modifierId: "all_hands" });
+    expect(hasPlayedToday()).toBe(true);
   });
 });

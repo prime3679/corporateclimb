@@ -98,3 +98,43 @@ export function calculateDailyScore(stats: {
     + stats.hpRemaining * 2
   );
 }
+
+// ─── RESULT PERSISTENCE ─────────────────────────────────────
+
+export interface DailyResult {
+  seed: number;
+  classId: string;
+  score: number;
+  floorsCleared: number;
+  totalTurns: number;
+  totalDamageDealt: number;
+  hpRemaining: number;
+  won: boolean;
+  modifierId: string;
+}
+
+const DAILY_RESULTS_KEY = "corporate-climb-daily-results";
+
+export function saveDailyResult(result: DailyResult) {
+  try {
+    const all = getAllDailyResults();
+    all[result.seed] = result;
+    localStorage.setItem(DAILY_RESULTS_KEY, JSON.stringify(all));
+  } catch {}
+}
+
+export function getDailyResult(seed: number): DailyResult | null {
+  const all = getAllDailyResults();
+  return all[seed] || null;
+}
+
+export function getAllDailyResults(): Record<number, DailyResult> {
+  try {
+    const raw = localStorage.getItem(DAILY_RESULTS_KEY);
+    return raw ? JSON.parse(raw) : {};
+  } catch { return {}; }
+}
+
+export function hasPlayedToday(): boolean {
+  return getDailyResult(getDailySeed()) !== null;
+}
