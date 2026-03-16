@@ -151,7 +151,28 @@ export interface DamagePopup {
   labelColor?: string;
 }
 
-export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent" | "routeChoice" | "promotion" | "actTransition";
+export type Screen = "title" | "classSelect" | "floorIntro" | "battle" | "victory" | "gameOver" | "win" | "hallwayEvent" | "routeChoice" | "promotion" | "actTransition" | "dailyPre" | "dailyResult";
+
+// ─── DAILY CHALLENGE ────────────────────────────────────────
+
+export interface DailyModifier {
+  id: string;
+  name: string;
+  desc: string;
+  icon: string;
+  apply: (context: DailyModifierContext) => void;
+}
+
+export interface DailyModifierContext {
+  enemyAtkMult: number;
+  enemyHpMult: number;
+  enemyDefMult: number;
+  playerDefMult: number;
+  itemsEnabled: boolean;
+  eventsEnabled: boolean;
+  ppMult: number;
+  assignedClassId?: string;
+}
 
 // ─── PROMOTIONS ─────────────────────────────────────────────
 

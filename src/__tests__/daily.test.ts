@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { createSeededRandom, getDailySeed } from "../daily";
+import { createSeededRandom, getDailySeed, getDailyModifier, DAILY_MODIFIERS } from "../daily";
 
 describe("createSeededRandom", () => {
   it("produces deterministic sequence from same seed", () => {
@@ -39,5 +39,18 @@ describe("getDailySeed", () => {
     const s1 = getDailySeed(new Date("2026-03-16"));
     const s2 = getDailySeed(new Date("2026-03-17"));
     expect(s1).not.toBe(s2);
+  });
+});
+
+describe("getDailyModifier", () => {
+  it("returns same modifier for same seed", () => {
+    const m1 = getDailyModifier(20260316);
+    const m2 = getDailyModifier(20260316);
+    expect(m1.id).toBe(m2.id);
+  });
+
+  it("returns a valid modifier", () => {
+    const m = getDailyModifier(20260316);
+    expect(DAILY_MODIFIERS.find(mod => mod.id === m.id)).toBeDefined();
   });
 });
