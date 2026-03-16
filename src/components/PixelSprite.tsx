@@ -24,7 +24,7 @@ export default function PixelSprite({
   const url = sprites[spriteId];
 
   const animClass =
-    animState === "attacking" ? "sprite-attack" :
+    animState === "attacking" ? (flip ? "sprite-attack" : "sprite-attack-left") :
     animState === "hit" ? "sprite-hit" :
     animState === "faint" ? "sprite-faint" :
     "sprite-idle";
