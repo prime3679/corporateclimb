@@ -15,6 +15,10 @@ import {
 import { TitleScreen, ClassSelect, BattleScreen, VictoryScreen, GameOverScreen, WinScreen, HallwayEventScreen, FloorIntro, RouteChoice } from "./screens";
 import PromotionScreen from "./screens/PromotionScreen";
 import ActTransitionScreen from "./screens/ActTransitionScreen";
+import DailyPreScreen from "./screens/DailyPreScreen";
+import DailyResultScreen from "./screens/DailyResultScreen";
+import { createSeededRandom, getDailySeed, getDailyModifier, getDailyFloorMap, rollDailyEnemies, calculateDailyScore, saveDailyResult, DAILY_FLOOR_COUNT } from "./daily";
+import type { DailyModifierContext } from "./types";
 
 // ─── STRUGGLE MOVE (fallback when all PP depleted) ──────────
 const STRUGGLE_MOVE: Move = {
@@ -105,6 +109,12 @@ export default function CorporateClimb() {
   // Phase 2 boss tracking
   const [enemyPhase, setEnemyPhase] = useState<1 | 2>(1);
 
+  // Daily challenge state
+  const [dailyMode, setDailyMode] = useState(false);
+  const [dailyFloorMap, setDailyFloorMap] = useState<number[]>([]);
+  const [dailyModifierCtx, setDailyModifierCtx] = useState<DailyModifierContext | null>(null);
+  const dailyRngRef = useRef<(() => number) | null>(null);
+
   // Music mute (persisted in localStorage)
   const [muted, setMuted] = useState(() => localStorage.getItem("cc_muted") === "1");
 
@@ -153,23 +163,34 @@ export default function CorporateClimb() {
     }
   }, [screen, floor]);
 
+  // In daily mode, map logical floor (0-14) to actual enemy pool index
+  const actualFloorIndex = dailyMode ? (dailyFloorMap[floor] ?? floor) : floor;
+
   // Current enemy resolved from variant pool, scaled for NG+
   const rawEnemy = floorEnemyIds.length > 0
-    ? getFloorEnemy(floor, floorEnemyIds[floor])
-    : ENEMIES[floor] || ENEMIES[0];
+    ? getFloorEnemy(actualFloorIndex, floorEnemyIds[floor])
+    : ENEMIES[actualFloorIndex] || ENEMIES[0];
   const scaledEnemy = scaleEnemyForNgPlus(rawEnemy, ngPlus);
 
-  // Apply phase 2 overrides if active
-  const enemy: import("./types").Enemy = (enemyPhase === 2 && scaledEnemy.phase2) ? {
+  // Apply daily modifier multipliers to enemy stats
+  const dailyEnemy = (dailyMode && dailyModifierCtx) ? {
     ...scaledEnemy,
-    name: scaledEnemy.phase2.name ?? scaledEnemy.name,
-    emoji: scaledEnemy.phase2.emoji ?? scaledEnemy.emoji,
-    maxHp: scaledEnemy.phase2.maxHp,
-    atk: scaledEnemy.phase2.atk ?? scaledEnemy.atk,
-    def: scaledEnemy.phase2.def ?? scaledEnemy.def,
-    types: scaledEnemy.phase2.types ?? scaledEnemy.types,
-    moves: scaledEnemy.phase2.moves,
+    maxHp: Math.round(scaledEnemy.maxHp * dailyModifierCtx.enemyHpMult),
+    atk: Math.round(scaledEnemy.atk * dailyModifierCtx.enemyAtkMult),
+    def: Math.round(scaledEnemy.def * dailyModifierCtx.enemyDefMult),
   } : scaledEnemy;
+
+  // Apply phase 2 overrides if active
+  const enemy: import("./types").Enemy = (enemyPhase === 2 && dailyEnemy.phase2) ? {
+    ...dailyEnemy,
+    name: dailyEnemy.phase2.name ?? dailyEnemy.name,
+    emoji: dailyEnemy.phase2.emoji ?? dailyEnemy.emoji,
+    maxHp: dailyEnemy.phase2.maxHp,
+    atk: dailyEnemy.phase2.atk ?? dailyEnemy.atk,
+    def: dailyEnemy.phase2.def ?? dailyEnemy.def,
+    types: dailyEnemy.phase2.types ?? dailyEnemy.types,
+    moves: dailyEnemy.phase2.moves,
+  } : dailyEnemy;
 
   // Derive effective player with promotion boosts
   const effectivePlayer = player ? getEffectivePlayer(player, player.id, floor) : null;
@@ -186,6 +207,22 @@ export default function CorporateClimb() {
       ? [STRUGGLE_MOVE]
       : effectivePlayer.moves
     : [];
+
+  /** Seeded random in daily mode, Math.random() otherwise */
+  const rng = useCallback(() => (dailyMode && dailyRngRef.current) ? dailyRngRef.current() : Math.random(), [dailyMode]);
+
+  const handleGameOver = useCallback(() => {
+    if (dailyMode) {
+      const score = calculateDailyScore({ floorsCleared: floor, totalTurns, totalDamageDealt, hpRemaining: 0, won: false });
+      saveDailyResult({ seed: getDailySeed(), classId: player?.id || "", score, floorsCleared: floor, totalTurns, totalDamageDealt, hpRemaining: 0, won: false, modifierId: getDailyModifier(getDailySeed()).id });
+      SFX.gameOver();
+      setScreen("dailyResult");
+    } else {
+      clearSave();
+      SFX.gameOver();
+      setScreen("gameOver");
+    }
+  }, [dailyMode, floor, totalTurns, totalDamageDealt, player, setScreen]);
 
   const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
     const popup: DamagePopup = {
@@ -216,7 +253,7 @@ export default function CorporateClimb() {
 
   const applyStatus = (statusEffect: StatusEffectOnMove, isPlayerAttacking: boolean) => {
     const chance = statusEffect.chance ?? 1;
-    if (Math.random() > chance) return null;
+    if (rng() > chance) return null;
 
     const def = STATUS_DEFS[statusEffect.id];
     const newStatus: StatusInstance = { id: statusEffect.id, turnsLeft: def.duration };
@@ -335,7 +372,7 @@ export default function CorporateClimb() {
           setTimeout(() => {
             setPlayerAnim("faint");
             SFX.faint();
-            setTimeout(() => { clearSave(); SFX.gameOver(); setScreen("gameOver"); }, 1000);
+            setTimeout(() => handleGameOver(), 1000);
           }, 400);
         }
         return newHp;
@@ -353,19 +390,19 @@ export default function CorporateClimb() {
 
       if (eHpPct < 0.35) {
         const healMove = moves.find(m => m.heal && m.heal > 0);
-        if (healMove && Math.random() < 0.7) return healMove;
+        if (healMove && rng() < 0.7) return healMove;
       }
 
       if (pHpPct > 0.6 && gs.playerStatuses.length === 0) {
         const debuffMove = moves.find(m => m.status?.target === "enemy");
-        if (debuffMove && Math.random() < 0.5) return debuffMove;
+        if (debuffMove && rng() < 0.5) return debuffMove;
       }
 
       if (pHpPct < 0.25) {
         return moves.reduce((a, b) => (b.dmg > a.dmg ? b : a));
       }
 
-      return moves[Math.floor(Math.random() * moves.length)];
+      return moves[Math.floor(rng() * moves.length)];
     })();
     setEnemyAnim("attacking");
     SFX.attackSwing();
@@ -375,7 +412,7 @@ export default function CorporateClimb() {
 
       // Enemy accuracy check
       const eMoveAcc = eMove.acc ?? 100;
-      if (Math.random() * 100 >= eMoveAcc) {
+      if (rng() * 100 >= eMoveAcc) {
         SFX.miss();
         setLog((l) => [...l, `${gs.enemy.name} used ${eMove.name}! But it missed!`]);
         addDamagePopup(0, false, false, false, "MISS!", "#78909C");
@@ -388,7 +425,8 @@ export default function CorporateClimb() {
       const playerDefMod = getStatusDefMod(gs.playerStatuses);
       const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses);
       const eTypeResult = getTypeMultiplier(eMove.type || "normal", gs.player!.types);
-      const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, (gs.effectivePlayer || gs.player!).def + gs.level + gs.defBuff + playerDefMod, eMove.dmg, enemyCritBonus, eTypeResult.mult);
+      const dailyDefMult = dailyModifierCtx?.playerDefMult ?? 1;
+      const [eDmg, eCrit] = calcDamage(gs.enemy.atk + enemyAtkMod, Math.round(((gs.effectivePlayer || gs.player!).def + gs.level + gs.defBuff + playerDefMod) * dailyDefMult), eMove.dmg, enemyCritBonus, eTypeResult.mult);
 
       let eLog = `${gs.enemy.name} used ${eMove.name}! ${eDmg} damage!`;
       if (eCrit) eLog += " Critical hit!";
@@ -423,7 +461,7 @@ export default function CorporateClimb() {
           setTimeout(() => {
             setPlayerAnim("faint");
             SFX.faint();
-            setTimeout(() => { clearSave(); SFX.gameOver(); setScreen("gameOver"); }, 1000);
+            setTimeout(() => handleGameOver(), 1000);
           }, 400);
         }
         return newHp;
@@ -495,6 +533,50 @@ export default function CorporateClimb() {
     setScreen("floorIntro");
   };
 
+  const startDaily = (cls: PlayerClass) => {
+    const seed = getDailySeed();
+    const modifier = getDailyModifier(seed);
+    const floorMap = getDailyFloorMap(seed);
+    const enemyNames = rollDailyEnemies(seed, floorMap);
+
+    const ctx: DailyModifierContext = {
+      enemyAtkMult: 1, enemyHpMult: 1, enemyDefMult: 1,
+      playerDefMult: 1, itemsEnabled: true, eventsEnabled: true,
+      ppMult: 1, assignedClassId: undefined,
+    };
+    modifier.apply(ctx);
+
+    // Reorg: seed picks the class
+    const actualClass = modifier.id === "reorg"
+      ? PLAYER_CLASSES[Math.floor(createSeededRandom(seed + 99)() * PLAYER_CLASSES.length)]
+      : cls;
+
+    dailyRngRef.current = createSeededRandom(seed + 10);
+
+    setDailyMode(true);
+    setDailyFloorMap(floorMap);
+    setDailyModifierCtx(ctx);
+    setPlayer(actualClass);
+    setPlayerHp(actualClass.maxHp);
+    setPlayerPp(actualClass.moves.map(m => Math.floor(m.pp * ctx.ppMult)));
+    setFloor(0);
+    setXp(0);
+    setXpToNext(30);
+    setLevel(1);
+    setAtkBuff(0);
+    setDefBuff(0);
+    usedEventsRef.current.clear();
+    setInventory(ctx.itemsEnabled ? (CLASS_STARTING_ITEMS[actualClass.id] ? [CLASS_STARTING_ITEMS[actualClass.id]] : []) : []);
+    setFloorEnemyIds(enemyNames);
+    setNgPlus(1); // Base NG+1 difficulty
+    setTotalTurns(0);
+    setTotalDamageDealt(0);
+    setItemsUsed(0);
+    setEnemyPhase(1);
+    SFX.menuConfirm();
+    setScreen("floorIntro");
+  };
+
   const startBattle = () => {
     setEnemyPhase(1);
     setEnemyHp(enemy.maxHp);
@@ -518,9 +600,9 @@ export default function CorporateClimb() {
     const available = HALLWAY_EVENTS.filter((e) => !usedEventsRef.current.has(e.id));
     if (available.length === 0) {
       usedEventsRef.current.clear();
-      return HALLWAY_EVENTS[Math.floor(Math.random() * HALLWAY_EVENTS.length)];
+      return HALLWAY_EVENTS[Math.floor(rng() * HALLWAY_EVENTS.length)];
     }
-    return available[Math.floor(Math.random() * available.length)];
+    return available[Math.floor(rng() * available.length)];
   };
 
   const pickTwoEvents = (): [import("./types").HallwayEvent, import("./types").HallwayEvent] => {
@@ -529,7 +611,7 @@ export default function CorporateClimb() {
       usedEventsRef.current.clear();
       available = [...HALLWAY_EVENTS];
     }
-    const shuffled = available.sort(() => Math.random() - 0.5);
+    const shuffled = available.sort(() => rng() - 0.5);
     return [shuffled[0], shuffled[1]];
   };
 
@@ -555,8 +637,8 @@ export default function CorporateClimb() {
     }
 
     // Item reward from events (30% chance, if inventory not full)
-    if (inventory.length < MAX_INVENTORY && Math.random() < 0.3) {
-      const randomItem = ALL_ITEM_IDS[Math.floor(Math.random() * ALL_ITEM_IDS.length)];
+    if (inventory.length < MAX_INVENTORY && rng() < 0.3) {
+      const randomItem = ALL_ITEM_IDS[Math.floor(rng() * ALL_ITEM_IDS.length)];
       setInventory((inv) => [...inv, randomItem]);
       // The event screen will show this via the onChoice callback
     }
@@ -569,8 +651,8 @@ export default function CorporateClimb() {
   };
 
   const calcDamage = (atkStat: number, defStat: number, baseDmg: number, critBonus: number = 0, typeMult: number = 1): [number, boolean] => {
-    const variance = 0.85 + Math.random() * 0.3;
-    const isCrit = Math.random() < (0.1 + critBonus);
+    const variance = 0.85 + rng() * 0.3;
+    const isCrit = rng() < (0.1 + critBonus);
     const crit = isCrit ? 1.5 : 1;
     return [Math.max(1, Math.round(baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit * typeMult)), isCrit];
   };
@@ -601,7 +683,7 @@ export default function CorporateClimb() {
 
       // Accuracy check
       const moveAcc = move.acc ?? 100;
-      if (Math.random() * 100 >= moveAcc) {
+      if (rng() * 100 >= moveAcc) {
         SFX.miss();
         setLog((l) => [...l, `${gs.player!.name} used ${move.name}! But it missed!`]);
         addDamagePopup(0, true, false, false, "MISS!", "#78909C");
@@ -666,8 +748,9 @@ export default function CorporateClimb() {
       setTimeout(() => setEnemyAnim("idle"), 400);
 
       // Phase 2 transition: check if enemy has phase2 and we just crossed 50% threshold
+      const phase2FloorIdx = dailyMode ? (dailyFloorMap[gs.floor] ?? gs.floor) : gs.floor;
       const baseEnemy = scaleEnemyForNgPlus(
-        floorEnemyIds.length > 0 ? getFloorEnemy(gs.floor, floorEnemyIds[gs.floor]) : ENEMIES[gs.floor] || ENEMIES[0],
+        floorEnemyIds.length > 0 ? getFloorEnemy(phase2FloorIdx, floorEnemyIds[gs.floor]) : ENEMIES[phase2FloorIdx] || ENEMIES[0],
         ngPlus
       );
       if (gs.enemyPhase === 1 && baseEnemy.phase2 && newEnemyHp > 0 && newEnemyHp <= baseEnemy.maxHp * 0.5) {
@@ -733,6 +816,11 @@ export default function CorporateClimb() {
   }, [doEnemyTurn, ngPlus, floorEnemyIds]);
 
   const proceedToRouteChoice = () => {
+    // Skip hallway events if daily modifier disables them
+    if (dailyMode && dailyModifierCtx && !dailyModifierCtx.eventsEnabled) {
+      setScreen("floorIntro");
+      return;
+    }
     const options = pickTwoEvents();
     setRouteOptions(options);
     setScreen("routeChoice");
@@ -744,24 +832,32 @@ export default function CorporateClimb() {
     if (player?.id === "pm" && effectivePlayer) {
       setPlayerHp((hp) => Math.min(effectivePlayer.maxHp, hp + 5));
     }
-    if (floor >= ENEMY_POOLS.length - 1) {
-      clearSave();
-      saveBestNgPlus(ngPlus);
-      const unlocked = checkAchievements({
-        classId: player?.id || "",
-        totalTurns,
-        totalDamageDealt,
-        ngLevel: ngPlus,
-        itemsUsed,
-        finalHp: playerHp,
-      });
-      setNewAchievements(unlocked);
-      SFX.fanfare();
-      setScreen("win");
+    const totalFloors = dailyMode ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length;
+    if (floor >= totalFloors - 1) {
+      if (dailyMode) {
+        const score = calculateDailyScore({ floorsCleared: floor + 1, totalTurns, totalDamageDealt, hpRemaining: playerHp, won: true });
+        saveDailyResult({ seed: getDailySeed(), classId: player?.id || "", score, floorsCleared: floor + 1, totalTurns, totalDamageDealt, hpRemaining: playerHp, won: true, modifierId: getDailyModifier(getDailySeed()).id });
+        SFX.fanfare();
+        setScreen("dailyResult");
+      } else {
+        clearSave();
+        saveBestNgPlus(ngPlus);
+        const unlocked = checkAchievements({
+          classId: player?.id || "",
+          totalTurns,
+          totalDamageDealt,
+          ngLevel: ngPlus,
+          itemsUsed,
+          finalHp: playerHp,
+        });
+        setNewAchievements(unlocked);
+        SFX.fanfare();
+        setScreen("win");
+      }
     } else {
       const nextFloor = floor + 1;
       setFloor(nextFloor);
-      if (player) {
+      if (player && !dailyMode) {
         saveGame({
           classId: player.id, floor: nextFloor, level, xp, xpToNext,
           playerHp, playerPp, atkBuff, defBuff,
@@ -774,14 +870,14 @@ export default function CorporateClimb() {
         });
       }
 
-      // Check for promotion
-      const prevPromo = player ? getPromotion(player.id, floor) : null;
-      const nextPromo = player ? getPromotion(player.id, nextFloor) : null;
+      // Check for promotion (skip in daily mode)
+      const prevPromo = player && !dailyMode ? getPromotion(player.id, floor) : null;
+      const nextPromo = player && !dailyMode ? getPromotion(player.id, nextFloor) : null;
       const hasPromotion = prevPromo && nextPromo && prevPromo.title !== nextPromo.title;
 
-      // Check for act transition
-      const prevAct = getAct(floor);
-      const nextAct = getAct(nextFloor);
+      // Check for act transition (skip in daily mode)
+      const prevAct = dailyMode ? 1 : getAct(floor);
+      const nextAct = dailyMode ? 1 : getAct(nextFloor);
       const hasActTransition = prevAct !== nextAct;
 
       if (hasPromotion || hasActTransition) {
@@ -862,6 +958,10 @@ export default function CorporateClimb() {
     setEnemyPhase(1);
     setInventory([]);
     setFloorEnemyIds([]);
+    setDailyMode(false);
+    setDailyFloorMap([]);
+    setDailyModifierCtx(null);
+    dailyRngRef.current = null;
     usedEventsRef.current.clear();
   };
 
@@ -981,7 +1081,8 @@ export default function CorporateClimb() {
       </button>
 
       <div className={fadeClass === "in" ? "screen-fade-in" : "screen-fade-out"} style={{ width: "100%", height: "100%" }}>
-        {screen === "title" && <TitleScreen onStart={startGame} onContinue={loadGame() ? continueGame : undefined} />}
+        {screen === "title" && <TitleScreen onStart={startGame} onContinue={loadGame() ? continueGame : undefined} onDaily={() => setScreen("dailyPre")} />}
+        {screen === "dailyPre" && <DailyPreScreen onStart={startDaily} onBack={() => setScreen("title")} />}
         {screen === "classSelect" && <ClassSelect onSelect={selectClass} />}
         {screen === "hallwayEvent" && currentEvent && player && (
           <HallwayEventScreen
@@ -1045,6 +1146,16 @@ export default function CorporateClimb() {
         {screen === "actTransition" && pendingActTransition && (
           <ActTransitionScreen act={pendingActTransition} onContinue={handleActTransitionContinue} />
         )}
+        {screen === "dailyResult" && player && <DailyResultScreen
+          player={player}
+          score={calculateDailyScore({ floorsCleared: floor + (playerHp > 0 ? 1 : 0), totalTurns, totalDamageDealt, hpRemaining: Math.max(0, playerHp), won: playerHp > 0 })}
+          floorsCleared={floor + (playerHp > 0 ? 1 : 0)}
+          totalTurns={totalTurns}
+          totalDamageDealt={totalDamageDealt}
+          hpRemaining={Math.max(0, playerHp)}
+          won={playerHp > 0}
+          onBack={() => { setDailyMode(false); setScreen("title"); }}
+        />}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}
         {screen === "win" && player && <WinScreen player={effectivePlayer || player} onRestart={restart} onNgPlus={startNgPlus} ngLevel={ngPlus} bestNgLevel={getBestNgPlus()} totalTurns={totalTurns} totalDamageDealt={totalDamageDealt} floorsCleared={ENEMY_POOLS.length} newAchievements={newAchievements} allAchievements={ACHIEVEMENTS} unlockedAchievements={getUnlockedAchievements()} />}
       </div>

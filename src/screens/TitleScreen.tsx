@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useSpriteUrls } from "../components/PixelSprite";
 
-export default function TitleScreen({ onStart, onContinue }: { onStart: () => void; onContinue?: () => void }) {
+export default function TitleScreen({ onStart, onContinue, onDaily }: { onStart: () => void; onContinue?: () => void; onDaily: () => void }) {
   const [flicker, setFlicker] = useState(true);
   const sprites = useSpriteUrls();
 
@@ -132,6 +132,24 @@ export default function TitleScreen({ onStart, onContinue }: { onStart: () => vo
           CONTINUE
         </button>
       )}
+
+      <button
+        onClick={onDaily}
+        style={{
+          fontFamily: "'Press Start 2P'", fontSize: 9,
+          padding: "10px 24px",
+          background: "#FF6F00",
+          border: "3px solid #263238",
+          borderRadius: 8,
+          cursor: "pointer",
+          boxShadow: "4px 4px 0 #263238",
+          color: "#FFF",
+          position: "relative",
+          zIndex: 2,
+        }}
+      >
+        DAILY CHALLENGE
+      </button>
 
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 7, color: "#64B5F6",
