@@ -1095,7 +1095,7 @@ export default function CorporateClimb() {
         {screen === "routeChoice" && routeOptions && (
           <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
-        {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} player={player ?? undefined} onReady={startBattle} />}
+        {screen === "floorIntro" && <FloorIntro enemy={enemy} floor={floor} player={player ?? undefined} onReady={startBattle} totalFloors={dailyMode ? DAILY_FLOOR_COUNT : undefined} />}
         {screen === "battle" && player && effectivePlayer && (
           <BattleScreen
             player={effectivePlayer}

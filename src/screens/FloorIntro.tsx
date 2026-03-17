@@ -59,7 +59,7 @@ const ACT_NAMES: Record<number, string> = {
   3: "EXECUTIVE",
 };
 
-export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: Enemy; floor: number; player?: PlayerClass; onReady: () => void }) {
+export default function FloorIntro({ enemy, floor, player, onReady, totalFloors }: { enemy: Enemy; floor: number; player?: PlayerClass; onReady: () => void; totalFloors?: number }) {
   const [show, setShow] = useState(false);
   const sprites = useSpriteUrls();
 
@@ -94,7 +94,7 @@ export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: E
         opacity: show ? 1 : 0,
         transition: "opacity 0.6s ease 0.1s",
       }}>
-        {Array.from({ length: TOTAL_FLOORS }, (_, i) => {
+        {Array.from({ length: totalFloors ?? TOTAL_FLOORS }, (_, i) => {
           const isCurrent = i === floor;
           const isComplete = i < floor;
           return (
@@ -161,7 +161,7 @@ export default function FloorIntro({ enemy, floor, player, onReady }: { enemy: E
         opacity: show ? 1 : 0,
         transition: "opacity 0.5s ease",
       }}>
-        FLOOR {enemy.floor}
+        FLOOR {totalFloors ? floor + 1 : enemy.floor}
       </div>
       <div style={{
         fontFamily: "'Press Start 2P'", fontSize: 14, color: "#FFFFFF",
