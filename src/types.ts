@@ -199,5 +199,6 @@ export interface SaveData {
   ngPlus?: number; // New Game+ level (0 = first playthrough)
   totalTurns?: number;
   totalDamageDealt?: number;
+  itemsUsed?: number;
   enemyPhase?: 1 | 2;
 }

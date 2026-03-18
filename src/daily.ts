@@ -70,8 +70,13 @@ const HARD_FLOOR_INDICES = [4, 5, 6, 7, 8, 9, 14, 15, 16, 17, 18, 19, 24, 25, 26
 /** Build a 15-floor gauntlet from the harder enemy pools */
 export function getDailyFloorMap(seed: number): number[] {
   const rng = createSeededRandom(seed + 1);
-  const shuffled = [...HARD_FLOOR_INDICES].sort(() => rng() - 0.5);
-  return shuffled.slice(0, DAILY_FLOOR_COUNT).sort((a, b) => a - b);
+  const arr = [...HARD_FLOOR_INDICES];
+  // Deterministic Fisher-Yates shuffle
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(rng() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr.slice(0, DAILY_FLOOR_COUNT).sort((a, b) => a - b);
 }
 
 /** Roll enemy names for each daily floor using seeded RNG */

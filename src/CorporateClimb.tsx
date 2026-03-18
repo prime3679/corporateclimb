@@ -114,6 +114,8 @@ export default function CorporateClimb() {
   const [dailyFloorMap, setDailyFloorMap] = useState<number[]>([]);
   const [dailyModifierCtx, setDailyModifierCtx] = useState<DailyModifierContext | null>(null);
   const dailyRngRef = useRef<(() => number) | null>(null);
+  const [dailySeed, setDailySeed] = useState(0);
+  const [dailyModifierId, setDailyModifierId] = useState("");
 
   // Music mute (persisted in localStorage)
   const [muted, setMuted] = useState(() => localStorage.getItem("cc_muted") === "1");
@@ -214,7 +216,7 @@ export default function CorporateClimb() {
   const handleGameOver = useCallback(() => {
     if (dailyMode) {
       const score = calculateDailyScore({ floorsCleared: floor, totalTurns, totalDamageDealt, hpRemaining: 0, won: false });
-      saveDailyResult({ seed: getDailySeed(), classId: player?.id || "", score, floorsCleared: floor, totalTurns, totalDamageDealt, hpRemaining: 0, won: false, modifierId: getDailyModifier(getDailySeed()).id });
+      saveDailyResult({ seed: dailySeed, classId: player?.id || "", score, floorsCleared: floor, totalTurns, totalDamageDealt, hpRemaining: 0, won: false, modifierId: dailyModifierId });
       SFX.gameOver();
       setScreen("dailyResult");
     } else {
@@ -326,7 +328,8 @@ export default function CorporateClimb() {
     SFX.heal();
 
     if (item.effect.hp) {
-      const healAmt = Math.min(item.effect.hp, gs.player.maxHp - gs.playerHp);
+      const effectiveMaxHp = (gs.effectivePlayer || gs.player).maxHp;
+      const healAmt = Math.min(item.effect.hp, effectiveMaxHp - gs.playerHp);
       if (healAmt > 0) {
         setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt));
         addDamagePopup(healAmt, false, false, true);
@@ -504,6 +507,7 @@ export default function CorporateClimb() {
     setNgPlus(save.ngPlus || 0);
     setTotalTurns(save.totalTurns || 0);
     setTotalDamageDealt(save.totalDamageDealt || 0);
+    setItemsUsed(save.itemsUsed || 0);
     setEnemyPhase(save.enemyPhase || 1);
     setScreen("floorIntro");
   };
@@ -554,6 +558,8 @@ export default function CorporateClimb() {
     dailyRngRef.current = createSeededRandom(seed + 10);
 
     setDailyMode(true);
+    setDailySeed(seed);
+    setDailyModifierId(modifier.id);
     setDailyFloorMap(floorMap);
     setDailyModifierCtx(ctx);
     setPlayer(actualClass);
@@ -836,7 +842,7 @@ export default function CorporateClimb() {
     if (floor >= totalFloors - 1) {
       if (dailyMode) {
         const score = calculateDailyScore({ floorsCleared: floor + 1, totalTurns, totalDamageDealt, hpRemaining: playerHp, won: true });
-        saveDailyResult({ seed: getDailySeed(), classId: player?.id || "", score, floorsCleared: floor + 1, totalTurns, totalDamageDealt, hpRemaining: playerHp, won: true, modifierId: getDailyModifier(getDailySeed()).id });
+        saveDailyResult({ seed: dailySeed, classId: player?.id || "", score, floorsCleared: floor + 1, totalTurns, totalDamageDealt, hpRemaining: playerHp, won: true, modifierId: dailyModifierId });
         SFX.fanfare();
         setScreen("dailyResult");
       } else {
@@ -867,6 +873,7 @@ export default function CorporateClimb() {
           ngPlus,
           totalTurns,
           totalDamageDealt,
+          itemsUsed,
         });
       }
 
@@ -1154,6 +1161,8 @@ export default function CorporateClimb() {
           totalDamageDealt={totalDamageDealt}
           hpRemaining={Math.max(0, playerHp)}
           won={playerHp > 0}
+          seed={dailySeed}
+          modifierId={dailyModifierId}
           onBack={() => { setDailyMode(false); setScreen("title"); }}
         />}
         {screen === "gameOver" && <GameOverScreen floor={floor + 1} onRestart={restart} />}

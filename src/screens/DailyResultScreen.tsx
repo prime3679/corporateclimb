@@ -1,8 +1,8 @@
 import { useState } from "react";
 import type { PlayerClass } from "../types";
-import { getDailySeed, getDailyModifier } from "../daily";
+import { DAILY_MODIFIERS, getDailyModifier } from "../daily";
 
-export default function DailyResultScreen({ player, score, floorsCleared, totalTurns, totalDamageDealt, hpRemaining, won, onBack }: {
+export default function DailyResultScreen({ player, score, floorsCleared, totalTurns, totalDamageDealt, hpRemaining, won, seed, modifierId, onBack }: {
   player: PlayerClass;
   score: number;
   floorsCleared: number;
@@ -10,13 +10,17 @@ export default function DailyResultScreen({ player, score, floorsCleared, totalT
   totalDamageDealt: number;
   hpRemaining: number;
   won: boolean;
+  seed: number;
+  modifierId: string;
   onBack: () => void;
 }) {
   const [shared, setShared] = useState(false);
-  const seed = getDailySeed();
-  const modifier = getDailyModifier(seed);
+  const modifier = DAILY_MODIFIERS.find(m => m.id === modifierId) ?? getDailyModifier(seed);
   const launchDate = new Date("2026-03-17");
-  const dayNum = Math.max(1, Math.floor((new Date().getTime() - launchDate.getTime()) / 86400000) + 1);
+  const seedDate = seed > 0
+    ? new Date(Math.floor(seed / 10000), Math.floor(seed / 100) % 100 - 1, seed % 100)
+    : new Date();
+  const dayNum = Math.max(1, Math.floor((seedDate.getTime() - launchDate.getTime()) / 86400000) + 1);
 
   const stars = won ? "\u2B50\u2B50\u2B50" : floorsCleared >= 10 ? "\u2B50\u2B50" : floorsCleared >= 5 ? "\u2B50" : "";
 
