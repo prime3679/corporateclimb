@@ -35,7 +35,7 @@ export default function DailyResultScreen({ player, score, floorsCleared, totalT
 
   const handleShare = async () => {
     if (navigator.share) {
-      try { await navigator.share({ text: shareText }); setShared(true); } catch {}
+      try { await navigator.share({ text: shareText }); setShared(true); } catch { /* share cancelled or unavailable */ }
     } else {
       await navigator.clipboard.writeText(shareText);
       setShared(true);

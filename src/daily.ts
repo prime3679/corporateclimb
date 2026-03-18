@@ -125,7 +125,7 @@ export function saveDailyResult(result: DailyResult) {
     const all = getAllDailyResults();
     all[result.seed] = result;
     localStorage.setItem(DAILY_RESULTS_KEY, JSON.stringify(all));
-  } catch {}
+  } catch { /* storage unavailable */ }
 }
 
 export function getDailyResult(seed: number): DailyResult | null {

@@ -17,10 +17,10 @@ import {
   loadGame,
   clearSave,
   checkAchievements,
-  getUnlockedAchievements,
   getBestNgPlus,
   saveBestNgPlus,
 } from "../data";
+import type { SaveData } from "../types";
 
 // ─── getAct ─────────────────────────────────────────────────
 
@@ -84,7 +84,7 @@ describe("getTypeMultiplier", () => {
   });
 
   it("every type in TYPE_STRONG has at least one super-effective target", () => {
-    for (const [type, targets] of Object.entries(TYPE_STRONG)) {
+    for (const [_type, targets] of Object.entries(TYPE_STRONG)) {
       expect(targets.size).toBeGreaterThan(0);
     }
   });
@@ -217,7 +217,7 @@ describe("save/load game", () => {
 
   it("round-trips save data", () => {
     const data = { classId: "pm", floor: 5, hp: 80, enemyNames: ["Intern"], pp: [10, 10, 5, 3], inventory: [], totalTurns: 20, totalDamageDealt: 500, itemsUsed: 0, ngLevel: 0 };
-    saveGame(data as any);
+    saveGame(data as unknown as SaveData);
     const loaded = loadGame();
     expect(loaded).toEqual(data);
   });
@@ -228,13 +228,13 @@ describe("save/load game", () => {
 
   it("returns null for invalid class", () => {
     const data = { classId: "invalid_class", floor: 5, hp: 80, enemyNames: [], pp: [], inventory: [], totalTurns: 0, totalDamageDealt: 0, itemsUsed: 0, ngLevel: 0 };
-    saveGame(data as any);
+    saveGame(data as unknown as SaveData);
     expect(loadGame()).toBeNull();
   });
 
   it("clearSave removes the save", () => {
     const data = { classId: "pm", floor: 0, hp: 100, enemyNames: [], pp: [], inventory: [], totalTurns: 0, totalDamageDealt: 0, itemsUsed: 0, ngLevel: 0 };
-    saveGame(data as any);
+    saveGame(data as unknown as SaveData);
     clearSave();
     expect(loadGame()).toBeNull();
   });
@@ -349,7 +349,7 @@ describe("data integrity", () => {
   });
 
   it("every enemy pool has at least one enemy", () => {
-    ENEMY_POOLS.forEach((pool, i) => {
+    ENEMY_POOLS.forEach((pool, _i) => {
       expect(pool.length).toBeGreaterThan(0);
     });
   });

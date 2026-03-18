@@ -1,4 +1,4 @@
-import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef, PromotionTier, Move } from "./types";
+import type { StatusId, StatusDef, PlayerClass, Enemy, EnemyPhase2, HallwayEvent, MoveType, ItemId, ItemDef, AchievementId, AchievementDef, PromotionTier } from "./types";
 
 // ─── CONSTANTS ──────────────────────────────────────────────
 export const TOTAL_FLOORS = 30;
@@ -936,14 +936,14 @@ export function saveBestNgPlus(level: number) {
   try {
     const current = getBestNgPlus();
     if (level > current) localStorage.setItem(NG_PLUS_KEY, String(level));
-  } catch {}
+  } catch { /* storage unavailable */ }
 }
 
 // ─── SAVE SYSTEM ─────────────────────────────────────────────
 const SAVE_KEY = "corporate-climb-save";
 
 export function saveGame(data: import("./types").SaveData) {
-  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch {}
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }
 }
 
 export function loadGame(): import("./types").SaveData | null {
@@ -958,7 +958,7 @@ export function loadGame(): import("./types").SaveData | null {
 }
 
 export function clearSave() {
-  try { localStorage.removeItem(SAVE_KEY); } catch {}
+  try { localStorage.removeItem(SAVE_KEY); } catch { /* storage unavailable */ }
 }
 
 // ─── ACHIEVEMENTS ────────────────────────────────────────────
@@ -986,7 +986,7 @@ export function unlockAchievement(id: AchievementId): boolean {
   const current = getUnlockedAchievements();
   if (current.has(id)) return false;
   current.add(id);
-  try { localStorage.setItem(ACHIEVEMENT_KEY, JSON.stringify([...current])); } catch {}
+  try { localStorage.setItem(ACHIEVEMENT_KEY, JSON.stringify([...current])); } catch { /* storage unavailable */ }
   return true; // newly unlocked
 }
 
@@ -1000,7 +1000,7 @@ export function getClassWins(): Set<string> {
 export function recordClassWin(classId: string) {
   const wins = getClassWins();
   wins.add(classId);
-  try { localStorage.setItem("corporate-climb-class-wins", JSON.stringify([...wins])); } catch {}
+  try { localStorage.setItem("corporate-climb-class-wins", JSON.stringify([...wins])); } catch { /* storage unavailable */ }
 }
 
 /** Check and unlock all applicable achievements after a win */

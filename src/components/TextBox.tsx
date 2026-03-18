@@ -1,14 +1,19 @@
 import { useState, useEffect } from "react";
 
 export default function TextBox({ lines, onAdvance, showArrow }: { lines: string[]; onAdvance?: () => void; showArrow?: boolean }) {
+  const fullText = lines.join("\n");
   const [displayedText, setDisplayedText] = useState("");
   const [charIndex, setCharIndex] = useState(0);
-  const fullText = lines.join("\n");
+  const [prevFullText, setPrevFullText] = useState(fullText);
 
-  useEffect(() => {
+  // Reset typewriter animation when text changes. This render-time state update
+  // is the React-recommended pattern for resetting derived state on prop change
+  // (avoids setState inside an effect which can cause cascading renders).
+  if (prevFullText !== fullText) {
+    setPrevFullText(fullText);
     setDisplayedText("");
     setCharIndex(0);
-  }, [fullText]);
+  }
 
   useEffect(() => {
     if (charIndex < fullText.length) {

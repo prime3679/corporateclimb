@@ -133,7 +133,7 @@ export default function CorporateClimb() {
   // Promotion / act transition state
   const [pendingPromotion, setPendingPromotion] = useState<{ old: PromotionTier; new: PromotionTier } | null>(null);
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null);
-  const [nextFloorAfterScreens, setNextFloorAfterScreens] = useState<number | null>(null);
+
 
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
@@ -224,7 +224,7 @@ export default function CorporateClimb() {
       SFX.gameOver();
       setScreen("gameOver");
     }
-  }, [dailyMode, floor, totalTurns, totalDamageDealt, player, setScreen]);
+  }, [dailyMode, dailyModifierId, dailySeed, floor, totalTurns, totalDamageDealt, player, setScreen]);
 
   const addDamagePopup = (value: number, isEnemy: boolean, isCrit: boolean, isHeal: boolean, label?: string, labelColor?: string) => {
     const popup: DamagePopup = {
@@ -600,15 +600,6 @@ export default function CorporateClimb() {
     if (floor % 10 >= 8) SFX.bossIntro();
     else SFX.enemyAppear();
     setScreen("battle");
-  };
-
-  const pickRandomEvent = () => {
-    const available = HALLWAY_EVENTS.filter((e) => !usedEventsRef.current.has(e.id));
-    if (available.length === 0) {
-      usedEventsRef.current.clear();
-      return HALLWAY_EVENTS[Math.floor(rng() * HALLWAY_EVENTS.length)];
-    }
-    return available[Math.floor(rng() * available.length)];
   };
 
   const pickTwoEvents = (): [import("./types").HallwayEvent, import("./types").HallwayEvent] => {

@@ -257,8 +257,6 @@ describe('checkAchievements', () => {
 
 // ─── loadGame ───────────────────────────────────────────────────
 
-const SAVE_KEY = 'corporate-climb-save';
-
 describe('loadGame', () => {
   const SAVE_KEY_INTERNAL = 'corporate-climb-save';
   afterEach(() => { localStorage.removeItem(SAVE_KEY_INTERNAL); });
