@@ -165,7 +165,7 @@ export function getEffectivePlayer(base: PlayerClass, classId: string, currentFl
   let maxHp = base.maxHp;
   let atk = base.atk;
   let def = base.def;
-  let moves = [...base.moves];
+  const moves = [...base.moves];
   for (const tier of track) {
     if (currentFloor < tier.floor) break;
     if (tier.statBoost) {
