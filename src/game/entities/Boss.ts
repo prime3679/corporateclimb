@@ -182,9 +182,13 @@ export class Boss {
       this.fireMultipleChoice();
     }
 
-    // Clean up off-screen projectiles
+    // Sync container positions to their hit zones, then clean up off-screen projectiles
     for (let i = this.activeProjectiles.length - 1; i >= 0; i--) {
       const proj = this.activeProjectiles[i];
+      const hitZone = proj.getData("hitZone") as Phaser.GameObjects.Zone | undefined;
+      if (hitZone && hitZone.active) {
+        proj.setPosition(hitZone.x, hitZone.y);
+      }
       if (proj.x < this.config.arenaLeft - 100 || proj.y > 750) {
         proj.destroy();
         this.activeProjectiles.splice(i, 1);
@@ -243,13 +247,6 @@ export class Boss {
       proj.setData("hitZone", hitZone);
 
       this.activeProjectiles.push(proj);
-
-      // Update position to follow hitZone
-      this.scene.events.on("update", () => {
-        if (hitZone.active) {
-          proj.setPosition(hitZone.x, hitZone.y);
-        }
-      });
     }
   }
 
@@ -264,6 +261,14 @@ export class Boss {
       return;
     }
 
+    // Snapshot the pre-encounter correct count so essay damage reflects
+    // only choices made during this encounter, not the all-time history.
+    const correctCountBefore = useChoiceHistory
+      .getState()
+      .choices.filter(
+        (c) => c.dialogueId === "boss_essay" && c.tags.includes("correct"),
+      ).length;
+
     // Open dialogue
     useDialogueState
       .getState()
@@ -273,12 +278,13 @@ export class Boss {
     const unsub = useDialogueState.subscribe((state) => {
       if (!state.isOpen && this.phase === "phase2") {
         unsub();
-        // Count correct answers from the essay
-        const correctCount = useChoiceHistory
+        // Count correct answers made during this encounter only
+        const correctCountAfter = useChoiceHistory
           .getState()
           .choices.filter(
             (c) => c.dialogueId === "boss_essay" && c.tags.includes("correct"),
           ).length;
+        const correctCount = correctCountAfter - correctCountBefore;
 
         this.takeDamage(correctCount * 15);
         this.startPhase3();

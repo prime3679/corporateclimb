@@ -10,7 +10,12 @@ import { Freeloader } from "../entities/enemies/Freeloader";
 import { MidtermStack } from "../entities/enemies/MidtermStack";
 import { PowerUp } from "../entities/PowerUp";
 import { Boss } from "../entities/Boss";
-import type { LevelConfig, PlatformConfig, NPCConfig } from "../config/levelTypes";
+import type {
+  LevelConfig,
+  PlatformConfig,
+  NPCConfig,
+  TutorialPromptConfig,
+} from "../config/levelTypes";
 import { freshmanLevel } from "../config/levels/freshmanLevel";
 import { useDialogueState } from "../../ui/stores/dialogueState";
 import { useGameState } from "../../ui/stores/gameState";
@@ -31,8 +36,22 @@ export class GameScene extends Phaser.Scene {
   private dialogueTriggers: DialogueTrigger[] = [];
   private dialoguePaused = false;
 
+  // Handle to unsubscribe the dialogue-state listener on scene shutdown.
+  private dialogueUnsubscribe?: () => void;
+
   // New systems
   private tutorialSystem?: TutorialSystem;
+
+  // Tutorial completion tracking (mirrors TutorialSystem's dismiss condition:
+  // a prompt is done once the player has passed its triggerX and performed the
+  // dismissOn action). Tracked here so GameScene can drop the system and stop
+  // polling it every frame once all prompts are dismissed.
+  private tutorialActionsDone: Record<TutorialPromptConfig["dismissOn"], boolean> = {
+    move: false,
+    jump: false,
+    dodge: false,
+    interact: false,
+  };
 
   // Enemies
   private alarmClocks: AlarmClock[] = [];
@@ -134,14 +153,19 @@ export class GameScene extends Phaser.Scene {
     useGameState.getState().setRunning(true);
     useGameState.getState().setCurrentScene("Game");
 
-    // Dialogue pause/resume
-    useDialogueState.subscribe((state) => {
+    // Dialogue pause/resume. Keep the unsubscribe handle so we can detach the
+    // listener in shutdown() (otherwise it leaks across scene restarts).
+    this.dialogueUnsubscribe = useDialogueState.subscribe((state) => {
       if (state.isOpen && !this.dialoguePaused) {
         this.pauseForDialogue();
       } else if (!state.isOpen && this.dialoguePaused) {
         this.resumeFromDialogue();
       }
     });
+  }
+
+  shutdown() {
+    this.dialogueUnsubscribe?.();
   }
 
   /* ─── NPC creation ─── */
@@ -327,9 +351,46 @@ export class GameScene extends Phaser.Scene {
   /* ─── Gap detection ─── */
 
   private detectGaps() {
-    // Find gaps between ground-level solid platforms around party area
-    // The gap is at x=5400 to x=5600
-    this.gapPenaltyZones.push({ x1: 5400, x2: 5600 });
+    // Derive fall-penalty zones from the level's ground row instead of
+    // hard-coding the party-area gap. The ground row is the set of horizontal
+    // solid slabs (width > height, which excludes the vertical walls) that sit
+    // at the lowest point in the level (the largest top-y). Any horizontal gap
+    // between two adjacent ground slabs is a fall-penalty zone.
+    const groundSlabs = this.level.platforms.filter(
+      (p) => p.type === "solid" && p.width > p.height,
+    );
+    if (groundSlabs.length === 0) return;
+
+    const groundY = Math.max(...groundSlabs.map((p) => p.y));
+    const groundRow = groundSlabs
+      .filter((p) => p.y === groundY)
+      .sort((a, b) => a.x - b.x);
+
+    for (let i = 1; i < groundRow.length; i++) {
+      const prevRight = groundRow[i - 1].x + groundRow[i - 1].width;
+      const nextLeft = groundRow[i].x;
+      if (nextLeft > prevRight) {
+        this.gapPenaltyZones.push({ x1: prevRight, x2: nextLeft });
+      }
+    }
+  }
+
+  /* ─── Tutorial completion ─── */
+
+  /**
+   * A tutorial prompt is dismissed once the player has reached its triggerX
+   * AND performed its dismissOn action (this mirrors TutorialSystem.update()).
+   * The tutorial is complete when every configured prompt has been dismissed,
+   * at which point GameScene can stop polling the system each frame.
+   */
+  private isTutorialComplete(): boolean {
+    const prompts = this.level.tutorialPrompts ?? [];
+    if (prompts.length === 0) return true;
+
+    const playerX = this.player.x;
+    return prompts.every(
+      (p) => playerX >= p.triggerX && this.tutorialActionsDone[p.dismissOn],
+    );
   }
 
   /* ─── Pause/Resume ─── */
@@ -433,16 +494,48 @@ export class GameScene extends Phaser.Scene {
     this.lastPlayerOnGround = playerOnGround;
 
     // Tutorial notifications
+    //
+    // NOTE: We must NOT call Player.readInput() again here. Player.update()
+    // (above) already consumed the per-frame edge events via
+    // Phaser.Input.Keyboard.JustDown(), so a second read would always see
+    // jumpPressed/dodgePressed as false and the tutorial would never dismiss
+    // those prompts. Instead we derive the actions from non-consuming signals
+    // that Player.update() already produced this frame:
+    //   - move  → horizontal body velocity (matches the old moveX !== 0 intent)
+    //   - jump  → playerJustJumped (derived from body velocity + ground state)
+    //   - dodge → player anim state ("dodge" while a dodge is active)
     if (this.tutorialSystem) {
-      const input = this.player.readInput();
-      if (input.moveX !== 0) this.tutorialSystem.notifyAction("move");
-      if (input.jumpPressed) this.tutorialSystem.notifyAction("jump");
-      if (input.dodgePressed) this.tutorialSystem.notifyAction("dodge");
+      const movedThisFrame =
+        Math.abs((this.player.body as Phaser.Physics.Arcade.Body).velocity.x) > 1;
+      const jumpedThisFrame = playerJustJumped;
+      const dodgedThisFrame = this.player.getAnimState() === "dodge";
+      const interactedThisFrame = useDialogueState.getState().isOpen;
+
+      if (movedThisFrame) {
+        this.tutorialActionsDone.move = true;
+        this.tutorialSystem.notifyAction("move");
+      }
+      if (jumpedThisFrame) {
+        this.tutorialActionsDone.jump = true;
+        this.tutorialSystem.notifyAction("jump");
+      }
+      if (dodgedThisFrame) {
+        this.tutorialActionsDone.dodge = true;
+        this.tutorialSystem.notifyAction("dodge");
+      }
       // Interact notification happens when dialogue opens
-      if (useDialogueState.getState().isOpen) {
+      if (interactedThisFrame) {
+        this.tutorialActionsDone.interact = true;
         this.tutorialSystem.notifyAction("interact");
       }
       this.tutorialSystem.update();
+
+      // Once every prompt's dismiss action has been performed, all prompts will
+      // have faded out. Drop the system so we stop polling it every frame for
+      // the rest of the level.
+      if (this.isTutorialComplete()) {
+        this.tutorialSystem = undefined;
+      }
     }
 
     // Freeloader jump tracking
@@ -486,11 +579,13 @@ export class GameScene extends Phaser.Scene {
       }
     }
 
-    // Dialogue triggers
+    // Dialogue triggers. Each trigger is self-contained (update() reads only
+    // its own overlap state, setOverlapping() resets only its own state), so
+    // the previous pair of loops can be merged into one without changing
+    // behavior. The per-frame overlap flag is set by the physics overlap
+    // callback before update() runs, then cleared here for the next frame.
     for (const t of this.dialogueTriggers) {
       t.update();
-    }
-    for (const t of this.dialogueTriggers) {
       t.setOverlapping(false);
     }
   }
