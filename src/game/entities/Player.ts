@@ -49,6 +49,10 @@ export class Player extends Phaser.GameObjects.Zone {
   private lastGroundedTime = 0;
   private jumpBufferTime = 0;
 
+  // Variable jump height (cut once on jump-release edge)
+  private wasJumpHeld = false;
+  private jumpCut = false;
+
   // Dodge
   private isDodging = false;
   private dodgeTimer = 0;
@@ -257,16 +261,21 @@ export class Player extends Phaser.GameObjects.Zone {
       this.performJump();
     }
 
-    // Variable jump height
-    if (!input.jumpHeld && this.body.velocity.y < 0) {
+    // Variable jump height — cut velocity exactly once on the release edge,
+    // when the jump button transitions from held to released while still rising.
+    if (this.wasJumpHeld && !input.jumpHeld && !this.jumpCut && this.body.velocity.y < 0) {
       this.body.setVelocityY(this.body.velocity.y * VARIABLE_JUMP_MULTIPLIER);
+      this.jumpCut = true;
     }
+
+    this.wasJumpHeld = input.jumpHeld;
   }
 
   private performJump() {
     this.body.setVelocityY(JUMP_VELOCITY);
     this.lastGroundedTime = 0;
     this.jumpBufferTime = 0;
+    this.jumpCut = false;
     this.doStretch();
   }
 

@@ -57,6 +57,9 @@ export function LevelComplete() {
     // For now just stop the game since there's no level 2 yet
     useGameState.getState().setRunning(false);
     useGameState.getState().setCurrentScene("Boot");
+    // Reset run state so the next run starts fresh
+    usePlayerStats.getState().reset();
+    useChoiceHistory.getState().reset();
   };
 
   return (

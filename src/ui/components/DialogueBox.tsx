@@ -37,12 +37,13 @@ function ConsequenceDisplay({ text }: { text: string }) {
 /** Shows speaker, typewriter text, and options */
 function NodeDisplay() {
   const { currentNode, selectOption, advanceOrClose } = useDialogueState();
-  if (!currentNode) return null;
 
-  const visibleOptions = getVisibleOptionsForNode(currentNode);
+  const visibleOptions = currentNode
+    ? getVisibleOptionsForNode(currentNode)
+    : [];
   const [displayedText, setDisplayedText] = useState("");
   const [isTyping, setIsTyping] = useState(true);
-  const fullText = currentNode.text;
+  const fullText = currentNode?.text ?? "";
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // Reset typewriter when node changes
@@ -76,6 +77,8 @@ function NodeDisplay() {
       advanceOrClose();
     }
   }, [isTyping, fullText, visibleOptions.length, advanceOrClose]);
+
+  if (!currentNode) return null;
 
   return (
     <>

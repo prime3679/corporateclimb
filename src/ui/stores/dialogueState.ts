@@ -82,21 +82,8 @@ export const useDialogueState = create<DialogueState>((set, get) => ({
       levelId,
     });
 
-    // Show consequence or advance immediately
-    if (option.consequence) {
-      set({ consequence: option.consequence });
-      // After 1.5s, advance to next node or close
-      setTimeout(() => {
-        const next = option.nextNodeId
-          ? tree.find((n) => n.id === option.nextNodeId) ?? null
-          : null;
-        if (next) {
-          set({ currentNode: next, consequence: null });
-        } else {
-          get().closeDialogue();
-        }
-      }, 1500);
-    } else {
+    // Advance to the option's next node, or close if there is none
+    const advance = () => {
       const next = option.nextNodeId
         ? tree.find((n) => n.id === option.nextNodeId) ?? null
         : null;
@@ -105,6 +92,15 @@ export const useDialogueState = create<DialogueState>((set, get) => ({
       } else {
         get().closeDialogue();
       }
+    };
+
+    // Show consequence or advance immediately
+    if (option.consequence) {
+      set({ consequence: option.consequence });
+      // After 1.5s, advance to next node or close
+      setTimeout(advance, 1500);
+    } else {
+      advance();
     }
   },
 

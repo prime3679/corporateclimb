@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { memo, useState } from "react";
 import {
   useCharacterStore,
   SKIN_TONES,
@@ -50,20 +50,13 @@ export function CharacterCreator() {
         <Section label="Skin Tone">
           <div style={styles.row}>
             {SKIN_TONES.map((color) => (
-              <button
+              <Swatch
                 key={color}
+                color={color}
+                selected={store.skinTone === color}
                 onClick={() => store.setSkinTone(color)}
-                style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: "50%",
-                  background: color,
-                  border: store.skinTone === color ? "3px solid #e2e8f0" : "3px solid transparent",
-                  cursor: "pointer",
-                  transition: "border 0.15s, transform 0.1s",
-                  transform: store.skinTone === color ? "scale(1.15)" : "scale(1)",
-                  padding: 0,
-                }}
+                size={36}
+                radius="50%"
               />
             ))}
           </div>
@@ -89,20 +82,13 @@ export function CharacterCreator() {
         <Section label="Accent Color">
           <div style={styles.row}>
             {ACCENT_COLORS.map((color) => (
-              <button
+              <Swatch
                 key={color}
+                color={color}
+                selected={store.accentColor === color}
                 onClick={() => store.setAccentColor(color)}
-                style={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: 6,
-                  background: color,
-                  border: store.accentColor === color ? "3px solid #e2e8f0" : "3px solid transparent",
-                  cursor: "pointer",
-                  transition: "border 0.15s, transform 0.1s",
-                  transform: store.accentColor === color ? "scale(1.15)" : "scale(1)",
-                  padding: 0,
-                }}
+                size={32}
+                radius={6}
               />
             ))}
           </div>
@@ -296,6 +282,37 @@ function Section({ label, children }: { label: string; children: React.ReactNode
     </div>
   );
 }
+
+const Swatch = memo(function Swatch({
+  color,
+  selected,
+  onClick,
+  size,
+  radius,
+}: {
+  color: string;
+  selected: boolean;
+  onClick: () => void;
+  size: number;
+  radius: React.CSSProperties["borderRadius"];
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        width: size,
+        height: size,
+        borderRadius: radius,
+        background: color,
+        border: selected ? "3px solid #e2e8f0" : "3px solid transparent",
+        cursor: "pointer",
+        transition: "border 0.15s, transform 0.1s",
+        transform: selected ? "scale(1.15)" : "scale(1)",
+        padding: 0,
+      }}
+    />
+  );
+});
 
 function ToggleButton({
   active,
