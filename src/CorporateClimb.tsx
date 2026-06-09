@@ -311,11 +311,12 @@ export default function CorporateClimb() {
       : effectivePlayer.moves
     : []
 
-  /** Seeded random in daily mode, Math.random() otherwise */
-  const rng = useCallback(
-    () => (dailyMode && dailyRngRef.current ? dailyRngRef.current() : Math.random()),
-    [dailyMode],
-  )
+  // Seeded random while a daily run is active, Math.random() otherwise.
+  // Keyed off the ref (not dailyMode state) so the identity is stable and
+  // stale closures like doEnemyTurn's [] capture can never bind a
+  // wrong-mode rng — the old [dailyMode] version left enemy turns on
+  // Math.random during dailies.
+  const rng = useCallback(() => (dailyRngRef.current ? dailyRngRef.current() : Math.random()), [])
 
   const handleGameOver = useCallback(() => {
     if (dailyMode) {
@@ -607,6 +608,7 @@ export default function CorporateClimb() {
     if (!save) return
     const cls = PLAYER_CLASSES.find((c) => c.id === save.classId)!
     SFX.menuConfirm()
+    dailyRngRef.current = null // resuming a normal run; drop any leftover daily seed
     setPlayer(cls)
     setPlayerHp(save.playerHp)
     setPlayerPp(save.playerPp)
@@ -629,6 +631,7 @@ export default function CorporateClimb() {
 
   const selectClass = (cls: PlayerClass) => {
     SFX.menuConfirm()
+    dailyRngRef.current = null // fresh normal run; drop any leftover daily seed
     setPlayer(cls)
     setPlayerHp(cls.maxHp)
     setPlayerPp(cls.moves.map((m) => m.pp))
