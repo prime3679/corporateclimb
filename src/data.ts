@@ -155,7 +155,7 @@ export const PROMOTION_TRACKS: Record<string, PromotionTier[]> = {
   ],
 };
 
-export function getPromotion(classId: string, floor: number): PromotionTier {
+export function getPromotion(classId: string, floor: number): PromotionTier | undefined {
   const track = PROMOTION_TRACKS[classId] || [];
   return [...track].reverse().find(t => floor >= t.floor) || track[0];
 }
@@ -940,7 +940,7 @@ export function saveBestNgPlus(level: number) {
 }
 
 // ─── SAVE SYSTEM ─────────────────────────────────────────────
-const SAVE_KEY = "corporate-climb-save";
+export const SAVE_KEY = "corporate-climb-save";
 
 export function saveGame(data: import("./types").SaveData) {
   try { localStorage.setItem(SAVE_KEY, JSON.stringify(data)); } catch { /* storage unavailable */ }

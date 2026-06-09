@@ -3,6 +3,7 @@ import {
   getAct,
   getTypeMultiplier,
   TYPE_STRONG,
+  TYPE_COLORS,
   scaleEnemyForNgPlus,
   getEffectivePlayer,
   getPromotion,
@@ -20,6 +21,7 @@ import {
   getUnlockedAchievements,
   getBestNgPlus,
   saveBestNgPlus,
+  SAVE_KEY,
 } from "../data";
 import type { Enemy, PlayerClass, SaveData } from "../types";
 
@@ -105,6 +107,13 @@ describe("scaleEnemyForNgPlus", () => {
       { name: "Attack 1", dmg: 20 },
       { name: "Attack 2", dmg: 35, acc: 90 },
     ],
+    phase2: {
+      maxHp: 200,
+      atk: 60,
+      def: 30,
+      moves: [{ name: "Phase 2 Slam", dmg: 40 }],
+      taunt: "Round two!",
+    },
     defeat: "Oh no!",
     title: "Tester",
   };
@@ -149,6 +158,14 @@ describe("scaleEnemyForNgPlus", () => {
     scaleEnemyForNgPlus(baseEnemy, 3);
     expect(baseEnemy.maxHp).toBe(origHp);
     expect(baseEnemy.moves[0].dmg).toBe(origDmg);
+  });
+
+  it("scales the phase 2 stats and move damage", () => {
+    const result = scaleEnemyForNgPlus(baseEnemy, 1);
+    expect(result.phase2?.maxHp).toBe(260); // 200 * 1.3
+    expect(result.phase2?.atk).toBe(78); // 60 * 1.3
+    expect(result.phase2?.def).toBe(39); // 30 * 1.3
+    expect(result.phase2?.moves[0].dmg).toBe(46); // 40 * 1.15 = 46
   });
 });
 
@@ -230,16 +247,16 @@ describe("getEffectivePlayer", () => {
 describe("getPromotion", () => {
   it("returns base title at floor 0", () => {
     const promo = getPromotion("pm", 0);
-    expect(promo.title).toBe("Product Manager");
-    expect(promo.statBoost).toBeUndefined();
+    expect(promo?.title).toBe("Product Manager");
+    expect(promo?.statBoost).toBeUndefined();
   });
 
   it("returns the correct tier at floor 10", () => {
-    expect(getPromotion("pm", 10).title).toBe("Director of Product");
+    expect(getPromotion("pm", 10)?.title).toBe("Director of Product");
   });
 
   it("returns the highest tier at max floor", () => {
-    expect(getPromotion("pm", 25).title).toBe("Chief Product Officer");
+    expect(getPromotion("pm", 25)?.title).toBe("Chief Product Officer");
   });
 
   it("returns undefined for an unknown class", () => {
@@ -278,8 +295,6 @@ describe("getFloorEnemy", () => {
 // ─── Save / load game ────────────────────────────────────────
 
 describe("save / load game", () => {
-  const SAVE_KEY = "corporate-climb-save";
-
   const validSave: SaveData = {
     classId: PLAYER_CLASSES[0].id,
     floor: 5,
@@ -337,7 +352,6 @@ describe("save / load game", () => {
       throw new Error("Access denied");
     });
     expect(loadGame()).toBeNull();
-    vi.restoreAllMocks();
   });
 });
 
@@ -369,7 +383,7 @@ describe("checkAchievements", () => {
   afterEach(() => localStorage.clear());
 
   const baseStats = {
-    classId: "intern",
+    classId: "pm",
     totalTurns: 100,
     totalDamageDealt: 1000,
     ngLevel: 0,
@@ -384,45 +398,23 @@ describe("checkAchievements", () => {
   });
 
   it("unlocks triple_threat after 3 unique class wins", () => {
-    checkAchievements({ ...baseStats, classId: "intern" });
-    expect(checkAchievements({ ...baseStats, classId: "manager" })).not.toContain("triple_threat");
-    expect(checkAchievements({ ...baseStats, classId: "ceo" })).toContain("triple_threat");
+    checkAchievements({ ...baseStats, classId: "pm" });
+    expect(checkAchievements({ ...baseStats, classId: "eng" })).not.toContain("triple_threat");
+    expect(checkAchievements({ ...baseStats, classId: "design" })).toContain("triple_threat");
   });
 
-  it("unlocks speed_runner when totalTurns <= 50", () => {
-    expect(checkAchievements({ ...baseStats, totalTurns: 50 })).toContain("speed_runner");
+  // Each achievement at the exact threshold (unlocks) and one step past it (does not).
+  it.each([
+    { id: "speed_runner", pass: { totalTurns: 50 }, fail: { totalTurns: 51 } },
+    { id: "iron_will", pass: { itemsUsed: 0 }, fail: { itemsUsed: 1 } },
+    { id: "glass_cannon", pass: { finalHp: 14 }, fail: { finalHp: 15 } },
+    { id: "ng_plus_1", pass: { ngLevel: 1 }, fail: { ngLevel: 0 } },
+    { id: "ng_plus_3", pass: { ngLevel: 3 }, fail: { ngLevel: 2 } },
+    { id: "damage_dealer", pass: { totalDamageDealt: 3000 }, fail: { totalDamageDealt: 2999 } },
+  ])("unlocks $id at its boundary but not past it", ({ id, pass, fail }) => {
+    expect(checkAchievements({ ...baseStats, ...pass })).toContain(id);
     localStorage.clear();
-    expect(checkAchievements({ ...baseStats, totalTurns: 51 })).not.toContain("speed_runner");
-  });
-
-  it("unlocks iron_will when itemsUsed === 0", () => {
-    expect(checkAchievements({ ...baseStats, itemsUsed: 0 })).toContain("iron_will");
-    localStorage.clear();
-    expect(checkAchievements({ ...baseStats, itemsUsed: 1 })).not.toContain("iron_will");
-  });
-
-  it("unlocks glass_cannon when finalHp < 15", () => {
-    expect(checkAchievements({ ...baseStats, finalHp: 14 })).toContain("glass_cannon");
-    localStorage.clear();
-    expect(checkAchievements({ ...baseStats, finalHp: 15 })).not.toContain("glass_cannon");
-  });
-
-  it("unlocks ng_plus_1 when ngLevel >= 1", () => {
-    expect(checkAchievements({ ...baseStats, ngLevel: 1 })).toContain("ng_plus_1");
-    localStorage.clear();
-    expect(checkAchievements({ ...baseStats, ngLevel: 0 })).not.toContain("ng_plus_1");
-  });
-
-  it("unlocks ng_plus_3 when ngLevel >= 3", () => {
-    expect(checkAchievements({ ...baseStats, ngLevel: 3 })).toContain("ng_plus_3");
-    localStorage.clear();
-    expect(checkAchievements({ ...baseStats, ngLevel: 2 })).not.toContain("ng_plus_3");
-  });
-
-  it("unlocks damage_dealer when totalDamageDealt >= 3000", () => {
-    expect(checkAchievements({ ...baseStats, totalDamageDealt: 3000 })).toContain("damage_dealer");
-    localStorage.clear();
-    expect(checkAchievements({ ...baseStats, totalDamageDealt: 2999 })).not.toContain("damage_dealer");
+    expect(checkAchievements({ ...baseStats, ...fail })).not.toContain(id);
   });
 
   it("does not re-return already unlocked achievements", () => {
@@ -472,7 +464,7 @@ describe("data integrity", () => {
   });
 
   it("all class move types are valid", () => {
-    const validTypes = new Set(["strategy", "influence", "execution", "analytics", "technical", "normal"]);
+    const validTypes = new Set(Object.keys(TYPE_COLORS));
     for (const cls of PLAYER_CLASSES) {
       for (const move of cls.moves) {
         expect(validTypes.has(move.type)).toBe(true);

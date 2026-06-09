@@ -43,3 +43,12 @@ npm run preview # preview the production build locally
 ## Deploy
 
 This project is deployed on [Vercel](https://vercel.com). Push to `main` and Vercel will automatically build and deploy from the `dist/` output.
+
+## Assets
+
+Character sprites live in `src/assets/characters/` as 512×512 WebP. They were
+downscaled and re-encoded (Pillow `Image.resize(LANCZOS)` → WebP quality 82,
+alpha preserved) from the original 1024×1024 PNG masters. Those masters are no
+longer in the tree — recover them from git history before commit `0ebdf73`
+(`git show 0ebdf73~1:src/assets/characters/npcs/boss.png > boss.png`) if you
+need to re-export at a different size.
