@@ -66,15 +66,16 @@ import {
   DAILY_FLOOR_COUNT,
 } from './daily'
 import type { DailyModifierContext } from './types'
-
-// ─── STRUGGLE MOVE (fallback when all PP depleted) ──────────
-const STRUGGLE_MOVE: Move = {
-  name: 'Struggle',
-  dmg: 5,
-  type: 'normal',
-  desc: 'Desperation. Hurts you too.',
-  pp: 999,
-}
+import {
+  STRUGGLE_MOVE,
+  calcDamage,
+  chooseEnemyMove,
+  getBurnDamage,
+  getClassPerkMods,
+  getStatusAtkMod,
+  getStatusCritBonus,
+  getStatusDefMod,
+} from './battle'
 
 const MAX_INVENTORY = 4
 
@@ -419,32 +420,6 @@ export default function CorporateClimb() {
     )
   }
 
-  const getStatusAtkMod = (statuses: StatusInstance[]): number => {
-    let mod = 0
-    for (const s of statuses) {
-      if (s.id === 'motivated') mod += 4
-      if (s.id === 'micromanaged') mod -= 4
-    }
-    return mod
-  }
-
-  const getStatusDefMod = (statuses: StatusInstance[]): number => {
-    let mod = 0
-    for (const s of statuses) {
-      if (s.id === 'caffeinated') mod -= 3
-      if (s.id === 'demoralized') mod -= 3
-    }
-    return mod
-  }
-
-  const getStatusCritBonus = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === 'focused') ? 0.2 : 0
-  }
-
-  const getBurnDamage = (statuses: StatusInstance[]): number => {
-    return statuses.some((s) => s.id === 'burned_out') ? 8 : 0
-  }
-
   // ─── Item use (consumes a turn) ───────────────────────────
   const useItem = useCallback((itemIdx: number) => {
     const gs = gsRef.current
@@ -522,29 +497,13 @@ export default function CorporateClimb() {
       setLog((l) => [...l, `${gs.player!.name} is burned out! -${playerBurn} HP!`])
     }
 
-    const eMove = (() => {
-      const moves = gs.enemy.moves
-      if (moves.length <= 1) return moves[0]
-
-      const eHpPct = gs.enemyHp / gs.enemy.maxHp
-      const pHpPct = gs.playerHp / (gs.effectivePlayer || gs.player!).maxHp
-
-      if (eHpPct < 0.35) {
-        const healMove = moves.find((m) => m.heal && m.heal > 0)
-        if (healMove && rng() < 0.7) return healMove
-      }
-
-      if (pHpPct > 0.6 && gs.playerStatuses.length === 0) {
-        const debuffMove = moves.find((m) => m.status?.target === 'enemy')
-        if (debuffMove && rng() < 0.5) return debuffMove
-      }
-
-      if (pHpPct < 0.25) {
-        return moves.reduce((a, b) => (b.dmg > a.dmg ? b : a))
-      }
-
-      return moves[Math.floor(rng() * moves.length)]
-    })()
+    const eMove = chooseEnemyMove(
+      rng,
+      gs.enemy.moves,
+      gs.enemyHp / gs.enemy.maxHp,
+      gs.playerHp / (gs.effectivePlayer || gs.player!).maxHp,
+      gs.playerStatuses.length,
+    )
     setEnemyAnim('attacking')
     SFX.attackSwing()
 
@@ -570,6 +529,7 @@ export default function CorporateClimb() {
       const eTypeResult = getTypeMultiplier(eMove.type || 'normal', gs.player!.types)
       const dailyDefMult = dailyModifierCtx?.playerDefMult ?? 1
       const [eDmg, eCrit] = calcDamage(
+        rng,
         gs.enemy.atk + enemyAtkMod,
         Math.round(
           ((gs.effectivePlayer || gs.player!).def + gs.level + gs.defBuff + playerDefMod) *
@@ -818,27 +778,6 @@ export default function CorporateClimb() {
     }, 0)
   }
 
-  const calcDamage = (
-    atkStat: number,
-    defStat: number,
-    baseDmg: number,
-    critBonus: number = 0,
-    typeMult: number = 1,
-  ): [number, boolean] => {
-    const variance = 0.85 + rng() * 0.3
-    const isCrit = rng() < 0.1 + critBonus
-    const crit = isCrit ? 1.5 : 1
-    return [
-      Math.max(
-        1,
-        Math.round(
-          baseDmg * (Math.max(1, atkStat) / Math.max(1, defStat)) * variance * crit * typeMult,
-        ),
-      ),
-      isCrit,
-    ]
-  }
-
   const doPlayerMove = useCallback(
     (moveIdx: number) => {
       const gs = gsRef.current
@@ -878,11 +817,10 @@ export default function CorporateClimb() {
         const playerAtkMod = getStatusAtkMod(gs.playerStatuses)
         const enemyDefMod = getStatusDefMod(gs.enemyStatuses)
         const playerCritBonus = getStatusCritBonus(gs.playerStatuses)
-        // Class perks: Engineer +15% damage, Designer +15% crit
-        const perkDmgMult = gs.player!.id === 'eng' ? 1.15 : 1
-        const perkCritBonus = gs.player!.id === 'design' ? 0.15 : 0
+        const { dmgMult: perkDmgMult, critBonus: perkCritBonus } = getClassPerkMods(gs.player!.id)
         const typeResult = getTypeMultiplier(move.type, gs.enemy.types)
         const [rawDmg, isCrit] = calcDamage(
+          rng,
           (gs.effectivePlayer || gs.player!).atk + gs.level * 2 + gs.atkBuff + playerAtkMod,
           gs.enemy.def + enemyDefMod,
           move.dmg,
@@ -1020,8 +958,8 @@ export default function CorporateClimb() {
           doEnemyTurn()
         }, 800)
       }, 350)
-      // eslint-disable-next-line react-hooks/exhaustive-deps
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [doEnemyTurn, ngPlus, floorEnemyIds],
   )
 
