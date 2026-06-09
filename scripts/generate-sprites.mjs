@@ -20,8 +20,28 @@ const PLAYER_SPEC = {
   width: 60,
   height: 80,
   bodyTypes: ['masculine', 'feminine', 'androgynous'],
-  skinTones: ['#F5D6B8', '#E8C39E', '#D4A574', '#C19A6B', '#A0785A', '#8B6544', '#6B4226', '#4A2C17'],
-  hairstyles: ['Locs', 'Braids', 'Afro', 'Buzz', 'Long', 'Curly', 'Straight', 'Bald', 'Mohawk', 'Bob'],
+  skinTones: [
+    '#F5D6B8',
+    '#E8C39E',
+    '#D4A574',
+    '#C19A6B',
+    '#A0785A',
+    '#8B6544',
+    '#6B4226',
+    '#4A2C17',
+  ],
+  hairstyles: [
+    'Locs',
+    'Braids',
+    'Afro',
+    'Buzz',
+    'Long',
+    'Curly',
+    'Straight',
+    'Bald',
+    'Mohawk',
+    'Bob',
+  ],
   accessories: ['None', 'Glasses', 'Headphones', 'Cap'],
   outfitsByLevel: {
     level1: { top: 'hoodie', item: 'backpack' },
@@ -37,50 +57,66 @@ const PLAYER_SPEC = {
 
 const NPC_SPECS = {
   professor_no_curve: {
-    width: 55, height: 90,
-    bodyColor: '#7F1D1D', accentColor: '#991B1B',
+    width: 55,
+    height: 90,
+    bodyColor: '#7F1D1D',
+    accentColor: '#991B1B',
     features: 'tall, angular, glasses',
     palette: 'dark red/maroon',
   },
   ghosting_recruiter: {
-    width: 50, height: 80,
-    bodyColor: '#6B7280', accentColor: '#3B82F6',
+    width: 50,
+    height: 80,
+    bodyColor: '#6B7280',
+    accentColor: '#3B82F6',
     features: 'corporate gray suit, blue tie',
     palette: 'gray/blue',
   },
   skip_level: {
-    width: 65, height: 95,
-    bodyColor: '#1E293B', accentColor: '#334155',
+    width: 65,
+    height: 95,
+    bodyColor: '#1E293B',
+    accentColor: '#334155',
     features: 'large, imposing, dark navy',
     palette: 'dark navy',
   },
   credit_thief: {
-    width: 50, height: 78,
-    bodyColor: '#581C87', accentColor: '#7C3AED',
+    width: 50,
+    height: 78,
+    bodyColor: '#581C87',
+    accentColor: '#7C3AED',
     features: 'purple suit, smug',
     palette: 'purple',
   },
   overachiever: {
-    width: 48, height: 72,
-    bodyColor: '#10B981', accentColor: '#34D399',
+    width: 48,
+    height: 72,
+    bodyColor: '#10B981',
+    accentColor: '#34D399',
     features: 'slightly smaller, green accents',
     palette: 'green',
   },
   imposter_shadow: {
-    width: 60, height: 80,
-    bodyColor: '#2D1B4E', accentColor: '#7C3AED',
+    width: 60,
+    height: 80,
+    bodyColor: '#2D1B4E',
+    accentColor: '#7C3AED',
     features: 'player silhouette, dark purple-black',
     palette: 'dark purple',
   },
   mentor_corporate: {
-    width: 55, height: 85,
-    bodyColor: '#92400E', accentColor: '#FBBF24',
+    width: 55,
+    height: 85,
+    bodyColor: '#92400E',
+    accentColor: '#FBBF24',
     features: 'older, distinguished, gold accents',
     palette: 'warm/gold',
   },
   mentor_startup: {
-    width: 52, height: 78,
-    bodyColor: '#D97706', accentColor: '#F59E0B',
+    width: 52,
+    height: 78,
+    bodyColor: '#D97706',
+    accentColor: '#F59E0B',
     features: 'casual, slightly disheveled',
     palette: 'warm orange',
   },
@@ -110,10 +146,10 @@ function generatePlayerSVG(bodyType, skinTone, accentColor = '#4F46E5') {
   <ellipse cx="25" cy="13" rx="2" ry="2.5" fill="#1E293B" />
   <ellipse cx="35" cy="13" rx="2" ry="2.5" fill="#1E293B" />
   <!-- Body -->
-  <path d="M${30-shoulderW} 27 L${30+shoulderW} 27 L${30+hipW} 55 L${30-hipW} 55 Z" fill="${accentColor}" />
+  <path d="M${30 - shoulderW} 27 L${30 + shoulderW} 27 L${30 + hipW} 55 L${30 - hipW} 55 Z" fill="${accentColor}" />
   <!-- Arms -->
-  <rect x="${30-shoulderW-6}" y="28" width="7" height="22" rx="3" fill="${skinTone}" />
-  <rect x="${30+shoulderW-1}" y="28" width="7" height="22" rx="3" fill="${skinTone}" />
+  <rect x="${30 - shoulderW - 6}" y="28" width="7" height="22" rx="3" fill="${skinTone}" />
+  <rect x="${30 + shoulderW - 1}" y="28" width="7" height="22" rx="3" fill="${skinTone}" />
   <!-- Legs -->
   <rect x="18" y="55" width="10" height="22" rx="3" fill="#334155" />
   <rect x="32" y="55" width="10" height="22" rx="3" fill="#334155" />
@@ -126,14 +162,14 @@ function generatePlayerSVG(bodyType, skinTone, accentColor = '#4F46E5') {
 function generateNpcSVG(spec) {
   return `<svg xmlns="http://www.w3.org/2000/svg" width="${spec.width}" height="${spec.height}" viewBox="0 0 ${spec.width} ${spec.height}">
   <!-- Head -->
-  <ellipse cx="${spec.width/2}" cy="${spec.height*0.15}" rx="10" ry="12" fill="#D4A574" />
+  <ellipse cx="${spec.width / 2}" cy="${spec.height * 0.15}" rx="10" ry="12" fill="#D4A574" />
   <!-- Body -->
-  <rect x="${spec.width*0.2}" y="${spec.height*0.28}" width="${spec.width*0.6}" height="${spec.height*0.4}" rx="4" fill="${spec.bodyColor}" />
+  <rect x="${spec.width * 0.2}" y="${spec.height * 0.28}" width="${spec.width * 0.6}" height="${spec.height * 0.4}" rx="4" fill="${spec.bodyColor}" />
   <!-- Accent detail -->
-  <rect x="${spec.width*0.42}" y="${spec.height*0.28}" width="${spec.width*0.16}" height="${spec.height*0.25}" fill="${spec.accentColor}" />
+  <rect x="${spec.width * 0.42}" y="${spec.height * 0.28}" width="${spec.width * 0.16}" height="${spec.height * 0.25}" fill="${spec.accentColor}" />
   <!-- Legs -->
-  <rect x="${spec.width*0.25}" y="${spec.height*0.68}" width="${spec.width*0.2}" height="${spec.height*0.28}" rx="3" fill="#334155" />
-  <rect x="${spec.width*0.55}" y="${spec.height*0.68}" width="${spec.width*0.2}" height="${spec.height*0.28}" rx="3" fill="#334155" />
+  <rect x="${spec.width * 0.25}" y="${spec.height * 0.68}" width="${spec.width * 0.2}" height="${spec.height * 0.28}" rx="3" fill="#334155" />
+  <rect x="${spec.width * 0.55}" y="${spec.height * 0.68}" width="${spec.width * 0.2}" height="${spec.height * 0.28}" rx="3" fill="#334155" />
 </svg>`
 }
 
