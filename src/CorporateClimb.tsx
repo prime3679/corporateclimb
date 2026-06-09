@@ -879,7 +879,6 @@ export default function CorporateClimb() {
       const hasActTransition = prevAct !== nextAct;
 
       if (hasPromotion || hasActTransition) {
-        setNextFloorAfterScreens(nextFloor);
         if (hasPromotion && prevPromo && nextPromo) {
           setPendingPromotion({ old: prevPromo, new: nextPromo });
           if (hasActTransition) {
@@ -905,7 +904,6 @@ export default function CorporateClimb() {
     if (pendingActTransition) {
       setScreen("actTransition");
     } else {
-      setNextFloorAfterScreens(null);
       proceedToRouteChoice();
     }
   };
@@ -913,7 +911,6 @@ export default function CorporateClimb() {
   const handleActTransitionContinue = () => {
     SFX.menuConfirm();
     setPendingActTransition(null);
-    setNextFloorAfterScreens(null);
     proceedToRouteChoice();
   };
 
