@@ -1379,6 +1379,7 @@ export default function CorporateClimb() {
             modifierId={dailyModifierId}
             onBack={() => {
               setDailyMode(false)
+              dailyRngRef.current = null // daily over — keep ref/dailyMode in sync so normal runs stay on Math.random
               setScreen('title')
             }}
           />

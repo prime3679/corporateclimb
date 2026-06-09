@@ -50,10 +50,7 @@ test('floor 9 win chains promotion and act 2 screens', async ({ page }) => {
   const victory = page.getByText('VICTORY')
   for (let round = 0; round < 30; round++) {
     if (await victory.isVisible().catch(() => false)) break
-    const move = page
-      .locator('button:not([disabled])')
-      .filter({ hasText: 'PWR' })
-      .first()
+    const move = page.locator('button:not([disabled])').filter({ hasText: 'PWR' }).first()
     if (await move.isVisible().catch(() => false)) {
       await move.click({ timeout: 2_500 }).catch(() => {})
     }
