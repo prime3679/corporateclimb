@@ -1,28 +1,28 @@
 // ─── CHARACTER SPRITES ──────────────────────────────────────
-// PNG character sprites for all players and NPCs.
+// WebP character sprites (512px) for all players and NPCs.
 
-import productManagerPng from "./assets/characters/npcs/product_manager.png";
-import overachieverPng from "./assets/characters/npcs/overachiever.png";
-import internPng from "./assets/characters/npcs/intern.png";
-import recruiterPng from "./assets/characters/npcs/recruiter.png";
-import scrumPng from "./assets/characters/npcs/scrum.png";
-import managerPng from "./assets/characters/npcs/manager.png";
-import vpPng from "./assets/characters/npcs/vp.png";
-import bossPng from "./assets/characters/npcs/boss.png";
-import engPng from "./assets/characters/player/eng.png";
-import designPng from "./assets/characters/player/design.png";
+import productManager from "./assets/characters/npcs/product_manager.webp";
+import overachiever from "./assets/characters/npcs/overachiever.webp";
+import intern from "./assets/characters/npcs/intern.webp";
+import recruiter from "./assets/characters/npcs/recruiter.webp";
+import scrum from "./assets/characters/npcs/scrum.webp";
+import manager from "./assets/characters/npcs/manager.webp";
+import vp from "./assets/characters/npcs/vp.webp";
+import boss from "./assets/characters/npcs/boss.webp";
+import eng from "./assets/characters/player/eng.webp";
+import design from "./assets/characters/player/design.webp";
 
 const SPRITES: Record<string, string> = {
-  product_manager: productManagerPng,
-  overachiever: overachieverPng,
-  intern: internPng,
-  recruiter: recruiterPng,
-  scrum: scrumPng,
-  manager: managerPng,
-  vp: vpPng,
-  boss: bossPng,
-  eng: engPng,
-  design: designPng,
+  product_manager: productManager,
+  overachiever,
+  intern,
+  recruiter,
+  scrum,
+  manager,
+  vp,
+  boss,
+  eng,
+  design,
 };
 
 export function buildSpriteUrls(): Record<string, string> {
