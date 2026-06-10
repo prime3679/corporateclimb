@@ -1,0 +1,30 @@
+{
+  "comment": "Regeneration kit for the character cast. The current WebPs were generated one-off and drifted across two styles (chibi-anime vs realistic proportions). Regenerate the five drifted characters below with the house-style suffix so the whole cast matches the PM/intern/scrum/designer cluster, then run the README's downscale pipeline (1024 PNG master -> 512 WebP q82). Keep poses/props from the current art.",
+  "house_style_suffix": "Clean white background, cel-shaded with soft gradients and crisp black outlines. Pokémon-meets-corporate art style, chibi-leaning proportions with slightly oversized head and expressive eyes, character sheet quality, same style and proportions as the Product Manager character from the same game.",
+  "regenerate": [
+    {
+      "file": "src/assets/characters/npcs/overachiever.webp",
+      "prompt": "Semi-anime game character sprite, full body, corporate overachiever NPC. Young man in a perfectly pressed navy suit, aggressive confident posture, leaning forward slightly, pointing forward with one hand, stack of reports under the other arm. Slicked-back hair, smug grin, multiple award badges pinned to lapel."
+    },
+    {
+      "file": "src/assets/characters/npcs/recruiter.webp",
+      "prompt": "Semi-anime game character sprite, full body, tech recruiter NPC. Friendly but calculating man in business casual blazer, holding a phone out as if showing an offer, other hand open in a welcoming gesture."
+    },
+    {
+      "file": "src/assets/characters/npcs/manager.webp",
+      "prompt": "Semi-anime game character sprite, full body, middle manager NPC. Tired rumpled man in an ill-fitting grey suit holding a performance review document and a coffee mug, slumped posture, weary expression."
+    },
+    {
+      "file": "src/assets/characters/npcs/vp.webp",
+      "prompt": "Semi-anime game character sprite, full body, vice president NPC. Imposing blond executive in a tailored dark suit, arms crossed, chin up, cold confident stare."
+    },
+    {
+      "file": "src/assets/characters/npcs/boss.webp",
+      "prompt": "Semi-anime game character sprite, full body, final boss CEO NPC. Silver-haired executive in an immaculate black suit with red tie, hands clasped behind back, towering intimidating presence, faint menacing smile."
+    },
+    {
+      "file": "src/assets/characters/player/eng.webp",
+      "prompt": "Semi-anime game character sprite, full body, senior software engineer player character. Person in a comfortable dark hoodie over a t-shirt, holding an open laptop in one arm and typing with the other hand, face clearly visible and friendly, focused expression, NOT in shadow."
+    }
+  ]
+}

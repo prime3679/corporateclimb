@@ -55,6 +55,10 @@ export default function PixelSprite({
             display: 'block',
             padding: '8% 2% 0 2%',
             objectFit: 'contain',
+            // Uniform ink outline: ties the mixed-style character art into
+            // the UI's chunky-outline language so the cast reads as one set.
+            filter:
+              'drop-shadow(1px 0 0 rgba(38,50,56,0.9)) drop-shadow(-1px 0 0 rgba(38,50,56,0.9)) drop-shadow(0 1px 0 rgba(38,50,56,0.9)) drop-shadow(0 -1px 0 rgba(38,50,56,0.9)) saturate(1.06)',
           }}
           draggable={false}
         />
