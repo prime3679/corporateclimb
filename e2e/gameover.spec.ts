@@ -1,16 +1,17 @@
 import { test, expect } from '@playwright/test'
+import { GAME_VIEWPORT, continueFromSave, tapToBattle, attackUntil, type Save } from './helpers'
 
 /**
- * Regression test: losing a battle reaches the Game Over screen cleanly.
+ * Regression test: losing a battle reaches Game Over cleanly.
  *
  * Exercises the player-death path in doEnemyTurn — the branch that must NOT
  * hand the turn back to a 0-HP player (which would let a dead player act, or
  * race victory against game over). A deliberately weak save at a tough floor
  * makes the enemy one-shot the player within a turn or two.
  */
-test.use({ viewport: { width: 440, height: 760 } })
+test.use({ viewport: GAME_VIEWPORT })
 
-const DOOMED_SAVE = {
+const DOOMED_SAVE: Save = {
   classId: 'pm',
   floor: 8,
   level: 1,
@@ -30,32 +31,12 @@ test('losing a battle reaches Game Over without a dead-player turn', async ({ pa
   const pageErrors: string[] = []
   page.on('pageerror', (e) => pageErrors.push(e.message))
 
-  await page.goto('/')
-  await page.evaluate((save) => {
-    localStorage.clear()
-    localStorage.setItem('corporate-climb-save', JSON.stringify(save))
-  }, DOOMED_SAVE)
-  await page.reload()
+  await continueFromSave(page, DOOMED_SAVE)
+  await tapToBattle(page)
+  await attackUntil(page, 'GAME OVER')
 
-  await page.getByRole('button', { name: 'CONTINUE' }).click({ timeout: 15_000 })
-  await page.getByText('TAP TO BATTLE').waitFor({ timeout: 12_000 })
-  await page.locator('#root').click({ position: { x: 220, y: 380 } })
-
-  const gameOver = page.getByText('GAME OVER')
-  const victory = page.getByText('VICTORY')
-
-  // Attack until we die. The weak save can't win, so this only ends in defeat.
-  for (let round = 0; round < 40; round++) {
-    if (await gameOver.isVisible().catch(() => false)) break
-    const move = page.locator('button:not([disabled])').filter({ hasText: 'PWR' }).first()
-    if (await move.isVisible().catch(() => false)) {
-      await move.click({ timeout: 2_500 }).catch(() => {})
-    }
-    await page.waitForTimeout(400)
-  }
-
-  await expect(gameOver).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('GAME OVER')).toBeVisible({ timeout: 10_000 })
   // A doomed run must never slip into a victory.
-  await expect(victory).toBeHidden()
+  await expect(page.getByText('VICTORY')).toBeHidden()
   expect(pageErrors, 'no uncaught page errors on the death path').toEqual([])
 })
