@@ -54,8 +54,9 @@ export default function HallwayEventScreen({
         className="t-display"
         style={{
           position: 'absolute',
-          top: 12,
-          right: 16,
+          top: 14,
+          // Clear of the mute button in the top-right corner.
+          right: 56,
           fontSize: 'var(--display-2xs)',
           color: 'var(--green)',
           background: 'rgba(0,0,0,0.4)',
