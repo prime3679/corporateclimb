@@ -106,7 +106,7 @@ export default function TitleScreen({
         }}
       >
         {['product_manager', 'eng', 'design'].map((id) => (
-          <div key={id} className="sprite-idle" style={{ width: 48, height: 56 }}>
+          <div key={id} className="sprite-idle" style={{ width: 64, height: 76 }}>
             <img
               src={sprites[id]}
               alt=""
