@@ -180,5 +180,34 @@
       "name": "The Market Correction",
       "prompt": "Ominous suited figure whose silhouette is woven from plunging red candlestick charts, bell now cracked, cold empty smile."
     }
-  ]
+  ],
+  "main_cast_refresh": {
+    "comment": "The four characters still from the original generation batch. These are established designs — the prompts describe their EXISTING look so identity is preserved; attach the current sprite as a reference for each and ask for a faithful redraw in the session's style.",
+    "characters": [
+      {
+        "file": "product_manager.webp",
+        "name": "The Product Manager (player)",
+        "current_sprite": "src/assets/characters/npcs/product_manager.webp",
+        "prompt": "Redraw the attached Product Manager faithfully: woman with a short dark bob, teal-green blazer over a white top, dark trousers, brown belt, one hand raised holding a pen mid-point, the other holding a dark tablet, bright confident smile."
+      },
+      {
+        "file": "design.webp",
+        "name": "The UX Designer (player)",
+        "current_sprite": "src/assets/characters/player/design.webp",
+        "prompt": "Redraw the attached UX Designer faithfully: person with curly brown hair, vibrant multicolor-patterned jacket, wide rust-orange trousers, holding a tablet in one arm with the other fist raised in excitement, joyful open-mouthed smile."
+      },
+      {
+        "file": "intern.webp",
+        "name": "The Intern",
+        "current_sprite": "src/assets/characters/npcs/intern.webp",
+        "prompt": "Redraw the attached Intern faithfully: eager young man with fluffy brown hair, khaki trousers, backpack over one shoulder, holding a large coffee cup with a name badge on a lanyard, wide hopeful eyes."
+      },
+      {
+        "file": "scrum.webp",
+        "name": "The Scrum Master",
+        "current_sprite": "src/assets/characters/npcs/scrum.webp",
+        "prompt": "Redraw the attached Scrum Master faithfully: enthusiastic man with tousled brown hair, casual blazer over a tee, presenting a small board covered in colorful sticky notes with a sweeping arm gesture, energetic grin."
+      }
+    ]
+  }
 }
