@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import type { PlayerClass } from '../types'
 import { DAILY_MODIFIERS, getDailyModifier } from '../daily'
+import { Button } from '../ui'
 
 export default function DailyResultScreen({
   player,
@@ -82,10 +83,10 @@ export default function DailyResultScreen({
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: won ? '#263238' : '#FFD54F',
+          fontSize: 'var(--display-xs)',
+          color: won ? 'var(--ink)' : 'var(--gold-bright)',
           letterSpacing: 3,
         }}
       >
@@ -94,10 +95,10 @@ export default function DailyResultScreen({
 
       <div style={{ fontSize: 28 }}>{modifier.icon}</div>
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          color: won ? '#E65100' : '#FF6F00',
+          fontSize: 'var(--display-2xs)',
+          color: won ? '#E65100' : 'var(--amber-deep)',
         }}
       >
         {modifier.name.toUpperCase()}
@@ -107,85 +108,64 @@ export default function DailyResultScreen({
       <div
         style={{
           background: 'rgba(0,0,0,0.85)',
-          borderRadius: 12,
+          borderRadius: 'var(--radius-lg)',
           padding: '14px 18px',
           maxWidth: 300,
           width: '100%',
-          border: '3px solid #FF6F00',
+          border: 'var(--border-w) solid var(--amber-deep)',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
         }}
       >
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 24,
-            color: '#FFD54F',
+            fontSize: 'var(--display-lg)',
+            color: 'var(--gold-bright)',
             textAlign: 'center',
           }}
         >
           {score.toLocaleString()}
         </div>
         <div
+          className="t-display"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: 6,
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
+            fontSize: 'var(--display-2xs)',
           }}
         >
-          <div style={{ color: '#90A4AE' }}>CLASS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>
+          <div style={{ color: 'var(--muted)' }}>CLASS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {player.emoji} {player.name}
           </div>
-          <div style={{ color: '#90A4AE' }}>FLOORS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>{floorsCleared}/15</div>
-          <div style={{ color: '#90A4AE' }}>TURNS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>{totalTurns}</div>
-          <div style={{ color: '#90A4AE' }}>DAMAGE</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>
+          <div style={{ color: 'var(--muted)' }}>FLOORS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{floorsCleared}/15</div>
+          <div style={{ color: 'var(--muted)' }}>TURNS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{totalTurns}</div>
+          <div style={{ color: 'var(--muted)' }}>DAMAGE</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {totalDamageDealt.toLocaleString()}
           </div>
-          <div style={{ color: '#90A4AE' }}>HP LEFT</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>{hpRemaining}</div>
+          <div style={{ color: 'var(--muted)' }}>HP LEFT</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{hpRemaining}</div>
         </div>
       </div>
 
-      <button
+      <Button
+        variant="accent"
+        size="md"
         onClick={handleShare}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          padding: '12px 24px',
-          background: shared ? '#43A047' : '#FF6F00',
-          color: '#FFF',
-          border: '3px solid #263238',
-          borderRadius: 8,
-          cursor: 'pointer',
-          boxShadow: '4px 4px 0 rgba(0,0,0,0.3)',
-        }}
+        style={shared ? { background: 'var(--green)' } : undefined}
       >
         {shared ? 'COPIED!' : 'SHARE RESULT'}
-      </button>
+      </Button>
 
-      <button
-        onClick={onBack}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          padding: '10px 24px',
-          background: '#263238',
-          border: '3px solid #263238',
-          borderRadius: 8,
-          cursor: 'pointer',
-          color: '#FFC107',
-          boxShadow: '4px 4px 0 rgba(0,0,0,0.3)',
-        }}
-      >
+      <Button variant="ghost" size="md" onClick={onBack}>
         BACK TO TITLE
-      </button>
+      </Button>
     </div>
   )
 }

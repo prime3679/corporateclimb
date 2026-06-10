@@ -119,10 +119,10 @@ export default function FloorIntro({
       {/* Act header on act boundaries */}
       {(floor === 0 || floor === 10 || floor === 20) && (
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
-            color: '#FFC107',
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--gold)',
             letterSpacing: 3,
             textAlign: 'center',
             opacity: show ? 1 : 0,
@@ -166,17 +166,17 @@ export default function FloorIntro({
                   width: '100%',
                   height: 6,
                   borderRadius: 3,
-                  background: isComplete ? '#4CAF50' : isCurrent ? '#FFC107' : '#333',
-                  boxShadow: isCurrent ? '0 0 8px #FFC107' : 'none',
+                  background: isComplete ? 'var(--green)' : isCurrent ? 'var(--gold)' : '#333',
+                  boxShadow: isCurrent ? '0 0 8px var(--gold)' : 'none',
                   transition: 'all 0.3s ease',
                 }}
               />
               {isCurrent && (
                 <div
+                  className="t-display"
                   style={{
-                    fontFamily: "'Press Start 2P'",
-                    fontSize: 4,
-                    color: '#FFC107',
+                    fontSize: 'var(--display-2xs)',
+                    color: 'var(--gold)',
                     whiteSpace: 'nowrap',
                   }}
                 >
@@ -190,10 +190,10 @@ export default function FloorIntro({
 
       {/* Floor label */}
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          color: '#78909C',
+          fontSize: 'var(--display-2xs)',
+          color: 'var(--muted)',
           letterSpacing: 2,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease 0.2s',
@@ -205,13 +205,13 @@ export default function FloorIntro({
       {/* Floor flavor text */}
       {FLOOR_FLAVOR[floor] && (
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
-            color: '#90A4AE',
+            fontSize: 'var(--body-md)',
+            color: 'var(--muted-light)',
             fontStyle: 'italic',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 1.2,
             maxWidth: 300,
             padding: '0 12px',
             opacity: show ? 1 : 0,
@@ -225,12 +225,12 @@ export default function FloorIntro({
       {/* Class intro on first floor */}
       {floor === 0 && player?.intro && (
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
-            color: '#FFC107',
+            fontSize: 'var(--body-md)',
+            color: 'var(--gold)',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 1.2,
             maxWidth: 300,
             padding: '0 12px',
             opacity: show ? 1 : 0,
@@ -242,10 +242,10 @@ export default function FloorIntro({
       )}
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#F44336',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--red)',
           letterSpacing: 4,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
@@ -254,15 +254,15 @@ export default function FloorIntro({
         FLOOR {totalFloors ? floor + 1 : enemy.floor}
       </div>
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 14,
-          color: '#FFFFFF',
+          fontSize: 'var(--display-md)',
+          color: 'var(--paper)',
           textAlign: 'center',
           lineHeight: 1.8,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.8s ease 0.3s',
-          textShadow: '2px 2px 0 #F44336',
+          textShadow: '2px 2px 0 var(--red)',
         }}
       >
         {enemy.title}
@@ -279,12 +279,12 @@ export default function FloorIntro({
         {enemy.types.map((t) => (
           <span
             key={t}
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 7,
+              fontSize: 'var(--display-2xs)',
               padding: '3px 8px',
               background: TYPE_COLORS[t],
-              color: '#fff',
+              color: 'var(--paper)',
               borderRadius: 4,
             }}
           >
@@ -315,9 +315,9 @@ export default function FloorIntro({
         />
       </div>
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
+          fontSize: 'var(--display-2xs)',
           color: '#616161',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.8s ease 1s',

@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import type { PlayerClass, AchievementId, AchievementDef } from '../types'
 import { useSpriteUrls } from '../components/PixelSprite'
 import { SFX } from '../sfx'
+import { Button } from '../ui'
 
 interface WinScreenProps {
   player: PlayerClass
@@ -90,10 +91,10 @@ export default function WinScreen({
       ))}
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#263238',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--ink)',
           letterSpacing: 4,
         }}
       >
@@ -114,10 +115,10 @@ export default function WinScreen({
         />
       </div>
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 14,
-          color: '#263238',
+          fontSize: 'var(--display-md)',
+          color: 'var(--ink)',
           textAlign: 'center',
           lineHeight: 1.8,
           textShadow: '2px 2px 0 rgba(255,255,255,0.5)',
@@ -129,9 +130,9 @@ export default function WinScreen({
       </div>
       {player.winTitle && (
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 10,
+            fontSize: 'var(--display-xs)',
             color: '#E65100',
             textAlign: 'center',
             textShadow: '1px 1px 0 rgba(255,255,255,0.3)',
@@ -142,12 +143,12 @@ export default function WinScreen({
       )}
       {player.winText && (
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
+            fontSize: 'var(--body-md)',
             color: '#4E342E',
             textAlign: 'center',
-            lineHeight: 2,
+            lineHeight: 1.2,
             maxWidth: 300,
             fontStyle: 'italic',
           }}
@@ -160,21 +161,21 @@ export default function WinScreen({
       <div
         style={{
           background: 'rgba(0,0,0,0.85)',
-          borderRadius: 12,
+          borderRadius: 'var(--radius-lg)',
           padding: '14px 18px',
           maxWidth: 320,
           width: '100%',
-          border: '3px solid #FFC107',
+          border: '3px solid var(--gold)',
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
         }}
       >
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
-            color: '#FFC107',
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--gold)',
             textAlign: 'center',
             letterSpacing: 2,
           }}
@@ -182,31 +183,32 @@ export default function WinScreen({
           Corporate Ladder Climbed
         </div>
         <div
+          className="t-body"
           style={{
             display: 'grid',
             gridTemplateColumns: '1fr 1fr',
             gap: 6,
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
+            fontSize: 'var(--body-md)',
+            lineHeight: 1.2,
           }}
         >
-          <div style={{ color: '#90A4AE' }}>CLASS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>
+          <div style={{ color: 'var(--muted-light)' }}>CLASS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {player.emoji} {player.name}
           </div>
-          <div style={{ color: '#90A4AE' }}>FLOORS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>
+          <div style={{ color: 'var(--muted-light)' }}>FLOORS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {floorsCleared}/{floorsCleared}
           </div>
-          <div style={{ color: '#90A4AE' }}>TURNS</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>{totalTurns}</div>
-          <div style={{ color: '#90A4AE' }}>DAMAGE</div>
-          <div style={{ color: '#FFF', textAlign: 'right' }}>
+          <div style={{ color: 'var(--muted-light)' }}>TURNS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{totalTurns}</div>
+          <div style={{ color: 'var(--muted-light)' }}>DAMAGE</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {totalDamageDealt.toLocaleString()}
           </div>
           {ngLevel > 0 && (
             <>
-              <div style={{ color: '#90A4AE' }}>NG+</div>
+              <div style={{ color: 'var(--muted-light)' }}>NG+</div>
               <div style={{ color: '#E65100', textAlign: 'right', fontWeight: 'bold' }}>
                 {ngLevel}
               </div>
@@ -214,33 +216,25 @@ export default function WinScreen({
           )}
         </div>
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 6,
-            color: '#78909C',
+            fontSize: 'var(--body-sm)',
+            color: 'var(--muted)',
             textAlign: 'center',
+            lineHeight: 1.2,
             marginTop: 4,
           }}
         >
           Think you can do better?
         </div>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={handleShare}
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
-            padding: '10px 16px',
-            background: shared ? '#43A047' : '#FFC107',
-            color: shared ? '#FFF' : '#263238',
-            border: '2px solid #263238',
-            borderRadius: 6,
-            cursor: 'pointer',
-            boxShadow: '3px 3px 0 rgba(0,0,0,0.3)',
-            transition: 'background 0.2s',
-          }}
+          style={shared ? { background: 'var(--green)', color: '#FFF' } : undefined}
         >
           {shared ? 'COPIED!' : 'SHARE RESULT'}
-        </button>
+        </Button>
       </div>
 
       {/* Newly unlocked achievements */}
@@ -248,18 +242,18 @@ export default function WinScreen({
         <div
           style={{
             background: 'rgba(0,0,0,0.7)',
-            borderRadius: 10,
+            borderRadius: 'var(--radius-lg)',
             padding: '10px 14px',
             maxWidth: 320,
             width: '100%',
-            border: '2px solid #FFD54F',
+            border: '2px solid var(--gold-bright)',
           }}
         >
           <div
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 7,
-              color: '#FFD54F',
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--gold-bright)',
               textAlign: 'center',
               marginBottom: 8,
               letterSpacing: 2,
@@ -278,13 +272,16 @@ export default function WinScreen({
                   alignItems: 'center',
                   gap: 8,
                   padding: '4px 0',
-                  fontFamily: "'Press Start 2P'",
                 }}
               >
                 <span style={{ fontSize: 14 }}>{ach.icon}</span>
-                <div>
-                  <div style={{ fontSize: 7, color: '#FFF' }}>{ach.name}</div>
-                  <div style={{ fontSize: 6, color: '#90A4AE' }}>{ach.desc}</div>
+                <div className="t-body" style={{ lineHeight: 1.2 }}>
+                  <div style={{ fontSize: 'var(--body-md)', color: 'var(--paper)' }}>
+                    {ach.name}
+                  </div>
+                  <div style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)' }}>
+                    {ach.desc}
+                  </div>
                 </div>
               </div>
             )
@@ -295,9 +292,6 @@ export default function WinScreen({
       {/* Achievement progress */}
       <div
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
-          color: '#4E342E',
           opacity: 0.8,
           display: 'flex',
           gap: 6,
@@ -321,13 +315,13 @@ export default function WinScreen({
 
       {ngLevel > 0 && (
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
+            fontSize: 'var(--display-2xs)',
             color: '#E65100',
             background: 'rgba(0,0,0,0.15)',
             padding: '6px 14px',
-            borderRadius: 8,
+            borderRadius: 'var(--radius-md)',
           }}
         >
           NG+{ngLevel} CLEARED!
@@ -335,44 +329,19 @@ export default function WinScreen({
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-        <button
-          onClick={onNgPlus}
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 11,
-            padding: '14px 30px',
-            background: '#E65100',
-            border: '4px solid #263238',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '6px 6px 0 rgba(0,0,0,0.3)',
-            color: '#FFF',
-          }}
-        >
+        <Button variant="accent" size="lg" onClick={onNgPlus}>
           NEW GAME+ {ngLevel + 1}
-        </button>
-        <button
-          onClick={onRestart}
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 9,
-            padding: '10px 24px',
-            background: '#263238',
-            border: '3px solid #263238',
-            borderRadius: 8,
-            cursor: 'pointer',
-            boxShadow: '4px 4px 0 rgba(0,0,0,0.3)',
-            color: '#FFC107',
-          }}
-        >
+        </Button>
+        <Button variant="ghost" size="md" onClick={onRestart}>
           RESTART
-        </button>
+        </Button>
         {bestNgLevel > 0 && (
           <div
+            className="t-body"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 7,
+              fontSize: 'var(--body-sm)',
               color: '#4E342E',
+              lineHeight: 1.2,
               opacity: 0.7,
             }}
           >

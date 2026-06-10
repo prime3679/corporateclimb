@@ -1,5 +1,6 @@
 import type { Enemy } from '../types'
 import { useSpriteUrls } from '../components/PixelSprite'
+import { Button, Panel } from '../ui'
 
 export default function VictoryScreen({
   enemy,
@@ -29,10 +30,10 @@ export default function VictoryScreen({
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#FFD54F',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--gold-bright)',
           textShadow: '2px 2px 0 #E65100',
           animation: 'pulse 1.5s infinite',
         }}
@@ -55,38 +56,34 @@ export default function VictoryScreen({
         />
       </div>
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 11,
+          fontSize: 'var(--body-lg)',
           color: '#FFFFFF',
           textAlign: 'center',
-          lineHeight: 2,
+          lineHeight: 1.2,
         }}
       >
         {enemy.name} was defeated!
       </div>
 
-      <div
-        style={{
-          background: 'rgba(255,255,255,0.1)',
-          border: '2px solid rgba(255,255,255,0.2)',
-          borderRadius: 10,
-          padding: 16,
-          textAlign: 'center',
-          maxWidth: 280,
-        }}
-      >
+      <Panel variant="glass" style={{ textAlign: 'center', maxWidth: 280 }}>
         <div
-          style={{ fontFamily: "'Press Start 2P'", fontSize: 9, color: '#90CAF9', marginBottom: 8 }}
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--sky-soft)',
+            marginBottom: 8,
+          }}
         >
           +{xpGained} XP GAINED
         </div>
         {leveledUp && (
           <div
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 10,
-              color: '#FFD54F',
+              fontSize: 'var(--display-xs)',
+              color: 'var(--gold-bright)',
               animation: 'pulse 1s infinite',
             }}
           >
@@ -94,35 +91,22 @@ export default function VictoryScreen({
           </div>
         )}
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
-            color: '#B0BEC5',
+            fontSize: 'var(--body-md)',
+            color: 'var(--muted-light)',
             marginTop: 10,
-            lineHeight: 2.2,
+            lineHeight: 1.2,
             fontStyle: 'italic',
           }}
         >
           &ldquo;{enemy.defeat}&rdquo;
         </div>
-      </div>
+      </Panel>
 
-      <button
-        onClick={onContinue}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 11,
-          padding: '14px 30px',
-          background: '#FFC107',
-          border: '4px solid #263238',
-          borderRadius: 10,
-          cursor: 'pointer',
-          boxShadow: '6px 6px 0 #263238',
-          color: '#263238',
-        }}
-      >
+      <Button variant="primary" size="lg" onClick={onContinue}>
         CONTINUE &rarr;
-      </button>
+      </Button>
     </div>
   )
 }

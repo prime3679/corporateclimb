@@ -24,10 +24,10 @@ export default function RouteChoice({
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#FFD54F',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--gold-bright)',
           textShadow: '2px 2px 0 #E65100',
           textAlign: 'center',
           letterSpacing: 2,
@@ -36,10 +36,11 @@ export default function RouteChoice({
         CHOOSE YOUR PATH
       </div>
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
-          color: '#78909C',
+          fontSize: 'var(--body-md)',
+          lineHeight: 1.2,
+          color: 'var(--muted)',
           textAlign: 'center',
         }}
       >
@@ -62,21 +63,23 @@ export default function RouteChoice({
                 alignItems: 'center',
                 gap: 10,
                 padding: '18px 12px',
-                background: isHovered ? '#37474F' : '#263238',
-                border: `3px solid ${isHovered ? '#FFC107' : '#455A64'}`,
-                borderRadius: 12,
+                background: isHovered ? 'var(--ink-soft)' : 'var(--ink)',
+                border: `var(--border-w) solid ${isHovered ? 'var(--gold)' : 'var(--ink-soft)'}`,
+                borderRadius: 'var(--radius-lg)',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
-                boxShadow: isHovered ? '0 0 16px rgba(255,193,7,0.3)' : '4px 4px 0 #000',
+                boxShadow: isHovered
+                  ? 'var(--shadow-md), 0 0 16px rgba(255,193,7,0.3)'
+                  : 'var(--shadow-md)',
                 transform: isHovered ? 'translateY(-2px)' : 'none',
               }}
             >
               <span style={{ fontSize: 32 }}>{evt.emoji}</span>
               <span
+                className="t-display"
                 style={{
-                  fontFamily: "'Press Start 2P'",
-                  fontSize: 8,
-                  color: '#FFD54F',
+                  fontSize: 'var(--display-2xs)',
+                  color: 'var(--gold-bright)',
                   textAlign: 'center',
                   lineHeight: 1.6,
                 }}
@@ -84,12 +87,12 @@ export default function RouteChoice({
                 {evt.title}
               </span>
               <span
+                className="t-body"
                 style={{
-                  fontFamily: "'Press Start 2P'",
-                  fontSize: 6,
-                  color: '#90A4AE',
+                  fontSize: 'var(--body-sm)',
+                  color: 'var(--muted-light)',
                   textAlign: 'center',
-                  lineHeight: 1.8,
+                  lineHeight: 1.2,
                 }}
               >
                 {evt.desc.length > 60 ? evt.desc.slice(0, 57) + '...' : evt.desc}

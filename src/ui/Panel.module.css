@@ -1,0 +1,23 @@
+.panel {
+  border-radius: var(--radius-lg);
+  padding: var(--space-4);
+}
+
+.paper {
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  box-shadow: var(--shadow-md);
+  color: var(--ink);
+}
+
+.dark {
+  background: rgba(0, 0, 0, 0.45);
+  border: 2px solid rgba(255, 255, 255, 0.18);
+  color: var(--paper);
+}
+
+.glass {
+  background: rgba(255, 255, 255, 0.08);
+  border: 2px solid rgba(255, 255, 255, 0.15);
+  color: var(--paper);
+}

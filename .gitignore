@@ -5,3 +5,5 @@ dist/
 .worktrees/
 test-results/
 playwright-report/
+shots-before/
+shots-after/

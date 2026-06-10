@@ -17,7 +17,7 @@ const ACT_DATA: Record<
     flavor:
       "You've proven yourself on the ground floor. But the real game starts now. Politics. Budgets. Power.",
     bg: 'linear-gradient(180deg, #0d1b2a 0%, #1b2838 30%, #2c3e50 60%, #0d1b2a 100%)',
-    accent: '#4FC3F7',
+    accent: 'var(--sky)',
     subtitleShadow: '2px 2px 0 #0277BD',
   },
   3: {
@@ -26,7 +26,7 @@ const ACT_DATA: Record<
     flavor:
       'The org chart bows to you. But above the clouds, the air is thin and the stakes are existential.',
     bg: 'linear-gradient(180deg, #0a0a0a 0%, #1a1a2e 30%, #2d1b4e 60%, #0a0a0a 100%)',
-    accent: '#FFC107',
+    accent: 'var(--gold)',
     subtitleShadow: '2px 2px 0 #E65100',
   },
 }
@@ -72,10 +72,10 @@ export default function ActTransitionScreen({
       onClick={onContinue}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#78909C',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--muted)',
           letterSpacing: 8,
           opacity: phase >= 1 ? 1 : 0,
           transform: phase >= 1 ? 'translateY(0)' : 'translateY(-10px)',
@@ -86,9 +86,9 @@ export default function ActTransitionScreen({
       </div>
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 18,
+          fontSize: 'var(--display-md)',
           color: data.accent,
           textAlign: 'center',
           lineHeight: 1.8,
@@ -113,12 +113,12 @@ export default function ActTransitionScreen({
       />
 
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
-          color: '#90A4AE',
+          fontSize: 'var(--body-md)',
+          color: 'var(--muted-light)',
           textAlign: 'center',
-          lineHeight: 2.4,
+          lineHeight: 1.2,
           maxWidth: 300,
           fontStyle: 'italic',
           opacity: phase >= 3 ? 1 : 0,
@@ -130,9 +130,9 @@ export default function ActTransitionScreen({
       </div>
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
+          fontSize: 'var(--display-2xs)',
           color: '#616161',
           opacity: phase >= 4 ? 1 : 0,
           transition: 'opacity 0.6s ease',

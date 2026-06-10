@@ -1,0 +1,63 @@
+/* ─── DESIGN TOKENS ─────────────────────────────────────────
+   The single source of visual truth. Screens and components use
+   these variables — no more ad-hoc hex values per file. */
+
+:root {
+  /* Palette */
+  --ink: #263238;
+  --ink-soft: #455a64;
+  --paper: #fafafa;
+  --paper-dim: #eceff1;
+  --muted: #78909c;
+  --muted-light: #b0bec5;
+  --gold: #ffc107;
+  --gold-bright: #ffd54f;
+  --amber-deep: #ff6f00;
+  --sky: #4fc3f7;
+  --sky-soft: #90caf9;
+  --blue-deep: #0d47a1;
+  --green: #4caf50;
+  --green-dark: #2e7d32;
+  --red: #e53935;
+  --orange: #ff9800;
+  --purple: #9c27b0;
+
+  /* Typography: pixel display face for headlines/labels only;
+     a tall legible pixel face for everything readable. */
+  --font-display: 'Press Start 2P', monospace;
+  --font-body: 'VT323', monospace;
+
+  /* Display (Press Start 2P) sizes — never below 8px */
+  --display-2xs: 8px;
+  --display-xs: 10px;
+  --display-sm: 12px;
+  --display-md: 16px;
+  --display-lg: 22px;
+  --display-xl: 28px;
+
+  /* Body (VT323) sizes — comfortably legible */
+  --body-sm: 16px;
+  --body-md: 18px;
+  --body-lg: 22px;
+  --body-xl: 26px;
+
+  /* Shape language: chunky ink borders with hard offset shadows */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --border-w: 3px;
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-md: 4px 4px 0 var(--ink);
+  --shadow-lg: 6px 6px 0 var(--ink);
+
+  /* Focus ring (keyboard navigation) */
+  --focus-ring: 0 0 0 3px rgba(79, 195, 247, 0.95);
+
+  /* Spacing scale */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+}

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useSpriteUrls } from '../components/PixelSprite'
+import { Button } from '../ui'
 
 export default function TitleScreen({
   onStart,
@@ -53,10 +54,10 @@ export default function TitleScreen({
 
       <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 12,
-            color: '#FFD54F',
+            fontSize: 'var(--display-sm)',
+            color: 'var(--gold-bright)',
             letterSpacing: 4,
             marginBottom: 12,
             textShadow: '2px 2px 0 #E65100',
@@ -65,11 +66,10 @@ export default function TitleScreen({
           &#x2726; A SATIRICAL RPG &#x2726;
         </div>
         <h1
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 28,
+            fontSize: 'var(--display-xl)',
             color: '#FFFFFF',
-            textShadow: '3px 3px 0 #0D47A1, 6px 6px 0 rgba(0,0,0,0.3)',
             margin: 0,
             lineHeight: 1.4,
             background: 'linear-gradient(180deg, #FFFFFF 0%, #E3F2FD 50%, #90CAF9 100%)',
@@ -83,12 +83,12 @@ export default function TitleScreen({
           CLIMB
         </h1>
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 8,
-            color: '#90CAF9',
-            marginTop: 16,
-            letterSpacing: 2,
+            fontSize: 'var(--body-md)',
+            color: 'var(--sky-soft)',
+            marginTop: 14,
+            letterSpacing: 3,
           }}
         >
           FROM CUBICLE TO CORNER OFFICE
@@ -168,78 +168,36 @@ export default function TitleScreen({
         ))}
       </div>
 
-      <button
+      <Button
+        variant="primary"
+        size="lg"
         onClick={onStart}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 14,
-          padding: '16px 40px',
-          background: '#FFC107',
-          border: '4px solid #263238',
-          borderRadius: 10,
-          cursor: 'pointer',
-          boxShadow: '6px 6px 0 #263238',
-          color: '#263238',
-          opacity: flicker ? 1 : 0.6,
-          transition: 'opacity 0.2s',
-          position: 'relative',
-          zIndex: 2,
-        }}
+        style={{ opacity: flicker ? 1 : 0.6, transition: 'opacity 0.2s', zIndex: 2 }}
       >
         {onContinue ? 'NEW GAME' : 'PRESS START'}
-      </button>
+      </Button>
 
       {onContinue && (
-        <button
-          onClick={onContinue}
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 12,
-            padding: '12px 32px',
-            background: '#4FC3F7',
-            border: '4px solid #263238',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '6px 6px 0 #263238',
-            color: '#263238',
-            position: 'relative',
-            zIndex: 2,
-          }}
-        >
+        <Button variant="secondary" size="md" onClick={onContinue} style={{ zIndex: 2 }}>
           CONTINUE
-        </button>
+        </Button>
       )}
 
-      <button
-        onClick={onDaily}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          padding: '10px 24px',
-          background: '#FF6F00',
-          border: '3px solid #263238',
-          borderRadius: 8,
-          cursor: 'pointer',
-          boxShadow: '4px 4px 0 #263238',
-          color: '#FFF',
-          position: 'relative',
-          zIndex: 2,
-        }}
-      >
+      <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
         DAILY CHALLENGE
-      </button>
+      </Button>
 
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
+          fontSize: 'var(--body-sm)',
           color: '#64B5F6',
           position: 'absolute',
           bottom: 12,
           zIndex: 2,
         }}
       >
-        &copy; 2026 ADRIAN LUMLEY
+        © 2026 ADRIAN LUMLEY
       </div>
     </div>
   )

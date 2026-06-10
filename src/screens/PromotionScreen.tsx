@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { PromotionTier, PlayerClass } from '../types'
 import { useSpriteUrls } from '../components/PixelSprite'
+import { Panel } from '../ui'
 
 export default function PromotionScreen({
   player,
@@ -39,10 +40,10 @@ export default function PromotionScreen({
       onClick={onContinue}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          color: '#FFC107',
+          fontSize: 'var(--display-2xs)',
+          color: 'var(--gold)',
           letterSpacing: 4,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
@@ -78,10 +79,10 @@ export default function PromotionScreen({
 
       {/* Old title fading out */}
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          color: '#78909C',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--muted)',
           textDecoration: 'line-through',
           opacity: show ? 0.5 : 0,
           transition: 'opacity 0.5s ease 0.3s',
@@ -92,10 +93,10 @@ export default function PromotionScreen({
 
       {/* Arrow */}
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 12,
-          color: '#FFC107',
+          fontSize: 'var(--display-sm)',
+          color: 'var(--gold)',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease 0.4s',
         }}
@@ -105,10 +106,10 @@ export default function PromotionScreen({
 
       {/* New title */}
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 12,
-          color: '#FFD54F',
+          fontSize: 'var(--display-sm)',
+          color: 'var(--gold-bright)',
           textAlign: 'center',
           lineHeight: 1.8,
           textShadow: '2px 2px 0 #E65100',
@@ -121,10 +122,9 @@ export default function PromotionScreen({
 
       {/* Stat boosts */}
       {boost && (
-        <div
+        <Panel
+          variant="glass"
           style={{
-            background: 'rgba(255,255,255,0.08)',
-            borderRadius: 8,
             padding: '10px 16px',
             display: 'flex',
             gap: 16,
@@ -134,21 +134,30 @@ export default function PromotionScreen({
           }}
         >
           {boost.maxHp && (
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#4CAF50' }}>
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--green)' }}
+            >
               HP +{boost.maxHp}
             </div>
           )}
           {boost.atk && (
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#F44336' }}>
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--red)' }}
+            >
               ATK +{boost.atk}
             </div>
           )}
           {boost.def && (
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#2196F3' }}>
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--sky)' }}
+            >
               DEF +{boost.def}
             </div>
           )}
-        </div>
+        </Panel>
       )}
 
       {/* Move upgrades */}
@@ -156,8 +165,8 @@ export default function PromotionScreen({
         <div
           style={{
             background: 'rgba(255,193,7,0.1)',
-            border: '2px solid #FFC107',
-            borderRadius: 8,
+            border: '2px solid var(--gold)',
+            borderRadius: 'var(--radius-md)',
             padding: '10px 14px',
             maxWidth: 300,
             width: '100%',
@@ -166,10 +175,10 @@ export default function PromotionScreen({
           }}
         >
           <div
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 7,
-              color: '#FFC107',
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--gold)',
               marginBottom: 6,
             }}
           >
@@ -178,11 +187,11 @@ export default function PromotionScreen({
           {upgrades.map((u) => (
             <div
               key={u.fromName}
+              className="t-body"
               style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 7,
-                color: '#FFFFFF',
-                lineHeight: 2,
+                fontSize: 'var(--body-md)',
+                color: 'var(--paper)',
+                lineHeight: 1.2,
               }}
             >
               {u.fromName} &rarr; {u.to.name}
@@ -192,9 +201,9 @@ export default function PromotionScreen({
       )}
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
+          fontSize: 'var(--display-2xs)',
           color: '#616161',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.8s ease 1s',

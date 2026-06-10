@@ -3,6 +3,7 @@ import type { PlayerClass } from '../types'
 import { PLAYER_CLASSES } from '../data'
 import { useSpriteUrls } from '../components/PixelSprite'
 import { getDailySeed, getDailyModifier, hasPlayedToday, getDailyResult } from '../daily'
+import { Button } from '../ui'
 
 export default function DailyPreScreen({
   onStart,
@@ -39,10 +40,10 @@ export default function DailyPreScreen({
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          color: '#FFD54F',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--gold-bright)',
           letterSpacing: 3,
           textShadow: '2px 2px 0 #E65100',
         }}
@@ -54,9 +55,9 @@ export default function DailyPreScreen({
       <div
         style={{
           background: 'rgba(0,0,0,0.6)',
-          borderRadius: 10,
+          borderRadius: 'var(--radius-lg)',
           padding: 16,
-          border: '3px solid #FF6F00',
+          border: 'var(--border-w) solid var(--amber-deep)',
           maxWidth: 300,
           width: '100%',
           textAlign: 'center',
@@ -64,22 +65,22 @@ export default function DailyPreScreen({
       >
         <div style={{ fontSize: 28 }}>{modifier.icon}</div>
         <div
+          className="t-display"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 10,
-            color: '#FF6F00',
+            fontSize: 'var(--display-xs)',
+            color: 'var(--amber-deep)',
             marginTop: 8,
           }}
         >
           {modifier.name.toUpperCase()}
         </div>
         <div
+          className="t-body"
           style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
-            color: '#B0BEC5',
+            fontSize: 'var(--body-md)',
+            color: 'var(--muted-light)',
             marginTop: 8,
-            lineHeight: 2,
+            lineHeight: 1.2,
           }}
         >
           {modifier.desc}
@@ -87,13 +88,13 @@ export default function DailyPreScreen({
       </div>
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
+          fontSize: 'var(--display-2xs)',
           color: '#EF5350',
           background: 'rgba(229,57,53,0.15)',
           padding: '6px 12px',
-          borderRadius: 6,
+          borderRadius: 'var(--radius-sm)',
         }}
       >
         NG+1 DIFFICULTY &bull; 15 FLOORS &bull; NO SAVES
@@ -109,10 +110,11 @@ export default function DailyPreScreen({
               style={{
                 width: 80,
                 padding: '8px 6px',
-                background: selected === i ? '#FFF8E1' : '#455A64',
-                border: `3px solid ${selected === i ? '#FFC107' : '#546E7A'}`,
-                borderRadius: 8,
+                background: selected === i ? '#FFF8E1' : 'var(--ink-soft)',
+                border: `var(--border-w) solid ${selected === i ? 'var(--gold)' : '#546E7A'}`,
+                borderRadius: 'var(--radius-md)',
                 cursor: 'pointer',
+                boxShadow: selected === i ? 'var(--shadow-md)' : '2px 2px 0 var(--ink)',
                 display: 'flex',
                 flexDirection: 'column',
                 alignItems: 'center',
@@ -134,10 +136,10 @@ export default function DailyPreScreen({
                 />
               </div>
               <span
+                className="t-display"
                 style={{
-                  fontFamily: "'Press Start 2P'",
-                  fontSize: 6,
-                  color: selected === i ? '#263238' : '#B0BEC5',
+                  fontSize: 'var(--display-2xs)',
+                  color: selected === i ? 'var(--ink)' : 'var(--muted-light)',
                 }}
               >
                 {c.name}
@@ -151,77 +153,56 @@ export default function DailyPreScreen({
         <div
           style={{
             background: 'rgba(0,0,0,0.6)',
-            borderRadius: 10,
+            borderRadius: 'var(--radius-lg)',
             padding: 16,
-            border: '2px solid #FFD54F',
+            border: '2px solid var(--gold-bright)',
             maxWidth: 300,
             width: '100%',
             textAlign: 'center',
           }}
         >
           <div
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 8,
-              color: '#FFD54F',
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--gold-bright)',
               marginBottom: 8,
             }}
           >
             TODAY'S RESULT
           </div>
           <div
-            style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: '#FFF', lineHeight: 2.2 }}
+            className="t-body"
+            style={{ fontSize: 'var(--body-md)', color: '#FFF', lineHeight: 1.2 }}
           >
             {pastResult.won ? 'CLEARED' : 'FELL'} &bull; Floor {pastResult.floorsCleared}/15
           </div>
           <div
+            className="t-display"
             style={{
-              fontFamily: "'Press Start 2P'",
-              fontSize: 14,
-              color: '#FFD54F',
+              fontSize: 'var(--display-md)',
+              color: 'var(--gold-bright)',
               margin: '8px 0',
             }}
           >
             {pastResult.score.toLocaleString()}
           </div>
-          <div style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: '#90A4AE' }}>
+          <div
+            className="t-body"
+            style={{ fontSize: 'var(--body-sm)', color: 'var(--muted)', lineHeight: 1.2 }}
+          >
             Come back tomorrow for a new challenge
           </div>
         </div>
       ) : (
-        <button
-          onClick={() => onStart(PLAYER_CLASSES[selected])}
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 12,
-            padding: '14px 30px',
-            background: '#FF6F00',
-            border: '4px solid #263238',
-            borderRadius: 10,
-            cursor: 'pointer',
-            boxShadow: '6px 6px 0 #263238',
-            color: '#FFF',
-          }}
-        >
+        <Button variant="accent" size="lg" onClick={() => onStart(PLAYER_CLASSES[selected])}>
           BEGIN CHALLENGE
-        </button>
+        </Button>
       )}
 
-      <button
-        onClick={onBack}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          padding: '8px 20px',
-          background: 'transparent',
-          border: '2px solid #546E7A',
-          borderRadius: 6,
-          cursor: 'pointer',
-          color: '#90A4AE',
-        }}
-      >
+      <Button variant="ghost" size="sm" onClick={onBack}>
         BACK
-      </button>
+      </Button>
     </div>
   )
 }

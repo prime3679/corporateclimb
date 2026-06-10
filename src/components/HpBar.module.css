@@ -1,0 +1,79 @@
+.plate {
+  background: #f8f0d8;
+  border: 3px solid #484848;
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  min-width: 190px;
+  position: relative;
+  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 3px;
+}
+
+.name {
+  font-family: var(--font-display);
+  font-size: var(--display-xs);
+  color: #383838;
+  letter-spacing: 0.5px;
+}
+
+.level {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: #585858;
+}
+
+.levelPrefix {
+  font-size: 6px;
+  vertical-align: top;
+}
+
+.barRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.hpLabel {
+  font-family: var(--font-display);
+  font-size: 7px;
+  color: #f8a800;
+}
+
+.track {
+  flex: 1;
+  height: 8px;
+  background: #484848;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 1px solid #383838;
+}
+
+.fill {
+  height: 100%;
+  border-radius: 4px;
+  transition:
+    width 0.5s ease,
+    background 0.3s ease;
+  box-shadow:
+    inset 0 -2px 0 rgba(0, 0, 0, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+}
+
+.numbers {
+  text-align: right;
+  margin-top: 1px;
+  font-family: var(--font-body);
+  font-size: var(--body-sm);
+  line-height: 1;
+  color: #383838;
+}
+
+.numbersMax {
+  color: #888;
+}
