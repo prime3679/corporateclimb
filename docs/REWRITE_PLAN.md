@@ -153,7 +153,13 @@ not framework-level. Two small additions: **Zustand** (or `useReducer` +
 context) for the store, and **CSS Modules with a token file** (no runtime CSS
 lib needed at this scale).
 
-### Phase 1 — Game engine: state machine + effect sequencer (the foundation)
+### Phase 1 — Game engine: state machine + effect sequencer (the foundation) ✅ DONE
+
+> Shipped: `src/engine/` (state, rng, enemy resolution, turn resolver,
+> run lifecycle, versioned save) + `src/sequencer.ts`; `CorporateClimb.tsx`
+> reduced from ~35 hooks / `gsRef` mirror / nested timeouts to a thin shell
+> over canonical `RunState`/`BattleState` with cancellable, tap-skippable
+> playback. 26 new engine tests; full unit + e2e suites green.
 
 Replace the 35-hook god component with a real engine:
 

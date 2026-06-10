@@ -44,6 +44,7 @@ export default function BattleScreen({
   onSetBattleMode,
   promotionTitle,
   playerMaxHp,
+  onTextTap,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -71,6 +72,8 @@ export default function BattleScreen({
   onSetBattleMode: (mode: 'fight' | 'items') => void
   promotionTitle?: string
   playerMaxHp: number
+  /** Tap on the text box: fast-forward the current turn's playback. */
+  onTextTap?: () => void
 }) {
   const act = getAct(floor)
   const isDark = act >= 2
@@ -412,7 +415,7 @@ export default function BattleScreen({
               log.length >= 2 ? [log[log.length - 2], log[log.length - 1]] : [log[log.length - 1]]
             }
             showArrow={turn !== 'player'}
-            onAdvance={() => {}}
+            onAdvance={onTextTap}
           />
         )}
 

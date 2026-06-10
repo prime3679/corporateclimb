@@ -4,16 +4,20 @@ import { SFX } from '../sfx'
 
 export default function HallwayEventScreen({
   event,
-  onChoice,
+  onChoose,
+  onContinue,
   playerHp,
   playerMaxHp,
 }: {
   event: HallwayEvent
-  onChoice: (choiceIdx: number) => void
+  /** Applies the choice immediately; returns the bonus item name, if any. */
+  onChoose: (choiceIdx: number) => { itemGained: string | null }
+  onContinue: () => void
   playerHp: number
   playerMaxHp: number
 }) {
   const [chosen, setChosen] = useState<number | null>(null)
+  const [itemGained, setItemGained] = useState<string | null>(null)
   const [show, setShow] = useState(false)
 
   useEffect(() => {
@@ -23,6 +27,7 @@ export default function HallwayEventScreen({
 
   const handleChoice = (idx: number) => {
     if (chosen !== null) return
+    setItemGained(onChoose(idx).itemGained)
     setChosen(idx)
     const choice = event.choices[idx]
     if (choice.isGood) SFX.eventGood()
@@ -191,9 +196,14 @@ export default function HallwayEventScreen({
                   PP +{choice.effect.ppRestore}
                 </span>
               )}
+              {itemGained && (
+                <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#FFD54F' }}>
+                  🎁 Found: {itemGained}!
+                </span>
+              )}
             </div>
             <button
-              onClick={() => onChoice(chosen!)}
+              onClick={onContinue}
               style={{
                 fontFamily: "'Press Start 2P'",
                 fontSize: 10,

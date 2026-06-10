@@ -1,44 +1,21 @@
-import { useState, useEffect, useCallback, useRef } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { SFX } from './sfx'
 import { Music } from './music'
 import { buildSpriteUrls } from './sprites'
-import type {
-  Screen,
-  AnimState,
-  DamagePopup,
-  StatusInstance,
-  StatusEffectOnMove,
-  PlayerClass,
-  Move,
-  ItemId,
-  PromotionTier,
-} from './types'
+import type { HallwayEvent, Move, PlayerClass, PromotionTier, Screen } from './types'
 import {
-  STATUS_DEFS,
-  TYPE_COLORS,
-  PLAYER_CLASSES,
-  ENEMIES,
-  HALLWAY_EVENTS,
+  ACHIEVEMENTS,
+  ENEMY_POOLS,
   FONT_URL,
   ITEMS,
-  CLASS_STARTING_ITEMS,
-  ALL_ITEM_IDS,
-  ENEMY_POOLS,
-  ACHIEVEMENTS,
-  getTypeMultiplier,
-  saveGame,
-  loadGame,
-  clearSave,
-  rollFloorEnemies,
-  getFloorEnemy,
-  scaleEnemyForNgPlus,
-  getBestNgPlus,
-  saveBestNgPlus,
+  PLAYER_CLASSES,
   checkAchievements,
-  getUnlockedAchievements,
-  getPromotion,
-  getEffectivePlayer,
   getAct,
+  getBestNgPlus,
+  getEffectivePlayer,
+  getPromotion,
+  getUnlockedAchievements,
+  saveBestNgPlus,
 } from './data'
 import {
   TitleScreen,
@@ -55,29 +32,30 @@ import PromotionScreen from './screens/PromotionScreen'
 import ActTransitionScreen from './screens/ActTransitionScreen'
 import DailyPreScreen from './screens/DailyPreScreen'
 import DailyResultScreen from './screens/DailyResultScreen'
+import { DAILY_FLOOR_COUNT, calculateDailyScore, saveDailyResult } from './daily'
+import { STRUGGLE_MOVE } from './battle'
 import {
-  createSeededRandom,
-  getDailySeed,
-  getDailyModifier,
-  getDailyFloorMap,
-  rollDailyEnemies,
-  calculateDailyScore,
-  saveDailyResult,
-  DAILY_FLOOR_COUNT,
-} from './daily'
-import type { DailyModifierContext } from './types'
-import {
-  STRUGGLE_MOVE,
-  calcDamage,
-  chooseEnemyMove,
-  getBurnDamage,
-  getClassPerkMods,
-  getStatusAtkMod,
-  getStatusCritBonus,
-  getStatusDefMod,
-} from './battle'
-
-const MAX_INVENTORY = 4
+  GameRng,
+  applyEventChoice,
+  applyPostBattlePerk,
+  applyVictory,
+  battleIntroLine,
+  clearSave,
+  loadRun,
+  newBattle,
+  newDailyRun,
+  newNgPlusRun,
+  newRun,
+  pickTwoEvents,
+  resolveEnemy,
+  resolveItemUse,
+  resolvePlayerMove,
+  saveRun,
+  type BattleState,
+  type RunState,
+  type TurnResult,
+} from './engine'
+import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
 function useSpritePreloader(): boolean {
@@ -101,97 +79,88 @@ function useSpritePreloader(): boolean {
   return ready
 }
 
-let popupIdCounter = 0
-
 // ─── MAIN GAME ───────────────────────────────────────────────
+// Thin shell over the engine: canonical state is one RunState + one
+// BattleState; the sequencer drives the displayed BattleView during
+// turn playback. No state mirrors, no timing-dependent outcomes.
 export default function CorporateClimb() {
   const spritesReady = useSpritePreloader()
   const [screen, setScreenRaw] = useState<Screen>('title')
   const [fadeClass, setFadeClass] = useState<'in' | 'out'>('in')
 
-  // Wrap screen changes in a fade transition
-  const setScreen = useCallback((next: Screen) => {
-    setFadeClass('out')
-    setTimeout(() => {
-      setScreenRaw(next)
-      setFadeClass('in')
-    }, 200)
-  }, [])
-  const [player, setPlayer] = useState<PlayerClass | null>(null)
-  const [floor, setFloor] = useState(0)
-  const [playerHp, setPlayerHp] = useState(0)
-  const [enemyHp, setEnemyHp] = useState(0)
-  const [log, setLog] = useState<string[]>([])
-  const [turn, setTurn] = useState('player')
-  const [playerPp, setPlayerPp] = useState<number[]>([])
-  const [xp, setXp] = useState(0)
-  const [xpToNext, setXpToNext] = useState(30)
-  const [level, setLevel] = useState(1)
-  const [xpGained, setXpGained] = useState(0)
-  const [leveledUp, setLeveledUp] = useState(false)
+  // Canonical game state
+  const [run, setRun] = useState<RunState | null>(null)
+  const [battle, setBattle] = useState<BattleState | null>(null)
+  // Displayed battle state, updated beat-by-beat by the sequencer
+  const [view, setView] = useState<BattleView | null>(null)
+  const [busy, setBusy] = useState(false)
+  const busyRef = useRef(false)
 
-  // Stat buffs from events
-  const [atkBuff, setAtkBuff] = useState(0)
-  const [defBuff, setDefBuff] = useState(0)
-
-  // Status effects
-  const [playerStatuses, setPlayerStatuses] = useState<StatusInstance[]>([])
-  const [enemyStatuses, setEnemyStatuses] = useState<StatusInstance[]>([])
-
-  // Hallway event
-  const [currentEvent, setCurrentEvent] = useState<import('./types').HallwayEvent | null>(null)
-  const usedEventsRef = useRef<Set<string>>(new Set())
-
-  // Route choice (2 events to pick from)
-  const [routeOptions, setRouteOptions] = useState<
-    [import('./types').HallwayEvent, import('./types').HallwayEvent] | null
-  >(null)
-
-  // Inventory
-  const [inventory, setInventory] = useState<ItemId[]>([])
-
-  // Enemy variants — rolled once per run
-  const [floorEnemyIds, setFloorEnemyIds] = useState<string[]>([])
-
-  // New Game+ level (0 = first playthrough)
-  const [ngPlus, setNgPlus] = useState(0)
-
-  // Stats tracking for share card + achievements
-  const [totalTurns, setTotalTurns] = useState(0)
-  const [totalDamageDealt, setTotalDamageDealt] = useState(0)
-  const [itemsUsed, setItemsUsed] = useState(0)
-  const [newAchievements, setNewAchievements] = useState<import('./types').AchievementId[]>([])
-
-  // Phase 2 boss tracking
-  const [enemyPhase, setEnemyPhase] = useState<1 | 2>(1)
-
-  // Daily challenge state
-  const [dailyMode, setDailyMode] = useState(false)
-  const [dailyFloorMap, setDailyFloorMap] = useState<number[]>([])
-  const [dailyModifierCtx, setDailyModifierCtx] = useState<DailyModifierContext | null>(null)
-  const dailyRngRef = useRef<(() => number) | null>(null)
-  const [dailySeed, setDailySeed] = useState(0)
-  const [dailyModifierId, setDailyModifierId] = useState('')
-
-  // Music mute (persisted in localStorage)
-  const [muted, setMuted] = useState(() => localStorage.getItem('cc_muted') === '1')
-
-  // Animation state
-  const [playerAnim, setPlayerAnim] = useState<AnimState>('idle')
-  const [enemyAnim, setEnemyAnim] = useState<AnimState>('idle')
-  const [damagePopups, setDamagePopups] = useState<DamagePopup[]>([])
-  const [screenShake, setScreenShake] = useState(false)
-  const [moveTypeColor, setMoveTypeColor] = useState<string | null>(null)
-
-  // Battle sub-mode: "fight" or "items"
+  // Screen-flow state
   const [battleMode, setBattleMode] = useState<'fight' | 'items'>('fight')
-
-  // Promotion / act transition state
+  const [xpResult, setXpResult] = useState({ xpGained: 0, leveledUp: false })
+  const [routeOptions, setRouteOptions] = useState<[HallwayEvent, HallwayEvent] | null>(null)
+  const [currentEvent, setCurrentEvent] = useState<HallwayEvent | null>(null)
   const [pendingPromotion, setPendingPromotion] = useState<{
     old: PromotionTier
     new: PromotionTier
   } | null>(null)
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null)
+  const [newAchievements, setNewAchievements] = useState<import('./types').AchievementId[]>([])
+  const [muted, setMuted] = useState(() => localStorage.getItem('cc_muted') === '1')
+
+  // Managed timers: every delayed flow step goes through after() so
+  // restart/unmount can cancel the lot (the old code leaked timeouts
+  // into the next run).
+  const timersRef = useRef<Set<number>>(new Set())
+  const after = useCallback((ms: number, fn: () => void) => {
+    const id = window.setTimeout(() => {
+      timersRef.current.delete(id)
+      fn()
+    }, ms)
+    timersRef.current.add(id)
+  }, [])
+  const clearTimers = useCallback(() => {
+    timersRef.current.forEach((id) => clearTimeout(id))
+    timersRef.current.clear()
+  }, [])
+
+  const [sequencer] = useState(() => new Sequencer((mutate) => setView((v) => (v ? mutate(v) : v))))
+
+  useEffect(
+    () => () => {
+      clearTimers()
+      sequencer.cancel()
+    },
+    [clearTimers, sequencer],
+  )
+
+  const setScreen = useCallback(
+    (next: Screen) => {
+      setFadeClass('out')
+      after(200, () => {
+        setScreenRaw(next)
+        setFadeClass('in')
+      })
+    },
+    [after],
+  )
+
+  // ─── Derived state ─────────────────────────────────────────
+  const player: PlayerClass | null = run
+    ? (PLAYER_CLASSES.find((c) => c.id === run.classId) ?? null)
+    : null
+  const effectivePlayer = player && run ? getEffectivePlayer(player, run.classId, run.floor) : null
+  const promotionTier = run ? getPromotion(run.classId, run.floor) : null
+  const enemy = run ? resolveEnemy(run, view?.enemyPhase ?? 1) : null
+
+  const allPpDepleted = run ? run.pp.every((pp) => pp <= 0) : false
+  const activeMoves: Move[] = effectivePlayer
+    ? allPpDepleted
+      ? [STRUGGLE_MOVE]
+      : effectivePlayer.moves
+    : []
+  const turn = !busy && battle?.phase === 'player' ? 'player' : 'waiting'
 
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
@@ -200,6 +169,7 @@ export default function CorporateClimb() {
   }, [muted])
 
   // Music: play track based on current screen
+  const floor = run?.floor ?? 0
   useEffect(() => {
     switch (screen) {
       case 'title':
@@ -223,386 +193,92 @@ export default function CorporateClimb() {
     }
   }, [screen, floor])
 
-  // In daily mode, map logical floor (0-14) to actual enemy pool index
-  const actualFloorIndex = dailyMode ? (dailyFloorMap[floor] ?? floor) : floor
-
-  // Current enemy resolved from variant pool, scaled for NG+
-  const rawEnemy =
-    floorEnemyIds.length > 0
-      ? getFloorEnemy(actualFloorIndex, floorEnemyIds[floor])
-      : ENEMIES[actualFloorIndex] || ENEMIES[0]
-  const scaledEnemy = scaleEnemyForNgPlus(rawEnemy, ngPlus)
-
-  // Apply daily modifier multipliers to enemy stats
-  const dailyEnemy =
-    dailyMode && dailyModifierCtx
-      ? {
-          ...scaledEnemy,
-          maxHp: Math.round(scaledEnemy.maxHp * dailyModifierCtx.enemyHpMult),
-          atk: Math.round(scaledEnemy.atk * dailyModifierCtx.enemyAtkMult),
-          def: Math.round(scaledEnemy.def * dailyModifierCtx.enemyDefMult),
-        }
-      : scaledEnemy
-
-  // Apply phase 2 overrides if active
-  const enemy: import('./types').Enemy =
-    enemyPhase === 2 && dailyEnemy.phase2
-      ? {
-          ...dailyEnemy,
-          name: dailyEnemy.phase2.name ?? dailyEnemy.name,
-          emoji: dailyEnemy.phase2.emoji ?? dailyEnemy.emoji,
-          maxHp: dailyEnemy.phase2.maxHp,
-          atk: dailyEnemy.phase2.atk ?? dailyEnemy.atk,
-          def: dailyEnemy.phase2.def ?? dailyEnemy.def,
-          types: dailyEnemy.phase2.types ?? dailyEnemy.types,
-          moves: dailyEnemy.phase2.moves,
-        }
-      : dailyEnemy
-
-  // Derive effective player with promotion boosts
-  const effectivePlayer = player ? getEffectivePlayer(player, player.id, floor) : null
-  const promotionTier = player ? getPromotion(player.id, floor) : null
-
-  // Ref to avoid stale closures
-  const gsRef = useRef({
-    player,
-    effectivePlayer,
-    playerHp,
-    enemyHp,
-    playerPp,
-    level,
-    atkBuff,
-    defBuff,
-    xp,
-    xpToNext,
-    floor,
-    enemy,
-    turn,
-    playerStatuses,
-    enemyStatuses,
-    inventory,
-    enemyPhase,
-  })
-  gsRef.current = {
-    player,
-    effectivePlayer,
-    playerHp,
-    enemyHp,
-    playerPp,
-    level,
-    atkBuff,
-    defBuff,
-    xp,
-    xpToNext,
-    floor,
-    enemy,
-    turn,
-    playerStatuses,
-    enemyStatuses,
-    inventory,
-    enemyPhase,
-  }
-
-  // ─── Determine active moves (regular or Struggle) ─────────
-  const allPpDepleted = player ? playerPp.every((pp) => pp <= 0) : false
-  const activeMoves: Move[] = effectivePlayer
-    ? allPpDepleted
-      ? [STRUGGLE_MOVE]
-      : effectivePlayer.moves
-    : []
-
-  // Seeded random while a daily run is active, Math.random() otherwise.
-  // Keyed off the ref (not dailyMode state) so the identity is stable and
-  // stale closures like doEnemyTurn's [] capture can never bind a
-  // wrong-mode rng — the old [dailyMode] version left enemy turns on
-  // Math.random during dailies.
-  const rng = useCallback(() => (dailyRngRef.current ? dailyRngRef.current() : Math.random()), [])
-
-  const handleGameOver = useCallback(() => {
-    if (dailyMode) {
-      const score = calculateDailyScore({
-        floorsCleared: floor,
-        totalTurns,
-        totalDamageDealt,
-        hpRemaining: 0,
-        won: false,
+  // ─── Battle outcome flows ──────────────────────────────────
+  const handleWin = useCallback(
+    (winRun: RunState) => {
+      const cls = PLAYER_CLASSES.find((c) => c.id === winRun.classId)!
+      const effMaxHp = getEffectivePlayer(cls, winRun.classId, winRun.floor).maxHp
+      after(500, () => {
+        SFX.victory()
+        const { run: next, xpGained, leveledUp } = applyVictory(winRun, effMaxHp)
+        setRun(next)
+        setXpResult({ xpGained, leveledUp })
+        if (leveledUp) after(600, () => SFX.levelUp())
+        setScreen('victory')
       })
-      saveDailyResult({
-        seed: dailySeed,
-        classId: player?.id || '',
-        score,
-        floorsCleared: floor,
-        totalTurns,
-        totalDamageDealt,
-        hpRemaining: 0,
-        won: false,
-        modifierId: dailyModifierId,
-      })
-      SFX.gameOver()
-      setScreen('dailyResult')
-    } else {
-      clearSave()
-      SFX.gameOver()
-      setScreen('gameOver')
-    }
-  }, [
-    dailyMode,
-    dailyModifierId,
-    dailySeed,
-    floor,
-    totalTurns,
-    totalDamageDealt,
-    player,
-    setScreen,
-  ])
+    },
+    [after, setScreen],
+  )
 
-  const addDamagePopup = (
-    value: number,
-    isEnemy: boolean,
-    isCrit: boolean,
-    isHeal: boolean,
-    label?: string,
-    labelColor?: string,
-  ) => {
-    const popup: DamagePopup = {
-      id: popupIdCounter++,
-      value,
-      x: isEnemy ? 200 + Math.random() * 60 : 60 + Math.random() * 60,
-      y: isEnemy ? 70 + Math.random() * 30 : 130 + Math.random() * 30,
-      isCrit,
-      isHeal,
-      label,
-      labelColor,
-    }
-    setDamagePopups((prev) => [...prev, popup])
-    setTimeout(() => {
-      setDamagePopups((prev) => prev.filter((p) => p.id !== popup.id))
-    }, 1100)
-  }
-
-  const triggerShake = () => {
-    setScreenShake(true)
-    setTimeout(() => setScreenShake(false), 300)
-  }
-
-  const flashMoveType = (type: string) => {
-    setMoveTypeColor(TYPE_COLORS[type] || null)
-    setTimeout(() => setMoveTypeColor(null), 400)
-  }
-
-  const applyStatus = (statusEffect: StatusEffectOnMove, isPlayerAttacking: boolean) => {
-    const chance = statusEffect.chance ?? 1
-    if (rng() > chance) return null
-
-    const def = STATUS_DEFS[statusEffect.id]
-    const newStatus: StatusInstance = { id: statusEffect.id, turnsLeft: def.duration }
-
-    const applyToPlayer =
-      (isPlayerAttacking && statusEffect.target === 'self') ||
-      (!isPlayerAttacking && statusEffect.target === 'enemy')
-
-    if (applyToPlayer) {
-      setPlayerStatuses((prev) => {
-        const filtered = prev.filter((s) => s.id !== statusEffect.id)
-        return [...filtered, newStatus]
-      })
-    } else {
-      setEnemyStatuses((prev) => {
-        const filtered = prev.filter((s) => s.id !== statusEffect.id)
-        return [...filtered, newStatus]
-      })
-    }
-    return def
-  }
-
-  const tickStatuses = (setStatuses: typeof setPlayerStatuses) => {
-    setStatuses((prev) =>
-      prev.map((s) => ({ ...s, turnsLeft: s.turnsLeft - 1 })).filter((s) => s.turnsLeft > 0),
-    )
-  }
-
-  // ─── Item use (consumes a turn) ───────────────────────────
-  const useItem = useCallback((itemIdx: number) => {
-    const gs = gsRef.current
-    if (gs.turn !== 'player' || !gs.player) return
-    if (gs.playerHp <= 0 || gs.enemyHp <= 0) return // battle already decided
-
-    const itemId = gs.inventory[itemIdx]
-    if (!itemId) return
-    const item = ITEMS[itemId]
-
-    // Remove from inventory
-    setInventory((inv) => inv.filter((_, i) => i !== itemIdx))
-    setItemsUsed((n) => n + 1)
-    setBattleMode('fight')
-    setTurn('waiting')
-
-    let logMsg = `Used ${item.name}!`
-    SFX.heal()
-
-    if (item.effect.hp) {
-      const effectiveMaxHp = (gs.effectivePlayer || gs.player).maxHp
-      const healAmt = Math.min(item.effect.hp, effectiveMaxHp - gs.playerHp)
-      if (healAmt > 0) {
-        setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt))
-        addDamagePopup(healAmt, false, false, true)
-        logMsg += ` Restored ${healAmt} HP!`
-      }
-    }
-    if (item.effect.atk) {
-      setAtkBuff((b) => b + item.effect.atk!)
-      logMsg += ` ATK +${item.effect.atk}!`
-    }
-    if (item.effect.def) {
-      setDefBuff((b) => b + item.effect.def!)
-      logMsg += ` DEF +${item.effect.def}!`
-    }
-    if (item.effect.ppRestore) {
-      setPlayerPp((pp) =>
-        pp.map((v, i) => Math.min(gs.player!.moves[i].pp, v + item.effect.ppRestore!)),
-      )
-      logMsg += ' PP restored!'
-    }
-    if (item.effect.status) {
-      applyStatus({ id: item.effect.status.id, target: 'self', chance: 1 }, true)
-      logMsg += ` ${STATUS_DEFS[item.effect.status.id].name}!`
-    }
-
-    setLog((l) => [...l, logMsg])
-
-    // Enemy turn after item use
-    setTimeout(() => {
-      doEnemyTurn()
-    }, 600)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
-
-  // ─── Enemy turn (extracted for reuse after item use) ───────
-  const doEnemyTurn = useCallback(() => {
-    const gs = gsRef.current
-    if (!gs.player) return
-
-    const playerBurn = getBurnDamage(gs.playerStatuses)
-    if (playerBurn > 0) {
-      setPlayerHp((hp) => {
-        const newHp = Math.max(0, hp - playerBurn)
-        if (newHp <= 0) {
-          setTimeout(() => {
-            setPlayerAnim('faint')
-            SFX.faint()
-            setTimeout(() => handleGameOver(), 1000)
-          }, 400)
-        }
-        return newHp
-      })
-      addDamagePopup(playerBurn, false, false, false)
-      setLog((l) => [...l, `${gs.player!.name} is burned out! -${playerBurn} HP!`])
-    }
-
-    const eMove = chooseEnemyMove(
-      rng,
-      gs.enemy.moves,
-      gs.enemyHp / gs.enemy.maxHp,
-      gs.playerHp / (gs.effectivePlayer || gs.player!).maxHp,
-      gs.playerStatuses.length,
-    )
-    setEnemyAnim('attacking')
-    SFX.attackSwing()
-
-    setTimeout(() => {
-      setEnemyAnim('idle')
-
-      // Enemy accuracy check
-      const eMoveAcc = eMove.acc ?? 100
-      if (rng() * 100 >= eMoveAcc) {
-        SFX.miss()
-        setLog((l) => [...l, `${gs.enemy.name} used ${eMove.name}! But it missed!`])
-        addDamagePopup(0, false, false, false, 'MISS!', '#78909C')
-        tickStatuses(setPlayerStatuses)
-        setTimeout(() => {
-          setTurn('player')
-        }, 500)
-        return
-      }
-
-      const enemyAtkMod = getStatusAtkMod(gs.enemyStatuses)
-      const playerDefMod = getStatusDefMod(gs.playerStatuses)
-      const enemyCritBonus = getStatusCritBonus(gs.enemyStatuses)
-      const eTypeResult = getTypeMultiplier(eMove.type || 'normal', gs.player!.types)
-      const dailyDefMult = dailyModifierCtx?.playerDefMult ?? 1
-      const [eDmg, eCrit] = calcDamage(
-        rng,
-        gs.enemy.atk + enemyAtkMod,
-        Math.round(
-          ((gs.effectivePlayer || gs.player!).def + gs.level + gs.defBuff + playerDefMod) *
-            dailyDefMult,
-        ),
-        eMove.dmg,
-        enemyCritBonus,
-        eTypeResult.mult,
-      )
-
-      let eLog = `${gs.enemy.name} used ${eMove.name}! ${eDmg} damage!`
-      if (eCrit) eLog += ' Critical hit!'
-      if (eTypeResult.label) eLog += ` ${eTypeResult.label}`
-
-      if (eMove.status) {
-        const applied = applyStatus(eMove.status, false)
-        if (applied) {
-          eLog += ` ${eMove.status.target === 'self' ? gs.enemy.name : gs.player!.name} is ${applied.name}!`
-        }
-      }
-
-      setPlayerAnim('hit')
-      triggerShake()
-      const eEffLabel =
-        eTypeResult.mult > 1
-          ? 'Super effective!'
-          : eTypeResult.mult < 1
-            ? 'Not effective...'
-            : undefined
-      const eEffColor =
-        eTypeResult.mult > 1 ? '#4CAF50' : eTypeResult.mult < 1 ? '#FF9800' : undefined
-      addDamagePopup(eDmg, false, eCrit, false, eEffLabel, eEffColor)
-      if (eTypeResult.mult > 1) SFX.superEffective()
-      else if (eTypeResult.mult < 1) SFX.notEffective()
-      else if (eCrit) SFX.critHit()
-      else SFX.hit()
-
-      if (eMove.heal) {
-        setEnemyHp((hp) => Math.min(gs.enemy.maxHp, hp + eMove.heal!))
-        eLog += ` Recovered ${eMove.heal} HP!`
-        addDamagePopup(eMove.heal!, true, false, true)
-      }
-
-      // Did this hit (on top of any burnout already applied this turn) kill the
-      // player? Decide up front so the death path can skip restoring the turn.
-      const postBurnHp = Math.max(0, gs.playerHp - playerBurn)
-      const playerWillDie = postBurnHp - eDmg <= 0
-
-      setPlayerHp((prev) => Math.max(0, prev - eDmg))
-      setLog((l) => [...l, eLog])
-
-      tickStatuses(setPlayerStatuses)
-
-      if (playerWillDie) {
-        // Let the faint animation play, then end the run — do NOT hand the turn
-        // back, or a 0-HP player could act in the window before game over.
-        setTimeout(() => {
-          setPlayerAnim('faint')
-          SFX.faint()
-          setTimeout(() => handleGameOver(), 1000)
-        }, 400)
+  const handleLoss = useCallback(
+    (lossRun: RunState) => {
+      if (lossRun.mode.kind === 'daily') {
+        const mode = lossRun.mode
+        saveDailyResult({
+          seed: mode.seed,
+          classId: lossRun.classId,
+          score: calculateDailyScore({
+            floorsCleared: lossRun.floor,
+            totalTurns: lossRun.stats.totalTurns,
+            totalDamageDealt: lossRun.stats.totalDamageDealt,
+            hpRemaining: 0,
+            won: false,
+          }),
+          floorsCleared: lossRun.floor,
+          totalTurns: lossRun.stats.totalTurns,
+          totalDamageDealt: lossRun.stats.totalDamageDealt,
+          hpRemaining: 0,
+          won: false,
+          modifierId: mode.modifierId,
+        })
+        SFX.gameOver()
+        setScreen('dailyResult')
       } else {
-        setTimeout(() => {
-          setPlayerAnim('idle')
-          setTurn('player')
-        }, 500)
+        clearSave()
+        SFX.gameOver()
+        setScreen('gameOver')
       }
-    }, 300)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+    },
+    [setScreen],
+  )
 
+  // ─── Turn dispatch ─────────────────────────────────────────
+  const playTurn = useCallback(
+    (result: TurnResult, rngState: number | null) => {
+      const nextRun = { ...result.run, rngState }
+      setRun(nextRun)
+      setBattle(result.battle)
+      setBattleMode('fight')
+      busyRef.current = true
+      setBusy(true)
+      sequencer.play(result.events).then((completed) => {
+        if (!completed) return
+        busyRef.current = false
+        setBusy(false)
+        if (result.battle.phase === 'won') handleWin(nextRun)
+        else if (result.battle.phase === 'lost') handleLoss(nextRun)
+      })
+    },
+    [sequencer, handleWin, handleLoss],
+  )
+
+  const doPlayerMove = (moveIdx: number) => {
+    if (!run || !battle || !effectivePlayer) return
+    if (busyRef.current || battle.phase !== 'player') return
+    const rng = new GameRng(run.rngState)
+    const result = resolvePlayerMove({ run, battle, effectivePlayer }, moveIdx, rng.next)
+    playTurn(result, rng.serialize())
+  }
+
+  const useItem = (itemIdx: number) => {
+    if (!run || !battle || !effectivePlayer || !run.inventory[itemIdx]) return
+    if (busyRef.current || battle.phase !== 'player') return
+    const rng = new GameRng(run.rngState)
+    const result = resolveItemUse({ run, battle, effectivePlayer }, itemIdx, rng.next)
+    playTurn(result, rng.serialize())
+  }
+
+  // ─── Run lifecycle ─────────────────────────────────────────
   const startGame = () => {
     clearSave()
     SFX.menuSelect()
@@ -610,555 +286,207 @@ export default function CorporateClimb() {
   }
 
   const continueGame = () => {
-    const save = loadGame()
-    if (!save) return
-    const cls = PLAYER_CLASSES.find((c) => c.id === save.classId)!
+    const saved = loadRun()
+    if (!saved) return
     SFX.menuConfirm()
-    dailyRngRef.current = null // resuming a normal run; drop any leftover daily seed
-    setPlayer(cls)
-    setPlayerHp(save.playerHp)
-    setPlayerPp(save.playerPp)
-    setFloor(save.floor)
-    setXp(save.xp)
-    setXpToNext(save.xpToNext)
-    setLevel(save.level)
-    setAtkBuff(save.atkBuff)
-    setDefBuff(save.defBuff)
-    usedEventsRef.current = new Set(save.usedEvents)
-    setInventory(save.inventory || [])
-    setFloorEnemyIds(save.floorEnemyIds || rollFloorEnemies())
-    setNgPlus(save.ngPlus || 0)
-    setTotalTurns(save.totalTurns || 0)
-    setTotalDamageDealt(save.totalDamageDealt || 0)
-    setItemsUsed(save.itemsUsed || 0)
-    setEnemyPhase(save.enemyPhase || 1)
+    setRun(saved)
     setScreen('floorIntro')
   }
 
   const selectClass = (cls: PlayerClass) => {
     SFX.menuConfirm()
-    dailyRngRef.current = null // fresh normal run; drop any leftover daily seed
-    setPlayer(cls)
-    setPlayerHp(cls.maxHp)
-    setPlayerPp(cls.moves.map((m) => m.pp))
-    setFloor(0)
-    setXp(0)
-    setXpToNext(30)
-    setLevel(1)
-    setAtkBuff(0)
-    setDefBuff(0)
-    usedEventsRef.current.clear()
-    // Starting inventory
-    const startItem = CLASS_STARTING_ITEMS[cls.id]
-    setInventory(startItem ? [startItem] : [])
-    // Roll enemy variants for this run
-    setFloorEnemyIds(rollFloorEnemies())
-    setNgPlus(0)
-    setTotalTurns(0)
-    setTotalDamageDealt(0)
-    setItemsUsed(0)
-    setEnemyPhase(1)
+    setRun(newRun(cls))
     setScreen('floorIntro')
   }
 
   const startDaily = (cls: PlayerClass) => {
-    const seed = getDailySeed()
-    const modifier = getDailyModifier(seed)
-    const floorMap = getDailyFloorMap(seed)
-    const enemyNames = rollDailyEnemies(seed, floorMap)
-
-    const ctx: DailyModifierContext = {
-      enemyAtkMult: 1,
-      enemyHpMult: 1,
-      enemyDefMult: 1,
-      playerDefMult: 1,
-      itemsEnabled: true,
-      eventsEnabled: true,
-      ppMult: 1,
-      assignedClassId: undefined,
-    }
-    modifier.apply(ctx)
-
-    // Reorg: seed picks the class
-    const actualClass =
-      modifier.id === 'reorg'
-        ? PLAYER_CLASSES[Math.floor(createSeededRandom(seed + 99)() * PLAYER_CLASSES.length)]
-        : cls
-
-    dailyRngRef.current = createSeededRandom(seed + 10)
-
-    setDailyMode(true)
-    setDailySeed(seed)
-    setDailyModifierId(modifier.id)
-    setDailyFloorMap(floorMap)
-    setDailyModifierCtx(ctx)
-    setPlayer(actualClass)
-    setPlayerHp(actualClass.maxHp)
-    setPlayerPp(actualClass.moves.map((m) => Math.floor(m.pp * ctx.ppMult)))
-    setFloor(0)
-    setXp(0)
-    setXpToNext(30)
-    setLevel(1)
-    setAtkBuff(0)
-    setDefBuff(0)
-    usedEventsRef.current.clear()
-    setInventory(
-      ctx.itemsEnabled
-        ? CLASS_STARTING_ITEMS[actualClass.id]
-          ? [CLASS_STARTING_ITEMS[actualClass.id]]
-          : []
-        : [],
-    )
-    setFloorEnemyIds(enemyNames)
-    setNgPlus(1) // Base NG+1 difficulty
-    setTotalTurns(0)
-    setTotalDamageDealt(0)
-    setItemsUsed(0)
-    setEnemyPhase(1)
     SFX.menuConfirm()
+    setRun(newDailyRun(cls))
     setScreen('floorIntro')
   }
 
-  const startBattle = () => {
-    setEnemyPhase(1)
-    setEnemyHp(enemy.maxHp)
-    const intro = enemy.taunt
-      ? `"${enemy.taunt}"`
-      : enemy.name.startsWith('The ')
-        ? `${enemy.name} appeared!`
-        : `A wild ${enemy.name} appeared!`
-    setLog([intro])
-    setTurn('player')
+  const startNgPlus = () => {
+    if (!run || !player) return
+    SFX.menuConfirm()
+    setRun(newNgPlusRun(run, player))
+    setView(null)
+    setBattle(null)
+    setScreen('floorIntro')
+  }
+
+  const restart = () => {
+    sequencer.cancel()
+    clearTimers()
+    busyRef.current = false
+    clearSave()
+    SFX.menuSelect()
+    setRun(null)
+    setBattle(null)
+    setView(null)
+    setBusy(false)
     setBattleMode('fight')
-    setPlayerAnim('idle')
-    setEnemyAnim('idle')
-    setDamagePopups([])
-    setPlayerStatuses([])
-    setEnemyStatuses([])
-    if (floor % 10 >= 8) SFX.bossIntro()
+    setRouteOptions(null)
+    setCurrentEvent(null)
+    setPendingPromotion(null)
+    setPendingActTransition(null)
+    setNewAchievements([])
+    setScreenRaw('title')
+    setFadeClass('in')
+  }
+
+  // ─── Battle entry ──────────────────────────────────────────
+  const startBattle = () => {
+    if (!run) return
+    const foe = resolveEnemy(run, 1)
+    setBattle(newBattle(foe))
+    setView(initialBattleView(run.hp, foe.maxHp, battleIntroLine(foe)))
+    setBattleMode('fight')
+    if (run.floor % 10 >= 8) SFX.bossIntro()
     else SFX.enemyAppear()
     setScreen('battle')
   }
 
-  const pickTwoEvents = (): [import('./types').HallwayEvent, import('./types').HallwayEvent] => {
-    let available = HALLWAY_EVENTS.filter((e) => !usedEventsRef.current.has(e.id))
-    if (available.length < 2) {
-      usedEventsRef.current.clear()
-      available = [...HALLWAY_EVENTS]
-    }
-    const shuffled = available.sort(() => rng() - 0.5)
-    return [shuffled[0], shuffled[1]]
-  }
-
-  const handleRoutePick = (event: import('./types').HallwayEvent) => {
-    SFX.menuConfirm()
-    setCurrentEvent(event)
-    setScreen('hallwayEvent')
-  }
-
-  const handleEventChoice = (choiceIdx: number) => {
-    if (!currentEvent || !player) return
-    const choice = currentEvent.choices[choiceIdx]
-    const eff = choice.effect
-
-    if (eff.hp) {
-      setPlayerHp((hp) =>
-        Math.max(1, Math.min((effectivePlayer || player).maxHp + atkBuff * 5, hp + eff.hp!)),
-      )
-    }
-    if (eff.atk) setAtkBuff((b) => b + eff.atk!)
-    if (eff.def) setDefBuff((b) => b + eff.def!)
-    if (eff.ppRestore) {
-      const moves = effectivePlayer?.moves || player.moves
-      setPlayerPp((pp) => pp.map((v, i) => Math.min(moves[i].pp, v + eff.ppRestore!)))
-    }
-
-    // Item reward from events (30% chance, if inventory not full)
-    if (inventory.length < MAX_INVENTORY && rng() < 0.3) {
-      const randomItem = ALL_ITEM_IDS[Math.floor(rng() * ALL_ITEM_IDS.length)]
-      setInventory((inv) => [...inv, randomItem])
-      // The event screen will show this via the onChoice callback
-    }
-
-    usedEventsRef.current.add(currentEvent.id)
-
-    setTimeout(() => {
-      setScreen('floorIntro')
-    }, 0)
-  }
-
-  // Award XP / level-up and route to the victory screen. Shared by the
-  // direct-kill and burnout-kill paths so a burn that finishes the enemy
-  // still registers a win.
-  const winBattle = (g: typeof gsRef.current) => {
-    const gained = 15 + g.floor * 7
-    const newXp = g.xp + gained
-    const didLevel = newXp >= g.xpToNext
-    setXpGained(gained)
-    setLeveledUp(didLevel)
-    setTimeout(() => {
-      SFX.victory()
-      if (didLevel) {
-        setLevel((l) => l + 1)
-        setXp(newXp - g.xpToNext)
-        setXpToNext((x) => x + 25)
-        setPlayerHp((hp) => Math.min((g.effectivePlayer || g.player!).maxHp, hp + 20))
-        setTimeout(() => SFX.levelUp(), 600)
-      } else {
-        setXp(newXp)
-      }
-      setScreen('victory')
-    }, 1500)
-  }
-
-  const doPlayerMove = useCallback(
-    (moveIdx: number) => {
-      const gs = gsRef.current
-      if (gs.turn !== 'player' || !gs.player) return
-      if (gs.playerHp <= 0 || gs.enemyHp <= 0) return // battle already decided
-
-      // Track turns
-      setTotalTurns((t) => t + 1)
-
-      const isStruggling = gs.playerPp.every((pp) => pp <= 0)
-      const move = isStruggling ? STRUGGLE_MOVE : (gs.effectivePlayer || gs.player).moves[moveIdx]
-
-      if (!isStruggling) {
-        const newPp = [...gs.playerPp]
-        newPp[moveIdx]--
-        setPlayerPp(newPp)
-      }
-
-      setBattleMode('fight')
-      setPlayerAnim('attacking')
-      flashMoveType(move.type)
-      SFX.attackSwing()
-
-      setTimeout(() => {
-        setPlayerAnim('idle')
-
-        // Accuracy check
-        const moveAcc = move.acc ?? 100
-        if (rng() * 100 >= moveAcc) {
-          SFX.miss()
-          setLog((l) => [...l, `${gs.player!.name} used ${move.name}! But it missed!`])
-          addDamagePopup(0, true, false, false, 'MISS!', '#78909C')
-          setTurn('waiting')
-          setTimeout(() => doEnemyTurn(), 800)
-          return
-        }
-
-        const playerAtkMod = getStatusAtkMod(gs.playerStatuses)
-        const enemyDefMod = getStatusDefMod(gs.enemyStatuses)
-        const playerCritBonus = getStatusCritBonus(gs.playerStatuses)
-        const { dmgMult: perkDmgMult, critBonus: perkCritBonus } = getClassPerkMods(gs.player!.id)
-        const typeResult = getTypeMultiplier(move.type, gs.enemy.types)
-        const [rawDmg, isCrit] = calcDamage(
-          rng,
-          (gs.effectivePlayer || gs.player!).atk + gs.level * 2 + gs.atkBuff + playerAtkMod,
-          gs.enemy.def + enemyDefMod,
-          move.dmg,
-          playerCritBonus + perkCritBonus,
-          typeResult.mult,
-        )
-        const dmg = Math.round(rawDmg * perkDmgMult)
-        const newEnemyHp = Math.max(0, gs.enemyHp - dmg)
-        setEnemyHp(newEnemyHp)
-        setTotalDamageDealt((t) => t + dmg)
-        setEnemyAnim('hit')
-        triggerShake()
-        const effLabel =
-          typeResult.mult > 1
-            ? 'Super effective!'
-            : typeResult.mult < 1
-              ? 'Not effective...'
-              : undefined
-        const effColor =
-          typeResult.mult > 1 ? '#4CAF50' : typeResult.mult < 1 ? '#FF9800' : undefined
-        addDamagePopup(dmg, true, isCrit, false, effLabel, effColor)
-        if (typeResult.mult > 1) SFX.superEffective()
-        else if (typeResult.mult < 1) SFX.notEffective()
-        else if (isCrit) SFX.critHit()
-        else SFX.hit()
-
-        let logMsg = `${gs.player!.name} used ${move.name}! ${dmg} damage!`
-        if (isCrit) logMsg += ' Critical hit!'
-        if (typeResult.label) logMsg += ` ${typeResult.label}`
-
-        if (isStruggling) {
-          const recoil = 5
-          setPlayerHp((hp) => Math.max(0, hp - recoil))
-          addDamagePopup(recoil, false, false, false)
-          logMsg += ` Recoil: -${recoil} HP!`
-        }
-
-        if (move.status) {
-          const applied = applyStatus(move.status, true)
-          if (applied) {
-            logMsg += ` ${move.status.target === 'self' ? gs.player!.name : gs.enemy.name} is ${applied.name}!`
-          }
-        }
-
-        if (move.heal) {
-          const healAmt = Math.min(
-            move.heal + gs.level,
-            (gs.effectivePlayer || gs.player!).maxHp - gs.playerHp,
-          )
-          setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + healAmt))
-          if (healAmt > 0) {
-            logMsg += ` Recovered ${healAmt} HP!`
-            addDamagePopup(healAmt, false, false, true)
-            SFX.heal()
-          }
-        }
-
-        setLog((l) => [...l, logMsg])
-        setTurn('waiting')
-
-        setTimeout(() => setEnemyAnim('idle'), 400)
-
-        // Phase 2 transition: check if enemy has phase2 and we just crossed 50% threshold
-        const phase2FloorIdx = dailyMode ? (dailyFloorMap[gs.floor] ?? gs.floor) : gs.floor
-        const baseEnemy = scaleEnemyForNgPlus(
-          floorEnemyIds.length > 0
-            ? getFloorEnemy(phase2FloorIdx, floorEnemyIds[gs.floor])
-            : ENEMIES[phase2FloorIdx] || ENEMIES[0],
-          ngPlus,
-        )
-        if (
-          gs.enemyPhase === 1 &&
-          baseEnemy.phase2 &&
-          newEnemyHp > 0 &&
-          newEnemyHp <= baseEnemy.maxHp * 0.5
-        ) {
-          // Phase 2 transition!
-
-          setTimeout(() => {
-            setLog((l) => [...l, `💥 ${baseEnemy.phase2!.taunt}`])
-            setTimeout(() => {
-              setLog((l) => [...l, '⚠️ PHASE 2'])
-              setEnemyPhase(2)
-              setEnemyHp(baseEnemy.phase2!.maxHp)
-              setEnemyStatuses([])
-
-              triggerShake()
-              SFX.bossIntro()
-              setTimeout(() => setTurn('player'), 800)
-            }, 500)
-          }, 600)
-          return
-        }
-
-        if (newEnemyHp <= 0) {
-          setTimeout(() => {
-            setEnemyAnim('faint')
-            SFX.faint()
-          }, 500)
-          winBattle(gs)
-          return
-        }
-
-        // End-of-turn burnout on the enemy — can itself finish the enemy off,
-        // which must still register as a win (it previously left the enemy at
-        // 0 HP yet still taking its turn).
-        const enemyBurn = getBurnDamage(gs.enemyStatuses)
-        const enemyHpAfterBurn = Math.max(0, newEnemyHp - enemyBurn)
-        if (enemyBurn > 0) {
-          setTimeout(() => {
-            setEnemyHp(enemyHpAfterBurn)
-            addDamagePopup(enemyBurn, true, false, false)
-            setLog((l) => [...l, `${gs.enemy.name} is burned out! -${enemyBurn} HP!`])
-          }, 500)
-        }
-        if (enemyHpAfterBurn <= 0) {
-          setTimeout(() => {
-            setEnemyAnim('faint')
-            SFX.faint()
-          }, 700)
-          winBattle(gs)
-          return
-        }
-        tickStatuses(setEnemyStatuses)
-
-        // Enemy turn
-        setTimeout(() => {
-          doEnemyTurn()
-        }, 800)
-      }, 350)
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [doEnemyTurn, ngPlus, floorEnemyIds],
-  )
-
-  const proceedToRouteChoice = () => {
-    // Skip hallway events if daily modifier disables them
-    if (dailyMode && dailyModifierCtx && !dailyModifierCtx.eventsEnabled) {
+  // ─── Between-floor flow ────────────────────────────────────
+  const proceedToRouteChoice = (current: RunState) => {
+    if (current.mode.kind === 'daily' && !current.mode.modifier.eventsEnabled) {
       setScreen('floorIntro')
       return
     }
-    const options = pickTwoEvents()
+    const rng = new GameRng(current.rngState)
+    const { options, run: next } = pickTwoEvents(current, rng.next)
+    setRun({ ...next, rngState: rng.serialize() })
     setRouteOptions(options)
     setScreen('routeChoice')
   }
 
   const handleVictoryContinue = () => {
+    if (!run) return
     SFX.menuConfirm()
-    // PM perk: heal 5 HP after each battle (use effective maxHp)
-    if (player?.id === 'pm' && effectivePlayer) {
-      setPlayerHp((hp) => Math.min(effectivePlayer.maxHp, hp + 5))
-    }
-    const totalFloors = dailyMode ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
-    if (floor >= totalFloors - 1) {
-      if (dailyMode) {
-        const score = calculateDailyScore({
-          floorsCleared: floor + 1,
-          totalTurns,
-          totalDamageDealt,
-          hpRemaining: playerHp,
-          won: true,
-        })
+    setView(null)
+    setBattle(null)
+    const cls = PLAYER_CLASSES.find((c) => c.id === run.classId)!
+    const effMaxHp = getEffectivePlayer(cls, run.classId, run.floor).maxHp
+    let next = applyPostBattlePerk(run, effMaxHp)
+
+    const totalFloors = next.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
+    if (next.floor >= totalFloors - 1) {
+      if (next.mode.kind === 'daily') {
+        const mode = next.mode
         saveDailyResult({
-          seed: dailySeed,
-          classId: player?.id || '',
-          score,
-          floorsCleared: floor + 1,
-          totalTurns,
-          totalDamageDealt,
-          hpRemaining: playerHp,
+          seed: mode.seed,
+          classId: next.classId,
+          score: calculateDailyScore({
+            floorsCleared: next.floor + 1,
+            totalTurns: next.stats.totalTurns,
+            totalDamageDealt: next.stats.totalDamageDealt,
+            hpRemaining: next.hp,
+            won: true,
+          }),
+          floorsCleared: next.floor + 1,
+          totalTurns: next.stats.totalTurns,
+          totalDamageDealt: next.stats.totalDamageDealt,
+          hpRemaining: next.hp,
           won: true,
-          modifierId: dailyModifierId,
+          modifierId: mode.modifierId,
         })
         SFX.fanfare()
+        setRun(next)
         setScreen('dailyResult')
       } else {
         clearSave()
-        saveBestNgPlus(ngPlus)
-        const unlocked = checkAchievements({
-          classId: player?.id || '',
-          totalTurns,
-          totalDamageDealt,
-          ngLevel: ngPlus,
-          itemsUsed,
-          finalHp: playerHp,
-        })
-        setNewAchievements(unlocked)
+        saveBestNgPlus(next.ngPlus)
+        setNewAchievements(
+          checkAchievements({
+            classId: next.classId,
+            totalTurns: next.stats.totalTurns,
+            totalDamageDealt: next.stats.totalDamageDealt,
+            ngLevel: next.ngPlus,
+            itemsUsed: next.stats.itemsUsed,
+            finalHp: next.hp,
+          }),
+        )
         SFX.fanfare()
+        setRun(next)
         setScreen('win')
       }
+      return
+    }
+
+    const prevFloor = next.floor
+    next = { ...next, floor: prevFloor + 1 }
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+
+    const isDaily = next.mode.kind === 'daily'
+    const prevPromo = isDaily ? null : getPromotion(next.classId, prevFloor)
+    const nextPromo = isDaily ? null : getPromotion(next.classId, next.floor)
+    const hasPromotion = !!(prevPromo && nextPromo && prevPromo.title !== nextPromo.title)
+    const hasActTransition = !isDaily && getAct(prevFloor) !== getAct(next.floor)
+
+    if (hasPromotion && prevPromo && nextPromo) {
+      setPendingPromotion({ old: prevPromo, new: nextPromo })
+      if (hasActTransition) setPendingActTransition(getAct(next.floor))
+      SFX.fanfare()
+      setScreen('promotion')
+    } else if (hasActTransition) {
+      setPendingActTransition(getAct(next.floor))
+      setScreen('actTransition')
     } else {
-      const nextFloor = floor + 1
-      setFloor(nextFloor)
-      if (player && !dailyMode) {
-        saveGame({
-          classId: player.id,
-          floor: nextFloor,
-          level,
-          xp,
-          xpToNext,
-          playerHp,
-          playerPp,
-          atkBuff,
-          defBuff,
-          usedEvents: Array.from(usedEventsRef.current),
-          inventory,
-          floorEnemyIds,
-          ngPlus,
-          totalTurns,
-          totalDamageDealt,
-          itemsUsed,
-        })
-      }
-
-      // Check for promotion (skip in daily mode)
-      const prevPromo = player && !dailyMode ? getPromotion(player.id, floor) : null
-      const nextPromo = player && !dailyMode ? getPromotion(player.id, nextFloor) : null
-      const hasPromotion = prevPromo && nextPromo && prevPromo.title !== nextPromo.title
-
-      // Check for act transition (skip in daily mode)
-      const prevAct = dailyMode ? 1 : getAct(floor)
-      const nextAct = dailyMode ? 1 : getAct(nextFloor)
-      const hasActTransition = prevAct !== nextAct
-
-      if (hasPromotion || hasActTransition) {
-        if (hasPromotion && prevPromo && nextPromo) {
-          setPendingPromotion({ old: prevPromo, new: nextPromo })
-          if (hasActTransition) {
-            setPendingActTransition(nextAct)
-          }
-          SFX.fanfare()
-          setScreen('promotion')
-        } else if (hasActTransition) {
-          setPendingActTransition(nextAct)
-          setScreen('actTransition')
-        }
-      } else {
-        proceedToRouteChoice()
-      }
+      proceedToRouteChoice(next)
     }
   }
 
   const handlePromotionContinue = () => {
+    if (!run || !player) return
     SFX.menuConfirm()
-    const fullHp = effectivePlayer?.maxHp ?? player!.maxHp
-    setPlayerHp(fullHp)
+    const fullHp = getEffectivePlayer(player, run.classId, run.floor).maxHp
+    const next = { ...run, hp: fullHp }
+    setRun(next)
     setPendingPromotion(null)
     if (pendingActTransition) {
       setScreen('actTransition')
     } else {
-      proceedToRouteChoice()
+      proceedToRouteChoice(next)
     }
   }
 
   const handleActTransitionContinue = () => {
+    if (!run) return
     SFX.menuConfirm()
     setPendingActTransition(null)
-    proceedToRouteChoice()
+    proceedToRouteChoice(run)
   }
 
-  const startNgPlus = () => {
-    if (!player) return
-    const nextNg = ngPlus + 1
+  const handleRoutePick = (event: HallwayEvent) => {
     SFX.menuConfirm()
-    setNgPlus(nextNg)
-    setPlayerHp(player.maxHp)
-    setPlayerPp(player.moves.map((m) => m.pp))
-    setFloor(0)
-    setAtkBuff(0)
-    setDefBuff(0)
-    setTotalTurns(0)
-    setTotalDamageDealt(0)
-    setItemsUsed(0)
-    setEnemyPhase(1)
-    usedEventsRef.current.clear()
-    const startItem = CLASS_STARTING_ITEMS[player.id]
-    setInventory(startItem ? [startItem] : [])
-    setFloorEnemyIds(rollFloorEnemies())
+    setCurrentEvent(event)
+    setScreen('hallwayEvent')
+  }
+
+  /** Apply a hallway choice; returns the bonus item name (if any) for display. */
+  const handleEventChoose = (choiceIdx: number): { itemGained: string | null } => {
+    if (!run || !currentEvent || !effectivePlayer) return { itemGained: null }
+    const rng = new GameRng(run.rngState)
+    const { run: next, itemGained } = applyEventChoice(
+      run,
+      effectivePlayer,
+      currentEvent,
+      choiceIdx,
+      rng.next,
+    )
+    setRun({ ...next, rngState: rng.serialize() })
+    return { itemGained: itemGained ? ITEMS[itemGained].name : null }
+  }
+
+  const handleEventContinue = () => {
     setScreen('floorIntro')
   }
 
-  const restart = () => {
-    clearSave()
-    SFX.menuSelect()
+  const handleDailyBack = () => {
+    setRun(null)
+    setBattle(null)
+    setView(null)
     setScreen('title')
-    setPlayer(null)
-    setFloor(0)
-    setLevel(1)
-    setXp(0)
-    setXpToNext(30)
-    setAtkBuff(0)
-    setDefBuff(0)
-    setNgPlus(0)
-    setTotalTurns(0)
-    setTotalDamageDealt(0)
-    setItemsUsed(0)
-    setEnemyPhase(1)
-    setInventory([])
-    setFloorEnemyIds([])
-    setDailyMode(false)
-    setDailyFloorMap([])
-    setDailyModifierCtx(null)
-    dailyRngRef.current = null
-    usedEventsRef.current.clear()
   }
 
   if (!spritesReady) {
@@ -1303,7 +631,7 @@ export default function CorporateClimb() {
         {screen === 'title' && (
           <TitleScreen
             onStart={startGame}
-            onContinue={loadGame() ? continueGame : undefined}
+            onContinue={loadRun() ? continueGame : undefined}
             onDaily={() => setScreen('dailyPre')}
           />
         )}
@@ -1311,62 +639,64 @@ export default function CorporateClimb() {
           <DailyPreScreen onStart={startDaily} onBack={() => setScreen('title')} />
         )}
         {screen === 'classSelect' && <ClassSelect onSelect={selectClass} />}
-        {screen === 'hallwayEvent' && currentEvent && player && (
+        {screen === 'hallwayEvent' && currentEvent && run && effectivePlayer && (
           <HallwayEventScreen
             event={currentEvent}
-            onChoice={handleEventChoice}
-            playerHp={playerHp}
-            playerMaxHp={effectivePlayer?.maxHp || player.maxHp}
+            onChoose={handleEventChoose}
+            onContinue={handleEventContinue}
+            playerHp={run.hp}
+            playerMaxHp={effectivePlayer.maxHp}
           />
         )}
         {screen === 'routeChoice' && routeOptions && (
           <RouteChoice options={routeOptions} onPick={handleRoutePick} />
         )}
-        {screen === 'floorIntro' && (
+        {screen === 'floorIntro' && run && enemy && (
           <FloorIntro
             enemy={enemy}
-            floor={floor}
+            floor={run.floor}
             player={player ?? undefined}
             onReady={startBattle}
-            totalFloors={dailyMode ? DAILY_FLOOR_COUNT : undefined}
+            totalFloors={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
           />
         )}
-        {screen === 'battle' && player && effectivePlayer && (
+        {screen === 'battle' && run && battle && view && effectivePlayer && enemy && (
           <BattleScreen
             player={effectivePlayer}
             enemy={enemy}
-            playerHp={playerHp}
-            enemyHp={enemyHp}
+            playerHp={view.playerHp}
+            enemyHp={view.enemyHp}
             onMove={doPlayerMove}
             onUseItem={useItem}
-            log={log}
+            log={view.log}
             turn={turn}
-            playerPp={playerPp}
-            xp={xp}
-            xpToNext={xpToNext}
-            level={level}
-            floor={floor + 1}
-            playerAnim={playerAnim}
-            enemyAnim={enemyAnim}
-            damagePopups={damagePopups}
-            screenShake={screenShake}
-            moveTypeColor={moveTypeColor}
-            playerStatuses={playerStatuses}
-            enemyStatuses={enemyStatuses}
+            playerPp={run.pp}
+            xp={run.xp}
+            xpToNext={run.xpToNext}
+            level={run.level}
+            floor={run.floor + 1}
+            playerAnim={view.playerAnim}
+            enemyAnim={view.enemyAnim}
+            damagePopups={view.popups}
+            screenShake={view.shake}
+            moveTypeColor={view.typeFlash}
+            playerStatuses={view.playerStatuses}
+            enemyStatuses={view.enemyStatuses}
             activeMoves={activeMoves}
-            inventory={inventory}
+            inventory={run.inventory}
             battleMode={battleMode}
             onSetBattleMode={setBattleMode}
             promotionTitle={promotionTier?.title}
             playerMaxHp={effectivePlayer.maxHp}
+            onTextTap={() => sequencer.skip()}
           />
         )}
-        {screen === 'victory' && (
+        {screen === 'victory' && run && enemy && (
           <VictoryScreen
             enemy={enemy}
-            xpGained={xpGained}
-            leveledUp={leveledUp}
-            newLevel={level}
+            xpGained={xpResult.xpGained}
+            leveledUp={xpResult.leveledUp}
+            newLevel={run.level}
             onContinue={handleVictoryContinue}
           />
         )}
@@ -1384,40 +714,36 @@ export default function CorporateClimb() {
             onContinue={handleActTransitionContinue}
           />
         )}
-        {screen === 'dailyResult' && player && (
+        {screen === 'dailyResult' && run && player && run.mode.kind === 'daily' && (
           <DailyResultScreen
             player={player}
             score={calculateDailyScore({
-              floorsCleared: floor + (playerHp > 0 ? 1 : 0),
-              totalTurns,
-              totalDamageDealt,
-              hpRemaining: Math.max(0, playerHp),
-              won: playerHp > 0,
+              floorsCleared: run.floor + (run.hp > 0 ? 1 : 0),
+              totalTurns: run.stats.totalTurns,
+              totalDamageDealt: run.stats.totalDamageDealt,
+              hpRemaining: Math.max(0, run.hp),
+              won: run.hp > 0,
             })}
-            floorsCleared={floor + (playerHp > 0 ? 1 : 0)}
-            totalTurns={totalTurns}
-            totalDamageDealt={totalDamageDealt}
-            hpRemaining={Math.max(0, playerHp)}
-            won={playerHp > 0}
-            seed={dailySeed}
-            modifierId={dailyModifierId}
-            onBack={() => {
-              setDailyMode(false)
-              dailyRngRef.current = null // daily over — keep ref/dailyMode in sync so normal runs stay on Math.random
-              setScreen('title')
-            }}
+            floorsCleared={run.floor + (run.hp > 0 ? 1 : 0)}
+            totalTurns={run.stats.totalTurns}
+            totalDamageDealt={run.stats.totalDamageDealt}
+            hpRemaining={Math.max(0, run.hp)}
+            won={run.hp > 0}
+            seed={run.mode.seed}
+            modifierId={run.mode.modifierId}
+            onBack={handleDailyBack}
           />
         )}
         {screen === 'gameOver' && <GameOverScreen floor={floor + 1} onRestart={restart} />}
-        {screen === 'win' && player && (
+        {screen === 'win' && run && player && (
           <WinScreen
             player={effectivePlayer || player}
             onRestart={restart}
             onNgPlus={startNgPlus}
-            ngLevel={ngPlus}
+            ngLevel={run.ngPlus}
             bestNgLevel={getBestNgPlus()}
-            totalTurns={totalTurns}
-            totalDamageDealt={totalDamageDealt}
+            totalTurns={run.stats.totalTurns}
+            totalDamageDealt={run.stats.totalDamageDealt}
             floorsCleared={ENEMY_POOLS.length}
             newAchievements={newAchievements}
             allAchievements={ACHIEVEMENTS}
