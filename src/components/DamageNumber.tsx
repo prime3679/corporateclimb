@@ -13,13 +13,13 @@ export default function DamageNumber({ popup }: { popup: DamagePopup }) {
 
   return (
     <div
+      className="t-display"
       style={{
         position: 'absolute',
         left: popup.x,
         top: popup.y,
-        fontFamily: "'Press Start 2P'",
         fontSize: popup.isCrit ? 16 : 12,
-        color: popup.isHeal ? '#4CAF50' : popup.isCrit ? '#FFD54F' : '#F44336',
+        color: popup.isHeal ? 'var(--green)' : popup.isCrit ? 'var(--gold-bright)' : '#F44336',
         textShadow: '2px 2px 0 #263238, -1px -1px 0 #263238',
         pointerEvents: 'none',
         zIndex: 20,
@@ -29,14 +29,18 @@ export default function DamageNumber({ popup }: { popup: DamagePopup }) {
       {popup.isHeal ? '+' : '-'}
       {popup.value}
       {popup.isCrit && (
-        <span style={{ fontSize: 8, display: 'block', color: '#FF6F00' }}>CRIT!</span>
+        <span
+          style={{ fontSize: 'var(--display-2xs)', display: 'block', color: 'var(--amber-deep)' }}
+        >
+          CRIT!
+        </span>
       )}
       {popup.label && (
         <span
           style={{
-            fontSize: 7,
+            fontSize: 'var(--display-2xs)',
             display: 'block',
-            color: popup.labelColor || '#FFD54F',
+            color: popup.labelColor || 'var(--gold-bright)',
             whiteSpace: 'nowrap',
           }}
         >

@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { HallwayEvent } from '../types'
 import { SFX } from '../sfx'
+import { Button, Panel } from '../ui'
 
 export default function HallwayEventScreen({
   event,
@@ -50,26 +51,26 @@ export default function HallwayEventScreen({
       }}
     >
       <div
+        className="t-display"
         style={{
           position: 'absolute',
           top: 12,
           right: 16,
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
-          color: '#4CAF50',
+          fontSize: 'var(--display-2xs)',
+          color: 'var(--green)',
           background: 'rgba(0,0,0,0.4)',
           padding: '4px 10px',
-          borderRadius: 6,
+          borderRadius: 'var(--radius-sm)',
         }}
       >
         HP {playerHp}/{playerMaxHp}
       </div>
 
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          color: '#FFD54F',
+          fontSize: 'var(--display-xs)',
+          color: 'var(--gold-bright)',
           letterSpacing: 3,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
@@ -89,12 +90,12 @@ export default function HallwayEventScreen({
       </div>
 
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          color: '#B0BEC5',
+          fontSize: 'var(--body-lg)',
+          color: 'var(--muted-light)',
           textAlign: 'center',
-          lineHeight: 2.4,
+          lineHeight: 1.2,
           maxWidth: 320,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.3s',
@@ -116,46 +117,33 @@ export default function HallwayEventScreen({
           }}
         >
           {event.choices.map((c, i) => (
-            <button
+            <Button
               key={i}
+              variant="paper"
+              size="md"
               onClick={() => handleChoice(i)}
-              style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 9,
-                padding: '16px 14px',
-                background: '#FAFAFA',
-                border: '3px solid #263238',
-                borderRadius: 8,
-                cursor: 'pointer',
-                boxShadow: '4px 4px 0 #263238',
-                color: '#263238',
-                textAlign: 'left',
-                lineHeight: 1.8,
-              }}
+              style={{ width: '100%', textAlign: 'left' }}
             >
               {c.label}
-            </button>
+            </Button>
           ))}
         </div>
       ) : (
         choice && (
-          <div
+          <Panel
+            variant="glass"
             style={{
-              background: 'rgba(255,255,255,0.08)',
-              border: '2px solid rgba(255,255,255,0.15)',
-              borderRadius: 10,
-              padding: 16,
               maxWidth: 320,
               textAlign: 'center',
               animation: 'fade-in 0.4s ease',
             }}
           >
             <div
+              className="t-body"
               style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 8,
-                color: '#FFFFFF',
-                lineHeight: 2.2,
+                fontSize: 'var(--body-lg)',
+                color: 'var(--paper)',
+                lineHeight: 1.2,
                 marginBottom: 10,
               }}
             >
@@ -164,10 +152,10 @@ export default function HallwayEventScreen({
             <div style={{ display: 'flex', gap: 12, justifyContent: 'center', flexWrap: 'wrap' }}>
               {choice.effect.hp && (
                 <span
+                  className="t-display"
                   style={{
-                    fontFamily: "'Press Start 2P'",
-                    fontSize: 8,
-                    color: choice.effect.hp > 0 ? '#4CAF50' : '#F44336',
+                    fontSize: 'var(--display-2xs)',
+                    color: choice.effect.hp > 0 ? 'var(--green)' : 'var(--red)',
                   }}
                 >
                   HP {choice.effect.hp > 0 ? '+' : ''}
@@ -175,16 +163,19 @@ export default function HallwayEventScreen({
                 </span>
               )}
               {choice.effect.atk && (
-                <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#FF9800' }}>
+                <span
+                  className="t-display"
+                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--orange)' }}
+                >
                   ATK +{choice.effect.atk}
                 </span>
               )}
               {choice.effect.def && (
                 <span
+                  className="t-display"
                   style={{
-                    fontFamily: "'Press Start 2P'",
-                    fontSize: 8,
-                    color: choice.effect.def > 0 ? '#2196F3' : '#F44336',
+                    fontSize: 'var(--display-2xs)',
+                    color: choice.effect.def > 0 ? 'var(--sky)' : 'var(--red)',
                   }}
                 >
                   DEF {choice.effect.def > 0 ? '+' : ''}
@@ -192,34 +183,26 @@ export default function HallwayEventScreen({
                 </span>
               )}
               {choice.effect.ppRestore && (
-                <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#9C27B0' }}>
+                <span
+                  className="t-display"
+                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--purple)' }}
+                >
                   PP +{choice.effect.ppRestore}
                 </span>
               )}
               {itemGained && (
-                <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#FFD54F' }}>
+                <span
+                  className="t-display"
+                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
+                >
                   🎁 Found: {itemGained}!
                 </span>
               )}
             </div>
-            <button
-              onClick={onContinue}
-              style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 10,
-                padding: '14px 24px',
-                background: '#FFC107',
-                border: '3px solid #263238',
-                borderRadius: 8,
-                cursor: 'pointer',
-                boxShadow: '4px 4px 0 #263238',
-                color: '#263238',
-                marginTop: 14,
-              }}
-            >
+            <Button variant="primary" size="md" onClick={onContinue} style={{ marginTop: 14 }}>
               CONTINUE &rarr;
-            </button>
-          </div>
+            </Button>
+          </Panel>
         )
       )}
     </div>

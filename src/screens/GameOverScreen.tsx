@@ -1,3 +1,5 @@
+import { Button } from '../ui'
+
 const DEFEAT_FLAVOR: [number, number, string][] = [
   [1, 5, 'HR sends a polite rejection email. Better luck next quarter.'],
   [6, 10, 'Your badge stops working on Monday. So close to management.'],
@@ -34,10 +36,10 @@ export default function GameOverScreen({
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 14,
-          color: '#F44336',
+          fontSize: 'var(--display-md)',
+          color: 'var(--red)',
           textShadow: '2px 2px 0 #B71C1C',
         }}
       >
@@ -45,12 +47,12 @@ export default function GameOverScreen({
       </div>
       <div style={{ fontSize: 64 }}>&#x1F4BC;</div>
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 9,
-          color: '#90A4AE',
+          fontSize: 'var(--body-lg)',
+          color: 'var(--muted-light)',
           textAlign: 'center',
-          lineHeight: 2.4,
+          lineHeight: 1.2,
           maxWidth: 280,
         }}
       >
@@ -59,34 +61,21 @@ export default function GameOverScreen({
         Floor {floor}.
       </div>
       <div
+        className="t-body"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 7,
-          color: '#78909C',
+          fontSize: 'var(--body-md)',
+          color: 'var(--muted)',
           textAlign: 'center',
-          lineHeight: 2.2,
+          lineHeight: 1.2,
           maxWidth: 280,
           fontStyle: 'italic',
         }}
       >
         {getDefeatText(floor)}
       </div>
-      <button
-        onClick={onRestart}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 11,
-          padding: '14px 30px',
-          background: '#FFC107',
-          border: '4px solid #263238',
-          borderRadius: 10,
-          cursor: 'pointer',
-          boxShadow: '6px 6px 0 #263238',
-          color: '#263238',
-        }}
-      >
+      <Button variant="primary" size="lg" onClick={onRestart}>
         TRY AGAIN
-      </button>
+      </Button>
     </div>
   )
 }

@@ -1,3 +1,5 @@
+import styles from './HpBar.module.css'
+
 export default function HpBar({
   current,
   max,
@@ -14,78 +16,30 @@ export default function HpBar({
   const lvl = isEnemy ? Math.ceil(max / 25) : '??'
 
   return (
-    <div
-      style={{
-        background: '#F8F0D8',
-        border: '3px solid #484848',
-        borderRadius: 6,
-        padding: '6px 10px 6px 10px',
-        minWidth: 190,
-        position: 'relative',
-        boxShadow: '2px 2px 0 rgba(0,0,0,0.3)',
-      }}
-    >
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'baseline',
-          marginBottom: 3,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 10,
-            color: '#383838',
-            letterSpacing: 0.5,
-          }}
-        >
-          {label}
-        </span>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#585858' }}>
-          <span style={{ fontSize: 6, verticalAlign: 'top' }}>Lv</span>
+    <div className={styles.plate}>
+      <div className={styles.header}>
+        <span className={styles.name}>{label}</span>
+        <span className={styles.level}>
+          <span className={styles.levelPrefix}>Lv</span>
           {lvl}
         </span>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-        <span
-          style={{
-            fontFamily: "'Press Start 2P'",
-            fontSize: 7,
-            color: '#F8A800',
-            fontWeight: 'bold',
-          }}
-        >
-          HP
-        </span>
+      <div className={styles.barRow}>
+        <span className={styles.hpLabel}>HP</span>
         <div
-          style={{
-            flex: 1,
-            height: 8,
-            background: '#484848',
-            borderRadius: 4,
-            overflow: 'hidden',
-            border: '1px solid #383838',
-          }}
+          className={styles.track}
+          role="meter"
+          aria-label={`${label} HP`}
+          aria-valuenow={Math.max(0, current)}
+          aria-valuemin={0}
+          aria-valuemax={max}
         >
-          <div
-            style={{
-              width: `${pct}%`,
-              height: '100%',
-              background: color,
-              transition: 'width 0.5s ease, background 0.3s ease',
-              borderRadius: 4,
-              boxShadow: `inset 0 -2px 0 rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.4)`,
-            }}
-          />
+          <div className={styles.fill} style={{ width: `${pct}%`, background: color }} />
         </div>
       </div>
-      <div style={{ textAlign: 'right', marginTop: 2 }}>
-        <span style={{ fontFamily: "'Press Start 2P'", fontSize: 8, color: '#383838' }}>
-          {Math.max(0, current)}
-          <span style={{ color: '#888', fontSize: 7 }}> / {max}</span>
-        </span>
+      <div className={styles.numbers}>
+        {Math.max(0, current)}
+        <span className={styles.numbersMax}> / {max}</span>
       </div>
     </div>
   )

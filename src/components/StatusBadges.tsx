@@ -11,20 +11,21 @@ export default function StatusBadges({ statuses }: { statuses: StatusInstance[] 
           <span
             key={s.id}
             title={`${def.name} (${def.desc}) - ${s.turnsLeft} turns`}
+            className="t-display"
             style={{
               background: def.color,
               color: '#fff',
               borderRadius: 4,
-              padding: '1px 4px',
-              fontFamily: "'Press Start 2P'",
-              fontSize: 6,
+              padding: '2px 5px',
+              fontSize: 'var(--display-2xs)',
+              lineHeight: 1.2,
               display: 'flex',
               alignItems: 'center',
-              gap: 2,
+              gap: 3,
               border: '1px solid rgba(0,0,0,0.2)',
             }}
           >
-            <span style={{ fontSize: 9 }}>{def.icon}</span>
+            <span style={{ fontSize: 10 }}>{def.icon}</span>
             <span>{s.turnsLeft}</span>
           </span>
         )

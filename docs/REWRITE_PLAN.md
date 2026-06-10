@@ -229,7 +229,15 @@ Replace the 35-hook god component with a real engine:
    load with a migration from the v1 shape, replacing the 17-field manual
    enumeration.
 
-### Phase 2 — Presentation system (kills the amateur feel)
+### Phase 2 — Presentation system (kills the amateur feel) ✅ DONE
+
+> Shipped: `src/ui/` (tokens.css, global.css, Stage, Button, Panel,
+> scenes.ts), self-hosted fonts (@fontsource: Press Start 2P for
+> headlines ≥8px, VT323 16–22px body), all 13 screens + 8 shared
+> components converted off inline ad-hoc styles, responsive scaled
+> Stage with themed backdrop, keyboard move hotkeys (1–4), ARIA live
+> battle log, meter roles, focus rings, reduced-motion support.
+> Full unit + e2e suites green.
 
 1. **Design tokens** (`src/ui/tokens.css`): one palette (per-act themes as CSS
    custom-property overrides, replacing BattleScreen's inline table), a 4-step

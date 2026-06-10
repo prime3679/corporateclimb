@@ -3,6 +3,7 @@ import type { PlayerClass } from '../types'
 import { PLAYER_CLASSES } from '../data'
 import { useSpriteUrls } from '../components/PixelSprite'
 import TypeBadge from '../components/TypeBadge'
+import { Button, Panel } from '../ui'
 
 export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass) => void }) {
   const [selected, setSelected] = useState(0)
@@ -21,10 +22,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
       }}
     >
       <div
+        className="t-display"
         style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 12,
-          color: '#FFD54F',
+          fontSize: 'var(--display-sm)',
+          color: 'var(--gold-bright)',
           textAlign: 'center',
           textShadow: '2px 2px 0 #E65100',
         }}
@@ -40,14 +41,14 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             style={{
               width: 100,
               padding: '12px 8px',
-              background: selected === i ? '#FFF8E1' : '#455A64',
-              border: `3px solid ${selected === i ? '#FFC107' : '#546E7A'}`,
-              borderRadius: 8,
+              background: selected === i ? '#FFF8E1' : 'var(--ink-soft)',
+              border: `var(--border-w) solid ${selected === i ? 'var(--gold)' : '#546E7A'}`,
+              borderRadius: 'var(--radius-md)',
               cursor: 'pointer',
               boxShadow:
                 selected === i
-                  ? '4px 4px 0 #263238, inset 0 0 12px rgba(255,193,7,0.15)'
-                  : '2px 2px 0 #263238',
+                  ? 'var(--shadow-md), inset 0 0 12px rgba(255,193,7,0.15)'
+                  : '2px 2px 0 var(--ink)',
               transition: 'all 0.2s',
               display: 'flex',
               flexDirection: 'column',
@@ -70,10 +71,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               />
             </div>
             <span
+              className="t-display"
               style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 7,
-                color: selected === i ? '#263238' : '#B0BEC5',
+                fontSize: 'var(--display-2xs)',
+                color: selected === i ? 'var(--ink)' : 'var(--muted-light)',
                 textAlign: 'center',
                 lineHeight: 1.5,
               }}
@@ -84,13 +85,9 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         ))}
       </div>
 
-      <div
+      <Panel
+        variant="paper"
         style={{
-          background: '#FAFAFA',
-          border: '4px solid #263238',
-          borderRadius: 10,
-          padding: 14,
-          boxShadow: 'inset 0 0 0 2px #90A4AE, 6px 6px 0 #263238',
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
@@ -114,14 +111,18 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             />
           </div>
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 10, color: '#263238' }}>
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-xs)', color: 'var(--ink)' }}
+            >
               {cls.name}
             </div>
             <div
+              className="t-body"
               style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 7,
-                color: '#78909C',
+                fontSize: 'var(--body-sm)',
+                lineHeight: 1.2,
+                color: 'var(--muted)',
                 marginTop: 4,
               }}
             >
@@ -133,15 +134,16 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 6 }}>
           {(
             [
-              ['HP', cls.maxHp, '#4CAF50'],
-              ['ATK', cls.atk, '#F44336'],
-              ['DEF', cls.def, '#2196F3'],
-              ['SPD', cls.spd, '#FF9800'],
+              ['HP', cls.maxHp, 'var(--green)'],
+              ['ATK', cls.atk, 'var(--red)'],
+              ['DEF', cls.def, 'var(--sky)'],
+              ['SPD', cls.spd, 'var(--orange)'],
             ] as const
           ).map(([label, val, color]) => (
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span
-                style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: '#263238', width: 26 }}
+                className="t-display"
+                style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)', width: 30 }}
               >
                 {label}
               </span>
@@ -149,7 +151,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                 style={{
                   flex: 1,
                   height: 7,
-                  background: '#E0E0E0',
+                  background: 'var(--paper-dim)',
                   borderRadius: 3,
                   overflow: 'hidden',
                 }}
@@ -165,10 +167,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                 />
               </div>
               <span
+                className="t-display"
                 style={{
-                  fontFamily: "'Press Start 2P'",
-                  fontSize: 7,
-                  color: '#546E7A',
+                  fontSize: 'var(--display-2xs)',
+                  color: 'var(--ink-soft)',
                   width: 24,
                   textAlign: 'right',
                 }}
@@ -187,20 +189,24 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             marginTop: 2,
             padding: '6px 8px',
             background: '#FFF8E1',
-            borderRadius: 6,
-            border: '2px solid #FFD54F',
+            borderRadius: 'var(--radius-sm)',
+            border: '2px solid var(--gold-bright)',
           }}
         >
           <span style={{ fontSize: 16 }}>{cls.perk.icon}</span>
           <div>
-            <div style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: '#E65100' }}>
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--amber-deep)' }}
+            >
               {cls.perk.name}
             </div>
             <div
+              className="t-body"
               style={{
-                fontFamily: "'Press Start 2P'",
-                fontSize: 5,
-                color: '#78909C',
+                fontSize: 'var(--body-sm)',
+                lineHeight: 1.2,
+                color: 'var(--muted)',
                 marginTop: 2,
               }}
             >
@@ -210,7 +216,8 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         </div>
 
         <div
-          style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: '#263238', marginTop: 2 }}
+          className="t-display"
+          style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)', marginTop: 2 }}
         >
           MOVES:
         </div>
@@ -220,9 +227,9 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               key={m.name}
               style={{
                 padding: '5px 6px',
-                background: '#F5F5F5',
+                background: 'var(--paper-dim)',
                 borderRadius: 4,
-                border: '1px solid #E0E0E0',
+                border: '1px solid var(--muted-light)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2,
@@ -231,36 +238,33 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               <div
                 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
               >
-                <span style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: '#263238' }}>
+                <span
+                  className="t-display"
+                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)' }}
+                >
                   {m.name}
                 </span>
                 <TypeBadge type={m.type} />
               </div>
-              <span style={{ fontFamily: "'Press Start 2P'", fontSize: 5, color: '#9E9E9E' }}>
+              <span
+                className="t-body"
+                style={{ fontSize: 'var(--body-sm)', lineHeight: 1.2, color: 'var(--muted)' }}
+              >
                 {m.desc}
               </span>
             </div>
           ))}
         </div>
-      </div>
+      </Panel>
 
-      <button
+      <Button
+        variant="primary"
+        size="lg"
         onClick={() => onSelect(PLAYER_CLASSES[selected])}
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 12,
-          padding: '14px 30px',
-          background: '#FFC107',
-          border: '4px solid #263238',
-          borderRadius: 10,
-          cursor: 'pointer',
-          boxShadow: '6px 6px 0 #263238',
-          color: '#263238',
-          alignSelf: 'center',
-        }}
+        style={{ alignSelf: 'center' }}
       >
         CONFIRM
-      </button>
+      </Button>
     </div>
   )
 }

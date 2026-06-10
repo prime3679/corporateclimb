@@ -3,10 +3,10 @@ import { SFX } from './sfx'
 import { Music } from './music'
 import { buildSpriteUrls } from './sprites'
 import type { HallwayEvent, Move, PlayerClass, PromotionTier, Screen } from './types'
+import { Button, Stage } from './ui'
 import {
   ACHIEVEMENTS,
   ENEMY_POOLS,
-  FONT_URL,
   ITEMS,
   PLAYER_CLASSES,
   checkAchievements,
@@ -491,138 +491,42 @@ export default function CorporateClimb() {
 
   if (!spritesReady) {
     return (
-      <div
-        style={{
-          width: '100%',
-          maxWidth: 420,
-          height: '100vh',
-          maxHeight: 750,
-          margin: '0 auto',
-          background: '#000',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexDirection: 'column',
-          fontFamily: 'monospace',
-          color: '#4FC3F7',
-        }}
-      >
-        <div style={{ fontSize: 24, marginBottom: 16 }}>LOADING...</div>
-        <div style={{ fontSize: 14, color: '#666' }}>Preparing sprites</div>
-      </div>
+      <Stage>
+        <div
+          style={{
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            flexDirection: 'column',
+            gap: 12,
+            color: 'var(--sky)',
+          }}
+        >
+          <div className="t-display" style={{ fontSize: 'var(--display-md)' }}>
+            LOADING...
+          </div>
+          <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted)' }}>
+            Preparing sprites
+          </div>
+        </div>
+      </Stage>
     )
   }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: 420,
-        height: '100vh',
-        maxHeight: 750,
-        margin: '0 auto',
-        background: '#000',
-        position: 'relative',
-        overflow: 'hidden',
-        boxShadow: '0 0 60px rgba(0,0,0,0.5)',
-      }}
-    >
-      <link href={FONT_URL} rel="stylesheet" />
-      <style>{`
-        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-4px); } }
-        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-8px); } 75% { transform: translateX(8px); } }
-        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
-        @keyframes twinkle { 0% { opacity: 0.2; } 100% { opacity: 0.8; } }
-        @keyframes confetti { 0% { transform: translateY(0) rotate(0deg); opacity: 0.8; } 50% { opacity: 1; } 100% { transform: translateY(100vh) rotate(720deg); opacity: 0; } }
-
-        @keyframes sprite-breathe {
-          0%, 100% { transform: translateY(0); }
-          50% { transform: translateY(-3px); }
-        }
-        @keyframes sprite-attack-right {
-          0% { transform: translateX(0); }
-          30% { transform: translateX(40px) scale(1.1); }
-          60% { transform: translateX(40px) scale(1.1); }
-          100% { transform: translateX(0) scale(1); }
-        }
-        @keyframes sprite-attack-left {
-          0% { transform: translateX(0); }
-          30% { transform: translateX(-40px) scale(1.1); }
-          60% { transform: translateX(-40px) scale(1.1); }
-          100% { transform: translateX(0) scale(1); }
-        }
-        @keyframes sprite-hit-flash {
-          0% { filter: brightness(1); transform: translateX(0); }
-          20% { filter: brightness(3) saturate(0); transform: translateX(8px); }
-          40% { filter: brightness(1); transform: translateX(-6px); }
-          60% { filter: brightness(2) saturate(0); transform: translateX(4px); }
-          80% { filter: brightness(1); transform: translateX(-2px); }
-          100% { filter: brightness(1); transform: translateX(0); }
-        }
-        @keyframes sprite-faint {
-          0% { opacity: 1; transform: translateY(0) rotate(0deg); }
-          50% { opacity: 0.5; transform: translateY(10px) rotate(10deg); }
-          100% { opacity: 0; transform: translateY(30px) rotate(20deg); }
-        }
-        @keyframes dmg-float {
-          0% { opacity: 1; transform: translateY(0) scale(1.3); }
-          20% { transform: translateY(-12px) scale(1); }
-          100% { opacity: 0; transform: translateY(-40px) scale(0.8); }
-        }
-        @keyframes flash-fade {
-          0% { opacity: 0.25; }
-          100% { opacity: 0; }
-        }
-        @keyframes fade-in {
-          0% { opacity: 0; transform: translateY(8px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes screen-shake-anim {
-          0%, 100% { transform: translate(0, 0); }
-          10% { transform: translate(-4px, 2px); }
-          20% { transform: translate(4px, -2px); }
-          30% { transform: translate(-3px, 3px); }
-          40% { transform: translate(3px, -1px); }
-          50% { transform: translate(-2px, 2px); }
-          60% { transform: translate(2px, -2px); }
-          70% { transform: translate(-1px, 1px); }
-          80% { transform: translate(1px, -1px); }
-          90% { transform: translate(-1px, 0px); }
-        }
-
-        .sprite-idle { animation: sprite-breathe 2.5s ease-in-out infinite; }
-        .sprite-attack { animation: sprite-attack-right 0.5s ease-out; }
-        .sprite-attack-left { animation: sprite-attack-left 0.5s ease-out; }
-        .sprite-hit { animation: sprite-hit-flash 0.4s ease-out; }
-        .sprite-faint { animation: sprite-faint 0.8s ease-out forwards; }
-        .screen-shake { animation: screen-shake-anim 0.3s ease-out; }
-        .screen-fade-in { opacity: 1; transition: opacity 0.2s ease-in; }
-        .screen-fade-out { opacity: 0; transition: opacity 0.2s ease-out; }
-        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-      `}</style>
-
+    <Stage>
       {/* Mute toggle — always visible */}
-      <button
+      <Button
+        variant="ghost"
+        size="sm"
         onClick={() => setMuted((m) => !m)}
-        style={{
-          position: 'absolute',
-          top: 8,
-          right: 8,
-          zIndex: 100,
-          background: 'rgba(0,0,0,0.5)',
-          border: '2px solid rgba(255,255,255,0.2)',
-          borderRadius: 6,
-          padding: '4px 8px',
-          cursor: 'pointer',
-          fontFamily: "'Press Start 2P'",
-          fontSize: 8,
-          color: '#FFD54F',
-          lineHeight: 1,
-        }}
+        style={{ position: 'absolute', top: 8, right: 8, zIndex: 100, padding: '6px 10px' }}
         title={muted ? 'Unmute music' : 'Mute music'}
+        aria-label={muted ? 'Unmute music' : 'Mute music'}
       >
         {muted ? '🔇' : '🔊'}
-      </button>
+      </Button>
 
       <div
         className={fadeClass === 'in' ? 'screen-fade-in' : 'screen-fade-out'}
@@ -751,6 +655,6 @@ export default function CorporateClimb() {
           />
         )}
       </div>
-    </div>
+    </Stage>
   )
 }

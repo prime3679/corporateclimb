@@ -10,11 +10,20 @@ export default function XpBar({
   const pct = (xp / xpToNext) * 100
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      <span style={{ fontFamily: "'Press Start 2P'", fontSize: 7, color: '#FFD54F' }}>
+      <span
+        className="t-display"
+        style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
+      >
         Lv.{level}
       </span>
       <div
-        style={{ flex: 1, height: 6, background: '#263238', borderRadius: 3, overflow: 'hidden' }}
+        style={{
+          flex: 1,
+          height: 6,
+          background: 'var(--ink)',
+          borderRadius: 3,
+          overflow: 'hidden',
+        }}
       >
         <div
           style={{
@@ -26,7 +35,10 @@ export default function XpBar({
           }}
         />
       </div>
-      <span style={{ fontFamily: "'Press Start 2P'", fontSize: 6, color: '#90A4AE' }}>
+      <span
+        className="t-body"
+        style={{ fontSize: 'var(--body-sm)', lineHeight: 1, color: 'var(--muted-light)' }}
+      >
         {xp}/{xpToNext}
       </span>
     </div>

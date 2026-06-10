@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import styles from './TextBox.module.css'
 
 export default function TextBox({
   lines,
@@ -28,7 +29,7 @@ export default function TextBox({
       const t = setTimeout(() => {
         setDisplayedText(fullText.slice(0, charIndex + 1))
         setCharIndex(charIndex + 1)
-      }, 22)
+      }, 18)
       return () => clearTimeout(t)
     }
   }, [charIndex, fullText])
@@ -45,45 +46,13 @@ export default function TextBox({
   }
 
   return (
-    <div
-      onClick={handleClick}
-      style={{
-        background: '#FAFAFA',
-        border: '4px solid #263238',
-        borderRadius: 10,
-        padding: '14px 18px',
-        minHeight: 70,
-        cursor: 'pointer',
-        position: 'relative',
-        boxShadow: 'inset 0 0 0 2px #90A4AE, 6px 6px 0 #263238',
-        userSelect: 'none',
-      }}
-    >
-      <p
-        style={{
-          fontFamily: "'Press Start 2P'",
-          fontSize: 10,
-          lineHeight: 2.2,
-          color: '#263238',
-          margin: 0,
-          whiteSpace: 'pre-wrap',
-          minHeight: 44,
-        }}
-      >
+    <div className={styles.box} onClick={handleClick}>
+      {/* Screen readers get the full line immediately, not the typewriter. */}
+      <p className={styles.text} aria-live="polite" aria-label={fullText}>
         {displayedText}
       </p>
       {isComplete && showArrow && (
-        <span
-          style={{
-            position: 'absolute',
-            bottom: 8,
-            right: 14,
-            fontFamily: "'Press Start 2P'",
-            fontSize: 12,
-            color: '#263238',
-            animation: 'bounce 1s infinite',
-          }}
-        >
+        <span className={styles.arrow} aria-hidden>
           &#x25BC;
         </span>
       )}
