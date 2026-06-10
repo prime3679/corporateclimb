@@ -425,6 +425,7 @@ export default function CorporateClimb() {
   const useItem = useCallback((itemIdx: number) => {
     const gs = gsRef.current
     if (gs.turn !== 'player' || !gs.player) return
+    if (gs.playerHp <= 0 || gs.enemyHp <= 0) return // battle already decided
 
     const itemId = gs.inventory[itemIdx]
     if (!itemId) return
@@ -574,25 +575,30 @@ export default function CorporateClimb() {
         addDamagePopup(eMove.heal!, true, false, true)
       }
 
-      setPlayerHp((prev) => {
-        const newHp = Math.max(0, prev - eDmg)
-        if (newHp <= 0) {
-          setTimeout(() => {
-            setPlayerAnim('faint')
-            SFX.faint()
-            setTimeout(() => handleGameOver(), 1000)
-          }, 400)
-        }
-        return newHp
-      })
+      // Did this hit (on top of any burnout already applied this turn) kill the
+      // player? Decide up front so the death path can skip restoring the turn.
+      const postBurnHp = Math.max(0, gs.playerHp - playerBurn)
+      const playerWillDie = postBurnHp - eDmg <= 0
+
+      setPlayerHp((prev) => Math.max(0, prev - eDmg))
       setLog((l) => [...l, eLog])
 
       tickStatuses(setPlayerStatuses)
 
-      setTimeout(() => {
-        setPlayerAnim('idle')
-        setTurn('player')
-      }, 500)
+      if (playerWillDie) {
+        // Let the faint animation play, then end the run — do NOT hand the turn
+        // back, or a 0-HP player could act in the window before game over.
+        setTimeout(() => {
+          setPlayerAnim('faint')
+          SFX.faint()
+          setTimeout(() => handleGameOver(), 1000)
+        }, 400)
+      } else {
+        setTimeout(() => {
+          setPlayerAnim('idle')
+          setTurn('player')
+        }, 500)
+      }
     }, 300)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
@@ -781,10 +787,35 @@ export default function CorporateClimb() {
     }, 0)
   }
 
+  // Award XP / level-up and route to the victory screen. Shared by the
+  // direct-kill and burnout-kill paths so a burn that finishes the enemy
+  // still registers a win.
+  const winBattle = (g: typeof gsRef.current) => {
+    const gained = 15 + g.floor * 7
+    const newXp = g.xp + gained
+    const didLevel = newXp >= g.xpToNext
+    setXpGained(gained)
+    setLeveledUp(didLevel)
+    setTimeout(() => {
+      SFX.victory()
+      if (didLevel) {
+        setLevel((l) => l + 1)
+        setXp(newXp - g.xpToNext)
+        setXpToNext((x) => x + 25)
+        setPlayerHp((hp) => Math.min((g.effectivePlayer || g.player!).maxHp, hp + 20))
+        setTimeout(() => SFX.levelUp(), 600)
+      } else {
+        setXp(newXp)
+      }
+      setScreen('victory')
+    }, 1500)
+  }
+
   const doPlayerMove = useCallback(
     (moveIdx: number) => {
       const gs = gsRef.current
       if (gs.turn !== 'player' || !gs.player) return
+      if (gs.playerHp <= 0 || gs.enemyHp <= 0) return // battle already decided
 
       // Track turns
       setTotalTurns((t) => t + 1)
@@ -923,36 +954,29 @@ export default function CorporateClimb() {
             setEnemyAnim('faint')
             SFX.faint()
           }, 500)
-          const gained = 15 + gs.floor * 7
-          const newXp = gs.xp + gained
-          const didLevel = newXp >= gs.xpToNext
-          setXpGained(gained)
-          setLeveledUp(didLevel)
-
-          setTimeout(() => {
-            SFX.victory()
-            if (didLevel) {
-              setLevel((l) => l + 1)
-              setXp(newXp - gs.xpToNext)
-              setXpToNext((x) => x + 25)
-              setPlayerHp((hp) => Math.min((gs.effectivePlayer || gs.player!).maxHp, hp + 20))
-              setTimeout(() => SFX.levelUp(), 600)
-            } else {
-              setXp(newXp)
-            }
-            setScreen('victory')
-          }, 1500)
+          winBattle(gs)
           return
         }
 
-        // Tick enemy statuses
+        // End-of-turn burnout on the enemy — can itself finish the enemy off,
+        // which must still register as a win (it previously left the enemy at
+        // 0 HP yet still taking its turn).
         const enemyBurn = getBurnDamage(gs.enemyStatuses)
+        const enemyHpAfterBurn = Math.max(0, newEnemyHp - enemyBurn)
         if (enemyBurn > 0) {
           setTimeout(() => {
-            setEnemyHp((hp) => Math.max(0, hp - enemyBurn))
+            setEnemyHp(enemyHpAfterBurn)
             addDamagePopup(enemyBurn, true, false, false)
             setLog((l) => [...l, `${gs.enemy.name} is burned out! -${enemyBurn} HP!`])
           }, 500)
+        }
+        if (enemyHpAfterBurn <= 0) {
+          setTimeout(() => {
+            setEnemyAnim('faint')
+            SFX.faint()
+          }, 700)
+          winBattle(gs)
+          return
         }
         tickStatuses(setEnemyStatuses)
 
