@@ -1,5 +1,5 @@
-import type { Enemy } from '@/types'
-import { CURRENCY_ICON } from '@/data'
+import type { Enemy, RelicId } from '@/types'
+import { CURRENCY_ICON, RELICS } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { Button, Panel } from '@/ui'
 
@@ -10,6 +10,7 @@ export default function BattleVictoryScreen({
   onContinue,
   leveledUp,
   newLevel,
+  relicGained,
 }: {
   enemy: Enemy
   xpGained: number
@@ -17,7 +18,9 @@ export default function BattleVictoryScreen({
   onContinue: () => void
   leveledUp: boolean
   newLevel: number
+  relicGained?: RelicId | null
 }) {
+  const relic = relicGained ? RELICS[relicGained] : null
   const sprites = getSpriteUrls()
   return (
     <div
@@ -91,6 +94,36 @@ export default function BattleVictoryScreen({
         >
           +{optionsGained} {CURRENCY_ICON} STOCK OPTIONS
         </div>
+        {relic && (
+          <div
+            style={{
+              border: '2px solid var(--gold-bright)',
+              borderRadius: 'var(--radius-md)',
+              padding: '8px 10px',
+              marginBottom: 8,
+              background: 'rgba(255,193,7,0.12)',
+            }}
+          >
+            <div
+              className="t-display"
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
+            >
+              STATUS SYMBOL!
+            </div>
+            <div
+              className="t-body"
+              style={{ fontSize: 'var(--body-md)', color: 'var(--paper)', marginTop: 4 }}
+            >
+              {relic.icon} {relic.name}
+            </div>
+            <div
+              className="t-body"
+              style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
+            >
+              {relic.desc}
+            </div>
+          </div>
+        )}
         {leveledUp && (
           <div
             className="t-display"

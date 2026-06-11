@@ -12,10 +12,13 @@ import {
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
+  awardEliteSpoils,
   buyShopItem,
   buyWellnessDay,
+  chooseElevator,
   choosePerk,
   clearSave,
+  eliteAvailable,
   leaveShop,
   loadRun,
   newBattle,
@@ -34,11 +37,14 @@ import {
 } from '@/engine'
 import {
   ALL_PERK_IDS,
+  ALL_RELIC_IDS,
   ENEMY_POOLS,
   HALLWAY_EVENTS,
   ITEMS,
   PERKS,
   PLAYER_CLASSES,
+  RELICS,
+  RELIC_DUPLICATE_OPTIONS,
   getEffectivePlayer,
   getVictoryPayout,
   groupPerks,
@@ -46,7 +52,7 @@ import {
 } from '@/data'
 import { createSeededRandom } from '@/daily'
 import type { Rng } from '@/battle'
-import type { PerkId } from '@/types'
+import type { PerkId, RelicId } from '@/types'
 
 const PM = PLAYER_CLASSES.find((c) => c.id === 'pm')!
 
@@ -442,6 +448,136 @@ describe('save migration to v3', () => {
 
   it('rejects a save with unknown perk ids', () => {
     const run = makeRun({ perks: ['hoverboard' as PerkId] })
+    saveRun(run)
+    expect(loadRun()).toBeNull()
+  })
+})
+
+// ─── Elite floors & Status Symbols ───────────────────────────
+
+describe('the elevator bank', () => {
+  it('opens after the first promotion and skips boss floors', () => {
+    expect(eliteAvailable(0)).toBe(false)
+    expect(eliteAvailable(4)).toBe(false)
+    expect(eliteAvailable(5)).toBe(true)
+    expect(eliteAvailable(7)).toBe(true)
+    expect(eliteAvailable(8)).toBe(false)
+    expect(eliteAvailable(9)).toBe(false)
+    expect(eliteAvailable(10)).toBe(true)
+    expect(eliteAvailable(25)).toBe(true)
+    expect(eliteAvailable(28)).toBe(false)
+  })
+
+  it('chooseElevator commits the pick only where elites are allowed', () => {
+    const run = makeRun({ floor: 5 })
+    expect(chooseElevator(run, true).eliteFloor).toBe(true)
+    const early = makeRun({ floor: 2 })
+    expect(chooseElevator(early, true)).toBe(early)
+  })
+
+  it('advanceFloor clears the elite flag for the next pick', () => {
+    const run = makeRun({ floor: 5, eliteFloor: true })
+    expect(advanceFloor(run, createSeededRandom(1)).eliteFloor).toBe(false)
+  })
+
+  it('elite floors fight a scaled-up, renamed enemy', () => {
+    const base = resolveEnemy(makeRun({ floor: 5 }), 1)
+    const elite = resolveEnemy(makeRun({ floor: 5, eliteFloor: true }), 1)
+    expect(elite.name).toBe(`Elite ${base.name}`)
+    expect(elite.maxHp).toBeGreaterThan(base.maxHp)
+    expect(elite.atk).toBeGreaterThan(base.atk)
+  })
+
+  it('elite victories pay double', () => {
+    const std = applyVictory(makeRun({ floor: 5 }), PM.maxHp).optionsGained
+    const elite = applyVictory(makeRun({ floor: 5, eliteFloor: true }), PM.maxHp).optionsGained
+    expect(elite).toBe(std * 2)
+  })
+})
+
+describe('status symbols', () => {
+  it('elite spoils drop a relic the run does not own', () => {
+    const run = makeRun({ floor: 5, eliteFloor: true, relics: ['golden_stapler'] })
+    const { run: next, relicGained } = awardEliteSpoils(run, createSeededRandom(1))
+    expect(relicGained).not.toBeNull()
+    expect(relicGained).not.toBe('golden_stapler')
+    expect(next.relics).toContain(relicGained)
+  })
+
+  it('a full trophy cabinet pays options instead', () => {
+    const run = makeRun({ floor: 5, eliteFloor: true, relics: [...ALL_RELIC_IDS] })
+    const { run: next, relicGained, bonusOptions } = awardEliteSpoils(run, createSeededRandom(1))
+    expect(relicGained).toBeNull()
+    expect(bonusOptions).toBe(RELIC_DUPLICATE_OPTIONS)
+    expect(next.stockOptions).toBe(run.stockOptions + RELIC_DUPLICATE_OPTIONS)
+  })
+
+  it('non-elite victories yield no spoils', () => {
+    const run = makeRun({ floor: 5 })
+    expect(awardEliteSpoils(run, createSeededRandom(1)).run).toBe(run)
+  })
+
+  it('relic stat boosts apply to the effective player', () => {
+    const effective = getEffectivePlayer(PM, 'pm', 5, [], ['corner_office_key', 'mahogany_desk'])
+    const key = RELICS.corner_office_key.statBoost!
+    const desk = RELICS.mahogany_desk.statBoost!
+    expect(effective.maxHp).toBe(PM.maxHp + key.maxHp! + desk.maxHp!)
+    expect(effective.atk).toBe(PM.atk + desk.atk!)
+    expect(effective.def).toBe(PM.def + desk.def!)
+  })
+
+  it('Golden Stapler multiplies outgoing damage', () => {
+    const rng = () => seq(0, 0.5, 0.99, 0.99, 0.5, 0.99, 0.99)
+    const plain = resolvePlayerMove(makeCtx(), 2, rng())
+    const stapled = resolvePlayerMove(makeCtx({ relics: ['golden_stapler'] }), 2, rng())
+    const dmg = (r: { events: BattleEvent[] }) =>
+      r.events.find((e): e is BattleEvent & { kind: 'hit'; amount: number } => e.kind === 'hit')!
+        .amount
+    expect(dmg(stapled)).toBeGreaterThan(dmg(plain))
+  })
+
+  it('Stress Ball halves burnout chip damage', () => {
+    const burned = { playerStatuses: [{ id: 'burned_out' as const, turnsLeft: 3 }], enemyHp: 500 }
+    const burnAmount = (r: { events: BattleEvent[] }) =>
+      r.events.find(
+        (e): e is BattleEvent & { kind: 'burn'; amount: number; target: string } =>
+          e.kind === 'burn' && e.target === 'player',
+      )!.amount
+    const plain = resolvePlayerMove(makeCtx({}, burned), 2, seq(0, 0.5, 0.99, 0.99, 0.5, 0.99))
+    const guarded = resolvePlayerMove(
+      makeCtx({ relics: ['stress_ball'] }, burned),
+      2,
+      seq(0, 0.5, 0.99, 0.99, 0.5, 0.99),
+    )
+    expect(burnAmount(plain)).toBe(8)
+    expect(burnAmount(guarded)).toBe(4)
+  })
+})
+
+describe('save migration to v4', () => {
+  beforeEach(() => {
+    clearSave()
+  })
+
+  it('round-trips a v4 save with relics and an elite pick', () => {
+    const run = makeRun({ floor: 6, relics: ['lucky_tie'], eliteFloor: true })
+    saveRun(run)
+    expect(loadRun()).toEqual(run)
+  })
+
+  it('migrates a v3 save: empty cabinet, elevator re-offered', () => {
+    const v3run = { ...makeRun({ floor: 12 }) } as Record<string, unknown>
+    delete v3run.relics
+    delete v3run.eliteFloor
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ version: 3, run: v3run }))
+    const run = loadRun()!
+    expect(run.relics).toEqual([])
+    expect(run.eliteFloor).toBe(false)
+    expect(run.floor).toBe(12)
+  })
+
+  it('rejects a save with unknown relic ids', () => {
+    const run = makeRun({ relics: ['segway' as RelicId] })
     saveRun(run)
     expect(loadRun()).toBeNull()
   })

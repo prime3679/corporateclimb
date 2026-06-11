@@ -329,6 +329,19 @@ Replace the 35-hook god component with a real engine:
 > `choosePerk` in `engine/run.ts`, perk hooks in `turn.ts`; balance
 > snapshot re-baselined with the bot now picking perks and shopping.
 
+### Phase 6 — Branching Tower, part 1: elite floors & Status Symbols ✅ DONE
+
+> Shipped: the Elevator Bank — before each non-boss floor from 6 up,
+> choose the standard floor or the **Executive Track**: an elite
+> version of the enemy (×1.35 HP, ×1.15 ATK) for 2× payout and a
+> **Status Symbol** drop (8 run-permanent relics: damage/crit/stat
+> boosts, payout multiplier, post-battle heal, burnout guard — a new
+> reward class above consumables). Save v5-ready v4 migration, sim
+> coverage split into a default-path winnability bound (unchanged
+> balance table, verified bit-identical) plus a separate elite-greed
+> bound, and an elevator e2e spec. Next: richer node types (mystery /
+> treasure), then meta-progression unlocks.
+
 ### Sequencing & risk
 
 | Phase            | Scope                                       | Risk                                                       | Payoff                                                                          |

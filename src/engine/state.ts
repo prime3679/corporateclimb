@@ -4,7 +4,7 @@
 // serializable tree. Daily mode is a config on the same pipeline, not
 // a parallel set of booleans and refs.
 
-import type { DailyModifierContext, ItemId, PerkId, StatusInstance } from '@/types'
+import type { DailyModifierContext, ItemId, PerkId, RelicId, StatusInstance } from '@/types'
 
 export const MAX_INVENTORY = 4
 
@@ -51,6 +51,10 @@ export interface RunState {
   pendingPerkOffer: PerkId[] | null
   /** Shop stock for the current stop; non-null = the shop is open. */
   shopStock: ItemId[] | null
+  /** Status Symbols collected from elite floors (each owned once). */
+  relics: RelicId[]
+  /** The current floor is the elite "Executive Track" version. */
+  eliteFloor: boolean
 }
 
 export type BattlePhase = 'player' | 'won' | 'lost'

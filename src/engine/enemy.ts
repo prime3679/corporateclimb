@@ -5,7 +5,7 @@
 // re-derived it by hand inside doPlayerMove; this is now the only copy.
 
 import type { Enemy } from '@/types'
-import { ENEMIES, getFloorEnemy, scaleEnemyForNgPlus } from '@/data'
+import { ENEMIES, getFloorEnemy, scaleEnemyForElite, scaleEnemyForNgPlus } from '@/data'
 import type { RunState } from './state'
 
 /** Daily runs remap logical floor (0-14) onto the harder enemy pools. */
@@ -15,8 +15,8 @@ export function actualFloorIndex(run: RunState): number {
 }
 
 /**
- * Variant + NG+ scaling, before daily multipliers. The phase-2 HP
- * threshold is measured against this enemy's maxHp (matching the
+ * Variant + NG+ + elite scaling, before daily multipliers. The phase-2
+ * HP threshold is measured against this enemy's maxHp (matching the
  * original behavior: daily HP multipliers stretch the bar but do not
  * move the phase-2 trigger point).
  */
@@ -26,7 +26,8 @@ export function resolveNgBaseEnemy(run: RunState): Enemy {
     run.floorEnemyIds.length > 0
       ? getFloorEnemy(floorIdx, run.floorEnemyIds[run.floor])
       : ENEMIES[floorIdx] || ENEMIES[0]
-  return scaleEnemyForNgPlus(variant, run.ngPlus)
+  const scaled = scaleEnemyForNgPlus(variant, run.ngPlus)
+  return run.eliteFloor ? scaleEnemyForElite(scaled) : scaled
 }
 
 /** Fully resolved enemy for the given phase. */

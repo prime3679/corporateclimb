@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { SFX } from './sfx'
 import { Music } from './music'
 import { buildSpriteUrls } from './sprites'
-import type { HallwayEvent, Move, PerkId, PlayerClass, Screen } from './types'
+import type { HallwayEvent, Move, PerkId, PlayerClass, RelicId, Screen } from './types'
 import { Button, Stage } from './ui'
 import {
   ACHIEVEMENTS,
@@ -29,6 +29,7 @@ import {
   FloorIntro,
   RouteChoice,
   ShopScreen,
+  ElevatorScreen,
 } from './screens'
 import PromotionScreen from './screens/PromotionScreen'
 import ActTransitionScreen from './screens/ActTransitionScreen'
@@ -43,11 +44,14 @@ import {
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
+  awardEliteSpoils,
   battleIntroLine,
   buyShopItem,
   buyWellnessDay,
+  chooseElevator,
   choosePerk,
   clearSave,
+  eliteAvailable,
   leaveShop,
   loadRun,
   newBattle,
@@ -109,7 +113,12 @@ export default function CorporateClimb() {
 
   // Screen-flow state
   const [battleMode, setBattleMode] = useState<'fight' | 'items'>('fight')
-  const [xpResult, setXpResult] = useState({ xpGained: 0, leveledUp: false, optionsGained: 0 })
+  const [xpResult, setXpResult] = useState<{
+    xpGained: number
+    leveledUp: boolean
+    optionsGained: number
+    relicGained: RelicId | null
+  }>({ xpGained: 0, leveledUp: false, optionsGained: 0, relicGained: null })
   const [routeOptions, setRouteOptions] = useState<[HallwayEvent, HallwayEvent] | null>(null)
   const [currentEvent, setCurrentEvent] = useState<HallwayEvent | null>(null)
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null)
@@ -167,7 +176,7 @@ export default function CorporateClimb() {
     ? (PLAYER_CLASSES.find((c) => c.id === run.classId) ?? null)
     : null
   const effectivePlayer =
-    player && run ? getEffectivePlayer(player, run.classId, run.floor, run.perks) : null
+    player && run ? getEffectivePlayer(player, run.classId, run.floor, run.perks, run.relics) : null
   const promotionTier = run ? getPromotion(run.classId, run.floor) : null
   const enemy = run ? resolveEnemy(run, view?.enemyPhase ?? 1) : null
 
@@ -226,13 +235,28 @@ export default function CorporateClimb() {
   const handleWin = useCallback(
     (winRun: RunState) => {
       const cls = PLAYER_CLASSES.find((c) => c.id === winRun.classId)!
-      const effMaxHp = getEffectivePlayer(cls, winRun.classId, winRun.floor, winRun.perks).maxHp
+      const effMaxHp = getEffectivePlayer(
+        cls,
+        winRun.classId,
+        winRun.floor,
+        winRun.perks,
+        winRun.relics,
+      ).maxHp
       after(500, () => {
         SFX.victory()
-        const { run: next, xpGained, leveledUp, optionsGained } = applyVictory(winRun, effMaxHp)
+        const victory = applyVictory(winRun, effMaxHp)
+        // Elite floors drop a Status Symbol (or a payout once complete).
+        const rng = new GameRng(victory.run.rngState)
+        const spoils = awardEliteSpoils(victory.run, rng.next)
+        const next = { ...spoils.run, rngState: rng.serialize() }
         setRun(next)
-        setXpResult({ xpGained, leveledUp, optionsGained })
-        if (leveledUp) after(600, () => SFX.levelUp())
+        setXpResult({
+          xpGained: victory.xpGained,
+          leveledUp: victory.leveledUp,
+          optionsGained: victory.optionsGained + spoils.bonusOptions,
+          relicGained: spoils.relicGained,
+        })
+        if (victory.leveledUp) after(600, () => SFX.levelUp())
         setScreen('victory')
       })
     },
@@ -319,9 +343,11 @@ export default function CorporateClimb() {
     if (!saved) return
     SFX.menuConfirm()
     setRun(saved)
-    // A reload mid-promotion or mid-shop resumes the pending choice.
+    // A reload mid-promotion or mid-shop resumes the pending choice,
+    // and an unpicked elevator is re-offered.
     if (saved.pendingPerkOffer) setScreen('promotion')
     else if (saved.shopStock) setScreen('shop')
+    else if (eliteAvailable(saved.floor) && !saved.eliteFloor) setScreen('elevator')
     else setScreen('floorIntro')
   }
 
@@ -384,9 +410,15 @@ export default function CorporateClimb() {
   }
 
   // ─── Between-floor flow ────────────────────────────────────
+  /** Last stop before the fight: the elevator bank (when available). */
+  const proceedToFloorEntry = (current: RunState) => {
+    if (eliteAvailable(current.floor)) setScreen('elevator')
+    else setScreen('floorIntro')
+  }
+
   const proceedToRouteChoice = (current: RunState) => {
     if (current.mode.kind === 'daily' && !current.mode.modifier.eventsEnabled) {
-      setScreen('floorIntro')
+      proceedToFloorEntry(current)
       return
     }
     const rng = new GameRng(current.rngState)
@@ -394,6 +426,15 @@ export default function CorporateClimb() {
     setRun({ ...next, rngState: rng.serialize() })
     setRouteOptions(options)
     setScreen('routeChoice')
+  }
+
+  const handleElevatorPick = (elite: boolean) => {
+    if (!run) return
+    SFX.menuConfirm()
+    const next = chooseElevator(run, elite)
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+    setScreen('floorIntro')
   }
 
   /** Route to whichever interstitial the advanced run calls for. */
@@ -416,7 +457,7 @@ export default function CorporateClimb() {
     setView(null)
     setBattle(null)
     const cls = PLAYER_CLASSES.find((c) => c.id === run.classId)!
-    const effMaxHp = getEffectivePlayer(cls, run.classId, run.floor, run.perks).maxHp
+    const effMaxHp = getEffectivePlayer(cls, run.classId, run.floor, run.perks, run.relics).maxHp
     let next = applyPostBattlePerk(run, effMaxHp)
 
     const totalFloors = next.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
@@ -484,7 +525,13 @@ export default function CorporateClimb() {
     SFX.menuConfirm()
     let next = choosePerk(run, perkId)
     // A promotion comes with a full heal (against the new perk's max HP).
-    const fullHp = getEffectivePlayer(player, next.classId, next.floor, next.perks).maxHp
+    const fullHp = getEffectivePlayer(
+      player,
+      next.classId,
+      next.floor,
+      next.perks,
+      next.relics,
+    ).maxHp
     next = { ...next, hp: fullHp }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
@@ -557,7 +604,7 @@ export default function CorporateClimb() {
   }
 
   const handleEventContinue = () => {
-    setScreen('floorIntro')
+    if (run) proceedToFloorEntry(run)
   }
 
   const handleDailyBack = () => {
@@ -724,8 +771,12 @@ export default function CorporateClimb() {
             optionsGained={xpResult.optionsGained}
             leveledUp={xpResult.leveledUp}
             newLevel={run.level}
+            relicGained={xpResult.relicGained}
             onContinue={handleVictoryContinue}
           />
+        )}
+        {screen === 'elevator' && run && (
+          <ElevatorScreen floorNumber={run.floor + 1} onPick={handleElevatorPick} />
         )}
         {screen === 'promotion' && player && run?.pendingPerkOffer && (
           <PromotionScreen

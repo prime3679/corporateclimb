@@ -20,8 +20,11 @@ import {
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
+  awardEliteSpoils,
   buyWellnessDay,
+  chooseElevator,
   choosePerk,
+  eliteAvailable,
   leaveShop,
   newBattle,
   newRun,
@@ -59,7 +62,7 @@ function pickMove(ctx: TurnContext): number {
   return best
 }
 
-function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
+function simulateRun(cls: PlayerClass, seed: number, rideElites = false): SimOutcome {
   const rng = new GameRng(seed).next
   // newRun rolls floor variants with Math.random; re-roll them from the
   // seed so the entire simulation is deterministic.
@@ -71,7 +74,7 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
   const MAX_TURNS_PER_BATTLE = 200
   for (let floor = 0; floor < ENEMY_POOLS.length; floor++) {
     expect(run.floor, 'advanceFloor keeps the loop and the run in step').toBe(floor)
-    let effectivePlayer = getEffectivePlayer(cls, run.classId, floor, run.perks)
+    let effectivePlayer = getEffectivePlayer(cls, run.classId, floor, run.perks, run.relics)
     let battle = newBattle(resolveEnemy(run, 1), run.perks)
 
     let turns = 0
@@ -110,10 +113,12 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
     }
 
     // Victory bookkeeping, mirroring the app's between-floor flow:
-    // payout → floor advance → perk pick → shop → hallway event.
+    // payout → elite spoils → floor advance → perk pick → shop →
+    // hallway event → elevator pick.
     run = applyVictory(run, effectivePlayer.maxHp).run
+    run = awardEliteSpoils(run, rng).run
     run = applyPostBattlePerk(run, effectivePlayer.maxHp)
-    effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks)
+    effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks, run.relics)
     expect(run.hp, `floor ${floor}: hp <= effective max`).toBeLessThanOrEqual(effectivePlayer.maxHp)
     expect(run.stockOptions, `floor ${floor}: options >= 0`).toBeGreaterThanOrEqual(0)
 
@@ -125,7 +130,7 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
       if (run.pendingPerkOffer) {
         const statPick = run.pendingPerkOffer.find((id) => PERKS[id].kind === 'stat')!
         run = choosePerk(run, statPick)
-        effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks)
+        effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks, run.relics)
         run = { ...run, hp: effectivePlayer.maxHp }
       }
 
@@ -161,6 +166,13 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
         })
       }
       run = applyEventChoice(run, effectivePlayer, bestEvent, bestChoice, rng).run
+
+      // Elevator: the greedy variant rides the Executive Track whenever
+      // comfortably healthy; the default-path bot never does (elites are
+      // opt-in risk, so the hard winnability bound excludes them).
+      if (rideElites && eliteAvailable(run.floor)) {
+        run = chooseElevator(run, run.hp >= effectivePlayer.maxHp * 0.8)
+      }
     }
   }
 
@@ -193,7 +205,8 @@ describe('seeded full-run simulation', () => {
   it('a greedy bot always survives the early tower', () => {
     // Loose winnability floor: if a naive bot can no longer get past the
     // floor-7 act-1 boss, a balance change rebuilt the difficulty wall
-    // this bound was raised to remove.
+    // this bound was raised to remove. Elites are opt-in risk and are
+    // excluded — this bound protects the default path.
     for (const cls of PLAYER_CLASSES) {
       for (const seed of SEEDS) {
         const o = simulateRun(cls, seed)
@@ -202,6 +215,22 @@ describe('seeded full-run simulation', () => {
         expect(o.totalDamageDealt).toBeGreaterThan(0)
       }
     }
+  })
+
+  it('an elite-greedy bot survives meaningfully and elites stay riskier', () => {
+    // Elites should be dangerous (that's the point) but never an
+    // instant loss: a bot that rides every Executive Track it can at
+    // ≥80% HP must still reliably clear the floor-5 gate where elites
+    // begin, and the system must actually engage (relics get won).
+    let relicRuns = 0
+    for (const cls of PLAYER_CLASSES) {
+      for (const seed of SEEDS) {
+        const greedy = simulateRun(cls, seed, true)
+        expect(greedy.floorsCleared, `${cls.id} seed ${seed}`).toBeGreaterThanOrEqual(5)
+        if (greedy.floorsCleared > 5) relicRuns++
+      }
+    }
+    expect(relicRuns, 'elite runs that got past the first elite').toBeGreaterThan(0)
   })
 
   it('balance outcome table is stable (review the diff when tuning)', () => {

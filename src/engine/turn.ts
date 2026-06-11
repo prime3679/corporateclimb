@@ -7,7 +7,13 @@
 // rng, so seeded daily runs stay deterministic.
 
 import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
-import { ITEMS, STATUS_DEFS, getPerkCombatMods, getTypeMultiplier } from '@/data'
+import {
+  ITEMS,
+  STATUS_DEFS,
+  getPerkCombatMods,
+  getRelicCombatMods,
+  getTypeMultiplier,
+} from '@/data'
 import {
   STRUGGLE_MOVE,
   calcDamage,
@@ -194,16 +200,17 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   const critBonus = getStatusCritBonus(w.playerStatuses)
   const { dmgMult, critBonus: perkCrit } = getClassPerkMods(run.classId)
   const perkMods = getPerkCombatMods(run.perks)
+  const relicMods = getRelicCombatMods(run.relics)
   const typeResult = getTypeMultiplier(move.type, enemy.types)
   const [rawDmg, isCrit] = calcDamage(
     rng,
     effectivePlayer.atk + run.level * 2 + run.atkBuff + atkMod,
     enemy.def + defMod,
     move.dmg,
-    critBonus + perkCrit + perkMods.critBonus,
+    critBonus + perkCrit + perkMods.critBonus + relicMods.critBonus,
     typeResult.mult,
   )
-  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult)
+  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult * relicMods.dmgMult)
   w.enemyHp = Math.max(0, w.enemyHp - dmg)
   w.damageDealt += dmg
 
@@ -411,8 +418,10 @@ function resolveEnemyTurn(
   const { run, effectivePlayer } = ctx
   const enemy = resolveEnemy(run, w.enemyPhase)
 
-  // Burnout chips the player before the enemy acts — and can end the run.
-  const playerBurn = getBurnDamage(w.playerStatuses)
+  // Burnout chips the player before the enemy acts — and can end the
+  // run. A Stress Ball relic halves the chip.
+  const baseBurn = getBurnDamage(w.playerStatuses)
+  const playerBurn = getRelicCombatMods(run.relics).burnGuard ? Math.ceil(baseBurn / 2) : baseBurn
   if (playerBurn > 0) {
     w.playerHp = Math.max(0, w.playerHp - playerBurn)
     events.push({

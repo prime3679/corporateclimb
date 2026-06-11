@@ -1,5 +1,5 @@
 import type { PlayerClass } from '@/types'
-import { CURRENCY_ICON, CURRENCY_NAME, TOTAL_FLOORS, groupPerks } from '@/data'
+import { CURRENCY_ICON, CURRENCY_NAME, RELICS, TOTAL_FLOORS, groupPerks } from '@/data'
 import type { RunState } from '@/engine'
 import { DAILY_FLOOR_COUNT } from '@/daily'
 import Button from '@/ui/Button'
@@ -79,6 +79,27 @@ export default function CareerPanel({
               </div>
             ))}
           </div>
+        )}
+
+        {run.relics.length > 0 && (
+          <>
+            <div className={styles.sectionLabel}>STATUS SYMBOLS ({run.relics.length})</div>
+            <div className={styles.perkList}>
+              {run.relics.map((id) => {
+                const relic = RELICS[id]
+                if (!relic) return null
+                return (
+                  <div key={id} className={styles.perkRow}>
+                    <span className={styles.perkIcon}>{relic.icon}</span>
+                    <span className={styles.perkText}>
+                      <span className={styles.perkName}>{relic.name}</span>
+                      <span className={styles.perkDesc}>{relic.desc}</span>
+                    </span>
+                  </div>
+                )
+              })}
+            </div>
+          </>
         )}
 
         <div className={styles.subline}>
