@@ -190,6 +190,14 @@ button {
     transform: translateY(0);
   }
 }
+@keyframes scene-drift {
+  from {
+    transform: translateX(-10px);
+  }
+  to {
+    transform: translateX(10px);
+  }
+}
 @keyframes screen-shake-anim {
   0%,
   100% {
@@ -260,6 +268,7 @@ button {
   .sprite-attack,
   .sprite-attack-left,
   .sprite-hit,
+  .scene-anim,
   .screen-shake {
     animation: none;
   }
@@ -273,6 +282,7 @@ button {
 .reduce-motion .sprite-attack,
 .reduce-motion .sprite-attack-left,
 .reduce-motion .sprite-hit,
+.reduce-motion .scene-anim,
 .reduce-motion.screen-shake,
 .reduce-motion .screen-shake {
   animation: none;

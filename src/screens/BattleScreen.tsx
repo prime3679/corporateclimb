@@ -10,6 +10,7 @@ import type {
 } from '@/types'
 import { ITEMS, TOTAL_FLOORS, getAct, getTypeMultiplier } from '@/data'
 import { getScene } from '@/ui/scenes'
+import SceneBackdrop from '@/components/SceneBackdrop'
 import PixelSprite from '@/components/PixelSprite'
 import HpBar from '@/components/HpBar'
 import StatusBadges from '@/components/StatusBadges'
@@ -120,6 +121,8 @@ export default function BattleScreen({
         overflow: 'hidden',
       }}
     >
+      <SceneBackdrop act={act} palette={sc} />
+
       {/* Wainscoting line + floorboards per act */}
       {act <= 2 && (
         <>
