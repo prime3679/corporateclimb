@@ -1,0 +1,136 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.panel {
+  width: min(340px, calc(100% - 32px));
+  max-height: calc(100% - 48px);
+  overflow-y: auto;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--display-sm);
+  color: var(--ink);
+  text-align: center;
+}
+
+.jobTitle {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--amber-deep);
+  text-align: center;
+  line-height: 1.6;
+}
+
+.subline {
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  color: var(--ink-soft);
+  text-align: center;
+}
+
+.statGrid {
+  display: flex;
+  justify-content: space-around;
+  gap: var(--space-2);
+}
+
+.stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.statLabel {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--muted);
+}
+
+.statValue {
+  font-family: var(--font-display);
+  font-size: var(--display-xs);
+  color: var(--ink);
+}
+
+.statDelta {
+  font-family: var(--font-body);
+  font-size: var(--body-sm);
+  color: var(--green-deep, #2e7d32);
+}
+
+.sectionLabel {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--ink-soft);
+  border-bottom: 2px solid var(--paper-dim);
+  padding-bottom: 4px;
+}
+
+.perkList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.perkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.perkIcon {
+  font-size: 20px;
+  width: 26px;
+  text-align: center;
+}
+
+.perkText {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.perkName {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--ink);
+  line-height: 1.5;
+}
+
+.perkDesc {
+  font-family: var(--font-body);
+  font-size: var(--body-sm);
+  color: var(--ink-soft);
+  line-height: 1.15;
+}
+
+.perkCount {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--amber-deep);
+  white-space: nowrap;
+}
+
+.empty {
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  color: var(--muted);
+  text-align: center;
+}

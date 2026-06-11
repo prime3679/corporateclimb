@@ -41,6 +41,7 @@ import {
   PLAYER_CLASSES,
   getEffectivePlayer,
   getVictoryPayout,
+  groupPerks,
   rollPerkOffer,
 } from '@/data'
 import { createSeededRandom } from '@/daily'
@@ -103,6 +104,28 @@ describe('rollPerkOffer', () => {
     expect(rollPerkOffer([], createSeededRandom(7))).toEqual(
       rollPerkOffer([], createSeededRandom(7)),
     )
+  })
+})
+
+describe('groupPerks', () => {
+  it('groups stacked picks with counts, preserving first-pick order', () => {
+    const grouped = groupPerks([
+      'negotiator',
+      'gym_membership',
+      'gym_membership',
+      'perfectionist',
+      'gym_membership',
+    ])
+    expect(grouped.map((g) => [g.perk.id, g.count])).toEqual([
+      ['negotiator', 1],
+      ['gym_membership', 3],
+      ['perfectionist', 1],
+    ])
+  })
+
+  it('skips unknown ids from stale saves and handles empty lists', () => {
+    expect(groupPerks([])).toEqual([])
+    expect(groupPerks(['hoverboard' as PerkId, 'self_care'])).toHaveLength(1)
   })
 })
 

@@ -598,6 +598,19 @@ export function rollPerkOffer(owned: PerkId[], rng: () => number): PerkId[] {
   return [stat, pickFrom('passive') ?? fallback(), pickFrom('economy') ?? fallback()]
 }
 
+/** Owned perks grouped for display, in first-pick order, with stack counts. */
+export function groupPerks(perks: PerkId[]): { perk: PerkDef; count: number }[] {
+  const grouped: { perk: PerkDef; count: number }[] = []
+  for (const id of perks) {
+    const def = PERKS[id]
+    if (!def) continue
+    const existing = grouped.find((g) => g.perk.id === id)
+    if (existing) existing.count++
+    else grouped.push({ perk: def, count: 1 })
+  }
+  return grouped
+}
+
 /** Combat modifiers contributed by owned perks. */
 export function getPerkCombatMods(perks: PerkId[]): {
   dmgMult: number

@@ -84,7 +84,8 @@ export async function clickNonMuteButton(page: Page) {
     const b = btns.nth(i)
     if (!(await b.isVisible().catch(() => false))) continue
     const text = (await b.textContent().catch(() => '')) ?? ''
-    if (text.includes('🔊') || text.includes('🔇') || text.includes('⚙️')) continue
+    if (text.includes('🔊') || text.includes('🔇') || text.includes('⚙️') || text.includes('💼'))
+      continue
     await b.click({ timeout: 2_500 }).catch(() => {})
     return
   }
