@@ -12,7 +12,17 @@ export default function TitleScreen({
   onDaily: () => void
 }) {
   const [flicker, setFlicker] = useState(true)
+  const [confirmNew, setConfirmNew] = useState(false)
   const sprites = getSpriteUrls()
+
+  // Starting over with a save in place erases it — make that explicit.
+  const handleStart = () => {
+    if (onContinue && !confirmNew) {
+      setConfirmNew(true)
+      return
+    }
+    onStart()
+  }
 
   useEffect(() => {
     const i = setInterval(() => setFlicker((f) => !f), 700)
@@ -168,16 +178,47 @@ export default function TitleScreen({
         ))}
       </div>
 
-      <Button
-        variant="primary"
-        size="lg"
-        onClick={onStart}
-        style={{ opacity: flicker ? 1 : 0.6, transition: 'opacity 0.2s', zIndex: 2 }}
-      >
-        {onContinue ? 'NEW GAME' : 'PRESS START'}
-      </Button>
+      {confirmNew ? (
+        <div
+          style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+            zIndex: 2,
+            background: 'rgba(0,0,0,0.55)',
+            border: '2px solid var(--gold-bright)',
+            borderRadius: 'var(--radius-lg)',
+            padding: '14px 18px',
+          }}
+        >
+          <div
+            className="t-body"
+            style={{ fontSize: 'var(--body-lg)', color: '#fff', textAlign: 'center' }}
+          >
+            Start over? Your saved climb will be erased.
+          </div>
+          <div style={{ display: 'flex', gap: 10 }}>
+            <Button variant="accent" size="md" onClick={onStart}>
+              ERASE &amp; START
+            </Button>
+            <Button variant="secondary" size="md" onClick={() => setConfirmNew(false)}>
+              KEEP SAVE
+            </Button>
+          </div>
+        </div>
+      ) : (
+        <Button
+          variant="primary"
+          size="lg"
+          onClick={handleStart}
+          style={{ opacity: flicker ? 1 : 0.6, transition: 'opacity 0.2s', zIndex: 2 }}
+        >
+          {onContinue ? 'NEW GAME' : 'PRESS START'}
+        </Button>
+      )}
 
-      {onContinue && (
+      {onContinue && !confirmNew && (
         <Button variant="secondary" size="md" onClick={onContinue} style={{ zIndex: 2 }}>
           CONTINUE
         </Button>

@@ -8,6 +8,12 @@ let loopTimeout: ReturnType<typeof setTimeout> | null = null
 let activeOscs: OscillatorNode[] = []
 let masterGain: GainNode | null = null
 let _muted = false
+let _volume = 1
+
+function applyGain() {
+  if (!masterGain) return
+  masterGain.gain.setValueAtTime(_muted ? 0 : _volume, getCtx().currentTime)
+}
 
 function getCtx(): AudioContext {
   if (!ctx) ctx = new AudioContext()
@@ -19,7 +25,7 @@ function getMasterGain(): GainNode {
   if (!masterGain) {
     const c = getCtx()
     masterGain = c.createGain()
-    masterGain.gain.setValueAtTime(_muted ? 0 : 1, c.currentTime)
+    masterGain.gain.setValueAtTime(_muted ? 0 : _volume, c.currentTime)
     masterGain.connect(c.destination)
   }
   return masterGain
@@ -340,10 +346,17 @@ export const Music = {
 
   setMuted(muted: boolean) {
     _muted = muted
-    if (masterGain) {
-      const c = getCtx()
-      masterGain.gain.setValueAtTime(muted ? 0 : 1, c.currentTime)
-    }
+    applyGain()
+  },
+
+  get volume() {
+    return _volume
+  },
+
+  /** Music volume 0..1, independent of the mute toggle. */
+  setVolume(volume: number) {
+    _volume = Math.min(1, Math.max(0, volume))
+    applyGain()
   },
 
   toggleMute(): boolean {

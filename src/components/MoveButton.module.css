@@ -49,3 +49,13 @@
   line-height: 1;
   color: var(--muted);
 }
+
+.effSuper {
+  color: var(--green-dark);
+  font-weight: bold;
+}
+
+.effWeak {
+  color: var(--orange);
+  font-weight: bold;
+}

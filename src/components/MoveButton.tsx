@@ -8,11 +8,14 @@ export default function MoveButton({
   currentPp,
   onClick,
   disabled,
+  effectiveness,
 }: {
   move: Move
   currentPp?: number
   onClick: () => void
   disabled: boolean
+  /** Type matchup hint against the current enemy. */
+  effectiveness?: 'super' | 'weak' | null
 }) {
   return (
     <button className={styles.move} onClick={onClick} disabled={disabled}>
@@ -27,6 +30,20 @@ export default function MoveButton({
           {move.acc != null && move.acc < 100 ? ` ${move.acc}%` : ''}
         </span>
         <span>
+          {effectiveness === 'super' && (
+            <span className={styles.effSuper} title="Super effective" aria-label="Super effective">
+              ▲{' '}
+            </span>
+          )}
+          {effectiveness === 'weak' && (
+            <span
+              className={styles.effWeak}
+              title="Not very effective"
+              aria-label="Not very effective"
+            >
+              ▼{' '}
+            </span>
+          )}
           PP {currentPp ?? move.pp}/{move.pp}
         </span>
       </div>

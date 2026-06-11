@@ -5,10 +5,13 @@ export default function TextBox({
   lines,
   onAdvance,
   showArrow,
+  msPerChar = 18,
 }: {
   lines: string[]
   onAdvance?: () => void
   showArrow?: boolean
+  /** Typewriter delay per character; 0 renders the text instantly. */
+  msPerChar?: number
 }) {
   const fullText = lines.join('\n')
   const [displayedText, setDisplayedText] = useState('')
@@ -20,19 +23,24 @@ export default function TextBox({
   // (avoids setState inside an effect which can cause cascading renders).
   if (prevFullText !== fullText) {
     setPrevFullText(fullText)
-    setDisplayedText('')
-    setCharIndex(0)
+    setDisplayedText(msPerChar <= 0 ? fullText : '')
+    setCharIndex(msPerChar <= 0 ? fullText.length : 0)
   }
 
   useEffect(() => {
     if (charIndex < fullText.length) {
-      const t = setTimeout(() => {
-        setDisplayedText(fullText.slice(0, charIndex + 1))
-        setCharIndex(charIndex + 1)
-      }, 18)
+      const t = setTimeout(
+        () => {
+          // Instant speed dumps the whole line on the first tick.
+          const next = msPerChar <= 0 ? fullText.length : charIndex + 1
+          setDisplayedText(fullText.slice(0, next))
+          setCharIndex(next)
+        },
+        Math.max(0, msPerChar),
+      )
       return () => clearTimeout(t)
     }
-  }, [charIndex, fullText])
+  }, [charIndex, fullText, msPerChar])
 
   const isComplete = charIndex >= fullText.length
 
