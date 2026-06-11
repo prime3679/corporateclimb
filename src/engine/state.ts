@@ -4,7 +4,7 @@
 // serializable tree. Daily mode is a config on the same pipeline, not
 // a parallel set of booleans and refs.
 
-import type { DailyModifierContext, ItemId, StatusInstance } from '../types'
+import type { DailyModifierContext, ItemId, StatusInstance } from '@/types'
 
 export type RunMode =
   | { kind: 'normal' }

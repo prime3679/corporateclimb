@@ -4,22 +4,22 @@
 // RunState. The hallway-event item reward is returned explicitly so
 // the UI can announce it (it used to be granted silently).
 
-import type { Enemy, HallwayEvent, ItemId, PlayerClass } from '../types'
+import type { ClassId, Enemy, HallwayEvent, ItemId, PlayerClass } from '@/types'
 import {
   ALL_ITEM_IDS,
   CLASS_STARTING_ITEMS,
   HALLWAY_EVENTS,
   PLAYER_CLASSES,
   rollFloorEnemies,
-} from '../data'
+} from '@/data'
 import {
   createSeededRandom,
   getDailyFloorMap,
   getDailyModifier,
   getDailySeed,
   rollDailyEnemies,
-} from '../daily'
-import type { DailyModifierContext } from '../types'
+} from '@/daily'
+import type { DailyModifierContext } from '@/types'
 import type { Rng } from './rng'
 import type { BattleState, RunState } from './state'
 
@@ -37,7 +37,8 @@ const FRESH_PROGRESS = {
 }
 
 function startingInventory(classId: string): ItemId[] {
-  const item = CLASS_STARTING_ITEMS[classId]
+  // classId is a plain string in RunState (it round-trips through saves).
+  const item = CLASS_STARTING_ITEMS[classId as ClassId] as ItemId | undefined
   return item ? [item] : []
 }
 

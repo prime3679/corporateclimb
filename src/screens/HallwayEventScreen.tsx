@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import type { HallwayEvent } from '../types'
-import { SFX } from '../sfx'
-import { Button, Panel } from '../ui'
+import type { HallwayEvent } from '@/types'
+import { SFX } from '@/sfx'
+import { Button, Panel } from '@/ui'
 
 export default function HallwayEventScreen({
   event,

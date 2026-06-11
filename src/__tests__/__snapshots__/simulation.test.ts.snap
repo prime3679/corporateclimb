@@ -1,0 +1,27 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`seeded full-run simulation > balance outcome table is stable (review the diff when tuning) 1`] = `
+{
+  "design": {
+    "1": "floors=14 turns=57",
+    "1337": "floors=14 turns=44",
+    "20260611": "floors=14 turns=51",
+    "42": "floors=19 turns=75",
+    "99999": "floors=14 turns=47",
+  },
+  "eng": {
+    "1": "floors=13 turns=38",
+    "1337": "floors=16 turns=41",
+    "20260611": "floors=13 turns=27",
+    "42": "floors=14 turns=32",
+    "99999": "floors=13 turns=26",
+  },
+  "pm": {
+    "1": "floors=11 turns=34",
+    "1337": "floors=9 turns=34",
+    "20260611": "floors=8 turns=28",
+    "42": "floors=9 turns=44",
+    "99999": "floors=9 turns=27",
+  },
+}
+`;

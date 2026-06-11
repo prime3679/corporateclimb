@@ -1,13 +1,13 @@
 import { useState } from 'react'
-import type { PlayerClass } from '../types'
-import { PLAYER_CLASSES } from '../data'
-import { useSpriteUrls } from '../components/PixelSprite'
-import TypeBadge from '../components/TypeBadge'
-import { Button, Panel } from '../ui'
+import type { PlayerClass } from '@/types'
+import { PLAYER_CLASSES } from '@/data'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import TypeBadge from '@/components/TypeBadge'
+import { Button, Panel } from '@/ui'
 
 export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass) => void }) {
   const [selected, setSelected] = useState(0)
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
   const cls = PLAYER_CLASSES[selected]
 
   return (
@@ -38,6 +38,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           <button
             key={c.id}
             onClick={() => setSelected(i)}
+            aria-pressed={selected === i}
             style={{
               width: 100,
               padding: '12px 8px',

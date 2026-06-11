@@ -1,5 +1,5 @@
-import type { StatusInstance } from '../types'
-import { STATUS_DEFS } from '../data'
+import type { StatusInstance } from '@/types'
+import { STATUS_DEFS } from '@/data'
 
 export default function StatusBadges({ statuses }: { statuses: StatusInstance[] }) {
   if (statuses.length === 0) return null

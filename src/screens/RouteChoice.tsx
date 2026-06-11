@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import type { HallwayEvent } from '../types'
+import type { HallwayEvent } from '@/types'
 
 export default function RouteChoice({
   options,

@@ -252,7 +252,9 @@ button {
   transition: opacity 0.2s ease-out;
 }
 
-/* ── Reduced motion: keep state changes, drop the flourishes ── */
+/* ── Reduced motion: keep state changes, drop the flourishes.
+   Honors both the OS preference and the in-game settings toggle
+   (.reduce-motion is applied to the screen root). ── */
 @media (prefers-reduced-motion: reduce) {
   .sprite-idle,
   .sprite-attack,
@@ -265,4 +267,17 @@ button {
     animation: none;
     opacity: 0;
   }
+}
+
+.reduce-motion .sprite-idle,
+.reduce-motion .sprite-attack,
+.reduce-motion .sprite-attack-left,
+.reduce-motion .sprite-hit,
+.reduce-motion.screen-shake,
+.reduce-motion .screen-shake {
+  animation: none;
+}
+.reduce-motion .sprite-faint {
+  animation: none;
+  opacity: 0;
 }

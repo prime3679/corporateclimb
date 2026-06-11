@@ -1,9 +1,17 @@
 import { useState } from 'react'
-import type { PlayerClass } from '../types'
-import { PLAYER_CLASSES } from '../data'
-import { useSpriteUrls } from '../components/PixelSprite'
-import { getDailySeed, getDailyModifier, hasPlayedToday, getDailyResult } from '../daily'
-import { Button } from '../ui'
+import type { PlayerClass } from '@/types'
+import { PLAYER_CLASSES } from '@/data'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import {
+  getDailySeed,
+  getDailyModifier,
+  getDailyStreak,
+  getRecentDailyHistory,
+  hasPlayedToday,
+  getDailyResult,
+  getDailyDayNumber,
+} from '@/daily'
+import { Button } from '@/ui'
 
 export default function DailyPreScreen({
   onStart,
@@ -13,18 +21,16 @@ export default function DailyPreScreen({
   onBack: () => void
 }) {
   const [selected, setSelected] = useState(0)
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
   const seed = getDailySeed()
   const modifier = getDailyModifier(seed)
   const alreadyPlayed = hasPlayedToday()
   const pastResult = getDailyResult(seed)
 
   const isReorg = modifier.id === 'reorg'
-
-  // Days since launch
-  const launchDate = new Date('2026-03-17')
-  const today = new Date()
-  const dayNum = Math.max(1, Math.floor((today.getTime() - launchDate.getTime()) / 86400000) + 1)
+  const dayNum = getDailyDayNumber(seed)
+  const streak = getDailyStreak()
+  const history = getRecentDailyHistory(7)
 
   return (
     <div
@@ -100,6 +106,41 @@ export default function DailyPreScreen({
         NG+1 DIFFICULTY &bull; 15 FLOORS &bull; NO SAVES
       </div>
 
+      {/* Streak + last-7-days strip */}
+      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        {streak.current > 0 && (
+          <div
+            className="t-display"
+            style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
+          >
+            🔥 {streak.current} DAY{streak.current === 1 ? '' : 'S'}
+          </div>
+        )}
+        <div
+          style={{ display: 'flex', gap: 4 }}
+          role="img"
+          aria-label={`Last 7 days: ${history.filter((h) => h.result).length} played`}
+        >
+          {history.map(({ seed: s, result }) => (
+            <span
+              key={s}
+              title={`Daily #${getDailyDayNumber(s)}`}
+              style={{
+                width: 14,
+                height: 14,
+                borderRadius: 3,
+                border: '1px solid rgba(255,255,255,0.3)',
+                background: result
+                  ? result.won
+                    ? 'var(--green)'
+                    : 'var(--amber-deep)'
+                  : 'rgba(255,255,255,0.12)',
+              }}
+            />
+          ))}
+        </div>
+      </div>
+
       {/* Class selection (unless reorg) */}
       {!isReorg && !alreadyPlayed && (
         <div style={{ display: 'flex', gap: 8 }}>
@@ -107,6 +148,7 @@ export default function DailyPreScreen({
             <button
               key={c.id}
               onClick={() => setSelected(i)}
+              aria-pressed={selected === i}
               style={{
                 width: 80,
                 padding: '8px 6px',

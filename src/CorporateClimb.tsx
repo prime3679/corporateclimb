@@ -21,9 +21,9 @@ import {
   TitleScreen,
   ClassSelect,
   BattleScreen,
-  VictoryScreen,
+  BattleVictoryScreen,
   GameOverScreen,
-  WinScreen,
+  RunCompleteScreen,
   HallwayEventScreen,
   FloorIntro,
   RouteChoice,
@@ -56,6 +56,8 @@ import {
   type TurnResult,
 } from './engine'
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
+import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
+import SettingsPanel from './components/SettingsPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
 function useSpritePreloader(): boolean {
@@ -107,7 +109,15 @@ export default function CorporateClimb() {
   } | null>(null)
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null)
   const [newAchievements, setNewAchievements] = useState<import('./types').AchievementId[]>([])
-  const [muted, setMuted] = useState(() => localStorage.getItem('cc_muted') === '1')
+  const [muted, setMuted] = useState(() => {
+    try {
+      return localStorage.getItem('cc_muted') === '1'
+    } catch {
+      return false
+    }
+  })
+  const [settings, setSettings] = useState(loadSettings)
+  const [showSettings, setShowSettings] = useState(false)
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -165,8 +175,19 @@ export default function CorporateClimb() {
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
     Music.setMuted(muted)
-    localStorage.setItem('cc_muted', muted ? '1' : '0')
+    try {
+      localStorage.setItem('cc_muted', muted ? '1' : '0')
+    } catch {
+      /* storage unavailable */
+    }
   }, [muted])
+
+  // Settings: apply volumes and persist whenever they change
+  useEffect(() => {
+    Music.setVolume(settings.musicVolume)
+    SFX.setVolume(settings.sfxVolume)
+    saveSettings(settings)
+  }, [settings])
 
   // Music: play track based on current screen
   const floor = run?.floor ?? 0
@@ -516,20 +537,40 @@ export default function CorporateClimb() {
 
   return (
     <Stage>
-      {/* Mute toggle — always visible */}
-      <Button
-        variant="ghost"
-        size="sm"
-        onClick={() => setMuted((m) => !m)}
-        style={{ position: 'absolute', top: 8, right: 8, zIndex: 100, padding: '6px 10px' }}
-        title={muted ? 'Unmute music' : 'Mute music'}
-        aria-label={muted ? 'Unmute music' : 'Mute music'}
-      >
-        {muted ? '🔇' : '🔊'}
-      </Button>
+      {/* Mute + settings — always visible */}
+      <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 100, display: 'flex', gap: 6 }}>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setMuted((m) => !m)}
+          style={{ padding: '6px 10px' }}
+          title={muted ? 'Unmute music' : 'Mute music'}
+          aria-label={muted ? 'Unmute music' : 'Mute music'}
+        >
+          {muted ? '🔇' : '🔊'}
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setShowSettings(true)}
+          style={{ padding: '6px 10px' }}
+          title="Settings"
+          aria-label="Settings"
+        >
+          ⚙️
+        </Button>
+      </div>
+
+      {showSettings && (
+        <SettingsPanel
+          settings={settings}
+          onChange={setSettings}
+          onClose={() => setShowSettings(false)}
+        />
+      )}
 
       <div
-        className={fadeClass === 'in' ? 'screen-fade-in' : 'screen-fade-out'}
+        className={`${fadeClass === 'in' ? 'screen-fade-in' : 'screen-fade-out'}${settings.reduceMotion ? ' reduce-motion' : ''}`}
         style={{ width: '100%', height: '100%' }}
       >
         {screen === 'title' && (
@@ -593,10 +634,11 @@ export default function CorporateClimb() {
             promotionTitle={promotionTier?.title}
             playerMaxHp={effectivePlayer.maxHp}
             onTextTap={() => sequencer.skip()}
+            textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
           />
         )}
         {screen === 'victory' && run && enemy && (
-          <VictoryScreen
+          <BattleVictoryScreen
             enemy={enemy}
             xpGained={xpResult.xpGained}
             leveledUp={xpResult.leveledUp}
@@ -640,7 +682,7 @@ export default function CorporateClimb() {
         )}
         {screen === 'gameOver' && <GameOverScreen floor={floor + 1} onRestart={restart} />}
         {screen === 'win' && run && player && (
-          <WinScreen
+          <RunCompleteScreen
             player={effectivePlayer || player}
             onRestart={restart}
             onNgPlus={startNgPlus}

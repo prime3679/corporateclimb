@@ -1,0 +1,89 @@
+.overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.6);
+}
+
+.panel {
+  width: min(340px, calc(100% - 32px));
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-lg);
+  padding: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.title {
+  font-family: var(--font-display);
+  font-size: var(--display-sm);
+  color: var(--ink);
+  text-align: center;
+}
+
+.row {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.label {
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  color: var(--ink-soft);
+  display: flex;
+  justify-content: space-between;
+}
+
+.slider {
+  width: 100%;
+  accent-color: var(--amber-deep);
+  height: 24px;
+  cursor: pointer;
+}
+
+.speedRow {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.speedBtn {
+  flex: 1;
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  padding: 8px 4px;
+  background: var(--paper-dim);
+  border: 2px solid var(--muted-light);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.speedBtnActive {
+  background: var(--gold);
+  border-color: var(--ink);
+  color: var(--ink);
+}
+
+.checkRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-family: var(--font-body);
+  font-size: var(--body-md);
+  color: var(--ink-soft);
+  cursor: pointer;
+}
+
+.checkRow input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--amber-deep);
+  cursor: pointer;
+}

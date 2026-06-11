@@ -2,6 +2,7 @@
 // All sounds are generated programmatically — no audio files needed.
 
 let ctx: AudioContext | null = null
+let _volume = 1
 
 function getCtx(): AudioContext {
   if (!ctx) ctx = new AudioContext()
@@ -16,6 +17,8 @@ function playTone(
   volume = 0.15,
   ramp = true,
 ) {
+  if (_volume <= 0) return
+  volume *= _volume
   const c = getCtx()
   const osc = c.createOscillator()
   const gain = c.createGain()
@@ -32,6 +35,8 @@ function playTone(
 const noiseBufferCache = new Map<number, AudioBuffer>()
 
 function playNoise(duration: number, volume = 0.08) {
+  if (_volume <= 0) return
+  volume *= _volume
   const c = getCtx()
   const bufferSize = c.sampleRate * duration
   let buffer = noiseBufferCache.get(bufferSize)
@@ -58,6 +63,15 @@ function playNoise(duration: number, volume = 0.08) {
 }
 
 export const SFX = {
+  get volume() {
+    return _volume
+  },
+
+  /** Sound-effect volume 0..1. 0 silences all SFX. */
+  setVolume(volume: number) {
+    _volume = Math.min(1, Math.max(0, volume))
+  },
+
   // Menu / UI
   menuSelect() {
     playTone(880, 0.08, 'square', 0.1)

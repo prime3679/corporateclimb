@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import type {
   PlayerClass,
   Enemy,
@@ -7,17 +7,17 @@ import type {
   StatusInstance,
   Move,
   ItemId,
-} from '../types'
-import { ITEMS, TOTAL_FLOORS, getAct } from '../data'
-import { getScene } from '../ui/scenes'
-import PixelSprite from '../components/PixelSprite'
-import HpBar from '../components/HpBar'
-import StatusBadges from '../components/StatusBadges'
-import XpBar from '../components/XpBar'
-import TextBox from '../components/TextBox'
-import MoveButton from '../components/MoveButton'
-import DamageNumber from '../components/DamageNumber'
-import TypeBadge from '../components/TypeBadge'
+} from '@/types'
+import { ITEMS, TOTAL_FLOORS, getAct, getTypeMultiplier } from '@/data'
+import { getScene } from '@/ui/scenes'
+import PixelSprite from '@/components/PixelSprite'
+import HpBar from '@/components/HpBar'
+import StatusBadges from '@/components/StatusBadges'
+import XpBar from '@/components/XpBar'
+import TextBox from '@/components/TextBox'
+import MoveButton from '@/components/MoveButton'
+import DamageNumber from '@/components/DamageNumber'
+import TypeBadge from '@/components/TypeBadge'
 import styles from './BattleScreen.module.css'
 
 export default function BattleScreen({
@@ -48,6 +48,7 @@ export default function BattleScreen({
   promotionTitle,
   playerMaxHp,
   onTextTap,
+  textMsPerChar,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -77,10 +78,19 @@ export default function BattleScreen({
   playerMaxHp: number
   /** Tap on the text box: fast-forward the current turn's playback. */
   onTextTap?: () => void
+  /** Typewriter speed for the battle text box (0 = instant). */
+  textMsPerChar?: number
 }) {
   const act = getAct(floor)
   const isDark = act >= 2
   const sc = getScene(act, Math.min(floor % 10, 4))
+  const [showLog, setShowLog] = useState(false)
+  const logEndRef = useRef<HTMLDivElement>(null)
+
+  // Scrollback opens at the latest line.
+  useEffect(() => {
+    if (showLog) logEndRef.current?.scrollIntoView()
+  }, [showLog, log.length])
 
   // Keyboard: 1-4 fire the corresponding move on the player's turn.
   useEffect(() => {
@@ -246,6 +256,25 @@ export default function BattleScreen({
         ))}
       </div>
 
+      {showLog && (
+        <div className={styles.logOverlay} onClick={() => setShowLog(false)}>
+          <div
+            className={styles.logHistory}
+            role="log"
+            aria-label="Battle log"
+            onClick={(e) => e.stopPropagation()}
+          >
+            {log.map((line, i) => (
+              <p key={i}>{line}</p>
+            ))}
+            <div ref={logEndRef} />
+          </div>
+          <button className={styles.logClose} onClick={() => setShowLog(false)}>
+            CLOSE
+          </button>
+        </div>
+      )}
+
       <div style={{ padding: '0 10px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
         {log.length > 0 && (
           <TextBox
@@ -254,6 +283,7 @@ export default function BattleScreen({
             }
             showArrow={turn !== 'player'}
             onAdvance={onTextTap}
+            msPerChar={textMsPerChar}
           />
         )}
 
@@ -263,18 +293,28 @@ export default function BattleScreen({
             <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
               <button
                 onClick={() => onSetBattleMode('fight')}
+                aria-pressed={battleMode === 'fight'}
                 className={`${styles.tab} ${battleMode === 'fight' ? styles.tabActive : ''}`}
               >
                 FIGHT
               </button>
               <button
                 onClick={() => onSetBattleMode('items')}
+                aria-pressed={battleMode === 'items'}
                 className={`${styles.tab} ${battleMode === 'items' ? styles.tabActive : ''}`}
               >
                 ITEMS
                 {inventory.length > 0 && (
                   <span className={styles.tabBadge}>{inventory.length}</span>
                 )}
+              </button>
+              <button
+                onClick={() => setShowLog(true)}
+                className={styles.tab}
+                style={{ marginLeft: 'auto' }}
+                aria-label="Battle log history"
+              >
+                LOG
               </button>
             </div>
 
@@ -287,6 +327,13 @@ export default function BattleScreen({
                     currentPp={i < playerPp.length ? playerPp[i] : m.pp}
                     disabled={i < playerPp.length && playerPp[i] <= 0}
                     onClick={() => onMove(i)}
+                    effectiveness={
+                      getTypeMultiplier(m.type, enemy.types).mult > 1
+                        ? 'super'
+                        : getTypeMultiplier(m.type, enemy.types).mult < 1
+                          ? 'weak'
+                          : null
+                    }
                   />
                 ))}
               </div>

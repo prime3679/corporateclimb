@@ -1,4 +1,4 @@
-import { Button } from '../ui'
+import { Button } from '@/ui'
 
 const DEFEAT_FLAVOR: [number, number, string][] = [
   [1, 5, 'HR sends a polite rejection email. Better luck next quarter.'],

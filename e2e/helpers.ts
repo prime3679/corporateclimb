@@ -47,6 +47,11 @@ export async function continueFromSave(page: Page, save: Save) {
   await page.evaluate((s) => {
     localStorage.clear()
     localStorage.setItem('corporate-climb-save', JSON.stringify(s))
+    // Instant text + silent audio keeps the suite fast and quiet.
+    localStorage.setItem(
+      'corporate-climb-settings',
+      JSON.stringify({ textSpeed: 'instant', musicVolume: 0, sfxVolume: 0 }),
+    )
   }, save)
   await page.reload()
   await page.getByRole('button', { name: 'CONTINUE' }).click({ timeout: 15_000 })
@@ -71,7 +76,7 @@ export async function attackUntil(page: Page, target: string, rounds = 40) {
   }
 }
 
-/** Click the first visible button that isn't the mute toggle (route / hallway). */
+/** Click the first visible button that isn't a global control (route / hallway). */
 export async function clickNonMuteButton(page: Page) {
   const btns = page.locator('button')
   const n = await btns.count()
@@ -79,7 +84,7 @@ export async function clickNonMuteButton(page: Page) {
     const b = btns.nth(i)
     if (!(await b.isVisible().catch(() => false))) continue
     const text = (await b.textContent().catch(() => '')) ?? ''
-    if (text.includes('🔊') || text.includes('🔇')) continue
+    if (text.includes('🔊') || text.includes('🔇') || text.includes('⚙️')) continue
     await b.click({ timeout: 2_500 }).catch(() => {})
     return
   }

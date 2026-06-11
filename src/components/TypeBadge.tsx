@@ -1,6 +1,7 @@
-import { TYPE_COLORS, TYPE_LABELS } from '../data'
+import { TYPE_COLORS, TYPE_LABELS } from '@/data'
+import type { MoveType } from '@/types'
 
-export default function TypeBadge({ type }: { type: string }) {
+export default function TypeBadge({ type }: { type: MoveType }) {
   return (
     <span
       className="t-display"

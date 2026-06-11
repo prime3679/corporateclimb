@@ -10,7 +10,11 @@ import {
   saveDailyResult,
   getDailyResult,
   hasPlayedToday,
-} from '../daily'
+  getDailyStreak,
+  getRecentDailyHistory,
+  buildShareGrid,
+  getDailyDayNumber,
+} from '@/daily'
 
 describe('createSeededRandom', () => {
   it('produces deterministic sequence from same seed', () => {
@@ -164,5 +168,79 @@ describe('daily result persistence', () => {
       modifierId: 'all_hands',
     })
     expect(hasPlayedToday()).toBe(true)
+  })
+})
+
+describe('daily streaks and history', () => {
+  beforeEach(() => localStorage.clear())
+
+  const stub = (seed: number) =>
+    saveDailyResult({
+      seed,
+      classId: 'pm',
+      score: 100,
+      floorsCleared: 3,
+      totalTurns: 10,
+      totalDamageDealt: 100,
+      hpRemaining: 1,
+      won: false,
+      modifierId: 'all_hands',
+    })
+
+  it('returns zero streak with no results', () => {
+    expect(getDailyStreak(new Date(2026, 5, 11))).toEqual({ current: 0, best: 0 })
+  })
+
+  it('counts a streak ending today', () => {
+    stub(20260609)
+    stub(20260610)
+    stub(20260611)
+    expect(getDailyStreak(new Date(2026, 5, 11))).toEqual({ current: 3, best: 3 })
+  })
+
+  it("keeps the streak alive before today's attempt", () => {
+    stub(20260609)
+    stub(20260610)
+    expect(getDailyStreak(new Date(2026, 5, 11))).toEqual({ current: 2, best: 2 })
+  })
+
+  it('a gap breaks the current streak but best remembers', () => {
+    stub(20260601)
+    stub(20260602)
+    stub(20260603)
+    stub(20260611)
+    expect(getDailyStreak(new Date(2026, 5, 11))).toEqual({ current: 1, best: 3 })
+  })
+
+  it('streak counts across a month boundary', () => {
+    stub(20260531)
+    stub(20260601)
+    expect(getDailyStreak(new Date(2026, 5, 1))).toEqual({ current: 2, best: 2 })
+  })
+
+  it('recent history returns one slot per day, oldest first', () => {
+    stub(20260610)
+    const h = getRecentDailyHistory(3, new Date(2026, 5, 11))
+    expect(h.map((x) => x.seed)).toEqual([20260609, 20260610, 20260611])
+    expect(h.map((x) => !!x.result)).toEqual([false, true, false])
+  })
+})
+
+describe('share grid', () => {
+  it('renders a loss as greens, one red, then black', () => {
+    expect(buildShareGrid(7, false)).toBe('🟩🟩🟩🟩🟩\n🟩🟩🟥⬛⬛\n⬛⬛⬛⬛⬛')
+  })
+
+  it('renders a full clear as all green', () => {
+    expect(buildShareGrid(15, true)).toBe('🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩\n🟩🟩🟩🟩🟩')
+  })
+
+  it('renders an instant loss with a leading red square', () => {
+    expect(buildShareGrid(0, false)).toBe('🟥⬛⬛⬛⬛\n⬛⬛⬛⬛⬛\n⬛⬛⬛⬛⬛')
+  })
+
+  it('day number is derived from the seed date', () => {
+    expect(getDailyDayNumber(20260317)).toBe(1)
+    expect(getDailyDayNumber(20260318)).toBe(2)
   })
 })
