@@ -31,7 +31,7 @@ export interface StatusEffectOnMove {
 export interface Move {
   name: string
   dmg: number
-  type: string
+  type: MoveType
   desc: string
   pp: number
   acc?: number // 0-100, default 100 (always hits)

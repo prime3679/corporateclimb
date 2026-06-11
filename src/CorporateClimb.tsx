@@ -107,7 +107,13 @@ export default function CorporateClimb() {
   } | null>(null)
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null)
   const [newAchievements, setNewAchievements] = useState<import('./types').AchievementId[]>([])
-  const [muted, setMuted] = useState(() => localStorage.getItem('cc_muted') === '1')
+  const [muted, setMuted] = useState(() => {
+    try {
+      return localStorage.getItem('cc_muted') === '1'
+    } catch {
+      return false
+    }
+  })
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -165,7 +171,11 @@ export default function CorporateClimb() {
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
     Music.setMuted(muted)
-    localStorage.setItem('cc_muted', muted ? '1' : '0')
+    try {
+      localStorage.setItem('cc_muted', muted ? '1' : '0')
+    } catch {
+      /* storage unavailable */
+    }
   }, [muted])
 
   // Music: play track based on current screen

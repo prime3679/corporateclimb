@@ -1,5 +1,10 @@
 import CorporateClimb from './CorporateClimb'
+import ErrorBoundary from './components/ErrorBoundary'
 
 export default function App() {
-  return <CorporateClimb />
+  return (
+    <ErrorBoundary>
+      <CorporateClimb />
+    </ErrorBoundary>
+  )
 }

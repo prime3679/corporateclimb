@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { PlayerClass, AchievementId, AchievementDef } from '../types'
-import { useSpriteUrls } from '../components/PixelSprite'
+import { getSpriteUrls } from '../components/PixelSprite'
 import { SFX } from '../sfx'
 import { Button } from '../ui'
 
@@ -31,7 +31,7 @@ export default function WinScreen({
   allAchievements,
   unlockedAchievements,
 }: WinScreenProps) {
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
   const [shared, setShared] = useState(false)
 
   useEffect(() => {

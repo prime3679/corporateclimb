@@ -263,12 +263,14 @@ export default function BattleScreen({
             <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
               <button
                 onClick={() => onSetBattleMode('fight')}
+                aria-pressed={battleMode === 'fight'}
                 className={`${styles.tab} ${battleMode === 'fight' ? styles.tabActive : ''}`}
               >
                 FIGHT
               </button>
               <button
                 onClick={() => onSetBattleMode('items')}
+                aria-pressed={battleMode === 'items'}
                 className={`${styles.tab} ${battleMode === 'items' ? styles.tabActive : ''}`}
               >
                 ITEMS

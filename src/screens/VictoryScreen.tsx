@@ -1,5 +1,5 @@
 import type { Enemy } from '../types'
-import { useSpriteUrls } from '../components/PixelSprite'
+import { getSpriteUrls } from '../components/PixelSprite'
 import { Button, Panel } from '../ui'
 
 export default function VictoryScreen({
@@ -15,7 +15,7 @@ export default function VictoryScreen({
   leveledUp: boolean
   newLevel: number
 }) {
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
   return (
     <div
       style={{

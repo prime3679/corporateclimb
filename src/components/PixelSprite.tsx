@@ -3,11 +3,10 @@ import { buildSpriteUrls } from '../sprites'
 
 const SPRITE_URLS = buildSpriteUrls()
 
-function useSpriteUrls(): Record<string, string> {
+/** Module-level sprite URL map (resolved once at load). */
+export function getSpriteUrls(): Record<string, string> {
   return SPRITE_URLS
 }
-
-export { useSpriteUrls }
 
 export default function PixelSprite({
   spriteId,
@@ -20,7 +19,7 @@ export default function PixelSprite({
   animState?: AnimState
   flip?: boolean
 }) {
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
   const url = sprites[spriteId]
 
   const animClass =

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { PromotionTier, PlayerClass } from '../types'
-import { useSpriteUrls } from '../components/PixelSprite'
+import { getSpriteUrls } from '../components/PixelSprite'
 import { Panel } from '../ui'
 
 export default function PromotionScreen({
@@ -15,7 +15,7 @@ export default function PromotionScreen({
   onContinue: () => void
 }) {
   const [show, setShow] = useState(false)
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
 
   useEffect(() => {
     setTimeout(() => setShow(true), 300)

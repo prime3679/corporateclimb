@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { useSpriteUrls } from '../components/PixelSprite'
+import { getSpriteUrls } from '../components/PixelSprite'
 import { Button } from '../ui'
 
 export default function TitleScreen({
@@ -12,7 +12,7 @@ export default function TitleScreen({
   onDaily: () => void
 }) {
   const [flicker, setFlicker] = useState(true)
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
 
   useEffect(() => {
     const i = setInterval(() => setFlicker((f) => !f), 700)

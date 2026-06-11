@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Enemy, PlayerClass } from '../types'
 import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct } from '../data'
-import { useSpriteUrls } from '../components/PixelSprite'
+import { getSpriteUrls } from '../components/PixelSprite'
 
 const FLOOR_LABELS: Record<number, string> = {
   // Act 1: Individual Contributor
@@ -95,7 +95,7 @@ export default function FloorIntro({
   totalFloors?: number
 }) {
   const [show, setShow] = useState(false)
-  const sprites = useSpriteUrls()
+  const sprites = getSpriteUrls()
 
   useEffect(() => {
     setTimeout(() => setShow(true), 200)
