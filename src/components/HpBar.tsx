@@ -11,7 +11,10 @@ export default function HpBar({
   label: string
   isEnemy?: boolean
 }) {
-  const pct = Math.max(0, Math.min(100, (current / max) * 100))
+  // Clamp display to the meter's range — a tampered or stale save can
+  // carry current HP above max, which would render e.g. "200 / 110".
+  const shown = Math.max(0, Math.min(max, current))
+  const pct = (shown / max) * 100
   const color = pct > 50 ? '#48D868' : pct > 20 ? '#F8D030' : '#F85858'
   const lvl = isEnemy ? Math.ceil(max / 25) : '??'
 
@@ -30,7 +33,7 @@ export default function HpBar({
           className={styles.track}
           role="meter"
           aria-label={`${label} HP`}
-          aria-valuenow={Math.max(0, current)}
+          aria-valuenow={shown}
           aria-valuemin={0}
           aria-valuemax={max}
         >
@@ -38,7 +41,7 @@ export default function HpBar({
         </div>
       </div>
       <div className={styles.numbers}>
-        {Math.max(0, current)}
+        {shown}
         <span className={styles.numbersMax}> / {max}</span>
       </div>
     </div>
