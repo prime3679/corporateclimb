@@ -25,7 +25,7 @@ export default function ShopScreen({
   onLeave: () => void
 }) {
   const stock = run.shopStock ?? []
-  const wellnessPrice = shopPrice(WELLNESS_DAY.price, run.perks)
+  const wellnessPrice = shopPrice(WELLNESS_DAY.price, run.perks, run.floor)
   const atFullHp = run.hp >= maxHp
 
   const row = (opts: {
@@ -123,7 +123,7 @@ export default function ShopScreen({
       >
         {stock.map((id: ItemId, i: number) => {
           const item = ITEMS[id]
-          const price = shopPrice(item.price, run.perks)
+          const price = shopPrice(item.price, run.perks, run.floor)
           const tooPoor = run.stockOptions < price
           return row({
             key: `${id}-${i}`,

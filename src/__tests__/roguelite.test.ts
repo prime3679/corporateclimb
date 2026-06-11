@@ -259,6 +259,22 @@ describe('shop', () => {
     expect(shopPrice(40, [])).toBe(40)
   })
 
+  it('prices inflate with the act: ×1 / ×2 / ×3', () => {
+    expect(shopPrice(20, [], 5)).toBe(20) // act 1
+    expect(shopPrice(20, [], 15)).toBe(40) // act 2
+    expect(shopPrice(20, [], 25)).toBe(60) // act 3
+    // Discount applies on top of inflation.
+    expect(shopPrice(20, ['employee_discount'], 15)).toBe(30)
+  })
+
+  it('act inflation flows through purchases', () => {
+    const run = makeRun({ floor: 15, shopStock: ['pto_day'], stockOptions: 100 })
+    const next = buyShopItem(run, 0)
+    expect(next.stockOptions).toBe(100 - ITEMS.pto_day.price * 2)
+    const healed = buyWellnessDay(makeRun({ floor: 25, hp: 10, stockOptions: 100 }), PM.maxHp)
+    expect(healed.stockOptions).toBe(100 - WELLNESS_DAY.price * 3)
+  })
+
   it('Wellness Day heals half of max HP, clamped, and costs its price', () => {
     const run = makeRun({ hp: 10, stockOptions: 100 })
     const next = buyWellnessDay(run, PM.maxHp)
