@@ -5,7 +5,7 @@
 // without the delays. Each event optionally carries a view patch so
 // HP bars / badges / phase change exactly when the matching beat plays.
 
-import type { StatusInstance } from '../types'
+import type { MoveType, StatusInstance } from '../types'
 
 export type Side = 'player' | 'enemy'
 
@@ -21,7 +21,7 @@ export type Effectiveness = 'super' | 'weak' | null
 
 export type BattleEventKind =
   /** Actor lunges; swing sfx. */
-  | { kind: 'attack'; side: Side; moveType: string }
+  | { kind: 'attack'; side: Side; moveType: MoveType }
   /** Attack missed; MISS popup on target. */
   | { kind: 'miss'; target: Side }
   /** Damage lands: hit anim + shake + popup + impact sfx. */

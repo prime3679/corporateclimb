@@ -11,6 +11,7 @@ import type {
   AchievementId,
   AchievementDef,
   PromotionTier,
+  ClassId,
 } from './types'
 
 // ─── CONSTANTS ──────────────────────────────────────────────
@@ -75,7 +76,7 @@ export const STATUS_DEFS: Record<StatusId, StatusDef> = {
 }
 
 // ─── TYPE SYSTEM ─────────────────────────────────────────────
-export const TYPE_COLORS: Record<string, string> = {
+export const TYPE_COLORS: Record<MoveType, string> = {
   strategy: '#E53935',
   influence: '#7B1FA2',
   execution: '#FF6F00',
@@ -84,7 +85,7 @@ export const TYPE_COLORS: Record<string, string> = {
   normal: '#616161',
 }
 
-export const TYPE_LABELS: Record<string, string> = {
+export const TYPE_LABELS: Record<MoveType, string> = {
   strategy: 'STRAT',
   influence: 'INFL',
   execution: 'EXEC',
@@ -94,7 +95,7 @@ export const TYPE_LABELS: Record<string, string> = {
 }
 
 // Type effectiveness: attacker type → set of types it's super effective against
-export const TYPE_STRONG: Record<string, Set<string>> = {
+export const TYPE_STRONG: Partial<Record<MoveType, Set<MoveType>>> = {
   strategy: new Set(['execution', 'influence']),
   execution: new Set(['technical', 'analytics']),
   technical: new Set(['strategy', 'influence']),
@@ -103,11 +104,11 @@ export const TYPE_STRONG: Record<string, Set<string>> = {
 }
 
 export function getTypeMultiplier(
-  atkType: string,
-  defTypes: string[],
+  atkType: MoveType,
+  defTypes: MoveType[],
 ): { mult: number; label: string | null } {
-  if (atkType === 'normal' || !TYPE_STRONG[atkType]) return { mult: 1, label: null }
   const strong = TYPE_STRONG[atkType]
+  if (atkType === 'normal' || !strong) return { mult: 1, label: null }
   const superEffective = defTypes.some((t) => strong.has(t))
   const notEffective = defTypes.some((t) => TYPE_STRONG[t]?.has(atkType))
   if (superEffective && !notEffective) return { mult: 1.5, label: 'Super effective!' }
@@ -275,7 +276,7 @@ export const PLAYER_CLASSES: PlayerClass[] = [
 ]
 
 // ─── PROMOTION TRACKS ───────────────────────────────────────
-export const PROMOTION_TRACKS: Record<string, PromotionTier[]> = {
+export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
   pm: [
     { floor: 0, title: 'Product Manager' },
     { floor: 5, title: 'Senior PM', statBoost: { maxHp: 10, atk: 2, def: 1 } },
@@ -407,8 +408,14 @@ export const PROMOTION_TRACKS: Record<string, PromotionTier[]> = {
   ],
 }
 
+// Run state carries classId as a plain string (it round-trips through
+// saves), so promotion lookups tolerate unknown ids at the boundary.
+function promotionTrack(classId: string): PromotionTier[] {
+  return PROMOTION_TRACKS[classId as ClassId] ?? []
+}
+
 export function getPromotion(classId: string, floor: number): PromotionTier | undefined {
-  const track = PROMOTION_TRACKS[classId] || []
+  const track = promotionTrack(classId)
   return [...track].reverse().find((t) => floor >= t.floor) || track[0]
 }
 
@@ -417,7 +424,7 @@ export function getEffectivePlayer(
   classId: string,
   currentFloor: number,
 ): PlayerClass {
-  const track = PROMOTION_TRACKS[classId] || []
+  const track = promotionTrack(classId)
   let maxHp = base.maxHp
   let atk = base.atk
   let def = base.def
@@ -1152,7 +1159,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
 export const ALL_ITEM_IDS: ItemId[] = Object.keys(ITEMS) as ItemId[]
 
 // Starting item per class
-export const CLASS_STARTING_ITEMS: Record<string, ItemId> = {
+export const CLASS_STARTING_ITEMS: Record<ClassId, ItemId> = {
   pm: 'networking_card',
   eng: 'espresso',
   design: 'mentors_advice',

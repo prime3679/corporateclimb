@@ -46,10 +46,10 @@ export interface ClassPerk {
 }
 
 export interface PlayerClass {
-  id: string
+  id: ClassId
   name: string
   emoji: string
-  spriteId: string
+  spriteId: SpriteId
   maxHp: number
   atk: number
   def: number
@@ -83,6 +83,20 @@ export interface AchievementDef {
 
 export type MoveType = 'strategy' | 'influence' | 'execution' | 'analytics' | 'technical' | 'normal'
 
+export type ClassId = 'pm' | 'eng' | 'design'
+
+export type SpriteId =
+  | 'product_manager'
+  | 'overachiever'
+  | 'intern'
+  | 'recruiter'
+  | 'scrum'
+  | 'manager'
+  | 'vp'
+  | 'boss'
+  | 'eng'
+  | 'design'
+
 export interface EnemyMove {
   name: string
   dmg: number
@@ -107,7 +121,7 @@ export interface Enemy {
   floor: number
   name: string
   emoji: string
-  spriteId: string
+  spriteId: SpriteId
   maxHp: number
   atk: number
   def: number

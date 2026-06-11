@@ -54,10 +54,6 @@ describe('getTypeMultiplier', () => {
     expect(getTypeMultiplier('normal', ['execution'])).toEqual({ mult: 1, label: null })
   })
 
-  it('returns neutral multiplier for unknown attack type', () => {
-    expect(getTypeMultiplier('unknown', ['execution'])).toEqual({ mult: 1, label: null })
-  })
-
   it('returns super effective when attacker is strong against one defender type', () => {
     expect(getTypeMultiplier('strategy', ['execution'])).toEqual({
       mult: 1.5,
@@ -116,7 +112,7 @@ describe('scaleEnemyForNgPlus', () => {
     floor: 1,
     name: 'Test Enemy',
     emoji: '👾',
-    spriteId: 'sprite_1',
+    spriteId: 'boss',
     maxHp: 100,
     atk: 50,
     def: 25,
