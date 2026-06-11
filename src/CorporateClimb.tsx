@@ -66,6 +66,7 @@ import {
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
+import CareerPanel from './components/CareerPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
 function useSpritePreloader(): boolean {
@@ -122,6 +123,7 @@ export default function CorporateClimb() {
   })
   const [settings, setSettings] = useState(loadSettings)
   const [showSettings, setShowSettings] = useState(false)
+  const [showCareer, setShowCareer] = useState(false)
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -355,6 +357,7 @@ export default function CorporateClimb() {
     setView(null)
     setBusy(false)
     setBattleMode('fight')
+    setShowCareer(false)
     setRouteOptions(null)
     setCurrentEvent(null)
     setPendingActTransition(null)
@@ -611,6 +614,18 @@ export default function CorporateClimb() {
         >
           ⚙️
         </Button>
+        {run && player && (
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setShowCareer(true)}
+            style={{ padding: '6px 10px' }}
+            title="Career profile"
+            aria-label="Career profile"
+          >
+            💼
+          </Button>
+        )}
       </div>
 
       {showSettings && (
@@ -618,6 +633,16 @@ export default function CorporateClimb() {
           settings={settings}
           onChange={setSettings}
           onClose={() => setShowSettings(false)}
+        />
+      )}
+
+      {showCareer && run && player && effectivePlayer && (
+        <CareerPanel
+          run={run}
+          baseClass={player}
+          effective={effectivePlayer}
+          title={promotionTier?.title ?? player.name}
+          onClose={() => setShowCareer(false)}
         />
       )}
 
