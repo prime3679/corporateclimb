@@ -73,6 +73,9 @@ export type AchievementId =
   | 'ng_plus_1'
   | 'ng_plus_3'
   | 'damage_dealer'
+  | 'hyperfocused'
+  | 'diamond_hands'
+  | 'full_stack'
 
 export interface AchievementDef {
   id: AchievementId
