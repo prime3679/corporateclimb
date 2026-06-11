@@ -16,9 +16,9 @@ import {
   CLASS_STARTING_ITEMS,
   ACHIEVEMENTS,
   TOTAL_FLOORS,
-} from '../data'
-import { buildSpriteUrls } from '../sprites'
-import type { Enemy, EnemyMove, Move } from '../types'
+} from '@/data'
+import { buildSpriteUrls } from '@/sprites'
+import type { Enemy, EnemyMove, Move } from '@/types'
 
 const SPRITES = buildSpriteUrls()
 const ALL_POOL_ENEMIES: Enemy[] = ENEMY_POOLS.flat()

@@ -19,10 +19,10 @@ import {
   type BattleEvent,
   type RunState,
   type TurnContext,
-} from '../engine'
-import { ENEMY_POOLS, HALLWAY_EVENTS, PLAYER_CLASSES, getEffectivePlayer } from '../data'
-import { createSeededRandom } from '../daily'
-import type { Rng } from '../battle'
+} from '@/engine'
+import { ENEMY_POOLS, HALLWAY_EVENTS, PLAYER_CLASSES, getEffectivePlayer } from '@/data'
+import { createSeededRandom } from '@/daily'
+import type { Rng } from '@/battle'
 
 const PM = PLAYER_CLASSES.find((c) => c.id === 'pm')!
 

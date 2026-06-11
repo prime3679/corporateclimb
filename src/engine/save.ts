@@ -4,8 +4,8 @@
 // fixtures) are migrated on load instead of being enumerated by hand
 // all over the component.
 
-import type { SaveData } from '../types'
-import { ENEMY_POOLS, PLAYER_CLASSES, rollFloorEnemies } from '../data'
+import type { SaveData } from '@/types'
+import { ENEMY_POOLS, PLAYER_CLASSES, rollFloorEnemies } from '@/data'
 import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'

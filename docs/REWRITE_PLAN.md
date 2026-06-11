@@ -259,7 +259,17 @@ Replace the 35-hook god component with a real engine:
    `prefers-reduced-motion` disables shake/flash; ARIA live region mirrors the
    battle log; remove global `user-select: none` outside the stage.
 
-### Phase 3 — Game feel & content polish
+### Phase 3 — Game feel & content polish ✅ DONE (art upgrade deferred)
+
+> Shipped: battle log scrollback (LOG tab overlay), type-matchup hints
+> on move buttons (▲/▼ against the current enemy), settings panel
+> (music/SFX volume sliders, four text speeds incl. instant, reduced-
+> motion toggle) persisted via `src/settings.ts`, NEW GAME confirm
+> before erasing a save. Run summary + share card already existed on
+> the win screen. **Art direction decision:** committed to the WebP
+> character set + emoji items/UI — the unused generator-stub SVGs were
+> deleted (recoverable from git history); layered parallax backdrops
+> remain a future art task.
 
 1. **Battle UX**: tap-to-advance text box with full scrollback; move buttons
    show type-effectiveness hints against the current enemy after first
@@ -276,7 +286,16 @@ Replace the 35-hook god component with a real engine:
 4. **Run safety**: confirm dialog before NEW GAME overwrites a save; run
    summary screen (turns, damage, items, route taken) feeding the share card.
 
-### Phase 4 — Hardening
+### Phase 4 — Hardening ✅ DONE
+
+> Shipped: `ClassId`/`SpriteId` unions and `MoveType` throughout the
+> type maps; content-validation suite (`content.test.ts`); seeded
+> full-run simulations (`simulation.test.ts`) with determinism checks,
+> per-turn invariants, an early-tower winnability floor, and a
+> snapshotted balance table; e2e seeds instant text + silent audio;
+> dead assets deleted; `@/*` path alias adopted across `src/`;
+> `WinScreen`/`VictoryScreen` renamed to `RunCompleteScreen`/
+> `BattleVictoryScreen`.
 
 1. **Type tightening**: `ClassId`/`EnemyId`/`SpriteId` unions, `MoveType` on
    `Move`, `Record<MoveType, …>` for color/label maps; a vitest suite that

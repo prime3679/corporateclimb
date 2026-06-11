@@ -9,8 +9,8 @@ import {
   getStatusCritBonus,
   getStatusDefMod,
   type Rng,
-} from '../battle'
-import type { EnemyMove, StatusInstance } from '../types'
+} from '@/battle'
+import type { EnemyMove, StatusInstance } from '@/types'
 
 /** Rng stub that replays a fixed sequence (repeats the last value). */
 const seq = (...values: number[]): Rng => {

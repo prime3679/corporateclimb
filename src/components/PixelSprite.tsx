@@ -1,5 +1,5 @@
-import type { AnimState } from '../types'
-import { buildSpriteUrls } from '../sprites'
+import type { AnimState } from '@/types'
+import { buildSpriteUrls } from '@/sprites'
 
 const SPRITE_URLS = buildSpriteUrls()
 

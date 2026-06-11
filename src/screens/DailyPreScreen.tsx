@@ -1,9 +1,9 @@
 import { useState } from 'react'
-import type { PlayerClass } from '../types'
-import { PLAYER_CLASSES } from '../data'
-import { getSpriteUrls } from '../components/PixelSprite'
-import { getDailySeed, getDailyModifier, hasPlayedToday, getDailyResult } from '../daily'
-import { Button } from '../ui'
+import type { PlayerClass } from '@/types'
+import { PLAYER_CLASSES } from '@/data'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import { getDailySeed, getDailyModifier, hasPlayedToday, getDailyResult } from '@/daily'
+import { Button } from '@/ui'
 
 export default function DailyPreScreen({
   onStart,

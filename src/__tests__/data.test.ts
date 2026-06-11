@@ -22,8 +22,8 @@ import {
   getBestNgPlus,
   saveBestNgPlus,
   SAVE_KEY,
-} from '../data'
-import type { Enemy, PlayerClass, SaveData } from '../types'
+} from '@/data'
+import type { Enemy, PlayerClass, SaveData } from '@/types'
 
 // ─── getAct ──────────────────────────────────────────────────
 

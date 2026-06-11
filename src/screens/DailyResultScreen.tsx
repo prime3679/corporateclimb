@@ -1,7 +1,7 @@
 import { useState } from 'react'
-import type { PlayerClass } from '../types'
-import { DAILY_MODIFIERS, getDailyModifier } from '../daily'
-import { Button } from '../ui'
+import type { PlayerClass } from '@/types'
+import { DAILY_MODIFIERS, getDailyModifier } from '@/daily'
+import { Button } from '@/ui'
 
 export default function DailyResultScreen({
   player,

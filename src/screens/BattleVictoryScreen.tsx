@@ -1,8 +1,8 @@
-import type { Enemy } from '../types'
-import { getSpriteUrls } from '../components/PixelSprite'
-import { Button, Panel } from '../ui'
+import type { Enemy } from '@/types'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import { Button, Panel } from '@/ui'
 
-export default function VictoryScreen({
+export default function BattleVictoryScreen({
   enemy,
   xpGained,
   onContinue,

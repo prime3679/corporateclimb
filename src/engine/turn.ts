@@ -6,8 +6,8 @@
 // animation timing anymore. All randomness flows through the injected
 // rng, so seeded daily runs stay deterministic.
 
-import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '../types'
-import { ITEMS, STATUS_DEFS, getTypeMultiplier } from '../data'
+import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
+import { ITEMS, STATUS_DEFS, getTypeMultiplier } from '@/data'
 import {
   STRUGGLE_MOVE,
   calcDamage,
@@ -17,7 +17,7 @@ import {
   getStatusAtkMod,
   getStatusCritBonus,
   getStatusDefMod,
-} from '../battle'
+} from '@/battle'
 import type { Rng } from './rng'
 import type { BattleState, RunState } from './state'
 import type { BattleEvent, Effectiveness, ViewPatch } from './events'

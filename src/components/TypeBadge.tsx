@@ -1,5 +1,5 @@
-import { TYPE_COLORS, TYPE_LABELS } from '../data'
-import type { MoveType } from '../types'
+import { TYPE_COLORS, TYPE_LABELS } from '@/data'
+import type { MoveType } from '@/types'
 
 export default function TypeBadge({ type }: { type: MoveType }) {
   return (

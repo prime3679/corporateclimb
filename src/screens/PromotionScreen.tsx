@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import type { PromotionTier, PlayerClass } from '../types'
-import { getSpriteUrls } from '../components/PixelSprite'
-import { Panel } from '../ui'
+import type { PromotionTier, PlayerClass } from '@/types'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import { Panel } from '@/ui'
 
 export default function PromotionScreen({
   player,

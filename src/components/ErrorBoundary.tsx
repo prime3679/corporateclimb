@@ -1,5 +1,5 @@
 import { Component, type ReactNode } from 'react'
-import Button from '../ui/Button'
+import Button from '@/ui/Button'
 import styles from './ErrorBoundary.module.css'
 
 interface Props {

@@ -6,7 +6,7 @@
 // progress, so balance changes show up as reviewable test diffs.
 
 import { describe, it, expect } from 'vitest'
-import { ENEMY_POOLS, ITEMS, PLAYER_CLASSES, getEffectivePlayer, getTypeMultiplier } from '../data'
+import { ENEMY_POOLS, ITEMS, PLAYER_CLASSES, getEffectivePlayer, getTypeMultiplier } from '@/data'
 import {
   GameRng,
   applyEventChoice,
@@ -20,8 +20,8 @@ import {
   resolvePlayerMove,
   type RunState,
   type TurnContext,
-} from '../engine'
-import type { PlayerClass } from '../types'
+} from '@/engine'
+import type { PlayerClass } from '@/types'
 
 interface SimOutcome {
   won: boolean

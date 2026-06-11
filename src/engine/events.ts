@@ -5,7 +5,7 @@
 // without the delays. Each event optionally carries a view patch so
 // HP bars / badges / phase change exactly when the matching beat plays.
 
-import type { MoveType, StatusInstance } from '../types'
+import type { MoveType, StatusInstance } from '@/types'
 
 export type Side = 'player' | 'enemy'
 

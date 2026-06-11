@@ -1,5 +1,5 @@
-import type { Move } from '../types'
-import { STATUS_DEFS } from '../data'
+import type { Move } from '@/types'
+import { STATUS_DEFS } from '@/data'
 import TypeBadge from './TypeBadge'
 import styles from './MoveButton.module.css'
 

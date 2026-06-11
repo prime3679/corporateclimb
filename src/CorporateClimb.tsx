@@ -21,9 +21,9 @@ import {
   TitleScreen,
   ClassSelect,
   BattleScreen,
-  VictoryScreen,
+  BattleVictoryScreen,
   GameOverScreen,
-  WinScreen,
+  RunCompleteScreen,
   HallwayEventScreen,
   FloorIntro,
   RouteChoice,
@@ -638,7 +638,7 @@ export default function CorporateClimb() {
           />
         )}
         {screen === 'victory' && run && enemy && (
-          <VictoryScreen
+          <BattleVictoryScreen
             enemy={enemy}
             xpGained={xpResult.xpGained}
             leveledUp={xpResult.leveledUp}
@@ -682,7 +682,7 @@ export default function CorporateClimb() {
         )}
         {screen === 'gameOver' && <GameOverScreen floor={floor + 1} onRestart={restart} />}
         {screen === 'win' && run && player && (
-          <WinScreen
+          <RunCompleteScreen
             player={effectivePlayer || player}
             onRestart={restart}
             onNgPlus={startNgPlus}

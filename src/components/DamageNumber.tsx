@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import type { DamagePopup } from '../types'
+import type { DamagePopup } from '@/types'
 
 export default function DamageNumber({ popup }: { popup: DamagePopup }) {
   const [visible, setVisible] = useState(true)

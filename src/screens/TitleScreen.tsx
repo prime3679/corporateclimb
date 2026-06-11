@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import { getSpriteUrls } from '../components/PixelSprite'
-import { Button } from '../ui'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import { Button } from '@/ui'
 
 export default function TitleScreen({
   onStart,

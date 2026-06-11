@@ -1,10 +1,10 @@
 import { useState, useEffect } from 'react'
-import type { PlayerClass, AchievementId, AchievementDef } from '../types'
-import { getSpriteUrls } from '../components/PixelSprite'
-import { SFX } from '../sfx'
-import { Button } from '../ui'
+import type { PlayerClass, AchievementId, AchievementDef } from '@/types'
+import { getSpriteUrls } from '@/components/PixelSprite'
+import { SFX } from '@/sfx'
+import { Button } from '@/ui'
 
-interface WinScreenProps {
+interface RunCompleteScreenProps {
   player: PlayerClass
   onRestart: () => void
   onNgPlus: () => void
@@ -18,7 +18,7 @@ interface WinScreenProps {
   unlockedAchievements: Set<AchievementId>
 }
 
-export default function WinScreen({
+export default function RunCompleteScreen({
   player,
   onRestart,
   onNgPlus,
@@ -30,7 +30,7 @@ export default function WinScreen({
   newAchievements,
   allAchievements,
   unlockedAchievements,
-}: WinScreenProps) {
+}: RunCompleteScreenProps) {
   const sprites = getSpriteUrls()
   const [shared, setShared] = useState(false)
 

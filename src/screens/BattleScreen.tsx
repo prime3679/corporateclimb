@@ -7,17 +7,17 @@ import type {
   StatusInstance,
   Move,
   ItemId,
-} from '../types'
-import { ITEMS, TOTAL_FLOORS, getAct, getTypeMultiplier } from '../data'
-import { getScene } from '../ui/scenes'
-import PixelSprite from '../components/PixelSprite'
-import HpBar from '../components/HpBar'
-import StatusBadges from '../components/StatusBadges'
-import XpBar from '../components/XpBar'
-import TextBox from '../components/TextBox'
-import MoveButton from '../components/MoveButton'
-import DamageNumber from '../components/DamageNumber'
-import TypeBadge from '../components/TypeBadge'
+} from '@/types'
+import { ITEMS, TOTAL_FLOORS, getAct, getTypeMultiplier } from '@/data'
+import { getScene } from '@/ui/scenes'
+import PixelSprite from '@/components/PixelSprite'
+import HpBar from '@/components/HpBar'
+import StatusBadges from '@/components/StatusBadges'
+import XpBar from '@/components/XpBar'
+import TextBox from '@/components/TextBox'
+import MoveButton from '@/components/MoveButton'
+import DamageNumber from '@/components/DamageNumber'
+import TypeBadge from '@/components/TypeBadge'
 import styles from './BattleScreen.module.css'
 
 export default function BattleScreen({

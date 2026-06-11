@@ -4,22 +4,22 @@
 // RunState. The hallway-event item reward is returned explicitly so
 // the UI can announce it (it used to be granted silently).
 
-import type { ClassId, Enemy, HallwayEvent, ItemId, PlayerClass } from '../types'
+import type { ClassId, Enemy, HallwayEvent, ItemId, PlayerClass } from '@/types'
 import {
   ALL_ITEM_IDS,
   CLASS_STARTING_ITEMS,
   HALLWAY_EVENTS,
   PLAYER_CLASSES,
   rollFloorEnemies,
-} from '../data'
+} from '@/data'
 import {
   createSeededRandom,
   getDailyFloorMap,
   getDailyModifier,
   getDailySeed,
   rollDailyEnemies,
-} from '../daily'
-import type { DailyModifierContext } from '../types'
+} from '@/daily'
+import type { DailyModifierContext } from '@/types'
 import type { Rng } from './rng'
 import type { BattleState, RunState } from './state'
 

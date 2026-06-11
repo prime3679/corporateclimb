@@ -1,6 +1,6 @@
-import { SFX } from '../sfx'
-import type { Settings, TextSpeed } from '../settings'
-import Button from '../ui/Button'
+import { SFX } from '@/sfx'
+import type { Settings, TextSpeed } from '@/settings'
+import Button from '@/ui/Button'
 import styles from './SettingsPanel.module.css'
 
 const SPEEDS: TextSpeed[] = ['slow', 'normal', 'fast', 'instant']

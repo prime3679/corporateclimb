@@ -10,7 +10,7 @@ import {
   saveDailyResult,
   getDailyResult,
   hasPlayedToday,
-} from '../daily'
+} from '@/daily'
 
 describe('createSeededRandom', () => {
   it('produces deterministic sequence from same seed', () => {

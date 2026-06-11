@@ -5,7 +5,7 @@ import {
   TEXT_SPEED_MS,
   loadSettings,
   saveSettings,
-} from '../settings'
+} from '@/settings'
 
 describe('settings persistence', () => {
   beforeEach(() => localStorage.clear())

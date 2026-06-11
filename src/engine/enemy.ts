@@ -4,8 +4,8 @@
 // phase-2 overlay. The old code derived this in render and then
 // re-derived it by hand inside doPlayerMove; this is now the only copy.
 
-import type { Enemy } from '../types'
-import { ENEMIES, getFloorEnemy, scaleEnemyForNgPlus } from '../data'
+import type { Enemy } from '@/types'
+import { ENEMIES, getFloorEnemy, scaleEnemyForNgPlus } from '@/data'
 import type { RunState } from './state'
 
 /** Daily runs remap logical floor (0-14) onto the harder enemy pools. */

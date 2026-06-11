@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
-import type { Enemy, PlayerClass } from '../types'
-import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct } from '../data'
-import { getSpriteUrls } from '../components/PixelSprite'
+import type { Enemy, PlayerClass } from '@/types'
+import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct } from '@/data'
+import { getSpriteUrls } from '@/components/PixelSprite'
 
 const FLOOR_LABELS: Record<number, string> = {
   // Act 1: Individual Contributor
