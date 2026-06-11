@@ -160,12 +160,13 @@ describe('seeded full-run simulation', () => {
   })
 
   it('a greedy bot always survives the early tower', () => {
-    // Loose winnability floor: if a naive bot can no longer clear the
-    // first act's regular enemies, a balance change broke the opening.
+    // Loose winnability floor: if a naive bot can no longer get past the
+    // floor-7 act-1 boss, a balance change rebuilt the difficulty wall
+    // this bound was raised to remove.
     for (const cls of PLAYER_CLASSES) {
       for (const seed of SEEDS) {
         const o = simulateRun(cls, seed)
-        expect(o.floorsCleared, `${cls.id} seed ${seed}`).toBeGreaterThanOrEqual(5)
+        expect(o.floorsCleared, `${cls.id} seed ${seed}`).toBeGreaterThanOrEqual(7)
         expect(o.totalTurns).toBeGreaterThan(0)
         expect(o.totalDamageDealt).toBeGreaterThan(0)
       }

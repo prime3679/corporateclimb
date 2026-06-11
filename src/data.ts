@@ -612,16 +612,16 @@ export const ENEMIES: Enemy[] = [
     name: 'C-Suite Boss',
     emoji: '👑',
     spriteId: 'boss',
-    maxHp: 210,
-    atk: 22,
-    def: 16,
+    maxHp: 185,
+    atk: 19,
+    def: 13,
     types: ['strategy', 'influence'] as MoveType[],
     moves: [
       {
         name: 'Golden Parachute',
         dmg: 12,
         type: 'strategy' as MoveType,
-        heal: 28,
+        heal: 18,
         status: { id: 'motivated', target: 'self' },
       },
       {
@@ -633,7 +633,7 @@ export const ENEMIES: Enemy[] = [
       },
       {
         name: 'Board Meeting Beam',
-        dmg: 38,
+        dmg: 32,
         type: 'analytics' as MoveType,
         acc: 85,
         status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
@@ -1359,9 +1359,9 @@ export const ENEMY_POOLS: Enemy[][] = [
       name: 'The Board Member',
       emoji: '🏛️',
       spriteId: 'boss',
-      maxHp: 200,
-      atk: 20,
-      def: 17,
+      maxHp: 180,
+      atk: 18,
+      def: 14,
       types: ['influence', 'analytics'] as MoveType[],
       moves: [
         {
@@ -1375,7 +1375,7 @@ export const ENEMY_POOLS: Enemy[][] = [
           name: 'Stock Buyback',
           dmg: 8,
           type: 'strategy' as MoveType,
-          heal: 22,
+          heal: 15,
           status: { id: 'motivated', target: 'self' },
         },
         {
