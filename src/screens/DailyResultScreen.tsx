@@ -1,6 +1,12 @@
 import { useState } from 'react'
 import type { PlayerClass } from '@/types'
-import { DAILY_MODIFIERS, getDailyModifier } from '@/daily'
+import {
+  DAILY_MODIFIERS,
+  buildShareGrid,
+  getDailyDayNumber,
+  getDailyModifier,
+  getDailyStreak,
+} from '@/daily'
 import { Button } from '@/ui'
 
 export default function DailyResultScreen({
@@ -28,12 +34,9 @@ export default function DailyResultScreen({
 }) {
   const [shared, setShared] = useState(false)
   const modifier = DAILY_MODIFIERS.find((m) => m.id === modifierId) ?? getDailyModifier(seed)
-  const launchDate = new Date('2026-03-17')
-  const seedDate =
-    seed > 0
-      ? new Date(Math.floor(seed / 10000), (Math.floor(seed / 100) % 100) - 1, seed % 100)
-      : new Date()
-  const dayNum = Math.max(1, Math.floor((seedDate.getTime() - launchDate.getTime()) / 86400000) + 1)
+  const dayNum = getDailyDayNumber(seed)
+  const grid = buildShareGrid(floorsCleared, won)
+  const streak = getDailyStreak()
 
   const stars = won
     ? '\u2B50\u2B50\u2B50'
@@ -46,9 +49,10 @@ export default function DailyResultScreen({
   const shareText = [
     `Corporate Climb Daily #${dayNum} ${stars}`,
     `${modifier.icon} ${modifier.name}`,
+    grid,
     `${player.emoji} ${player.name} | Floor ${floorsCleared}/15`,
     `\u26A1 ${totalTurns} turns | \uD83D\uDCA5 ${totalDamageDealt.toLocaleString()} dmg`,
-    `\uD83C\uDFC6 Score: ${score.toLocaleString()}`,
+    `\uD83C\uDFC6 Score: ${score.toLocaleString()}${streak.current > 1 ? ` | \uD83D\uDD25 ${streak.current}-day streak` : ''}`,
     `corporateclimb.vercel.app`,
   ].join('\n')
 
@@ -152,6 +156,31 @@ export default function DailyResultScreen({
           <div style={{ color: 'var(--muted)' }}>HP LEFT</div>
           <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{hpRemaining}</div>
         </div>
+      </div>
+
+      {/* Shareable floor grid */}
+      <pre
+        aria-label={`Floor grid: ${floorsCleared} of 15 cleared`}
+        style={{
+          margin: 0,
+          fontSize: 13,
+          lineHeight: 1.3,
+          letterSpacing: 1,
+          textAlign: 'center',
+        }}
+      >
+        {grid}
+      </pre>
+
+      <div
+        className="t-display"
+        style={{
+          fontSize: 'var(--display-2xs)',
+          color: won ? 'var(--ink)' : 'var(--gold-bright)',
+        }}
+      >
+        🔥 STREAK: {streak.current}
+        {streak.best > streak.current ? ` (BEST ${streak.best})` : ''}
       </div>
 
       <Button

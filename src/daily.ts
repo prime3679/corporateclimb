@@ -186,3 +186,84 @@ export function getAllDailyResults(): Record<number, DailyResult> {
 export function hasPlayedToday(): boolean {
   return getDailyResult(getDailySeed()) !== null
 }
+
+// ─── STREAKS, HISTORY & SHARE GRID ──────────────────────────
+
+export const DAILY_LAUNCH_DATE = new Date('2026-03-17')
+
+/** Daily number shown to players ("Daily #87"), from a YYYYMMDD seed. */
+export function getDailyDayNumber(seed: number): number {
+  const date = new Date(Math.floor(seed / 10000), (Math.floor(seed / 100) % 100) - 1, seed % 100)
+  return Math.max(1, Math.floor((date.getTime() - DAILY_LAUNCH_DATE.getTime()) / 86400000) + 1)
+}
+
+/**
+ * Consecutive-day play streak. The current streak counts back from
+ * today — or from yesterday when today is still unplayed, so an
+ * unbroken streak isn't shown as 0 before the player's daily attempt.
+ */
+export function getDailyStreak(today: Date = new Date()): { current: number; best: number } {
+  const results = getAllDailyResults()
+  const played = new Set(Object.keys(results).map(Number))
+
+  const day = new Date(today)
+  if (!played.has(getDailySeed(day))) day.setDate(day.getDate() - 1)
+  let current = 0
+  while (played.has(getDailySeed(day))) {
+    current++
+    day.setDate(day.getDate() - 1)
+  }
+
+  // Best: longest chain of consecutive calendar days among all results.
+  let best = 0
+  for (const seed of played) {
+    const d = new Date(Math.floor(seed / 10000), (Math.floor(seed / 100) % 100) - 1, seed % 100)
+    d.setDate(d.getDate() - 1)
+    if (played.has(getDailySeed(d))) continue // not a chain start
+    let len = 1
+    d.setDate(d.getDate() + 2)
+    while (played.has(getDailySeed(d))) {
+      len++
+      d.setDate(d.getDate() + 1)
+    }
+    best = Math.max(best, len)
+  }
+  return { current, best: Math.max(best, current) }
+}
+
+/** The last `days` daily results (oldest first), null where unplayed. */
+export function getRecentDailyHistory(
+  days: number,
+  today: Date = new Date(),
+): { seed: number; result: DailyResult | null }[] {
+  const out: { seed: number; result: DailyResult | null }[] = []
+  const d = new Date(today)
+  d.setDate(d.getDate() - (days - 1))
+  for (let i = 0; i < days; i++) {
+    const seed = getDailySeed(d)
+    out.push({ seed, result: getDailyResult(seed) })
+    d.setDate(d.getDate() + 1)
+  }
+  return out
+}
+
+/**
+ * Wordle-style emoji grid for sharing: one square per floor in rows of
+ * five — green for cleared floors, red for the floor that ended the
+ * run, black for floors never reached.
+ */
+export function buildShareGrid(floorsCleared: number, won: boolean): string {
+  const squares: string[] = []
+  for (let i = 0; i < DAILY_FLOOR_COUNT; i++) {
+    if (i < floorsCleared)
+      squares.push('\u{1F7E9}') // 🟩
+    else if (i === floorsCleared && !won)
+      squares.push('\u{1F7E5}') // 🟥
+    else squares.push('⬛') // ⬛
+  }
+  const rows: string[] = []
+  for (let i = 0; i < squares.length; i += 5) {
+    rows.push(squares.slice(i, i + 5).join(''))
+  }
+  return rows.join('\n')
+}
