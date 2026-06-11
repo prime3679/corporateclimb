@@ -2628,6 +2628,24 @@ export const ACHIEVEMENTS: AchievementDef[] = [
     desc: 'Deal 3000+ total damage in a run',
     icon: '\u{1F525}',
   },
+  {
+    id: 'hyperfocused',
+    name: 'Hyperfocused',
+    desc: 'Win with 3+ copies of the same perk',
+    icon: '🎯',
+  },
+  {
+    id: 'diamond_hands',
+    name: 'Diamond Hands',
+    desc: 'Win with 250+ unspent Stock Options',
+    icon: '🏦',
+  },
+  {
+    id: 'full_stack',
+    name: 'Full Stack Climber',
+    desc: 'Win with a stat, a passive, and an economy perk',
+    icon: '🧰',
+  },
 ]
 
 export function getUnlockedAchievements(): Set<AchievementId> {
@@ -2678,8 +2696,11 @@ export function checkAchievements(stats: {
   ngLevel: number
   itemsUsed: number
   finalHp: number
+  perks?: PerkId[]
+  stockOptions?: number
 }): AchievementId[] {
   const newlyUnlocked: AchievementId[] = []
+  const perks = stats.perks ?? []
 
   if (unlockAchievement('first_climb')) newlyUnlocked.push('first_climb')
 
@@ -2710,6 +2731,19 @@ export function checkAchievements(stats: {
 
   if (stats.totalDamageDealt >= 3000) {
     if (unlockAchievement('damage_dealer')) newlyUnlocked.push('damage_dealer')
+  }
+
+  if (groupPerks(perks).some((g) => g.count >= 3)) {
+    if (unlockAchievement('hyperfocused')) newlyUnlocked.push('hyperfocused')
+  }
+
+  if ((stats.stockOptions ?? 0) >= 250) {
+    if (unlockAchievement('diamond_hands')) newlyUnlocked.push('diamond_hands')
+  }
+
+  const kinds = new Set(perks.map((id) => PERKS[id]?.kind).filter(Boolean))
+  if (kinds.size >= 3) {
+    if (unlockAchievement('full_stack')) newlyUnlocked.push('full_stack')
   }
 
   return newlyUnlocked

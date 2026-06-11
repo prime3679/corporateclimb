@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { PlayerClass, AchievementId, AchievementDef } from '@/types'
+import type { PerkId, PlayerClass, AchievementId, AchievementDef } from '@/types'
+import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
 import { Button } from '@/ui'
@@ -13,6 +14,8 @@ interface RunCompleteScreenProps {
   totalTurns: number
   totalDamageDealt: number
   floorsCleared: number
+  perks?: PerkId[]
+  stockOptions?: number
   newAchievements: AchievementId[]
   allAchievements: AchievementDef[]
   unlockedAchievements: Set<AchievementId>
@@ -27,12 +30,15 @@ export default function RunCompleteScreen({
   totalTurns,
   totalDamageDealt,
   floorsCleared,
+  perks = [],
+  stockOptions = 0,
   newAchievements,
   allAchievements,
   unlockedAchievements,
 }: RunCompleteScreenProps) {
   const sprites = getSpriteUrls()
   const [shared, setShared] = useState(false)
+  const build = groupPerks(perks)
 
   useEffect(() => {
     if (newAchievements.length > 0) {
@@ -40,7 +46,11 @@ export default function RunCompleteScreen({
     }
   }, [newAchievements])
 
-  const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''} Can you beat that? corporateclimb.vercel.app`
+  const buildText =
+    build.length > 0
+      ? ` Build: ${build.map((g) => (g.count > 1 ? `${g.perk.name} ×${g.count}` : g.perk.name)).join(', ')}.`
+      : ''
+  const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corporateclimb.vercel.app`
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -206,6 +216,10 @@ export default function RunCompleteScreen({
           <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
             {totalDamageDealt.toLocaleString()}
           </div>
+          <div style={{ color: 'var(--muted-light)' }}>OPTIONS</div>
+          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
+            {stockOptions} {CURRENCY_ICON}
+          </div>
           {ngLevel > 0 && (
             <>
               <div style={{ color: 'var(--muted-light)' }}>NG+</div>
@@ -215,6 +229,32 @@ export default function RunCompleteScreen({
             </>
           )}
         </div>
+        {build.length > 0 && (
+          <div
+            className="t-body"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              flexWrap: 'wrap',
+              justifyContent: 'center',
+              borderTop: '1px solid rgba(255,255,255,0.15)',
+              paddingTop: 8,
+            }}
+          >
+            <span style={{ color: 'var(--muted-light)', fontSize: 'var(--body-sm)' }}>BUILD</span>
+            {build.map(({ perk, count }) => (
+              <span
+                key={perk.id}
+                title={`${perk.name}: ${perk.desc}`}
+                style={{ color: 'var(--paper)', fontSize: 'var(--body-md)' }}
+              >
+                {perk.icon}
+                {count > 1 ? `×${count}` : ''}
+              </span>
+            ))}
+          </div>
+        )}
         <div
           className="t-body"
           style={{

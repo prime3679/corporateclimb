@@ -454,6 +454,8 @@ export default function CorporateClimb() {
             ngLevel: next.ngPlus,
             itemsUsed: next.stats.itemsUsed,
             finalHp: next.hp,
+            perks: next.perks,
+            stockOptions: next.stockOptions,
           }),
         )
         SFX.fanfare()
@@ -781,6 +783,8 @@ export default function CorporateClimb() {
             totalTurns={run.stats.totalTurns}
             totalDamageDealt={run.stats.totalDamageDealt}
             floorsCleared={ENEMY_POOLS.length}
+            perks={run.perks}
+            stockOptions={run.stockOptions}
             newAchievements={newAchievements}
             allAchievements={ACHIEVEMENTS}
             unlockedAchievements={getUnlockedAchievements()}

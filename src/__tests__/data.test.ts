@@ -24,7 +24,7 @@ import {
   saveBestNgPlus,
   SAVE_KEY,
 } from '@/data'
-import type { Enemy, PlayerClass, SaveData } from '@/types'
+import type { Enemy, PerkId, PlayerClass, SaveData } from '@/types'
 
 // ─── getAct ──────────────────────────────────────────────────
 
@@ -422,10 +422,28 @@ describe('checkAchievements', () => {
     { id: 'ng_plus_1', pass: { ngLevel: 1 }, fail: { ngLevel: 0 } },
     { id: 'ng_plus_3', pass: { ngLevel: 3 }, fail: { ngLevel: 2 } },
     { id: 'damage_dealer', pass: { totalDamageDealt: 3000 }, fail: { totalDamageDealt: 2999 } },
+    { id: 'diamond_hands', pass: { stockOptions: 250 }, fail: { stockOptions: 249 } },
+    {
+      id: 'hyperfocused',
+      pass: { perks: ['gym_membership', 'gym_membership', 'gym_membership'] as PerkId[] },
+      fail: { perks: ['gym_membership', 'gym_membership', 'balanced_package'] as PerkId[] },
+    },
+    {
+      id: 'full_stack',
+      pass: { perks: ['gym_membership', 'perfectionist', 'negotiator'] as PerkId[] },
+      fail: { perks: ['gym_membership', 'perfectionist', 'morning_person'] as PerkId[] },
+    },
   ])('unlocks $id at its boundary but not past it', ({ id, pass, fail }) => {
     expect(checkAchievements({ ...baseStats, ...pass })).toContain(id)
     localStorage.clear()
     expect(checkAchievements({ ...baseStats, ...fail })).not.toContain(id)
+  })
+
+  it('legacy callers without perk stats never see the perk achievements', () => {
+    const unlocked = checkAchievements(baseStats)
+    expect(unlocked).not.toContain('hyperfocused')
+    expect(unlocked).not.toContain('diamond_hands')
+    expect(unlocked).not.toContain('full_stack')
   })
 
   it('does not re-return already unlocked achievements', () => {
