@@ -1,16 +1,19 @@
 import type { Enemy } from '@/types'
+import { CURRENCY_ICON } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { Button, Panel } from '@/ui'
 
 export default function BattleVictoryScreen({
   enemy,
   xpGained,
+  optionsGained,
   onContinue,
   leveledUp,
   newLevel,
 }: {
   enemy: Enemy
   xpGained: number
+  optionsGained: number
   onContinue: () => void
   leveledUp: boolean
   newLevel: number
@@ -77,6 +80,16 @@ export default function BattleVictoryScreen({
           }}
         >
           +{xpGained} XP GAINED
+        </div>
+        <div
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--gold)',
+            marginBottom: 8,
+          }}
+        >
+          +{optionsGained} {CURRENCY_ICON} STOCK OPTIONS
         </div>
         {leveledUp && (
           <div

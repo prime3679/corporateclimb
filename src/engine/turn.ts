@@ -7,7 +7,7 @@
 // rng, so seeded daily runs stay deterministic.
 
 import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
-import { ITEMS, STATUS_DEFS, getTypeMultiplier } from '@/data'
+import { ITEMS, STATUS_DEFS, getPerkCombatMods, getTypeMultiplier } from '@/data'
 import {
   STRUGGLE_MOVE,
   calcDamage,
@@ -114,6 +114,42 @@ function finish(
   }
 }
 
+/**
+ * Shared end-of-player-action check: a boss crossing its HP threshold
+ * transforms (spending the enemy turn), and an enemy at 0 HP faints.
+ * Returns the finished TurnResult, or null when the battle goes on.
+ * The phase-2 threshold is measured against the NG+-scaled base enemy
+ * (daily HP multipliers don't move the trigger point).
+ */
+function resolveEnemyDown(ctx: TurnContext, w: Working, events: BattleEvent[]): TurnResult | null {
+  const { run } = ctx
+  const ngBase = resolveNgBaseEnemy(run)
+  if (w.enemyPhase === 1 && ngBase.phase2 && w.enemyHp > 0 && w.enemyHp <= ngBase.maxHp * 0.5) {
+    const phase2 = resolveEnemy(run, 2)
+    w.enemyPhase = 2
+    w.enemyHp = phase2.maxHp
+    w.enemyStatuses = []
+    events.push({ kind: 'pause', ms: 600 })
+    events.push({ kind: 'log', text: `💥 ${ngBase.phase2.taunt}` })
+    events.push({ kind: 'pause', ms: 500 })
+    events.push({ kind: 'log', text: '⚠️ PHASE 2' })
+    events.push({
+      kind: 'phase2',
+      patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
+    })
+    events.push({ kind: 'pause', ms: 800 })
+    // The enemy spends its turn transforming.
+    return finish(ctx, w, events, 'player')
+  }
+
+  if (w.enemyHp <= 0) {
+    events.push({ kind: 'faint', side: 'enemy' })
+    return finish(ctx, w, events, 'won')
+  }
+
+  return null
+}
+
 /** Player picks a move (or Struggle when all PP is gone). */
 export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): TurnResult {
   const { run, battle, effectivePlayer } = ctx
@@ -157,16 +193,17 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   const defMod = getStatusDefMod(w.enemyStatuses)
   const critBonus = getStatusCritBonus(w.playerStatuses)
   const { dmgMult, critBonus: perkCrit } = getClassPerkMods(run.classId)
+  const perkMods = getPerkCombatMods(run.perks)
   const typeResult = getTypeMultiplier(move.type, enemy.types)
   const [rawDmg, isCrit] = calcDamage(
     rng,
     effectivePlayer.atk + run.level * 2 + run.atkBuff + atkMod,
     enemy.def + defMod,
     move.dmg,
-    critBonus + perkCrit,
+    critBonus + perkCrit + perkMods.critBonus,
     typeResult.mult,
   )
-  const dmg = Math.round(rawDmg * dmgMult)
+  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult)
   w.enemyHp = Math.max(0, w.enemyHp - dmg)
   w.damageDealt += dmg
 
@@ -217,33 +254,25 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
     }
   }
 
+  // Networking Guru perk: heal a fraction of damage dealt.
+  if (perkMods.lifesteal > 0) {
+    const steal = Math.min(Math.floor(dmg * perkMods.lifesteal), effectivePlayer.maxHp - w.playerHp)
+    if (steal > 0) {
+      w.playerHp += steal
+      events.push({
+        kind: 'heal',
+        target: 'player',
+        amount: steal,
+        patch: { playerHp: w.playerHp },
+      })
+      logMsg += ` Drained ${steal} HP!`
+    }
+  }
+
   events.push({ kind: 'log', text: logMsg })
 
-  // Phase-2 transition: threshold measured against the NG+-scaled base
-  // enemy (daily HP multipliers don't move the trigger point).
-  const ngBase = resolveNgBaseEnemy(run)
-  if (w.enemyPhase === 1 && ngBase.phase2 && w.enemyHp > 0 && w.enemyHp <= ngBase.maxHp * 0.5) {
-    const phase2 = resolveEnemy(run, 2)
-    w.enemyPhase = 2
-    w.enemyHp = phase2.maxHp
-    w.enemyStatuses = []
-    events.push({ kind: 'pause', ms: 600 })
-    events.push({ kind: 'log', text: `💥 ${ngBase.phase2.taunt}` })
-    events.push({ kind: 'pause', ms: 500 })
-    events.push({ kind: 'log', text: '⚠️ PHASE 2' })
-    events.push({
-      kind: 'phase2',
-      patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
-    })
-    events.push({ kind: 'pause', ms: 800 })
-    // The enemy spends its turn transforming.
-    return finish(runWithTurn, w, events, 'player')
-  }
-
-  if (w.enemyHp <= 0) {
-    events.push({ kind: 'faint', side: 'enemy' })
-    return finish(runWithTurn, w, events, 'won')
-  }
+  const downed = resolveEnemyDown(runWithTurn, w, events)
+  if (downed) return downed
 
   // End-of-turn burnout on the enemy — can finish it off.
   const enemyBurn = getBurnDamage(w.enemyStatuses)
@@ -322,6 +351,34 @@ export function resolveItemUse(ctx: TurnContext, itemIdx: number, rng: Rng): Tur
       logMsg += ` ${applied}!`
     }
   }
+  if (item.effect.dmgEnemy) {
+    const enemy = resolveEnemy(run, w.enemyPhase)
+    const dmg = item.effect.dmgEnemy
+    w.enemyHp = Math.max(0, w.enemyHp - dmg)
+    w.damageDealt += dmg
+    events.push({
+      kind: 'hit',
+      target: 'enemy',
+      amount: dmg,
+      crit: false,
+      eff: null,
+      patch: { enemyHp: w.enemyHp },
+    })
+    logMsg += ` ${enemy.name} took ${dmg} damage!`
+  }
+  if (item.effect.enemyStatus) {
+    const enemy = resolveEnemy(run, w.enemyPhase)
+    const applied = rollStatus(
+      w,
+      { id: item.effect.enemyStatus.id, target: 'enemy', chance: 1 },
+      true,
+      rng,
+    )
+    if (applied) {
+      events.push({ kind: 'status', target: 'enemy', statusName: applied, patch: statusPatch(w) })
+      logMsg += ` ${enemy.name} is ${applied}!`
+    }
+  }
 
   events.push({ kind: 'log', text: logMsg })
   events.push({ kind: 'pause', ms: 600 })
@@ -336,6 +393,11 @@ export function resolveItemUse(ctx: TurnContext, itemIdx: number, rng: Rng): Tur
       stats: { ...run.stats, itemsUsed: run.stats.itemsUsed + 1 },
     },
   }
+
+  // Offensive items can transform a boss or end the battle outright.
+  const downed = resolveEnemyDown(ctxWithItem, w, events)
+  if (downed) return downed
+
   return resolveEnemyTurn(ctxWithItem, w, events, rng)
 }
 

@@ -311,6 +311,24 @@ Replace the 35-hook god component with a real engine:
    rename the `WinScreen`/`VictoryScreen` pair (`RunCompleteScreen` /
    `BattleVictoryScreen`).
 
+### Phase 5 — Roguelite depth ✅ DONE
+
+> Shipped: promotion perk choices (pick 1 of 3 at every promotion —
+> a repeatable stat package, a one-time build passive, a one-time
+> economy perk — replacing the fixed stat boosts; move upgrades at
+> floors 10/20 stay automatic), the **Stock Options 📈** currency
+> (paid out per battle win, floor-scaled), the **Company Store**
+> mid-act shop (after floors 5/15/25; 3 seeded items + a flat-price
+> Wellness Day heal), and 5 new offensive consumables (flat damage
+> and enemy-status items — the first items that target the enemy).
+> Dailies roll perk offers and shop stock from the daily seed (shared
+> offers, comparable share grids); the Budget Cuts modifier closes
+> the shop. Save format bumped to v3 with grandfathering migration
+> (passed promotions become balanced stat packages, cleared floors
+> pay out retroactively). Engine: `engine/shop.ts`, `advanceFloor` /
+> `choosePerk` in `engine/run.ts`, perk hooks in `turn.ts`; balance
+> snapshot re-baselined with the bot now picking perks and shopping.
+
 ### Sequencing & risk
 
 | Phase            | Scope                                       | Risk                                                       | Payoff                                                                          |

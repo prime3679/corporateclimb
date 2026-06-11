@@ -157,18 +157,29 @@ export type ItemId =
   | 'side_hustle'
   | 'standing_desk'
   | 'noise_cancelling'
+  | 'reply_all_grenade'
+  | 'pip_notice'
+  | 'pager_duty'
+  | 'reorg_memo'
+  | 'forward_to_legal'
 
 export interface ItemDef {
   id: ItemId
   name: string
   emoji: string
   desc: string
+  /** Shop price in Stock Options. */
+  price: number
   effect: {
     hp?: number
     atk?: number
     def?: number
     ppRestore?: number
     status?: { id: StatusId; target: 'self' }
+    /** Flat damage dealt to the enemy (ignores stats and types). */
+    dmgEnemy?: number
+    /** Status inflicted on the enemy (always lands). */
+    enemyStatus?: { id: StatusId }
   }
 }
 
@@ -196,6 +207,7 @@ export type Screen =
   | 'hallwayEvent'
   | 'routeChoice'
   | 'promotion'
+  | 'shop'
   | 'actTransition'
   | 'dailyPre'
   | 'dailyResult'
@@ -226,8 +238,64 @@ export interface DailyModifierContext {
 export interface PromotionTier {
   floor: number
   title: string
+  /** Legacy fixed boost — superseded by perk choices, kept for old saves. */
   statBoost?: { maxHp?: number; atk?: number; def?: number }
   moveUpgrades?: { fromName: string; to: Move }[]
+}
+
+// ─── PERKS ──────────────────────────────────────────────────
+// At each promotion the player picks 1 of 3 perks: a stat package, a
+// build-defining passive, and an economy perk. Stat packages can be
+// picked repeatedly (they stack); passives and economy perks are
+// one-time picks.
+
+export type PerkId =
+  // stat packages (repeatable)
+  | 'gym_membership'
+  | 'assertiveness_training'
+  | 'executive_presence'
+  | 'balanced_package'
+  // passives (unique)
+  | 'overtime_grind'
+  | 'perfectionist'
+  | 'networking_guru'
+  | 'morning_person'
+  | 'self_care'
+  // economy (unique)
+  | 'negotiator'
+  | 'employee_discount'
+  | 'headhunter'
+  | 'signing_bonus'
+
+export type PerkKind = 'stat' | 'passive' | 'economy'
+
+export interface PerkDef {
+  id: PerkId
+  name: string
+  desc: string
+  icon: string
+  kind: PerkKind
+  /** Stat packages stack; passives/economy can be owned once. */
+  repeatable?: boolean
+  statBoost?: { maxHp?: number; atk?: number; def?: number }
+  /** Multiplier on outgoing player damage (e.g. 1.12). */
+  dmgMult?: number
+  /** Additional crit chance, 0-1. */
+  critBonus?: number
+  /** Fraction of damage dealt healed back, 0-1. */
+  lifesteal?: number
+  /** Status granted at the start of every battle. */
+  startBattleStatus?: StatusId
+  /** HP healed after each battle win. */
+  postBattleHeal?: number
+  /** Multiplier on Stock Option payouts. */
+  payoutMult?: number
+  /** Multiplier on shop prices (e.g. 0.75). */
+  priceMult?: number
+  /** Hallway-event bonus item chance override (default 0.3). */
+  eventItemChance?: number
+  /** Stock Options granted immediately when picked. */
+  instantOptions?: number
 }
 
 export interface SaveData {

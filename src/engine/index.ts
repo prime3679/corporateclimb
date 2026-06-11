@@ -18,13 +18,27 @@ export { actualFloorIndex, battleIntroLine, resolveEnemy, resolveNgBaseEnemy } f
 export { resolveItemUse, resolvePlayerMove, type TurnContext, type TurnResult } from './turn'
 export {
   MAX_INVENTORY,
+  advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
+  choosePerk,
   newBattle,
   newDailyRun,
   newNgPlusRun,
   newRun,
   pickTwoEvents,
+  promotionBetween,
 } from './run'
+export {
+  SHOP_FLOORS,
+  SHOP_STOCK_SIZE,
+  WELLNESS_DAY,
+  buyShopItem,
+  buyWellnessDay,
+  isShopFloor,
+  leaveShop,
+  rollShopStock,
+  shopPrice,
+} from './shop'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'

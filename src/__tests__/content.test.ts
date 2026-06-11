@@ -13,12 +13,16 @@ import {
   HALLWAY_EVENTS,
   ITEMS,
   ALL_ITEM_IDS,
+  ALL_PERK_IDS,
   CLASS_STARTING_ITEMS,
   ACHIEVEMENTS,
+  PERKS,
+  STATUS_DEFS,
   TOTAL_FLOORS,
 } from '@/data'
+import { SHOP_FLOORS } from '@/engine'
 import { buildSpriteUrls } from '@/sprites'
-import type { Enemy, EnemyMove, Move } from '@/types'
+import type { Enemy, EnemyMove, Move, PerkKind } from '@/types'
 
 const SPRITES = buildSpriteUrls()
 const ALL_POOL_ENEMIES: Enemy[] = ENEMY_POOLS.flat()
@@ -152,8 +156,68 @@ describe('items and achievements', () => {
     expect(ALL_ITEM_IDS.length).toBe(Object.keys(ITEMS).length)
   })
 
+  it('every item has a positive shop price and a non-empty effect', () => {
+    for (const id of ALL_ITEM_IDS) {
+      const item = ITEMS[id]
+      expect(item.price, `item ${id}: price`).toBeGreaterThan(0)
+      expect(Object.keys(item.effect).length, `item ${id}: effect`).toBeGreaterThan(0)
+    }
+  })
+
+  it('item statuses reference real status defs', () => {
+    for (const id of ALL_ITEM_IDS) {
+      const { status, enemyStatus } = ITEMS[id].effect
+      if (status) expect(STATUS_DEFS[status.id], `item ${id}: status`).toBeTruthy()
+      if (enemyStatus) expect(STATUS_DEFS[enemyStatus.id], `item ${id}: enemyStatus`).toBeTruthy()
+    }
+  })
+
   it('achievements have unique ids', () => {
     const ids = ACHIEVEMENTS.map((a) => a.id)
     expect(new Set(ids).size).toBe(ids.length)
+  })
+})
+
+describe('perks', () => {
+  it('perk record keys match their ids', () => {
+    for (const id of ALL_PERK_IDS) {
+      expect(PERKS[id].id, `perk ${id}`).toBe(id)
+    }
+  })
+
+  it('every offer category is non-empty and stat packages are repeatable', () => {
+    const byKind = (k: PerkKind) => ALL_PERK_IDS.filter((id) => PERKS[id].kind === k)
+    expect(byKind('stat').length).toBeGreaterThan(0)
+    expect(byKind('passive').length).toBeGreaterThan(0)
+    expect(byKind('economy').length).toBeGreaterThan(0)
+    for (const id of byKind('stat')) {
+      expect(PERKS[id].repeatable, `perk ${id}: stat packages stack`).toBe(true)
+      expect(PERKS[id].statBoost, `perk ${id}: statBoost`).toBeTruthy()
+    }
+  })
+
+  it('perk start-battle statuses reference real status defs', () => {
+    for (const id of ALL_PERK_IDS) {
+      const s = PERKS[id].startBattleStatus
+      if (s) expect(STATUS_DEFS[s], `perk ${id}: status`).toBeTruthy()
+    }
+  })
+
+  it('every perk has a name, desc, and icon', () => {
+    for (const id of ALL_PERK_IDS) {
+      expect(PERKS[id].name, `perk ${id}: name`).toBeTruthy()
+      expect(PERKS[id].desc, `perk ${id}: desc`).toBeTruthy()
+      expect(PERKS[id].icon, `perk ${id}: icon`).toBeTruthy()
+    }
+  })
+})
+
+describe('shop placement', () => {
+  it('shop floors land mid-act on promotion floors (normal mode)', () => {
+    const tiers = PROMOTION_TRACKS.pm.map((t) => t.floor)
+    for (const f of SHOP_FLOORS.normal) {
+      expect(f, `shop floor ${f} in range`).toBeLessThan(TOTAL_FLOORS)
+      expect(tiers, `shop floor ${f} follows a promotion`).toContain(f)
+    }
   })
 })

@@ -47,6 +47,7 @@ export default function BattleScreen({
   onSetBattleMode,
   promotionTitle,
   playerMaxHp,
+  stockOptions,
   onTextTap,
   textMsPerChar,
 }: {
@@ -76,6 +77,8 @@ export default function BattleScreen({
   onSetBattleMode: (mode: 'fight' | 'items') => void
   promotionTitle?: string
   playerMaxHp: number
+  /** Stock Options balance shown next to the floor counter. */
+  stockOptions?: number
   /** Tap on the text box: fast-forward the current turn's playback. */
   onTextTap?: () => void
   /** Typewriter speed for the battle text box (0 = instant). */
@@ -249,6 +252,7 @@ export default function BattleScreen({
 
         <div className={styles.floorCounter} style={{ color: isDark ? '#FFD54F88' : '#00000044' }}>
           F{floor}/{TOTAL_FLOORS}
+          {stockOptions !== undefined && ` · ${stockOptions}📈`}
         </div>
 
         {damagePopups.map((p) => (

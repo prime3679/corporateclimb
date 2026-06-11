@@ -24,9 +24,11 @@ test('floor 9 win chains promotion and act 2 screens', async ({ page }) => {
   await expect(page.getByText('VICTORY')).toBeVisible({ timeout: 10_000 })
   await page.getByRole('button', { name: /CONTINUE/ }).click({ timeout: 5_000 })
 
-  // Promotion screen (Senior PM -> Director of Product), then Act 2.
+  // Promotion screen (Senior PM -> Director of Product): pick the first
+  // of the three offered perks, then Act 2.
   await expect(page.getByText('PROMOTED')).toBeVisible({ timeout: 10_000 })
-  await page.locator('#root').click({ position: { x: 220, y: 380 } })
+  await expect(page.getByText('CHOOSE A PERK')).toBeVisible({ timeout: 10_000 })
+  await page.locator('button').filter({ hasText: '[1]' }).click({ timeout: 5_000 })
 
   await expect(page.getByText('MANAGEMENT')).toBeVisible({ timeout: 10_000 })
   await page.locator('#root').click({ position: { x: 220, y: 380 } })

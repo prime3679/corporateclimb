@@ -7,6 +7,7 @@ import {
   scaleEnemyForNgPlus,
   getEffectivePlayer,
   getPromotion,
+  PERKS,
   PLAYER_CLASSES,
   PROMOTION_TRACKS,
   ENEMIES,
@@ -196,38 +197,34 @@ describe('getEffectivePlayer', () => {
     expect(effective.moves).toEqual(pmBase.moves)
   })
 
-  it('applies stat boosts at floor 5 (Senior PM)', () => {
+  it('promotions no longer grant fixed stat boosts (perks replace them)', () => {
     const effective = getEffectivePlayer(pmBase, 'pm', 5)
-    expect(effective.maxHp).toBe(pmBase.maxHp + 10)
-    expect(effective.atk).toBe(pmBase.atk + 2)
-    expect(effective.def).toBe(pmBase.def + 1)
+    expect(effective.maxHp).toBe(pmBase.maxHp)
+    expect(effective.atk).toBe(pmBase.atk)
+    expect(effective.def).toBe(pmBase.def)
   })
 
-  it('applies cumulative boosts + move upgrades at floor 10', () => {
+  it('applies move upgrades at floor 10', () => {
     const effective = getEffectivePlayer(pmBase, 'pm', 10)
-    expect(effective.maxHp).toBe(pmBase.maxHp + 10 + 15)
-    expect(effective.atk).toBe(pmBase.atk + 2 + 2)
-    expect(effective.def).toBe(pmBase.def + 1 + 2)
     expect(effective.moves.some((m) => m.name === 'Strategic Roadmap')).toBe(true)
     expect(effective.moves.some((m) => m.name === 'Prioritize Backlog')).toBe(false)
   })
 
-  it('applies all boosts at max floor (Chief Product Officer)', () => {
+  it('applies perk stat boosts (stacking repeatable packages)', () => {
+    const effective = getEffectivePlayer(pmBase, 'pm', 5, [
+      'gym_membership',
+      'balanced_package',
+      'balanced_package',
+    ])
+    const gym = PERKS.gym_membership.statBoost!
+    const pkg = PERKS.balanced_package.statBoost!
+    expect(effective.maxHp).toBe(pmBase.maxHp + gym.maxHp! + 2 * pkg.maxHp!)
+    expect(effective.atk).toBe(pmBase.atk + 2 * pkg.atk!)
+    expect(effective.def).toBe(pmBase.def + 2 * pkg.def!)
+  })
+
+  it('applies all move upgrades at max floor (Chief Product Officer)', () => {
     const effective = getEffectivePlayer(pmBase, 'pm', 25)
-    const track = PROMOTION_TRACKS['pm']
-    let expectedHp = pmBase.maxHp,
-      expectedAtk = pmBase.atk,
-      expectedDef = pmBase.def
-    for (const tier of track) {
-      if (tier.statBoost) {
-        expectedHp += tier.statBoost.maxHp || 0
-        expectedAtk += tier.statBoost.atk || 0
-        expectedDef += tier.statBoost.def || 0
-      }
-    }
-    expect(effective.maxHp).toBe(expectedHp)
-    expect(effective.atk).toBe(expectedAtk)
-    expect(effective.def).toBe(expectedDef)
     expect(effective.moves.some((m) => m.name === 'Launch Platform')).toBe(true)
     expect(effective.moves.some((m) => m.name === 'Ship MVP')).toBe(false)
   })

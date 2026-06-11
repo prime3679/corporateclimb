@@ -4,7 +4,9 @@
 // serializable tree. Daily mode is a config on the same pipeline, not
 // a parallel set of booleans and refs.
 
-import type { DailyModifierContext, ItemId, StatusInstance } from '@/types'
+import type { DailyModifierContext, ItemId, PerkId, StatusInstance } from '@/types'
+
+export const MAX_INVENTORY = 4
 
 export type RunMode =
   | { kind: 'normal' }
@@ -41,6 +43,14 @@ export interface RunState {
   usedEvents: string[]
   /** Seeded rng state for daily runs; null = Math.random. */
   rngState: number | null
+  /** Stock Options balance (the run currency). */
+  stockOptions: number
+  /** Perks picked at promotions (stat packages may repeat). */
+  perks: PerkId[]
+  /** Unresolved pick-1-of-3 promotion offer; non-null = choice pending. */
+  pendingPerkOffer: PerkId[] | null
+  /** Shop stock for the current stop; non-null = the shop is open. */
+  shopStock: ItemId[] | null
 }
 
 export type BattlePhase = 'player' | 'won' | 'lost'

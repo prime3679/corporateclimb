@@ -12,6 +12,8 @@ import type {
   AchievementDef,
   PromotionTier,
   ClassId,
+  PerkId,
+  PerkDef,
 } from './types'
 
 // ─── CONSTANTS ──────────────────────────────────────────────
@@ -276,14 +278,15 @@ export const PLAYER_CLASSES: PlayerClass[] = [
 ]
 
 // ─── PROMOTION TRACKS ───────────────────────────────────────
+// Promotions grant a pick-1-of-3 perk choice (see PERKS below) instead
+// of fixed stat boosts; move upgrades at floors 10/20 stay automatic.
 export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
   pm: [
     { floor: 0, title: 'Product Manager' },
-    { floor: 5, title: 'Senior PM', statBoost: { maxHp: 10, atk: 2, def: 1 } },
+    { floor: 5, title: 'Senior PM' },
     {
       floor: 10,
       title: 'Director of Product',
-      statBoost: { maxHp: 15, atk: 2, def: 2 },
       moveUpgrades: [
         {
           fromName: 'Prioritize Backlog',
@@ -298,11 +301,10 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 15, title: 'VP Product', statBoost: { maxHp: 15, atk: 3, def: 2 } },
+    { floor: 15, title: 'VP Product' },
     {
       floor: 20,
       title: 'SVP Product',
-      statBoost: { maxHp: 20, atk: 3, def: 3 },
       moveUpgrades: [
         {
           fromName: 'Ship MVP',
@@ -318,15 +320,14 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 25, title: 'Chief Product Officer', statBoost: { maxHp: 20, atk: 4, def: 3 } },
+    { floor: 25, title: 'Chief Product Officer' },
   ],
   eng: [
     { floor: 0, title: 'Senior Engineer' },
-    { floor: 5, title: 'Staff Engineer', statBoost: { maxHp: 8, atk: 3, def: 1 } },
+    { floor: 5, title: 'Staff Engineer' },
     {
       floor: 10,
       title: 'Engineering Manager',
-      statBoost: { maxHp: 12, atk: 3, def: 2 },
       moveUpgrades: [
         {
           fromName: 'Refactor Everything',
@@ -341,11 +342,10 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 15, title: 'VP Engineering', statBoost: { maxHp: 15, atk: 4, def: 2 } },
+    { floor: 15, title: 'VP Engineering' },
     {
       floor: 20,
       title: 'SVP Engineering',
-      statBoost: { maxHp: 18, atk: 4, def: 3 },
       moveUpgrades: [
         {
           fromName: 'Deploy to Prod',
@@ -361,15 +361,14 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 25, title: 'Chief Technology Officer', statBoost: { maxHp: 20, atk: 5, def: 3 } },
+    { floor: 25, title: 'Chief Technology Officer' },
   ],
   design: [
     { floor: 0, title: 'UX Designer' },
-    { floor: 5, title: 'Senior Designer', statBoost: { maxHp: 8, atk: 2, def: 2 } },
+    { floor: 5, title: 'Senior Designer' },
     {
       floor: 10,
       title: 'Design Lead',
-      statBoost: { maxHp: 12, atk: 2, def: 3 },
       moveUpgrades: [
         {
           fromName: 'Pixel Perfect Punch',
@@ -384,11 +383,10 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 15, title: 'VP Design', statBoost: { maxHp: 15, atk: 3, def: 3 } },
+    { floor: 15, title: 'VP Design' },
     {
       floor: 20,
       title: 'SVP Design',
-      statBoost: { maxHp: 18, atk: 3, def: 4 },
       moveUpgrades: [
         {
           fromName: 'Figma Tornado',
@@ -404,7 +402,7 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
         },
       ],
     },
-    { floor: 25, title: 'Chief Design Officer', statBoost: { maxHp: 20, atk: 4, def: 4 } },
+    { floor: 25, title: 'Chief Design Officer' },
   ],
 }
 
@@ -423,6 +421,7 @@ export function getEffectivePlayer(
   base: PlayerClass,
   classId: string,
   currentFloor: number,
+  perks: PerkId[] = [],
 ): PlayerClass {
   const track = promotionTrack(classId)
   let maxHp = base.maxHp
@@ -443,7 +442,190 @@ export function getEffectivePlayer(
       }
     }
   }
+  for (const id of perks) {
+    const boost = PERKS[id]?.statBoost
+    if (boost) {
+      maxHp += boost.maxHp || 0
+      atk += boost.atk || 0
+      def += boost.def || 0
+    }
+  }
   return { ...base, maxHp, atk, def, moves }
+}
+
+// ─── PERKS ──────────────────────────────────────────────────
+// The pick-1-of-3 promotion pool. Every offer is one stat package
+// (repeatable, stacks), one passive, and one economy perk — so a
+// promotion is always a choice between raw stats, build identity, and
+// money. Magnitudes are tuned so a stat package roughly matches the
+// fixed boost a promotion used to grant.
+export const PERKS: Record<PerkId, PerkDef> = {
+  // Stat packages
+  gym_membership: {
+    id: 'gym_membership',
+    name: 'Gym Membership',
+    desc: '+22 max HP. You actually go.',
+    icon: '🏋️',
+    kind: 'stat',
+    repeatable: true,
+    statBoost: { maxHp: 22 },
+  },
+  assertiveness_training: {
+    id: 'assertiveness_training',
+    name: 'Assertiveness Training',
+    desc: '+3 ATK. You say "no" in meetings now.',
+    icon: '🗣️',
+    kind: 'stat',
+    repeatable: true,
+    statBoost: { atk: 3 },
+  },
+  executive_presence: {
+    id: 'executive_presence',
+    name: 'Executive Presence',
+    desc: '+2 DEF, +10 max HP. Unbothered. Moisturized.',
+    icon: '🤵',
+    kind: 'stat',
+    repeatable: true,
+    statBoost: { def: 2, maxHp: 10 },
+  },
+  balanced_package: {
+    id: 'balanced_package',
+    name: 'Total Comp Package',
+    desc: '+12 max HP, +2 ATK, +1 DEF. A bit of everything.',
+    icon: '📦',
+    kind: 'stat',
+    repeatable: true,
+    statBoost: { maxHp: 12, atk: 2, def: 1 },
+  },
+  // Passives
+  overtime_grind: {
+    id: 'overtime_grind',
+    name: 'Overtime Grind',
+    desc: '+12% damage on all moves. Sleep is for Q3.',
+    icon: '🌙',
+    kind: 'passive',
+    dmgMult: 1.12,
+  },
+  perfectionist: {
+    id: 'perfectionist',
+    name: 'Perfectionist',
+    desc: '+12% crit chance. Every detail audited.',
+    icon: '🔍',
+    kind: 'passive',
+    critBonus: 0.12,
+  },
+  networking_guru: {
+    id: 'networking_guru',
+    name: 'Networking Guru',
+    desc: 'Heal 15% of the damage you deal. Every win is a connection.',
+    icon: '🤝',
+    kind: 'passive',
+    lifesteal: 0.15,
+  },
+  morning_person: {
+    id: 'morning_person',
+    name: 'Morning Person',
+    desc: 'Start every battle Motivated (ATK up). Disgusting, honestly.',
+    icon: '🌅',
+    kind: 'passive',
+    startBattleStatus: 'motivated',
+  },
+  self_care: {
+    id: 'self_care',
+    name: 'Self Care',
+    desc: 'Heal 12 HP after every battle. Boundaries!',
+    icon: '🧘',
+    kind: 'passive',
+    postBattleHeal: 12,
+  },
+  // Economy
+  negotiator: {
+    id: 'negotiator',
+    name: 'Negotiator',
+    desc: '+30% Stock Option payouts. You asked for more. They said yes.',
+    icon: '📈',
+    kind: 'economy',
+    payoutMult: 1.3,
+  },
+  employee_discount: {
+    id: 'employee_discount',
+    name: 'Employee Discount',
+    desc: 'Shop prices -25%. Perks of knowing the vendor.',
+    icon: '🏷️',
+    kind: 'economy',
+    priceMult: 0.75,
+  },
+  headhunter: {
+    id: 'headhunter',
+    name: 'Headhunter Contact',
+    desc: 'Hallway events drop bonus items twice as often.',
+    icon: '📞',
+    kind: 'economy',
+    eventItemChance: 0.6,
+  },
+  signing_bonus: {
+    id: 'signing_bonus',
+    name: 'Signing Bonus',
+    desc: '+60 Stock Options, right now.',
+    icon: '💵',
+    kind: 'economy',
+    instantOptions: 60,
+  },
+}
+
+export const ALL_PERK_IDS = Object.keys(PERKS) as PerkId[]
+
+/**
+ * Roll a promotion's pick-1-of-3 offer: [stat, passive, economy].
+ * Owned one-time perks are excluded; if a category is exhausted it
+ * falls back to a stat package (always repeatable).
+ */
+export function rollPerkOffer(owned: PerkId[], rng: () => number): PerkId[] {
+  const pickFrom = (kind: PerkDef['kind']): PerkId | undefined => {
+    const pool = ALL_PERK_IDS.filter((id) => {
+      const p = PERKS[id]
+      return p.kind === kind && (p.repeatable || !owned.includes(id))
+    })
+    return pool[Math.floor(rng() * pool.length)]
+  }
+  const stat = pickFrom('stat')!
+  const fallback = (): PerkId => {
+    let alt = pickFrom('stat')!
+    // Avoid duplicating the stat slot when possible.
+    for (let i = 0; i < 4 && alt === stat; i++) alt = pickFrom('stat')!
+    return alt
+  }
+  return [stat, pickFrom('passive') ?? fallback(), pickFrom('economy') ?? fallback()]
+}
+
+/** Combat modifiers contributed by owned perks. */
+export function getPerkCombatMods(perks: PerkId[]): {
+  dmgMult: number
+  critBonus: number
+  lifesteal: number
+} {
+  let dmgMult = 1
+  let critBonus = 0
+  let lifesteal = 0
+  for (const id of perks) {
+    const p = PERKS[id]
+    if (!p) continue
+    if (p.dmgMult) dmgMult *= p.dmgMult
+    if (p.critBonus) critBonus += p.critBonus
+    if (p.lifesteal) lifesteal += p.lifesteal
+  }
+  return { dmgMult, critBonus, lifesteal }
+}
+
+// ─── STOCK OPTIONS (currency) ───────────────────────────────
+// Earned on every battle win, scaled by floor; spent at the shop.
+export const CURRENCY_NAME = 'Stock Options'
+export const CURRENCY_ICON = '📈'
+
+export function getVictoryPayout(floor: number, perks: PerkId[] = []): number {
+  const base = 8 + floor * 3
+  const mult = perks.reduce((m, id) => m * (PERKS[id]?.payoutMult ?? 1), 1)
+  return Math.round(base * mult)
 }
 
 // ─── ENEMIES ─────────────────────────────────────────────────
@@ -1103,6 +1285,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'Espresso Shot',
     emoji: '\u2615',
     desc: 'Instant energy. Restores 30 HP.',
+    price: 14,
     effect: { hp: 30 },
   },
   linkedin_endorsement: {
@@ -1110,6 +1293,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'LinkedIn Endorsement',
     emoji: '\uD83D\uDC4D',
     desc: 'Someone endorsed you for "Leadership". +3 ATK this battle.',
+    price: 18,
     effect: { atk: 3 },
   },
   mentors_advice: {
@@ -1117,6 +1301,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: "Mentor's Advice",
     emoji: '\uD83E\uDDD1\u200D\uD83C\uDFEB',
     desc: '"Play to your strengths." Grants Focused status.',
+    price: 16,
     effect: { status: { id: 'focused', target: 'self' } },
   },
   networking_card: {
@@ -1124,6 +1309,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'Networking Card',
     emoji: '\uD83D\uDCBC',
     desc: 'A powerful connection. +3 DEF this battle.',
+    price: 18,
     effect: { def: 3 },
   },
   pto_day: {
@@ -1131,6 +1317,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'PTO Day',
     emoji: '\uD83C\uDFD6\uFE0F',
     desc: 'Take a mental health day. Restores 50 HP.',
+    price: 24,
     effect: { hp: 50 },
   },
   side_hustle: {
@@ -1138,6 +1325,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'Side Hustle',
     emoji: '\uD83D\uDCB0',
     desc: 'Extra income = extra confidence. Restores all PP.',
+    price: 28,
     effect: { ppRestore: 99 },
   },
   standing_desk: {
@@ -1145,6 +1333,7 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'Standing Desk',
     emoji: '\uD83E\uDE91',
     desc: 'Power posture. +4 DEF and restores 15 HP.',
+    price: 22,
     effect: { def: 4, hp: 15 },
   },
   noise_cancelling: {
@@ -1152,7 +1341,48 @@ export const ITEMS: Record<ItemId, ItemDef> = {
     name: 'Noise-Cancelling',
     emoji: '\uD83C\uDFA7',
     desc: 'Block out the chaos. Grants Focused status.',
+    price: 16,
     effect: { status: { id: 'focused', target: 'self' } },
+  },
+  reply_all_grenade: {
+    id: 'reply_all_grenade',
+    name: 'Reply-All Grenade',
+    emoji: '📧',
+    desc: '"Per my last email." Deals 35 damage.',
+    price: 20,
+    effect: { dmgEnemy: 35 },
+  },
+  pip_notice: {
+    id: 'pip_notice',
+    name: 'PIP Notice',
+    emoji: '📋',
+    desc: 'A performance improvement plan. Enemy is Micromanaged (ATK down).',
+    price: 18,
+    effect: { enemyStatus: { id: 'micromanaged' } },
+  },
+  pager_duty: {
+    id: 'pager_duty',
+    name: 'Pager Duty',
+    emoji: '🚨',
+    desc: 'Put them on call. Enemy is Burned Out (damage each turn).',
+    price: 20,
+    effect: { enemyStatus: { id: 'burned_out' } },
+  },
+  reorg_memo: {
+    id: 'reorg_memo',
+    name: 'Reorg Memo',
+    emoji: '📄',
+    desc: '"Your role is impacted." Deals 20 damage and Demoralizes (DEF down).',
+    price: 26,
+    effect: { dmgEnemy: 20, enemyStatus: { id: 'demoralized' } },
+  },
+  forward_to_legal: {
+    id: 'forward_to_legal',
+    name: 'Forward to Legal',
+    emoji: '⚖️',
+    desc: 'The nuclear option. Deals 50 damage.',
+    price: 38,
+    effect: { dmgEnemy: 50 },
   },
 }
 

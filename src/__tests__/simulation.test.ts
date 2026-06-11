@@ -6,12 +6,23 @@
 // progress, so balance changes show up as reviewable test diffs.
 
 import { describe, it, expect } from 'vitest'
-import { ENEMY_POOLS, ITEMS, PLAYER_CLASSES, getEffectivePlayer, getTypeMultiplier } from '@/data'
+import {
+  ENEMY_POOLS,
+  ITEMS,
+  PERKS,
+  PLAYER_CLASSES,
+  getEffectivePlayer,
+  getTypeMultiplier,
+} from '@/data'
 import {
   GameRng,
+  advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
+  buyWellnessDay,
+  choosePerk,
+  leaveShop,
   newBattle,
   newRun,
   pickTwoEvents,
@@ -59,9 +70,9 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
 
   const MAX_TURNS_PER_BATTLE = 200
   for (let floor = 0; floor < ENEMY_POOLS.length; floor++) {
-    run = { ...run, floor }
-    let effectivePlayer = getEffectivePlayer(cls, run.classId, floor)
-    let battle = newBattle(resolveEnemy(run, 1))
+    expect(run.floor, 'advanceFloor keeps the loop and the run in step').toBe(floor)
+    let effectivePlayer = getEffectivePlayer(cls, run.classId, floor, run.perks)
+    let battle = newBattle(resolveEnemy(run, 1), run.perks)
 
     let turns = 0
     while (battle.phase === 'player') {
@@ -98,14 +109,34 @@ function simulateRun(cls: PlayerClass, seed: number): SimOutcome {
       }
     }
 
-    // Victory bookkeeping, then the hallway: always take the first event's
-    // first "good" choice, mirroring a cautious player.
+    // Victory bookkeeping, mirroring the app's between-floor flow:
+    // payout → floor advance → perk pick → shop → hallway event.
     run = applyVictory(run, effectivePlayer.maxHp).run
     run = applyPostBattlePerk(run, effectivePlayer.maxHp)
-    effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor)
+    effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks)
     expect(run.hp, `floor ${floor}: hp <= effective max`).toBeLessThanOrEqual(effectivePlayer.maxHp)
+    expect(run.stockOptions, `floor ${floor}: options >= 0`).toBeGreaterThanOrEqual(0)
 
     if (floor < ENEMY_POOLS.length - 1) {
+      run = advanceFloor(run, rng)
+
+      // Promotion: a simple bot takes the stat package (always offer #0)
+      // and banks the full heal a promotion grants.
+      if (run.pendingPerkOffer) {
+        const statPick = run.pendingPerkOffer.find((id) => PERKS[id].kind === 'stat')!
+        run = choosePerk(run, statPick)
+        effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks)
+        run = { ...run, hp: effectivePlayer.maxHp }
+      }
+
+      // Shop: buy a Wellness Day top-up when meaningfully hurt.
+      if (run.shopStock) {
+        if (run.hp < effectivePlayer.maxHp * 0.7) {
+          run = buyWellnessDay(run, effectivePlayer.maxHp)
+        }
+        run = leaveShop(run)
+      }
+
       const picked = pickTwoEvents(run, rng)
       run = picked.run
       // Take the choice (across both offered events) that best fits the

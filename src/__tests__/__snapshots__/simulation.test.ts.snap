@@ -3,25 +3,25 @@
 exports[`seeded full-run simulation > balance outcome table is stable (review the diff when tuning) 1`] = `
 {
   "design": {
-    "1": "floors=14 turns=57",
-    "1337": "floors=14 turns=44",
-    "20260611": "floors=14 turns=51",
-    "42": "floors=19 turns=75",
-    "99999": "floors=14 turns=47",
+    "1": "floors=13 turns=53",
+    "1337": "floors=14 turns=40",
+    "20260611": "floors=14 turns=48",
+    "42": "floors=14 turns=50",
+    "99999": "floors=14 turns=46",
   },
   "eng": {
-    "1": "floors=13 turns=38",
-    "1337": "floors=16 turns=41",
-    "20260611": "floors=13 turns=27",
-    "42": "floors=14 turns=32",
+    "1": "floors=13 turns=32",
+    "1337": "floors=13 turns=30",
+    "20260611": "floors=8 turns=14",
+    "42": "floors=13 turns=30",
     "99999": "floors=13 turns=26",
   },
   "pm": {
-    "1": "floors=11 turns=34",
-    "1337": "floors=9 turns=34",
-    "20260611": "floors=8 turns=28",
-    "42": "floors=9 turns=44",
-    "99999": "floors=9 turns=27",
+    "1": "floors=13 turns=37",
+    "1337": "floors=13 turns=46",
+    "20260611": "floors=9 turns=35",
+    "42": "floors=12 turns=61",
+    "99999": "floors=13 turns=42",
   },
 }
 `;

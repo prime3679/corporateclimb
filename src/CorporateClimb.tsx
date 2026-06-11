@@ -2,12 +2,13 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { SFX } from './sfx'
 import { Music } from './music'
 import { buildSpriteUrls } from './sprites'
-import type { HallwayEvent, Move, PlayerClass, PromotionTier, Screen } from './types'
+import type { HallwayEvent, Move, PerkId, PlayerClass, Screen } from './types'
 import { Button, Stage } from './ui'
 import {
   ACHIEVEMENTS,
   ENEMY_POOLS,
   ITEMS,
+  PERKS,
   PLAYER_CLASSES,
   checkAchievements,
   getAct,
@@ -27,6 +28,7 @@ import {
   HallwayEventScreen,
   FloorIntro,
   RouteChoice,
+  ShopScreen,
 } from './screens'
 import PromotionScreen from './screens/PromotionScreen'
 import ActTransitionScreen from './screens/ActTransitionScreen'
@@ -36,11 +38,17 @@ import { DAILY_FLOOR_COUNT, calculateDailyScore, saveDailyResult } from './daily
 import { STRUGGLE_MOVE } from './battle'
 import {
   GameRng,
+  MAX_INVENTORY,
+  advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
   battleIntroLine,
+  buyShopItem,
+  buyWellnessDay,
+  choosePerk,
   clearSave,
+  leaveShop,
   loadRun,
   newBattle,
   newDailyRun,
@@ -100,13 +108,9 @@ export default function CorporateClimb() {
 
   // Screen-flow state
   const [battleMode, setBattleMode] = useState<'fight' | 'items'>('fight')
-  const [xpResult, setXpResult] = useState({ xpGained: 0, leveledUp: false })
+  const [xpResult, setXpResult] = useState({ xpGained: 0, leveledUp: false, optionsGained: 0 })
   const [routeOptions, setRouteOptions] = useState<[HallwayEvent, HallwayEvent] | null>(null)
   const [currentEvent, setCurrentEvent] = useState<HallwayEvent | null>(null)
-  const [pendingPromotion, setPendingPromotion] = useState<{
-    old: PromotionTier
-    new: PromotionTier
-  } | null>(null)
   const [pendingActTransition, setPendingActTransition] = useState<number | null>(null)
   const [newAchievements, setNewAchievements] = useState<import('./types').AchievementId[]>([])
   const [muted, setMuted] = useState(() => {
@@ -160,7 +164,8 @@ export default function CorporateClimb() {
   const player: PlayerClass | null = run
     ? (PLAYER_CLASSES.find((c) => c.id === run.classId) ?? null)
     : null
-  const effectivePlayer = player && run ? getEffectivePlayer(player, run.classId, run.floor) : null
+  const effectivePlayer =
+    player && run ? getEffectivePlayer(player, run.classId, run.floor, run.perks) : null
   const promotionTier = run ? getPromotion(run.classId, run.floor) : null
   const enemy = run ? resolveEnemy(run, view?.enemyPhase ?? 1) : null
 
@@ -204,6 +209,7 @@ export default function CorporateClimb() {
       case 'hallwayEvent':
       case 'floorIntro':
       case 'routeChoice':
+      case 'shop':
         Music.playEvent()
         break
       case 'victory':
@@ -218,12 +224,12 @@ export default function CorporateClimb() {
   const handleWin = useCallback(
     (winRun: RunState) => {
       const cls = PLAYER_CLASSES.find((c) => c.id === winRun.classId)!
-      const effMaxHp = getEffectivePlayer(cls, winRun.classId, winRun.floor).maxHp
+      const effMaxHp = getEffectivePlayer(cls, winRun.classId, winRun.floor, winRun.perks).maxHp
       after(500, () => {
         SFX.victory()
-        const { run: next, xpGained, leveledUp } = applyVictory(winRun, effMaxHp)
+        const { run: next, xpGained, leveledUp, optionsGained } = applyVictory(winRun, effMaxHp)
         setRun(next)
-        setXpResult({ xpGained, leveledUp })
+        setXpResult({ xpGained, leveledUp, optionsGained })
         if (leveledUp) after(600, () => SFX.levelUp())
         setScreen('victory')
       })
@@ -311,7 +317,10 @@ export default function CorporateClimb() {
     if (!saved) return
     SFX.menuConfirm()
     setRun(saved)
-    setScreen('floorIntro')
+    // A reload mid-promotion or mid-shop resumes the pending choice.
+    if (saved.pendingPerkOffer) setScreen('promotion')
+    else if (saved.shopStock) setScreen('shop')
+    else setScreen('floorIntro')
   }
 
   const selectClass = (cls: PlayerClass) => {
@@ -348,7 +357,6 @@ export default function CorporateClimb() {
     setBattleMode('fight')
     setRouteOptions(null)
     setCurrentEvent(null)
-    setPendingPromotion(null)
     setPendingActTransition(null)
     setNewAchievements([])
     setScreenRaw('title')
@@ -359,8 +367,13 @@ export default function CorporateClimb() {
   const startBattle = () => {
     if (!run) return
     const foe = resolveEnemy(run, 1)
-    setBattle(newBattle(foe))
-    setView(initialBattleView(run.hp, foe.maxHp, battleIntroLine(foe)))
+    const b = newBattle(foe, run.perks)
+    setBattle(b)
+    // Perk-granted opening statuses (e.g. Morning Person) show from turn one.
+    setView({
+      ...initialBattleView(run.hp, foe.maxHp, battleIntroLine(foe)),
+      playerStatuses: b.playerStatuses,
+    })
     setBattleMode('fight')
     if (run.floor % 10 >= 8) SFX.bossIntro()
     else SFX.enemyAppear()
@@ -380,13 +393,27 @@ export default function CorporateClimb() {
     setScreen('routeChoice')
   }
 
+  /** Route to whichever interstitial the advanced run calls for. */
+  const proceedAfterFloorAdvance = (next: RunState, actPending: number | null) => {
+    if (next.pendingPerkOffer) {
+      SFX.fanfare()
+      setScreen('promotion')
+    } else if (next.shopStock) {
+      setScreen('shop')
+    } else if (actPending) {
+      setScreen('actTransition')
+    } else {
+      proceedToRouteChoice(next)
+    }
+  }
+
   const handleVictoryContinue = () => {
     if (!run) return
     SFX.menuConfirm()
     setView(null)
     setBattle(null)
     const cls = PLAYER_CLASSES.find((c) => c.id === run.classId)!
-    const effMaxHp = getEffectivePlayer(cls, run.classId, run.floor).maxHp
+    const effMaxHp = getEffectivePlayer(cls, run.classId, run.floor, run.perks).maxHp
     let next = applyPostBattlePerk(run, effMaxHp)
 
     const totalFloors = next.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
@@ -434,36 +461,61 @@ export default function CorporateClimb() {
     }
 
     const prevFloor = next.floor
-    next = { ...next, floor: prevFloor + 1 }
+    const rng = new GameRng(next.rngState)
+    next = { ...advanceFloor(next, rng.next), rngState: rng.serialize() }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
 
     const isDaily = next.mode.kind === 'daily'
-    const prevPromo = isDaily ? null : getPromotion(next.classId, prevFloor)
-    const nextPromo = isDaily ? null : getPromotion(next.classId, next.floor)
-    const hasPromotion = !!(prevPromo && nextPromo && prevPromo.title !== nextPromo.title)
-    const hasActTransition = !isDaily && getAct(prevFloor) !== getAct(next.floor)
+    const actPending =
+      !isDaily && getAct(prevFloor) !== getAct(next.floor) ? getAct(next.floor) : null
+    if (actPending) setPendingActTransition(actPending)
 
-    if (hasPromotion && prevPromo && nextPromo) {
-      setPendingPromotion({ old: prevPromo, new: nextPromo })
-      if (hasActTransition) setPendingActTransition(getAct(next.floor))
-      SFX.fanfare()
-      setScreen('promotion')
-    } else if (hasActTransition) {
-      setPendingActTransition(getAct(next.floor))
+    proceedAfterFloorAdvance(next, actPending)
+  }
+
+  const handlePerkPick = (perkId: PerkId) => {
+    if (!run || !player) return
+    SFX.menuConfirm()
+    let next = choosePerk(run, perkId)
+    // A promotion comes with a full heal (against the new perk's max HP).
+    const fullHp = getEffectivePlayer(player, next.classId, next.floor, next.perks).maxHp
+    next = { ...next, hp: fullHp }
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.shopStock) {
+      setScreen('shop')
+    } else if (pendingActTransition) {
       setScreen('actTransition')
     } else {
       proceedToRouteChoice(next)
     }
   }
 
-  const handlePromotionContinue = () => {
-    if (!run || !player) return
+  const handleShopBuyItem = (stockIdx: number) => {
+    if (!run) return
+    const next = buyShopItem(run, stockIdx)
+    if (next === run) return
     SFX.menuConfirm()
-    const fullHp = getEffectivePlayer(player, run.classId, run.floor).maxHp
-    const next = { ...run, hp: fullHp }
     setRun(next)
-    setPendingPromotion(null)
+    if (next.mode.kind === 'normal') saveRun(next)
+  }
+
+  const handleShopBuyWellness = () => {
+    if (!run || !effectivePlayer) return
+    const next = buyWellnessDay(run, effectivePlayer.maxHp)
+    if (next === run) return
+    SFX.heal()
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+  }
+
+  const handleShopLeave = () => {
+    if (!run) return
+    SFX.menuConfirm()
+    const next = leaveShop(run)
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
     if (pendingActTransition) {
       setScreen('actTransition')
     } else {
@@ -633,6 +685,7 @@ export default function CorporateClimb() {
             onSetBattleMode={setBattleMode}
             promotionTitle={promotionTier?.title}
             playerMaxHp={effectivePlayer.maxHp}
+            stockOptions={run.stockOptions}
             onTextTap={() => sequencer.skip()}
             textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
           />
@@ -641,17 +694,29 @@ export default function CorporateClimb() {
           <BattleVictoryScreen
             enemy={enemy}
             xpGained={xpResult.xpGained}
+            optionsGained={xpResult.optionsGained}
             leveledUp={xpResult.leveledUp}
             newLevel={run.level}
             onContinue={handleVictoryContinue}
           />
         )}
-        {screen === 'promotion' && player && pendingPromotion && (
+        {screen === 'promotion' && player && run?.pendingPerkOffer && (
           <PromotionScreen
             player={player}
-            oldTier={pendingPromotion.old}
-            newTier={pendingPromotion.new}
-            onContinue={handlePromotionContinue}
+            oldTier={getPromotion(run.classId, run.floor - 1) ?? { floor: 0, title: '' }}
+            newTier={getPromotion(run.classId, run.floor) ?? { floor: 0, title: '' }}
+            offers={run.pendingPerkOffer.map((id) => PERKS[id])}
+            onPick={handlePerkPick}
+          />
+        )}
+        {screen === 'shop' && run && effectivePlayer && (
+          <ShopScreen
+            run={run}
+            maxHp={effectivePlayer.maxHp}
+            inventoryFull={run.inventory.length >= MAX_INVENTORY}
+            onBuyItem={handleShopBuyItem}
+            onBuyWellness={handleShopBuyWellness}
+            onLeave={handleShopLeave}
           />
         )}
         {screen === 'actTransition' && pendingActTransition && (

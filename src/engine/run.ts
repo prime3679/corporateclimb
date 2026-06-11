@@ -4,13 +4,18 @@
 // RunState. The hallway-event item reward is returned explicitly so
 // the UI can announce it (it used to be granted silently).
 
-import type { ClassId, Enemy, HallwayEvent, ItemId, PlayerClass } from '@/types'
+import type { ClassId, Enemy, HallwayEvent, ItemId, PerkId, PlayerClass } from '@/types'
 import {
   ALL_ITEM_IDS,
   CLASS_STARTING_ITEMS,
   HALLWAY_EVENTS,
+  PERKS,
   PLAYER_CLASSES,
+  STATUS_DEFS,
+  getPromotion,
+  getVictoryPayout,
   rollFloorEnemies,
+  rollPerkOffer,
 } from '@/data'
 import {
   createSeededRandom,
@@ -21,9 +26,10 @@ import {
 } from '@/daily'
 import type { DailyModifierContext } from '@/types'
 import type { Rng } from './rng'
-import type { BattleState, RunState } from './state'
+import { MAX_INVENTORY, type BattleState, type RunState } from './state'
+import { isShopFloor, rollShopStock } from './shop'
 
-export const MAX_INVENTORY = 4
+export { MAX_INVENTORY }
 
 const FRESH_PROGRESS = {
   floor: 0,
@@ -34,6 +40,10 @@ const FRESH_PROGRESS = {
   defBuff: 0,
   usedEvents: [] as string[],
   stats: { totalTurns: 0, totalDamageDealt: 0, itemsUsed: 0 },
+  stockOptions: 0,
+  perks: [] as PerkId[],
+  pendingPerkOffer: null,
+  shopStock: null,
 }
 
 function startingInventory(classId: string): ItemId[] {
@@ -114,14 +124,22 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass): RunState {
     stats: { totalTurns: 0, totalDamageDealt: 0, itemsUsed: 0 },
     usedEvents: [],
     rngState: null,
+    stockOptions: 0,
+    perks: [],
+    pendingPerkOffer: null,
+    shopStock: null,
   }
 }
 
-export function newBattle(enemy: Enemy): BattleState {
+export function newBattle(enemy: Enemy, perks: PerkId[] = []): BattleState {
+  const opening = perks
+    .map((id) => PERKS[id]?.startBattleStatus)
+    .filter((s): s is NonNullable<typeof s> => !!s)
+    .map((id) => ({ id, turnsLeft: STATUS_DEFS[id].duration }))
   return {
     enemyHp: enemy.maxHp,
     enemyPhase: 1,
-    playerStatuses: [],
+    playerStatuses: opening,
     enemyStatuses: [],
     phase: 'player',
   }
@@ -179,7 +197,8 @@ export function applyEventChoice(
     pp = pp.map((v, i) => Math.min(effectivePlayer.moves[i].pp, v + eff.ppRestore!))
   }
 
-  if (inventory.length < MAX_INVENTORY && rng() < 0.3) {
+  const itemChance = run.perks.reduce((c, id) => Math.max(c, PERKS[id]?.eventItemChance ?? 0), 0.3)
+  if (inventory.length < MAX_INVENTORY && rng() < itemChance) {
     itemGained = ALL_ITEM_IDS[Math.floor(rng() * ALL_ITEM_IDS.length)]
     inventory = [...inventory, itemGained]
   }
@@ -198,16 +217,18 @@ export function applyEventChoice(
   }
 }
 
-/** XP award and level-up after a battle win. */
+/** XP + Stock Option payout and level-up after a battle win. */
 export function applyVictory(
   run: RunState,
   effectiveMaxHp: number,
-): { run: RunState; xpGained: number; leveledUp: boolean } {
+): { run: RunState; xpGained: number; leveledUp: boolean; optionsGained: number } {
   const xpGained = 15 + run.floor * 7
+  const optionsGained = getVictoryPayout(run.floor, run.perks)
   const newXp = run.xp + xpGained
+  const stockOptions = run.stockOptions + optionsGained
   const leveledUp = newXp >= run.xpToNext
   if (!leveledUp) {
-    return { run: { ...run, xp: newXp }, xpGained, leveledUp }
+    return { run: { ...run, xp: newXp, stockOptions }, xpGained, leveledUp, optionsGained }
   }
   return {
     run: {
@@ -216,14 +237,58 @@ export function applyVictory(
       xp: newXp - run.xpToNext,
       xpToNext: run.xpToNext + 25,
       hp: Math.min(effectiveMaxHp, run.hp + 20),
+      stockOptions,
     },
     xpGained,
     leveledUp,
+    optionsGained,
   }
 }
 
-/** PM class perk: heal 5 HP after each battle. */
+/** Post-battle healing: PM class perk (5 HP) plus any Self Care perk. */
 export function applyPostBattlePerk(run: RunState, effectiveMaxHp: number): RunState {
-  if (run.classId !== 'pm') return run
-  return { ...run, hp: Math.min(effectiveMaxHp, run.hp + 5) }
+  let heal = run.classId === 'pm' ? 5 : 0
+  for (const id of run.perks) heal += PERKS[id]?.postBattleHeal ?? 0
+  if (heal === 0) return run
+  return { ...run, hp: Math.min(effectiveMaxHp, run.hp + heal) }
+}
+
+// ─── FLOOR ADVANCEMENT ──────────────────────────────────────
+// Moving to the next floor may queue a promotion perk choice and/or
+// open the shop. Both are rolled here, through the injected rng, and
+// stored on the run — so a reload mid-choice resumes instead of
+// silently skipping the reward.
+
+/** Whether moving prevFloor → nextFloor crosses a promotion tier. */
+export function promotionBetween(classId: string, prevFloor: number, nextFloor: number): boolean {
+  const prev = getPromotion(classId, prevFloor)
+  const next = getPromotion(classId, nextFloor)
+  return !!(prev && next && prev.title !== next.title)
+}
+
+/** Advance to the next floor, rolling any perk offer / shop stock. */
+export function advanceFloor(run: RunState, rng: Rng): RunState {
+  const prevFloor = run.floor
+  const nextFloor = prevFloor + 1
+  const mode = run.mode.kind
+  const promoted = promotionBetween(run.classId, prevFloor, nextFloor)
+  const itemsEnabled = run.mode.kind !== 'daily' || run.mode.modifier.itemsEnabled
+  const shop = isShopFloor(nextFloor, mode) && itemsEnabled
+  return {
+    ...run,
+    floor: nextFloor,
+    pendingPerkOffer: promoted ? rollPerkOffer(run.perks, rng) : run.pendingPerkOffer,
+    shopStock: shop ? rollShopStock(rng) : null,
+  }
+}
+
+/** Resolve a pending promotion offer; no-op if the pick isn't offered. */
+export function choosePerk(run: RunState, perkId: PerkId): RunState {
+  if (!run.pendingPerkOffer?.includes(perkId)) return run
+  return {
+    ...run,
+    perks: [...run.perks, perkId],
+    pendingPerkOffer: null,
+    stockOptions: run.stockOptions + (PERKS[perkId]?.instantOptions ?? 0),
+  }
 }
