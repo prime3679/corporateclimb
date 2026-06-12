@@ -666,21 +666,6 @@ export function rollPerkOffer(
   return [stat, pickFrom('passive') ?? fallback(), pickFrom('economy') ?? fallback()]
 }
 
-/** Conditional damage multipliers (low-HP / boss-floor perks). */
-export function getConditionalDmgMult(
-  perks: PerkId[],
-  opts: { lowHp: boolean; bossFloor: boolean },
-): number {
-  let mult = 1
-  for (const id of perks) {
-    const p = PERKS[id]
-    if (!p) continue
-    if (p.lowHpDmgMult && opts.lowHp) mult *= p.lowHpDmgMult
-    if (p.bossDmgMult && opts.bossFloor) mult *= p.bossDmgMult
-  }
-  return mult
-}
-
 /** Owned perks grouped for display, in first-pick order, with stack counts. */
 export function groupPerks(perks: PerkId[]): { perk: PerkDef; count: number }[] {
   const grouped: { perk: PerkDef; count: number }[] = []
@@ -692,25 +677,6 @@ export function groupPerks(perks: PerkId[]): { perk: PerkDef; count: number }[] 
     else grouped.push({ perk: def, count: 1 })
   }
   return grouped
-}
-
-/** Combat modifiers contributed by owned perks. */
-export function getPerkCombatMods(perks: PerkId[]): {
-  dmgMult: number
-  critBonus: number
-  lifesteal: number
-} {
-  let dmgMult = 1
-  let critBonus = 0
-  let lifesteal = 0
-  for (const id of perks) {
-    const p = PERKS[id]
-    if (!p) continue
-    if (p.dmgMult) dmgMult *= p.dmgMult
-    if (p.critBonus) critBonus += p.critBonus
-    if (p.lifesteal) lifesteal += p.lifesteal
-  }
-  return { dmgMult, critBonus, lifesteal }
 }
 
 // ─── STATUS SYMBOLS (relics) ────────────────────────────────
@@ -824,25 +790,6 @@ export function rollRelicDrop(
   const pool = dropPool.filter((id) => !owned.includes(id))
   if (pool.length === 0) return null
   return pool[Math.floor(rng() * pool.length)]
-}
-
-/** Combat modifiers contributed by owned relics. */
-export function getRelicCombatMods(relics: RelicId[]): {
-  dmgMult: number
-  critBonus: number
-  burnGuard: boolean
-} {
-  let dmgMult = 1
-  let critBonus = 0
-  let burnGuard = false
-  for (const id of relics) {
-    const r = RELICS[id]
-    if (!r) continue
-    if (r.dmgMult) dmgMult *= r.dmgMult
-    if (r.critBonus) critBonus += r.critBonus
-    if (r.burnGuard) burnGuard = true
-  }
-  return { dmgMult, critBonus, burnGuard }
 }
 
 // ─── ELITE FLOORS ───────────────────────────────────────────

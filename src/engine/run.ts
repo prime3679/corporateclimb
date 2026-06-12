@@ -33,6 +33,7 @@ import {
 } from '@/daily'
 import type { DailyModifierContext } from '@/types'
 import type { Rng } from './rng'
+import { collectMods } from './modifiers'
 import { MAX_INVENTORY, type BattleState, type RunState } from './state'
 import { isShopFloor, rollShopStock } from './shop'
 
@@ -162,10 +163,10 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass, pools?: RunPools):
 }
 
 export function newBattle(enemy: Enemy, perks: PerkId[] = []): BattleState {
-  const opening = perks
-    .map((id) => PERKS[id]?.startBattleStatus)
-    .filter((s): s is NonNullable<typeof s> => !!s)
-    .map((id) => ({ id, turnsLeft: STATUS_DEFS[id].duration }))
+  const opening = collectMods(perks, []).startBattleStatuses.map((id) => ({
+    id,
+    turnsLeft: STATUS_DEFS[id].duration,
+  }))
   return {
     enemyHp: enemy.maxHp,
     enemyPhase: 1,
@@ -227,7 +228,7 @@ export function applyEventChoice(
     pp = pp.map((v, i) => Math.min(effectivePlayer.moves[i].pp, v + eff.ppRestore!))
   }
 
-  const itemChance = run.perks.reduce((c, id) => Math.max(c, PERKS[id]?.eventItemChance ?? 0), 0.3)
+  const itemChance = collectMods(run.perks, run.relics).eventItemChance
   if (inventory.length < MAX_INVENTORY && rng() < itemChance) {
     itemGained = ALL_ITEM_IDS[Math.floor(rng() * ALL_ITEM_IDS.length)]
     inventory = [...inventory, itemGained]
@@ -278,9 +279,7 @@ export function applyVictory(
 
 /** Post-battle healing: PM class perk (5 HP), Self Care, relic thrones. */
 export function applyPostBattlePerk(run: RunState, effectiveMaxHp: number): RunState {
-  let heal = run.classId === 'pm' ? 5 : 0
-  for (const id of run.perks) heal += PERKS[id]?.postBattleHeal ?? 0
-  for (const id of run.relics) heal += RELICS[id]?.postBattleHeal ?? 0
+  const heal = (run.classId === 'pm' ? 5 : 0) + collectMods(run.perks, run.relics).postBattleHeal
   if (heal === 0) return run
   return { ...run, hp: Math.min(effectiveMaxHp, run.hp + heal) }
 }

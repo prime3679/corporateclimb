@@ -49,7 +49,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
 - [x] 1. Engine flow resolver (`engine/flow.ts`), adopt in
      `CorporateClimb.tsx` + resume. Fixes the resume/act-transition
      drift by construction.
-- [ ] 2. Unified modifier collection (`engine/modifiers.ts`).
+- [x] 2. Unified modifier collection (`engine/modifiers.ts`).
 - [ ] 3. Move game logic out of `data.ts` into engine modules
      (`scaling`, `economy`, `player`, offer/drop rolls).
 - [ ] 4. Split content tables into `src/content/`; `data.ts` becomes
@@ -77,3 +77,17 @@ route entry, promotion fanfare suppressed on resume) and lost
 lines in the component. 7 resolver tests pin the ordering, daily
 events-disabled skip, and resume semantics. Gate: 267 unit / 11 e2e
 green; balance snapshot untouched.
+
+### Step 2 — unified modifiers (done)
+
+`engine/modifiers.ts`: `collectMods(perks, relics)` folds both effect
+sources into one `Mods` record. Converted every consumer — damage,
+crit, lifesteal, conditional (low-HP / boss) multipliers, burn guard
+in `turn.ts`; post-battle heal, event item chance, battle-opening
+statuses in `run.ts`; price multipliers in `shop.ts` — and deleted
+`getPerkCombatMods`, `getRelicCombatMods`, `getConditionalDmgMult`
+from `data.ts`. `getVictoryPayout`/`getEffectivePlayer` still hold
+their own loops in `data.ts` to avoid an engine→data→engine cycle;
+they move into the engine in step 3, which closes the "exactly one
+collection path" goal. Gate: 267 unit / 11 e2e green; balance
+snapshot byte-identical.

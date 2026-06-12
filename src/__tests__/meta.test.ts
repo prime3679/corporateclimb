@@ -14,7 +14,6 @@ import {
   PERKS,
   PLAYER_CLASSES,
   RELICS,
-  getConditionalDmgMult,
   getEffectivePlayer,
   getVictoryPayout,
   rollPerkOffer,
@@ -26,6 +25,7 @@ import {
 import {
   SAVE_KEY,
   advanceFloor,
+  collectMods,
   awardEliteSpoils,
   clearSave,
   loadRun,
@@ -120,13 +120,13 @@ describe('unlock pools', () => {
 })
 
 describe('unlockable content effects', () => {
-  it('conditional damage multipliers fire only in their situation', () => {
-    expect(getConditionalDmgMult(['golden_handcuffs'], { lowHp: true, bossFloor: false })).toBe(
-      1.25,
-    )
-    expect(getConditionalDmgMult(['golden_handcuffs'], { lowHp: false, bossFloor: false })).toBe(1)
-    expect(getConditionalDmgMult(['killer_instinct'], { lowHp: false, bossFloor: true })).toBe(1.2)
-    expect(getConditionalDmgMult(['killer_instinct'], { lowHp: false, bossFloor: false })).toBe(1)
+  it('conditional damage multipliers are collected per situation', () => {
+    const cuffs = collectMods(['golden_handcuffs'], [])
+    expect(cuffs.lowHpDmgMult).toBe(1.25)
+    expect(cuffs.bossDmgMult).toBe(1)
+    const shark = collectMods(['killer_instinct'], [])
+    expect(shark.bossDmgMult).toBe(1.2)
+    expect(shark.lowHpDmgMult).toBe(1)
   })
 
   it('Golden Handcuffs boosts damage in battle below 30% HP', () => {

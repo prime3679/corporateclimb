@@ -48,4 +48,5 @@ export {
   shopPrice,
 } from './shop'
 export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowStop } from './flow'
+export { collectMods, type Mods } from './modifiers'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'
