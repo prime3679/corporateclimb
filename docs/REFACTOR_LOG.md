@@ -54,7 +54,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
      (`scaling`, `economy`, `player`, offer/drop rolls).
 - [x] 4. Split content tables into `src/content/`; `data.ts` becomes
      the barrel.
-- [ ] 5. Table-ize save migrations.
+- [x] 5. Table-ize save migrations.
 - [ ] 6. Final pass: docs, dead exports, full gate, live test, PR.
 
 ## Step log
@@ -113,3 +113,12 @@ import surface — zero import churn for consumers. Largest module is
 `enemies.ts` (1,442 lines of pure tables). Also cleaned two latent
 lint warnings (unused `MoveType` import; `ExecutiveScene`'s unused
 palette param). Gate: 267 unit / 11 e2e green; snapshot byte-identical.
+
+### Step 5 — migration pipeline (done)
+
+`save.ts`: the five-branch nested call chain became a
+`MIGRATIONS[v]` table walked by `migrateFrom(version, run)`; adding a
+save version is now one table entry plus a `SAVE_VERSION` bump, and
+`loadRun` never changes again. Typed per-step migrators unchanged.
+All migration-path tests (v1→, v2→, v3→, v4→, v5→, v6 round-trip)
+pass unchanged. Gate: 267 unit / 11 e2e green.

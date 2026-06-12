@@ -25,11 +25,6 @@ import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'
 
-interface SaveFileV6 {
-  version: 6
-  run: RunState
-}
-
 interface SaveFileV5 {
   version: 5
   run: Omit<RunState, 'mystery'>
@@ -120,46 +115,48 @@ function migrateV1(data: SaveData): SaveFileV2['run'] {
   }
 }
 
+export const SAVE_VERSION = 6
+
+/**
+ * The migration pipeline: MIGRATIONS[v] lifts a v-shaped run to v+1.
+ * Adding a save version means appending one entry here (and bumping
+ * SAVE_VERSION) — loadRun never changes again.
+ */
+const MIGRATIONS: Record<number, (run: never) => unknown> = {
+  2: migrateToV3,
+  3: migrateToV4,
+  4: migrateToV5,
+  5: migrateToV6,
+}
+
+function migrateFrom(version: number, run: unknown): RunState {
+  let r = run
+  for (let v = version; v < SAVE_VERSION; v++) r = MIGRATIONS[v](r as never)
+  return r as RunState
+}
+
 export function saveRun(run: RunState) {
   try {
-    const file: SaveFileV6 = { version: 6, run }
-    localStorage.setItem(SAVE_KEY, JSON.stringify(file))
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, run }))
   } catch {
     /* storage unavailable */
   }
 }
 
-/** Load and validate a saved run; accepts v6 or migrates v5..v1. */
+/** Load and validate a saved run, migrating any older shape. */
 export function loadRun(): RunState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as
-      | SaveFileV6
-      | SaveFileV5
-      | SaveFileV4
-      | SaveFileV3
-      | SaveFileV2
-      | SaveData
+    const parsed = JSON.parse(raw) as { version: number; run: SaveFileV2['run'] } | SaveData
     let run: RunState
-    if ('version' in parsed && parsed.version === 6) {
+    if ('version' in parsed) {
+      if (parsed.version < 2 || parsed.version > SAVE_VERSION) return null
       // Daily runs are never persisted; a daily-mode save is stale.
       if (parsed.run.mode.kind !== 'normal') return null
-      run = parsed.run
-    } else if ('version' in parsed && parsed.version === 5) {
-      if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV6(parsed.run)
-    } else if ('version' in parsed && parsed.version === 4) {
-      if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV6(migrateToV5(parsed.run))
-    } else if ('version' in parsed && parsed.version === 3) {
-      if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV6(migrateToV5(migrateToV4(parsed.run)))
-    } else if ('version' in parsed && parsed.version === 2) {
-      if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV6(migrateToV5(migrateToV4(migrateToV3(parsed.run))))
+      run = migrateFrom(parsed.version, parsed.run)
     } else if ('classId' in parsed) {
-      run = migrateToV6(migrateToV5(migrateToV4(migrateToV3(migrateV1(parsed as SaveData)))))
+      run = migrateFrom(2, migrateV1(parsed))
     } else {
       return null
     }
