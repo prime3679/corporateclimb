@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
-import type { Enemy, PlayerClass } from '@/types'
-import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct } from '@/data'
+import type { Enemy, MysteryOutcome, PlayerClass } from '@/types'
+import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct, getMysteryInfo } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 
 const FLOOR_LABELS: Record<number, string> = {
@@ -87,12 +87,15 @@ export default function FloorIntro({
   player,
   onReady,
   totalFloors,
+  mystery,
 }: {
   enemy: Enemy
   floor: number
   player?: PlayerClass
   onReady: () => void
   totalFloors?: number
+  /** Revealed Mystery Floor outcome, if the unmarked elevator was taken. */
+  mystery?: MysteryOutcome | null
 }) {
   const [show, setShow] = useState(false)
   const sprites = getSpriteUrls()
@@ -253,6 +256,41 @@ export default function FloorIntro({
       >
         FLOOR {totalFloors ? floor + 1 : enemy.floor}
       </div>
+      {mystery && (
+        <div
+          style={{
+            border: '2px dashed var(--gold)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 14px',
+            maxWidth: 320,
+            opacity: show ? 1 : 0,
+            transition: 'opacity 0.6s ease 0.2s',
+            background: 'rgba(255,193,7,0.1)',
+          }}
+        >
+          <div
+            className="t-display"
+            style={{
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--gold-bright)',
+              letterSpacing: 2,
+            }}
+          >
+            {getMysteryInfo(mystery).banner}
+          </div>
+          <div
+            className="t-body"
+            style={{
+              fontSize: 'var(--body-sm)',
+              color: 'var(--paper)',
+              lineHeight: 1.2,
+              marginTop: 4,
+            }}
+          >
+            {getMysteryInfo(mystery).desc}
+          </div>
+        </div>
+      )}
       <div
         className="t-display"
         style={{

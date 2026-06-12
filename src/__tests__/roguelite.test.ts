@@ -16,6 +16,7 @@ import {
   buyShopItem,
   buyWellnessDay,
   chooseElevator,
+  chooseMysteryFloor,
   choosePerk,
   clearSave,
   eliteAvailable,
@@ -580,5 +581,71 @@ describe('save migration to v4', () => {
     const run = makeRun({ relics: ['segway' as RelicId] })
     saveRun(run)
     expect(loadRun()).toBeNull()
+  })
+})
+
+// ─── Mystery floors ──────────────────────────────────────────
+
+describe('mystery floors', () => {
+  it('rolls a weighted outcome and clears the elite flag', () => {
+    const run = makeRun({ floor: 5, eliteFloor: true })
+    const next = chooseMysteryFloor(run, seq(0))
+    expect(next.mystery).toBe('windfall') // first entry of the table
+    expect(next.eliteFloor).toBe(false)
+  })
+
+  it('is refused where elites are unavailable', () => {
+    const early = makeRun({ floor: 2 })
+    expect(chooseMysteryFloor(early, seq(0))).toBe(early)
+  })
+
+  it('covers every outcome across the roll range', () => {
+    const seen = new Set(
+      [0.01, 0.35, 0.6, 0.99].map((r) => chooseMysteryFloor(makeRun({ floor: 5 }), seq(r)).mystery),
+    )
+    expect(seen).toEqual(new Set(['windfall', 'slacker', 'ambush', 'jackpot']))
+  })
+
+  it('ambush fights the elite enemy; slacker fights a weakened one', () => {
+    const base = resolveEnemy(makeRun({ floor: 5 }), 1)
+    const ambush = resolveEnemy(makeRun({ floor: 5, mystery: 'ambush' }), 1)
+    const slacker = resolveEnemy(makeRun({ floor: 5, mystery: 'slacker' }), 1)
+    expect(ambush.name).toBe(`Elite ${base.name}`)
+    expect(slacker.maxHp).toBeLessThan(base.maxHp)
+    expect(slacker.name).toContain('Slacking')
+  })
+
+  it('windfall doubles the payout; ambush does not', () => {
+    const std = applyVictory(makeRun({ floor: 5 }), PM.maxHp).optionsGained
+    const windfall = applyVictory(makeRun({ floor: 5, mystery: 'windfall' }), PM.maxHp)
+    const ambush = applyVictory(makeRun({ floor: 5, mystery: 'ambush' }), PM.maxHp)
+    expect(windfall.optionsGained).toBe(std * 2)
+    expect(ambush.optionsGained).toBe(std)
+  })
+
+  it('jackpot drops a relic; ambush drops nothing', () => {
+    const jackpot = awardEliteSpoils(
+      makeRun({ floor: 5, mystery: 'jackpot' }),
+      createSeededRandom(1),
+    )
+    expect(jackpot.relicGained).not.toBeNull()
+    const ambush = makeRun({ floor: 5, mystery: 'ambush' })
+    expect(awardEliteSpoils(ambush, createSeededRandom(1)).run).toBe(ambush)
+  })
+
+  it('advancing the floor clears the mystery', () => {
+    const run = makeRun({ floor: 5, mystery: 'windfall' })
+    expect(advanceFloor(run, createSeededRandom(1)).mystery).toBeNull()
+  })
+
+  it('save v6 round-trips and v5 saves migrate with no mystery', () => {
+    clearSave()
+    const run = makeRun({ floor: 6, mystery: 'jackpot' })
+    saveRun(run)
+    expect(loadRun()).toEqual(run)
+    const v5run = { ...makeRun({ floor: 8 }) } as Record<string, unknown>
+    delete v5run.mystery
+    localStorage.setItem(SAVE_KEY, JSON.stringify({ version: 5, run: v5run }))
+    expect(loadRun()!.mystery).toBeNull()
   })
 })

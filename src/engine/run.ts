@@ -20,6 +20,7 @@ import {
   getPromotion,
   getVictoryPayout,
   rollFloorEnemies,
+  rollMysteryOutcome,
   rollPerkOffer,
   rollRelicDrop,
 } from '@/data'
@@ -52,6 +53,7 @@ const FRESH_PROGRESS = {
   shopStock: null,
   relics: [] as RelicId[],
   eliteFloor: false,
+  mystery: null,
 }
 
 /** Unlock-dependent offer/drop pools, frozen onto the run at start. */
@@ -152,6 +154,7 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass, pools?: RunPools):
     shopStock: null,
     relics: [],
     eliteFloor: false,
+    mystery: null,
     // Refresh pools: the win that led here may have unlocked content.
     perkPool: pools?.perkPool ?? run.perkPool,
     relicPool: pools?.relicPool ?? run.relicPool,
@@ -250,8 +253,8 @@ export function applyVictory(
   effectiveMaxHp: number,
 ): { run: RunState; xpGained: number; leveledUp: boolean; optionsGained: number } {
   const xpGained = 15 + run.floor * 7
-  const optionsGained =
-    getVictoryPayout(run.floor, run.perks, run.relics) * (run.eliteFloor ? ELITE_PAYOUT_MULT : 1)
+  const bonusMult = run.eliteFloor || run.mystery === 'windfall' ? ELITE_PAYOUT_MULT : 1
+  const optionsGained = getVictoryPayout(run.floor, run.perks, run.relics) * bonusMult
   const newXp = run.xp + xpGained
   const stockOptions = run.stockOptions + optionsGained
   const leveledUp = newXp >= run.xpToNext
@@ -290,7 +293,8 @@ export function awardEliteSpoils(
   run: RunState,
   rng: Rng,
 ): { run: RunState; relicGained: RelicId | null; bonusOptions: number } {
-  if (!run.eliteFloor) return { run, relicGained: null, bonusOptions: 0 }
+  const dropsRelic = run.eliteFloor || run.mystery === 'jackpot'
+  if (!dropsRelic) return { run, relicGained: null, bonusOptions: 0 }
   const relicGained = rollRelicDrop(run.relics, rng, run.relicPool)
   if (relicGained) {
     return { run: { ...run, relics: [...run.relics, relicGained] }, relicGained, bonusOptions: 0 }
@@ -319,8 +323,19 @@ export function eliteAvailable(floor: number): boolean {
 /** Commit the elevator pick for the upcoming floor. */
 export function chooseElevator(run: RunState, elite: boolean): RunState {
   if (elite && !eliteAvailable(run.floor)) return run
-  if (run.eliteFloor === elite) return run
-  return { ...run, eliteFloor: elite }
+  if (run.eliteFloor === elite && run.mystery === null) return run
+  return { ...run, eliteFloor: elite, mystery: null }
+}
+
+/**
+ * Ride the unmarked third elevator: a seeded gamble. The outcome is
+ * rolled now (and revealed at the floor intro) so a reload can't
+ * re-roll it.
+ */
+export function chooseMysteryFloor(run: RunState, rng: Rng): RunState {
+  if (!eliteAvailable(run.floor)) return run
+  const outcome = rollMysteryOutcome(rng)
+  return { ...run, mystery: outcome, eliteFloor: false }
 }
 
 // ─── FLOOR ADVANCEMENT ──────────────────────────────────────
@@ -351,6 +366,7 @@ export function advanceFloor(run: RunState, rng: Rng): RunState {
     shopStock: shop ? rollShopStock(rng) : null,
     // The elevator pick for the new floor hasn't happened yet.
     eliteFloor: false,
+    mystery: null,
   }
 }
 

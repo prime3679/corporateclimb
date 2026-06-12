@@ -4,7 +4,14 @@
 // serializable tree. Daily mode is a config on the same pipeline, not
 // a parallel set of booleans and refs.
 
-import type { DailyModifierContext, ItemId, PerkId, RelicId, StatusInstance } from '@/types'
+import type {
+  DailyModifierContext,
+  ItemId,
+  MysteryOutcome,
+  PerkId,
+  RelicId,
+  StatusInstance,
+} from '@/types'
 
 export const MAX_INVENTORY = 4
 
@@ -55,6 +62,8 @@ export interface RunState {
   relics: RelicId[]
   /** The current floor is the elite "Executive Track" version. */
   eliteFloor: boolean
+  /** Rolled outcome of a Mystery Floor pick; null = not a mystery. */
+  mystery: MysteryOutcome | null
   /** Perk ids this run can offer (unlocks frozen at run start). */
   perkPool: PerkId[]
   /** Relic ids this run can drop (unlocks frozen at run start). */

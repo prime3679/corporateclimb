@@ -2,26 +2,30 @@ import { useEffect } from 'react'
 import { CURRENCY_ICON } from '@/data'
 
 /**
- * The elevator bank between floors: ride to the scheduled meeting, or
- * take the Executive Track — an elite enemy for double payout and a
- * Status Symbol. Keys 1/2 select, matching the battle hotkeys.
+ * The elevator bank between floors: ride to the scheduled meeting,
+ * take the Executive Track (an elite enemy for double payout and a
+ * Status Symbol), or gamble on the unmarked Mystery Floor. Keys 1/2/3
+ * select, matching the battle hotkeys.
  */
 export default function ElevatorScreen({
   floorNumber,
   onPick,
+  onPickMystery,
 }: {
   /** 1-based floor number being entered. */
   floorNumber: number
   onPick: (elite: boolean) => void
+  onPickMystery: () => void
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === '1') onPick(false)
       if (e.key === '2') onPick(true)
+      if (e.key === '3') onPickMystery()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onPick])
+  }, [onPick, onPickMystery])
 
   const card = (opts: {
     elite: boolean
@@ -106,10 +110,10 @@ export default function ElevatorScreen({
         className="t-body"
         style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
       >
-        Floor {floorNumber}. Two elevators. One choice.
+        Floor {floorNumber}. Three elevators. One choice.
       </div>
 
-      <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 380 }}>
+      <div style={{ display: 'flex', gap: 10, width: '100%', maxWidth: 390 }}>
         {card({
           key: 'standard',
           elite: false,
@@ -129,6 +133,46 @@ export default function ElevatorScreen({
           ],
           border: 'var(--gold)',
         })}
+        <button
+          onClick={onPickMystery}
+          style={{
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 10,
+            padding: '20px 12px',
+            background: 'var(--ink)',
+            border: 'var(--border-w) dashed var(--muted)',
+            borderRadius: 'var(--radius-lg)',
+            cursor: 'pointer',
+            boxShadow: 'var(--shadow-md)',
+          }}
+        >
+          <span style={{ fontSize: 34 }}>🚪</span>
+          <span
+            className="t-display"
+            style={{
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--muted-light)',
+              textAlign: 'center',
+              lineHeight: 1.6,
+            }}
+          >
+            [3] MYSTERY FLOOR
+          </span>
+          <span
+            className="t-body"
+            style={{
+              fontSize: 'var(--body-sm)',
+              color: 'var(--muted-light)',
+              textAlign: 'center',
+              lineHeight: 1.2,
+            }}
+          >
+            Unmarked button. HR won’t say.
+          </span>
+        </button>
       </div>
     </div>
   )

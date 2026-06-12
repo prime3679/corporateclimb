@@ -31,3 +31,21 @@ test('executive track fights an elite and drops a status symbol', async ({ page 
 
   expect(pageErrors, 'no uncaught page errors through the elite chain').toEqual([])
 })
+
+test('mystery floor reveals its outcome at the floor intro', async ({ page }) => {
+  test.setTimeout(60_000)
+
+  const pageErrors: string[] = []
+  page.on('pageerror', (e) => pageErrors.push(e.message))
+
+  await continueFromSave(page, buffedSave(5, { playerHp: 200 }))
+
+  await expect(page.getByText('THE ELEVATOR BANK')).toBeVisible({ timeout: 12_000 })
+  await page.getByRole('button', { name: /MYSTERY FLOOR/ }).click({ timeout: 5_000 })
+
+  // Whatever was rolled, the gamble is revealed before the fight.
+  await expect(page.getByText('TAP TO BATTLE')).toBeVisible({ timeout: 12_000 })
+  await expect(page.getByText(/WINDFALL|SLACKER|AMBUSH|JACKPOT/)).toBeVisible()
+
+  expect(pageErrors, 'no uncaught page errors through the mystery chain').toEqual([])
+})

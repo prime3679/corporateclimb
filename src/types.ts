@@ -316,6 +316,11 @@ export interface PerkDef {
   instantOptions?: number
 }
 
+// ─── MYSTERY FLOORS ─────────────────────────────────────────
+// The third elevator: a seeded gamble, revealed at the floor intro.
+
+export type MysteryOutcome = 'windfall' | 'slacker' | 'ambush' | 'jackpot'
+
 // ─── STATUS SYMBOLS (relics) ────────────────────────────────
 // Run-permanent artifacts dropped by elite floors — found, not chosen
 // at promotions. Each is owned at most once per run.

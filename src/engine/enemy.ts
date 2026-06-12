@@ -5,7 +5,13 @@
 // re-derived it by hand inside doPlayerMove; this is now the only copy.
 
 import type { Enemy } from '@/types'
-import { ENEMIES, getFloorEnemy, scaleEnemyForElite, scaleEnemyForNgPlus } from '@/data'
+import {
+  ENEMIES,
+  getFloorEnemy,
+  scaleEnemyForElite,
+  scaleEnemyForNgPlus,
+  scaleEnemyForSlacker,
+} from '@/data'
 import type { RunState } from './state'
 
 /** Daily runs remap logical floor (0-14) onto the harder enemy pools. */
@@ -27,7 +33,9 @@ export function resolveNgBaseEnemy(run: RunState): Enemy {
       ? getFloorEnemy(floorIdx, run.floorEnemyIds[run.floor])
       : ENEMIES[floorIdx] || ENEMIES[0]
   const scaled = scaleEnemyForNgPlus(variant, run.ngPlus)
-  return run.eliteFloor ? scaleEnemyForElite(scaled) : scaled
+  if (run.eliteFloor || run.mystery === 'ambush') return scaleEnemyForElite(scaled)
+  if (run.mystery === 'slacker') return scaleEnemyForSlacker(scaled)
+  return scaled
 }
 
 /** Fully resolved enemy for the given phase. */

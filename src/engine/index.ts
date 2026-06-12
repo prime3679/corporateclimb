@@ -25,6 +25,7 @@ export {
   applyVictory,
   awardEliteSpoils,
   chooseElevator,
+  chooseMysteryFloor,
   choosePerk,
   eliteAvailable,
   newBattle,
