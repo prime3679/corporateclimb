@@ -8,6 +8,7 @@ import {
   getDailyStreak,
 } from '@/daily'
 import { Button } from '@/ui'
+import DailyLeaderboard from '@/components/DailyLeaderboard'
 
 export default function DailyResultScreen({
   player,
@@ -191,6 +192,14 @@ export default function DailyResultScreen({
       >
         {shared ? 'COPIED!' : 'SHARE RESULT'}
       </Button>
+
+      <DailyLeaderboard
+        seed={seed}
+        score={score}
+        classId={player.id}
+        floorsCleared={floorsCleared}
+        won={won}
+      />
 
       <Button variant="ghost" size="md" onClick={onBack}>
         BACK TO TITLE
