@@ -46,7 +46,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
 ## Steps
 
 - [x] 0. Branch + this log.
-- [ ] 1. Engine flow resolver (`engine/flow.ts`), adopt in
+- [x] 1. Engine flow resolver (`engine/flow.ts`), adopt in
      `CorporateClimb.tsx` + resume. Fixes the resume/act-transition
      drift by construction.
 - [ ] 2. Unified modifier collection (`engine/modifiers.ts`).
@@ -64,3 +64,16 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
 Branch `claude/architecture-refactor`. Hotspots measured:
 `CorporateClimb.tsx` 875 lines, `data.ts` 3,071 lines, engine total
 ~1,500 lines across 9 modules.
+
+### Step 1 — flow resolver (done)
+
+`engine/flow.ts`: `nextStop(run, { actPending, eventsDone })` is now
+the only place that knows the interstitial order (promotion → shop →
+act transition → events → elevator → intro). `CorporateClimb.tsx`
+gained one `goToStop` dispatcher (side effects: event-offer roll on
+route entry, promotion fanfare suppressed on resume) and lost
+`proceedToFloorEntry` / `proceedToRouteChoice` /
+`proceedAfterFloorAdvance` plus the bespoke resume if-chain — net −51
+lines in the component. 7 resolver tests pin the ordering, daily
+events-disabled skip, and resume semantics. Gate: 267 unit / 11 e2e
+green; balance snapshot untouched.

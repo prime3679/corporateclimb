@@ -47,4 +47,5 @@ export {
   rollShopStock,
   shopPrice,
 } from './shop'
+export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowStop } from './flow'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'
