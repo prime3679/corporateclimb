@@ -211,6 +211,7 @@ export type Screen =
   | 'routeChoice'
   | 'promotion'
   | 'shop'
+  | 'elevator'
   | 'actTransition'
   | 'dailyPre'
   | 'dailyResult'
@@ -299,6 +300,38 @@ export interface PerkDef {
   eventItemChance?: number
   /** Stock Options granted immediately when picked. */
   instantOptions?: number
+}
+
+// ─── STATUS SYMBOLS (relics) ────────────────────────────────
+// Run-permanent artifacts dropped by elite floors — found, not chosen
+// at promotions. Each is owned at most once per run.
+
+export type RelicId =
+  | 'golden_stapler'
+  | 'corner_office_key'
+  | 'executive_parking'
+  | 'platinum_card'
+  | 'ergonomic_throne'
+  | 'lucky_tie'
+  | 'stress_ball'
+  | 'mahogany_desk'
+
+export interface RelicDef {
+  id: RelicId
+  name: string
+  desc: string
+  icon: string
+  statBoost?: { maxHp?: number; atk?: number; def?: number }
+  /** Multiplier on outgoing player damage. */
+  dmgMult?: number
+  /** Additional crit chance, 0-1. */
+  critBonus?: number
+  /** HP healed after each battle win. */
+  postBattleHeal?: number
+  /** Multiplier on Stock Option payouts. */
+  payoutMult?: number
+  /** Halves burnout chip damage taken by the player. */
+  burnGuard?: boolean
 }
 
 export interface SaveData {

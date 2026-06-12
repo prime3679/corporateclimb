@@ -4,18 +4,22 @@
 // RunState. The hallway-event item reward is returned explicitly so
 // the UI can announce it (it used to be granted silently).
 
-import type { ClassId, Enemy, HallwayEvent, ItemId, PerkId, PlayerClass } from '@/types'
+import type { ClassId, Enemy, HallwayEvent, ItemId, PerkId, PlayerClass, RelicId } from '@/types'
 import {
   ALL_ITEM_IDS,
   CLASS_STARTING_ITEMS,
+  ELITE_PAYOUT_MULT,
   HALLWAY_EVENTS,
   PERKS,
   PLAYER_CLASSES,
+  RELICS,
+  RELIC_DUPLICATE_OPTIONS,
   STATUS_DEFS,
   getPromotion,
   getVictoryPayout,
   rollFloorEnemies,
   rollPerkOffer,
+  rollRelicDrop,
 } from '@/data'
 import {
   createSeededRandom,
@@ -44,6 +48,8 @@ const FRESH_PROGRESS = {
   perks: [] as PerkId[],
   pendingPerkOffer: null,
   shopStock: null,
+  relics: [] as RelicId[],
+  eliteFloor: false,
 }
 
 function startingInventory(classId: string): ItemId[] {
@@ -128,6 +134,8 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass): RunState {
     perks: [],
     pendingPerkOffer: null,
     shopStock: null,
+    relics: [],
+    eliteFloor: false,
   }
 }
 
@@ -223,7 +231,8 @@ export function applyVictory(
   effectiveMaxHp: number,
 ): { run: RunState; xpGained: number; leveledUp: boolean; optionsGained: number } {
   const xpGained = 15 + run.floor * 7
-  const optionsGained = getVictoryPayout(run.floor, run.perks)
+  const optionsGained =
+    getVictoryPayout(run.floor, run.perks, run.relics) * (run.eliteFloor ? ELITE_PAYOUT_MULT : 1)
   const newXp = run.xp + xpGained
   const stockOptions = run.stockOptions + optionsGained
   const leveledUp = newXp >= run.xpToNext
@@ -245,12 +254,54 @@ export function applyVictory(
   }
 }
 
-/** Post-battle healing: PM class perk (5 HP) plus any Self Care perk. */
+/** Post-battle healing: PM class perk (5 HP), Self Care, relic thrones. */
 export function applyPostBattlePerk(run: RunState, effectiveMaxHp: number): RunState {
   let heal = run.classId === 'pm' ? 5 : 0
   for (const id of run.perks) heal += PERKS[id]?.postBattleHeal ?? 0
+  for (const id of run.relics) heal += RELICS[id]?.postBattleHeal ?? 0
   if (heal === 0) return run
   return { ...run, hp: Math.min(effectiveMaxHp, run.hp + heal) }
+}
+
+/**
+ * Beating an elite floor drops a Status Symbol the run doesn't own
+ * yet — or a consolation payout once the trophy cabinet is full.
+ */
+export function awardEliteSpoils(
+  run: RunState,
+  rng: Rng,
+): { run: RunState; relicGained: RelicId | null; bonusOptions: number } {
+  if (!run.eliteFloor) return { run, relicGained: null, bonusOptions: 0 }
+  const relicGained = rollRelicDrop(run.relics, rng)
+  if (relicGained) {
+    return { run: { ...run, relics: [...run.relics, relicGained] }, relicGained, bonusOptions: 0 }
+  }
+  return {
+    run: { ...run, stockOptions: run.stockOptions + RELIC_DUPLICATE_OPTIONS },
+    relicGained: null,
+    bonusOptions: RELIC_DUPLICATE_OPTIONS,
+  }
+}
+
+// ─── THE ELEVATOR BANK ──────────────────────────────────────
+// Before each non-boss floor the player picks an elevator: the
+// standard floor, or the Executive Track — an elite version of the
+// enemy for double payout and a Status Symbol.
+
+/**
+ * The Executive Track opens after the first promotion (a perk-less
+ * rookie has no answer to an elite) and skips the boss floors at the
+ * top of each act.
+ */
+export function eliteAvailable(floor: number): boolean {
+  return floor >= 5 && floor % 10 < 8
+}
+
+/** Commit the elevator pick for the upcoming floor. */
+export function chooseElevator(run: RunState, elite: boolean): RunState {
+  if (elite && !eliteAvailable(run.floor)) return run
+  if (run.eliteFloor === elite) return run
+  return { ...run, eliteFloor: elite }
 }
 
 // ─── FLOOR ADVANCEMENT ──────────────────────────────────────
@@ -279,6 +330,8 @@ export function advanceFloor(run: RunState, rng: Rng): RunState {
     floor: nextFloor,
     pendingPerkOffer: promoted ? rollPerkOffer(run.perks, rng) : run.pendingPerkOffer,
     shopStock: shop ? rollShopStock(rng) : null,
+    // The elevator pick for the new floor hasn't happened yet.
+    eliteFloor: false,
   }
 }
 

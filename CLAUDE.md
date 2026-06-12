@@ -29,7 +29,7 @@ and the remaining roadmap):
 - `src/engine/` — pure game logic. `state.ts` holds the canonical `RunState`/`BattleState`;
   `turn.ts` resolves a full turn into an ordered event list (no timers, no React);
   `run.ts` handles floor/XP/promotion-perk/hallway-event transitions; `shop.ts` is the
-  mid-act Stock Option shop; `save.ts` is the versioned save (v3, migrates v2/v1);
+  mid-act Stock Option shop; `save.ts` is the versioned save (v4, migrates v3/v2/v1);
   `events.ts` defines the battle event vocabulary.
 - `src/battle.ts` — pure combat math (damage, type effectiveness, status). RNG is always
   injected, never `Math.random()` inline, so dailies stay deterministic.
@@ -40,7 +40,7 @@ and the remaining roadmap):
 - `src/components/` + `src/ui/` — reusable pieces; `ui/tokens.css` is the single source of
   design tokens (colors, type scale, shadows). Prefer CSS modules + tokens over new inline
   styles.
-- `src/data.ts` — all game content (classes, enemies, items, perks, events, achievements).
+- `src/data.ts` — all game content (classes, enemies, items, perks, relics, events, achievements).
 - `src/daily.ts` — daily challenge seeding (Mulberry32) and result persistence.
 
 ## Conventions

@@ -14,9 +14,11 @@ import {
   ITEMS,
   ALL_ITEM_IDS,
   ALL_PERK_IDS,
+  ALL_RELIC_IDS,
   CLASS_STARTING_ITEMS,
   ACHIEVEMENTS,
   PERKS,
+  RELICS,
   STATUS_DEFS,
   TOTAL_FLOORS,
 } from '@/data'
@@ -208,6 +210,28 @@ describe('perks', () => {
       expect(PERKS[id].name, `perk ${id}: name`).toBeTruthy()
       expect(PERKS[id].desc, `perk ${id}: desc`).toBeTruthy()
       expect(PERKS[id].icon, `perk ${id}: icon`).toBeTruthy()
+    }
+  })
+})
+
+describe('status symbols (relics)', () => {
+  it('relic record keys match their ids and each has display fields', () => {
+    for (const id of ALL_RELIC_IDS) {
+      const relic = RELICS[id]
+      expect(relic.id, `relic ${id}`).toBe(id)
+      expect(relic.name, `relic ${id}: name`).toBeTruthy()
+      expect(relic.desc, `relic ${id}: desc`).toBeTruthy()
+      expect(relic.icon, `relic ${id}: icon`).toBeTruthy()
+    }
+  })
+
+  it('every relic does something', () => {
+    for (const id of ALL_RELIC_IDS) {
+      const { statBoost, dmgMult, critBonus, postBattleHeal, payoutMult, burnGuard } = RELICS[id]
+      expect(
+        Boolean(statBoost || dmgMult || critBonus || postBattleHeal || payoutMult || burnGuard),
+        `relic ${id}: effect`,
+      ).toBe(true)
     }
   })
 })

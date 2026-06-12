@@ -14,6 +14,8 @@ import type {
   ClassId,
   PerkId,
   PerkDef,
+  RelicId,
+  RelicDef,
 } from './types'
 
 // ─── CONSTANTS ──────────────────────────────────────────────
@@ -422,6 +424,7 @@ export function getEffectivePlayer(
   classId: string,
   currentFloor: number,
   perks: PerkId[] = [],
+  relics: RelicId[] = [],
 ): PlayerClass {
   const track = promotionTrack(classId)
   let maxHp = base.maxHp
@@ -444,6 +447,14 @@ export function getEffectivePlayer(
   }
   for (const id of perks) {
     const boost = PERKS[id]?.statBoost
+    if (boost) {
+      maxHp += boost.maxHp || 0
+      atk += boost.atk || 0
+      def += boost.def || 0
+    }
+  }
+  for (const id of relics) {
+    const boost = RELICS[id]?.statBoost
     if (boost) {
       maxHp += boost.maxHp || 0
       atk += boost.atk || 0
@@ -630,15 +641,142 @@ export function getPerkCombatMods(perks: PerkId[]): {
   return { dmgMult, critBonus, lifesteal }
 }
 
+// ─── STATUS SYMBOLS (relics) ────────────────────────────────
+// Dropped by elite floors. Permanent for the run, owned once each.
+export const RELICS: Record<RelicId, RelicDef> = {
+  golden_stapler: {
+    id: 'golden_stapler',
+    name: 'Golden Stapler',
+    desc: '+10% damage. It’s gold. Nobody touches it.',
+    icon: '📎',
+    dmgMult: 1.1,
+  },
+  corner_office_key: {
+    id: 'corner_office_key',
+    name: 'Corner Office Key',
+    desc: '+18 max HP. Two windows. TWO.',
+    icon: '🗝️',
+    statBoost: { maxHp: 18 },
+  },
+  executive_parking: {
+    id: 'executive_parking',
+    name: 'Executive Parking Spot',
+    desc: '+2 DEF. Park closer, arrive fresher.',
+    icon: '🅿️',
+    statBoost: { def: 2 },
+  },
+  platinum_card: {
+    id: 'platinum_card',
+    name: 'Platinum Corporate Card',
+    desc: '+20% Stock Option payouts. Expense everything.',
+    icon: '💳',
+    payoutMult: 1.2,
+  },
+  ergonomic_throne: {
+    id: 'ergonomic_throne',
+    name: 'Ergonomic Throne',
+    desc: 'Heal 8 HP after every battle. Lumbar support of kings.',
+    icon: '🪑',
+    postBattleHeal: 8,
+  },
+  lucky_tie: {
+    id: 'lucky_tie',
+    name: 'Lucky Tie',
+    desc: '+8% crit chance. Worn at every closed deal since 2019.',
+    icon: '👔',
+    critBonus: 0.08,
+  },
+  stress_ball: {
+    id: 'stress_ball',
+    name: 'Stress Ball',
+    desc: 'Burnout damage to you is halved. Squeeze responsibly.',
+    icon: '🟡',
+    burnGuard: true,
+  },
+  mahogany_desk: {
+    id: 'mahogany_desk',
+    name: 'Mahogany Desk',
+    desc: '+10 max HP, +1 ATK, +1 DEF. Gravitas, in furniture form.',
+    icon: '🪵',
+    statBoost: { maxHp: 10, atk: 1, def: 1 },
+  },
+}
+
+export const ALL_RELIC_IDS = Object.keys(RELICS) as RelicId[]
+
+/** When every relic is owned, elites pay this instead. */
+export const RELIC_DUPLICATE_OPTIONS = 40
+
+/** A random relic the run doesn't own yet, or null when complete. */
+export function rollRelicDrop(owned: RelicId[], rng: () => number): RelicId | null {
+  const pool = ALL_RELIC_IDS.filter((id) => !owned.includes(id))
+  if (pool.length === 0) return null
+  return pool[Math.floor(rng() * pool.length)]
+}
+
+/** Combat modifiers contributed by owned relics. */
+export function getRelicCombatMods(relics: RelicId[]): {
+  dmgMult: number
+  critBonus: number
+  burnGuard: boolean
+} {
+  let dmgMult = 1
+  let critBonus = 0
+  let burnGuard = false
+  for (const id of relics) {
+    const r = RELICS[id]
+    if (!r) continue
+    if (r.dmgMult) dmgMult *= r.dmgMult
+    if (r.critBonus) critBonus += r.critBonus
+    if (r.burnGuard) burnGuard = true
+  }
+  return { dmgMult, critBonus, burnGuard }
+}
+
+// ─── ELITE FLOORS ───────────────────────────────────────────
+// The Executive Track: a meaner take on the floor's enemy in exchange
+// for double payout and a Status Symbol.
+export const ELITE_PAYOUT_MULT = 2
+
+export function scaleEnemyForElite(e: Enemy): Enemy {
+  const hpMult = 1.35
+  const atkMult = 1.15
+  const defMult = 1.1
+  const dmgMult = 1.08
+  return {
+    ...e,
+    name: `Elite ${e.name}`,
+    title: `ELITE ${e.title}`,
+    maxHp: Math.round(e.maxHp * hpMult),
+    atk: Math.round(e.atk * atkMult),
+    def: Math.round(e.def * defMult),
+    moves: e.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
+    phase2: e.phase2
+      ? {
+          ...e.phase2,
+          maxHp: Math.round(e.phase2.maxHp * hpMult),
+          atk: e.phase2.atk ? Math.round(e.phase2.atk * atkMult) : undefined,
+          def: e.phase2.def ? Math.round(e.phase2.def * defMult) : undefined,
+          moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
+        }
+      : undefined,
+  }
+}
+
 // ─── STOCK OPTIONS (currency) ───────────────────────────────
 // Earned on every battle win, scaled by floor; spent at the shop.
 export const CURRENCY_NAME = 'Stock Options'
 export const CURRENCY_ICON = '📈'
 
-export function getVictoryPayout(floor: number, perks: PerkId[] = []): number {
+export function getVictoryPayout(
+  floor: number,
+  perks: PerkId[] = [],
+  relics: RelicId[] = [],
+): number {
   const base = 8 + floor * 3
-  const mult = perks.reduce((m, id) => m * (PERKS[id]?.payoutMult ?? 1), 1)
-  return Math.round(base * mult)
+  const perkMult = perks.reduce((m, id) => m * (PERKS[id]?.payoutMult ?? 1), 1)
+  const relicMult = relics.reduce((m, id) => m * (RELICS[id]?.payoutMult ?? 1), 1)
+  return Math.round(base * perkMult * relicMult)
 }
 
 // ─── ENEMIES ─────────────────────────────────────────────────
