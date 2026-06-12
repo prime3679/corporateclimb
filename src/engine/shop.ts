@@ -5,8 +5,8 @@
 // a save. All purchase functions are pure validators: an invalid buy
 // returns the run unchanged.
 
-import type { ItemId, PerkId } from '@/types'
-import { ALL_ITEM_IDS, ITEMS, PERKS, getAct } from '@/data'
+import type { ItemId, PerkId, RelicId } from '@/types'
+import { ALL_ITEM_IDS, ITEMS, PERKS, RELICS, getAct } from '@/data'
 import type { Rng } from './rng'
 import { MAX_INVENTORY, type RunState } from './state'
 
@@ -37,10 +37,16 @@ export function isShopFloor(floor: number, mode: 'normal' | 'daily'): boolean {
  */
 export const ACT_PRICE_MULT: Record<1 | 2 | 3, number> = { 1: 1, 2: 2, 3: 3 }
 
-/** Price at the given floor, after act inflation and economy perks. */
-export function shopPrice(basePrice: number, perks: PerkId[], floor = 0): number {
+/** Price at the given floor, after act inflation, perks, and relics. */
+export function shopPrice(
+  basePrice: number,
+  perks: PerkId[],
+  floor = 0,
+  relics: RelicId[] = [],
+): number {
   const perkMult = perks.reduce((m, id) => m * (PERKS[id]?.priceMult ?? 1), 1)
-  return Math.max(1, Math.round(basePrice * ACT_PRICE_MULT[getAct(floor)] * perkMult))
+  const relicMult = relics.reduce((m, id) => m * (RELICS[id]?.priceMult ?? 1), 1)
+  return Math.max(1, Math.round(basePrice * ACT_PRICE_MULT[getAct(floor)] * perkMult * relicMult))
 }
 
 /** Roll the stop's stock: SHOP_STOCK_SIZE distinct items. */
@@ -57,7 +63,7 @@ export function rollShopStock(rng: Rng): ItemId[] {
 export function buyShopItem(run: RunState, stockIdx: number): RunState {
   const itemId = run.shopStock?.[stockIdx]
   if (!itemId) return run
-  const price = shopPrice(ITEMS[itemId].price, run.perks, run.floor)
+  const price = shopPrice(ITEMS[itemId].price, run.perks, run.floor, run.relics)
   if (run.stockOptions < price || run.inventory.length >= MAX_INVENTORY) return run
   return {
     ...run,
@@ -69,7 +75,7 @@ export function buyShopItem(run: RunState, stockIdx: number): RunState {
 
 /** Buy a Wellness Day heal; no-op if unaffordable or already at full HP. */
 export function buyWellnessDay(run: RunState, effectiveMaxHp: number): RunState {
-  const price = shopPrice(WELLNESS_DAY.price, run.perks, run.floor)
+  const price = shopPrice(WELLNESS_DAY.price, run.perks, run.floor, run.relics)
   if (run.stockOptions < price || run.hp >= effectiveMaxHp) return run
   const heal = Math.round(effectiveMaxHp * WELLNESS_DAY.healFraction)
   return {

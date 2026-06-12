@@ -212,6 +212,7 @@ export type Screen =
   | 'promotion'
   | 'shop'
   | 'elevator'
+  | 'codex'
   | 'actTransition'
   | 'dailyPre'
   | 'dailyResult'
@@ -270,6 +271,11 @@ export type PerkId =
   | 'employee_discount'
   | 'headhunter'
   | 'signing_bonus'
+  // unlockable via achievements
+  | 'personal_brand'
+  | 'golden_handcuffs'
+  | 'killer_instinct'
+  | 'dividends'
 
 export type PerkKind = 'stat' | 'passive' | 'economy'
 
@@ -281,9 +287,15 @@ export interface PerkDef {
   kind: PerkKind
   /** Stat packages stack; passives/economy can be owned once. */
   repeatable?: boolean
+  /** Locked until this achievement is earned (normal runs only). */
+  unlockedBy?: AchievementId
   statBoost?: { maxHp?: number; atk?: number; def?: number }
   /** Multiplier on outgoing player damage (e.g. 1.12). */
   dmgMult?: number
+  /** Extra damage multiplier while below 30% HP. */
+  lowHpDmgMult?: number
+  /** Extra damage multiplier on boss floors. */
+  bossDmgMult?: number
   /** Additional crit chance, 0-1. */
   critBonus?: number
   /** Fraction of damage dealt healed back, 0-1. */
@@ -294,6 +306,8 @@ export interface PerkDef {
   postBattleHeal?: number
   /** Multiplier on Stock Option payouts. */
   payoutMult?: number
+  /** Flat Stock Options added to every victory payout. */
+  flatPayout?: number
   /** Multiplier on shop prices (e.g. 0.75). */
   priceMult?: number
   /** Hallway-event bonus item chance override (default 0.3). */
@@ -315,12 +329,18 @@ export type RelicId =
   | 'lucky_tie'
   | 'stress_ball'
   | 'mahogany_desk'
+  // unlockable via achievements
+  | 'ceo_signature'
+  | 'campus_keycard'
+  | 'trophy_shelf'
 
 export interface RelicDef {
   id: RelicId
   name: string
   desc: string
   icon: string
+  /** Locked until this achievement is earned (normal runs only). */
+  unlockedBy?: AchievementId
   statBoost?: { maxHp?: number; atk?: number; def?: number }
   /** Multiplier on outgoing player damage. */
   dmgMult?: number
@@ -330,6 +350,8 @@ export interface RelicDef {
   postBattleHeal?: number
   /** Multiplier on Stock Option payouts. */
   payoutMult?: number
+  /** Multiplier on shop prices (e.g. 0.9). */
+  priceMult?: number
   /** Halves burnout chip damage taken by the player. */
   burnGuard?: boolean
 }

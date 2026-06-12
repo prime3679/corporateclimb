@@ -342,6 +342,21 @@ Replace the 35-hook god component with a real engine:
 > bound, and an elevator e2e spec. Next: richer node types (mystery /
 > treasure), then meta-progression unlocks.
 
+### Phase 7 — Meta-progression: achievement-gated unlocks & the Codex ✅ DONE
+
+> Shipped: achievements double as meta-progression keys. Four new
+> perks (Personal Brand, Golden Handcuffs, Killer Instinct, Dividends)
+> and three new relics (CEO's Signature, All-Campus Keycard, Trophy
+> Shelf) ship locked behind specific achievements; earning one adds
+> the content to future runs' offer/drop pools (pools are frozen onto
+> RunState at run start — save v5). Dailies always draw from the base
+> pools so share grids stay fair. New conditional combat hooks
+> (low-HP and boss-floor damage), flat payout bonuses, and relic shop
+> discounts. The 📖 Codex on the title screen browses all perks,
+> Status Symbols, items, and achievements with locked silhouettes and
+> unlock hints. Remaining v2.0 backlog: mystery/treasure floor nodes,
+> daily leaderboard backend (approved, not started).
+
 ### Sequencing & risk
 
 | Phase            | Scope                                       | Risk                                                       | Payoff                                                                          |

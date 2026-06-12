@@ -1,5 +1,7 @@
 // ─── VERSIONED SAVE ──────────────────────────────────────────
-// v4 adds the branching-tower fields (relics, elite floor flag).
+// v5 adds the meta-progression pools (perkPool/relicPool, frozen at
+// run start from the player's achievement unlocks).
+// v4 added the branching-tower fields (relics, elite floor flag).
 // v3 added the roguelite-depth fields (stock options, perks, pending
 // perk offer, shop stock); v2 serialized the whole RunState under a
 // version tag; v1 was the old flat 17-field shape (still produced by
@@ -12,21 +14,29 @@ import {
   PLAYER_CLASSES,
   PROMOTION_TRACKS,
   RELICS,
+  getUnlockedAchievements,
   getVictoryPayout,
   rollFloorEnemies,
+  unlockedPerkPool,
+  unlockedRelicPool,
 } from '@/data'
 import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'
 
+interface SaveFileV5 {
+  version: 5
+  run: RunState
+}
+
 interface SaveFileV4 {
   version: 4
-  run: RunState
+  run: Omit<RunState, 'perkPool' | 'relicPool'>
 }
 
 interface SaveFileV3 {
   version: 3
-  run: Omit<RunState, 'relics' | 'eliteFloor'>
+  run: Omit<SaveFileV4['run'], 'relics' | 'eliteFloor'>
 }
 
 interface SaveFileV2 {
@@ -39,11 +49,19 @@ function isValidRun(run: RunState): boolean {
   if (run.floor < 0 || run.floor >= ENEMY_POOLS.length) return false
   if (!Array.isArray(run.perks) || run.perks.some((id) => !PERKS[id])) return false
   if (!Array.isArray(run.relics) || run.relics.some((id) => !RELICS[id])) return false
+  if (!Array.isArray(run.perkPool) || run.perkPool.some((id) => !PERKS[id])) return false
+  if (!Array.isArray(run.relicPool) || run.relicPool.some((id) => !RELICS[id])) return false
   return true
 }
 
+/** v4 → v5: pools reflect whatever the player has unlocked by now. */
+function migrateToV5(run: SaveFileV4['run']): RunState {
+  const unlocked = getUnlockedAchievements()
+  return { ...run, perkPool: unlockedPerkPool(unlocked), relicPool: unlockedRelicPool(unlocked) }
+}
+
 /** v3 → v4: no relics yet, and a saved floor always re-picks its elevator. */
-function migrateToV4(run: SaveFileV3['run']): RunState {
+function migrateToV4(run: SaveFileV3['run']): SaveFileV4['run'] {
   return { ...run, relics: [], eliteFloor: false }
 }
 
@@ -93,32 +111,35 @@ function migrateV1(data: SaveData): SaveFileV2['run'] {
 
 export function saveRun(run: RunState) {
   try {
-    const file: SaveFileV4 = { version: 4, run }
+    const file: SaveFileV5 = { version: 5, run }
     localStorage.setItem(SAVE_KEY, JSON.stringify(file))
   } catch {
     /* storage unavailable */
   }
 }
 
-/** Load and validate a saved run; accepts v4 or migrates v3/v2/v1. */
+/** Load and validate a saved run; accepts v5 or migrates v4/v3/v2/v1. */
 export function loadRun(): RunState | null {
   try {
     const raw = localStorage.getItem(SAVE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as SaveFileV4 | SaveFileV3 | SaveFileV2 | SaveData
+    const parsed = JSON.parse(raw) as SaveFileV5 | SaveFileV4 | SaveFileV3 | SaveFileV2 | SaveData
     let run: RunState
-    if ('version' in parsed && parsed.version === 4) {
+    if ('version' in parsed && parsed.version === 5) {
       // Daily runs are never persisted; a daily-mode save is stale.
       if (parsed.run.mode.kind !== 'normal') return null
       run = parsed.run
+    } else if ('version' in parsed && parsed.version === 4) {
+      if (parsed.run.mode.kind !== 'normal') return null
+      run = migrateToV5(parsed.run)
     } else if ('version' in parsed && parsed.version === 3) {
       if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV4(parsed.run)
+      run = migrateToV5(migrateToV4(parsed.run))
     } else if ('version' in parsed && parsed.version === 2) {
       if (parsed.run.mode.kind !== 'normal') return null
-      run = migrateToV4(migrateToV3(parsed.run))
+      run = migrateToV5(migrateToV4(migrateToV3(parsed.run)))
     } else if ('classId' in parsed) {
-      run = migrateToV4(migrateToV3(migrateV1(parsed as SaveData)))
+      run = migrateToV5(migrateToV4(migrateToV3(migrateV1(parsed as SaveData))))
     } else {
       return null
     }

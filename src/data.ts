@@ -582,18 +582,74 @@ export const PERKS: Record<PerkId, PerkDef> = {
     kind: 'economy',
     instantOptions: 60,
   },
+  // Unlockable — earned achievements add these to future offer pools.
+  personal_brand: {
+    id: 'personal_brand',
+    name: 'Personal Brand',
+    desc: '+15 max HP, +2 ATK. You ARE the deliverable.',
+    icon: '✨',
+    kind: 'stat',
+    repeatable: true,
+    unlockedBy: 'first_climb',
+    statBoost: { maxHp: 15, atk: 2 },
+  },
+  golden_handcuffs: {
+    id: 'golden_handcuffs',
+    name: 'Golden Handcuffs',
+    desc: '+25% damage while below 30% HP. Can’t leave. Won’t lose.',
+    icon: '⛓️',
+    kind: 'passive',
+    unlockedBy: 'glass_cannon',
+    lowHpDmgMult: 1.25,
+  },
+  killer_instinct: {
+    id: 'killer_instinct',
+    name: 'Killer Instinct',
+    desc: '+20% damage on boss floors. You live for review season.',
+    icon: '🦈',
+    kind: 'passive',
+    unlockedBy: 'damage_dealer',
+    bossDmgMult: 1.2,
+  },
+  dividends: {
+    id: 'dividends',
+    name: 'Dividends',
+    desc: '+5 Stock Options on every payout. Money makes money.',
+    icon: '🪙',
+    kind: 'economy',
+    unlockedBy: 'diamond_hands',
+    flatPayout: 5,
+  },
 }
 
 export const ALL_PERK_IDS = Object.keys(PERKS) as PerkId[]
+
+// ─── META-PROGRESSION POOLS ─────────────────────────────────
+// Content marked `unlockedBy` is gated behind achievements. Normal
+// runs draw from the player's unlocked pool (frozen onto the run at
+// start); dailies always use the base pool so share grids stay fair.
+
+export const BASE_PERK_POOL: PerkId[] = ALL_PERK_IDS.filter((id) => !PERKS[id].unlockedBy)
+
+export function unlockedPerkPool(unlocked: Set<AchievementId>): PerkId[] {
+  return ALL_PERK_IDS.filter((id) => {
+    const gate = PERKS[id].unlockedBy
+    return !gate || unlocked.has(gate)
+  })
+}
 
 /**
  * Roll a promotion's pick-1-of-3 offer: [stat, passive, economy].
  * Owned one-time perks are excluded; if a category is exhausted it
  * falls back to a stat package (always repeatable).
  */
-export function rollPerkOffer(owned: PerkId[], rng: () => number): PerkId[] {
+export function rollPerkOffer(
+  owned: PerkId[],
+  rng: () => number,
+  offerPool: PerkId[] = BASE_PERK_POOL,
+): PerkId[] {
   const pickFrom = (kind: PerkDef['kind']): PerkId | undefined => {
-    const pool = ALL_PERK_IDS.filter((id) => {
+    const pool = offerPool.filter((id) => {
       const p = PERKS[id]
       return p.kind === kind && (p.repeatable || !owned.includes(id))
     })
@@ -607,6 +663,21 @@ export function rollPerkOffer(owned: PerkId[], rng: () => number): PerkId[] {
     return alt
   }
   return [stat, pickFrom('passive') ?? fallback(), pickFrom('economy') ?? fallback()]
+}
+
+/** Conditional damage multipliers (low-HP / boss-floor perks). */
+export function getConditionalDmgMult(
+  perks: PerkId[],
+  opts: { lowHp: boolean; bossFloor: boolean },
+): number {
+  let mult = 1
+  for (const id of perks) {
+    const p = PERKS[id]
+    if (!p) continue
+    if (p.lowHpDmgMult && opts.lowHp) mult *= p.lowHpDmgMult
+    if (p.bossDmgMult && opts.bossFloor) mult *= p.bossDmgMult
+  }
+  return mult
 }
 
 /** Owned perks grouped for display, in first-pick order, with stack counts. */
@@ -700,6 +771,33 @@ export const RELICS: Record<RelicId, RelicDef> = {
     icon: '🪵',
     statBoost: { maxHp: 10, atk: 1, def: 1 },
   },
+  // Unlockable — earned achievements add these to future drop pools.
+  ceo_signature: {
+    id: 'ceo_signature',
+    name: 'CEO’s Signature',
+    desc: '+15% payouts, +5 max HP. Framed. Possibly forged.',
+    icon: '🖋️',
+    unlockedBy: 'ng_plus_1',
+    payoutMult: 1.15,
+    statBoost: { maxHp: 5 },
+  },
+  campus_keycard: {
+    id: 'campus_keycard',
+    name: 'All-Campus Keycard',
+    desc: 'Shop prices -10%. Every door. Every vending machine.',
+    icon: '🪪',
+    unlockedBy: 'speed_runner',
+    priceMult: 0.9,
+  },
+  trophy_shelf: {
+    id: 'trophy_shelf',
+    name: 'Trophy Shelf',
+    desc: '+10 max HP, +5% crit. Visible in every video call.',
+    icon: '🏆',
+    unlockedBy: 'triple_threat',
+    statBoost: { maxHp: 10 },
+    critBonus: 0.05,
+  },
 }
 
 export const ALL_RELIC_IDS = Object.keys(RELICS) as RelicId[]
@@ -707,9 +805,22 @@ export const ALL_RELIC_IDS = Object.keys(RELICS) as RelicId[]
 /** When every relic is owned, elites pay this instead. */
 export const RELIC_DUPLICATE_OPTIONS = 40
 
+export const BASE_RELIC_POOL: RelicId[] = ALL_RELIC_IDS.filter((id) => !RELICS[id].unlockedBy)
+
+export function unlockedRelicPool(unlocked: Set<AchievementId>): RelicId[] {
+  return ALL_RELIC_IDS.filter((id) => {
+    const gate = RELICS[id].unlockedBy
+    return !gate || unlocked.has(gate)
+  })
+}
+
 /** A random relic the run doesn't own yet, or null when complete. */
-export function rollRelicDrop(owned: RelicId[], rng: () => number): RelicId | null {
-  const pool = ALL_RELIC_IDS.filter((id) => !owned.includes(id))
+export function rollRelicDrop(
+  owned: RelicId[],
+  rng: () => number,
+  dropPool: RelicId[] = BASE_RELIC_POOL,
+): RelicId | null {
+  const pool = dropPool.filter((id) => !owned.includes(id))
   if (pool.length === 0) return null
   return pool[Math.floor(rng() * pool.length)]
 }
@@ -776,7 +887,8 @@ export function getVictoryPayout(
   const base = 8 + floor * 3
   const perkMult = perks.reduce((m, id) => m * (PERKS[id]?.payoutMult ?? 1), 1)
   const relicMult = relics.reduce((m, id) => m * (RELICS[id]?.payoutMult ?? 1), 1)
-  return Math.round(base * perkMult * relicMult)
+  const flat = perks.reduce((s, id) => s + (PERKS[id]?.flatPayout ?? 0), 0)
+  return Math.round(base * perkMult * relicMult) + flat
 }
 
 // ─── ENEMIES ─────────────────────────────────────────────────

@@ -10,6 +10,7 @@ import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/ty
 import {
   ITEMS,
   STATUS_DEFS,
+  getConditionalDmgMult,
   getPerkCombatMods,
   getRelicCombatMods,
   getTypeMultiplier,
@@ -210,7 +211,12 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
     critBonus + perkCrit + perkMods.critBonus + relicMods.critBonus,
     typeResult.mult,
   )
-  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult * relicMods.dmgMult)
+  // Situational perks: clutch damage below 30% HP, boss-floor damage.
+  const condMult = getConditionalDmgMult(run.perks, {
+    lowHp: w.playerHp < effectivePlayer.maxHp * 0.3,
+    bossFloor: run.floor % 10 >= 8,
+  })
+  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult * relicMods.dmgMult * condMult)
   w.enemyHp = Math.max(0, w.enemyHp - dmg)
   w.damageDealt += dmg
 

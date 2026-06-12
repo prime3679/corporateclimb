@@ -227,11 +227,32 @@ describe('status symbols (relics)', () => {
 
   it('every relic does something', () => {
     for (const id of ALL_RELIC_IDS) {
-      const { statBoost, dmgMult, critBonus, postBattleHeal, payoutMult, burnGuard } = RELICS[id]
+      const { statBoost, dmgMult, critBonus, postBattleHeal, payoutMult, priceMult, burnGuard } =
+        RELICS[id]
       expect(
-        Boolean(statBoost || dmgMult || critBonus || postBattleHeal || payoutMult || burnGuard),
+        Boolean(
+          statBoost ||
+          dmgMult ||
+          critBonus ||
+          postBattleHeal ||
+          payoutMult ||
+          priceMult ||
+          burnGuard,
+        ),
         `relic ${id}: effect`,
       ).toBe(true)
+    }
+  })
+
+  it('unlock gates reference real achievements', () => {
+    const achievementIds = new Set(ACHIEVEMENTS.map((a) => a.id))
+    for (const id of ALL_RELIC_IDS) {
+      const gate = RELICS[id].unlockedBy
+      if (gate) expect(achievementIds.has(gate), `relic ${id}: unlockedBy`).toBe(true)
+    }
+    for (const id of ALL_PERK_IDS) {
+      const gate = PERKS[id].unlockedBy
+      if (gate) expect(achievementIds.has(gate), `perk ${id}: unlockedBy`).toBe(true)
     }
   })
 })

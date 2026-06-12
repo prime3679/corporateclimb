@@ -17,6 +17,7 @@ export {
 export { actualFloorIndex, battleIntroLine, resolveEnemy, resolveNgBaseEnemy } from './enemy'
 export { resolveItemUse, resolvePlayerMove, type TurnContext, type TurnResult } from './turn'
 export {
+  BASE_POOLS,
   MAX_INVENTORY,
   advanceFloor,
   applyEventChoice,
@@ -32,6 +33,7 @@ export {
   newRun,
   pickTwoEvents,
   promotionBetween,
+  type RunPools,
 } from './run'
 export {
   SHOP_FLOORS,

@@ -55,6 +55,10 @@ export interface RunState {
   relics: RelicId[]
   /** The current floor is the elite "Executive Track" version. */
   eliteFloor: boolean
+  /** Perk ids this run can offer (unlocks frozen at run start). */
+  perkPool: PerkId[]
+  /** Relic ids this run can drop (unlocks frozen at run start). */
+  relicPool: RelicId[]
 }
 
 export type BattlePhase = 'player' | 'won' | 'lost'

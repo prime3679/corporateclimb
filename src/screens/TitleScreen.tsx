@@ -6,10 +6,12 @@ export default function TitleScreen({
   onStart,
   onContinue,
   onDaily,
+  onCodex,
 }: {
   onStart: () => void
   onContinue?: () => void
   onDaily: () => void
+  onCodex: () => void
 }) {
   const [flicker, setFlicker] = useState(true)
   const [confirmNew, setConfirmNew] = useState(false)
@@ -226,6 +228,10 @@ export default function TitleScreen({
 
       <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
         DAILY CHALLENGE
+      </Button>
+
+      <Button variant="ghost" size="sm" onClick={onCodex} style={{ zIndex: 2 }}>
+        📖 CODEX
       </Button>
 
       <div
