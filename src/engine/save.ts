@@ -115,23 +115,19 @@ function migrateV1(data: SaveData): SaveFileV2['run'] {
   }
 }
 
-export const SAVE_VERSION = 6
-
 /**
- * The migration pipeline: MIGRATIONS[v] lifts a v-shaped run to v+1.
- * Adding a save version means appending one entry here (and bumping
- * SAVE_VERSION) — loadRun never changes again.
+ * The migration pipeline: MIGRATIONS[i] lifts a (i+2)-shaped run one
+ * version up. SAVE_VERSION is derived from the table, so registering
+ * a migration and bumping the version are physically one edit — a
+ * forgotten entry cannot silently wipe saves.
  */
-const MIGRATIONS: Record<number, (run: never) => unknown> = {
-  2: migrateToV3,
-  3: migrateToV4,
-  4: migrateToV5,
-  5: migrateToV6,
-}
+const MIGRATIONS = [migrateToV3, migrateToV4, migrateToV5, migrateToV6] as const
+
+export const SAVE_VERSION = MIGRATIONS.length + 2
 
 function migrateFrom(version: number, run: unknown): RunState {
   let r = run
-  for (let v = version; v < SAVE_VERSION; v++) r = MIGRATIONS[v](r as never)
+  for (let v = version; v < SAVE_VERSION; v++) r = MIGRATIONS[v - 2](r as never)
   return r as RunState
 }
 
@@ -151,6 +147,7 @@ export function loadRun(): RunState | null {
     const parsed = JSON.parse(raw) as { version: number; run: SaveFileV2['run'] } | SaveData
     let run: RunState
     if ('version' in parsed) {
+      if (!Number.isInteger(parsed.version)) return null
       if (parsed.version < 2 || parsed.version > SAVE_VERSION) return null
       // Daily runs are never persisted; a daily-mode save is stale.
       if (parsed.run.mode.kind !== 'normal') return null

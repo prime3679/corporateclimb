@@ -14,18 +14,9 @@ export function getEffectivePlayer(
   relics: RelicId[] = [],
 ): PlayerClass {
   const track = getPromotionTrack(classId)
-  let maxHp = base.maxHp
-  let atk = base.atk
-  let def = base.def
   const moves = [...base.moves]
   for (const tier of track) {
     if (currentFloor < tier.floor) break
-    // Legacy fixed boosts (none in current content, kept for old saves).
-    if (tier.statBoost) {
-      maxHp += tier.statBoost.maxHp || 0
-      atk += tier.statBoost.atk || 0
-      def += tier.statBoost.def || 0
-    }
     if (tier.moveUpgrades) {
       for (const up of tier.moveUpgrades) {
         const idx = moves.findIndex((m) => m.name === up.fromName)
@@ -36,9 +27,9 @@ export function getEffectivePlayer(
   const { statBoost } = collectMods(perks, relics)
   return {
     ...base,
-    maxHp: maxHp + statBoost.maxHp,
-    atk: atk + statBoost.atk,
-    def: def + statBoost.def,
+    maxHp: base.maxHp + statBoost.maxHp,
+    atk: base.atk + statBoost.atk,
+    def: base.def + statBoost.def,
     moves,
   }
 }

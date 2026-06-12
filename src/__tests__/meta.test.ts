@@ -129,6 +129,34 @@ describe('unlockable content effects', () => {
     expect(shark.lowHpDmgMult).toBe(1)
   })
 
+  it('Killer Instinct fires on boss floors only', () => {
+    const mk = (floor: number): TurnContext => {
+      const run = makeRun({ perks: ['killer_instinct'], floor })
+      return {
+        run,
+        battle: { ...newBattle(resolveEnemy(run, 1)), enemyHp: 9999 },
+        effectivePlayer: getEffectivePlayer(PM, 'pm', floor, run.perks),
+      }
+    }
+    const rng = () => seq(0, 0.5, 0.99, 0.99, 0.5, 0.99, 0.99)
+    const dmg = (ctx: TurnContext) =>
+      resolvePlayerMove(ctx, 2, rng()).events.find(
+        (e): e is BattleEvent & { kind: 'hit'; amount: number } => e.kind === 'hit',
+      )!.amount
+    // Same enemy archetype either side of the boss gate would differ by
+    // floor content; compare against the no-perk baseline per floor.
+    const base = (floor: number): TurnContext => {
+      const run = makeRun({ floor })
+      return {
+        run,
+        battle: { ...newBattle(resolveEnemy(run, 1)), enemyHp: 9999 },
+        effectivePlayer: getEffectivePlayer(PM, 'pm', floor, run.perks),
+      }
+    }
+    expect(dmg(mk(8))).toBeGreaterThan(dmg(base(8))) // boss floor: fires
+    expect(dmg(mk(3))).toBe(dmg(base(3))) // normal floor: inert
+  })
+
   it('Golden Handcuffs boosts damage in battle below 30% HP', () => {
     const mk = (hp: number): TurnContext => {
       const run = makeRun({ perks: ['golden_handcuffs'], hp })

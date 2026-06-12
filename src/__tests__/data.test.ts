@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
+import { describe, it, expect, beforeEach, afterEach } from 'vitest'
 import {
   getAct,
   getTypeMultiplier,
@@ -19,7 +19,7 @@ import {
   saveBestNgPlus,
 } from '@/data'
 import { getEffectivePlayer, scaleEnemyForNgPlus } from '@/engine'
-import type { Enemy, PerkId, PlayerClass, SaveData } from '@/types'
+import type { Enemy, PerkId, PlayerClass } from '@/types'
 
 // ─── getAct ──────────────────────────────────────────────────
 
@@ -254,7 +254,7 @@ describe('getPromotion', () => {
   it('returns base title at floor 0', () => {
     const promo = getPromotion('pm', 0)
     expect(promo?.title).toBe('Product Manager')
-    expect(promo?.statBoost).toBeUndefined()
+    expect(promo?.moveUpgrades).toBeUndefined()
   })
 
   it('returns the correct tier at floor 10', () => {

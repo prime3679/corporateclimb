@@ -69,6 +69,7 @@ import {
   saveRun,
   type BattleState,
   type FlowContext,
+  type FlowStop,
   type RunState,
   type TurnResult,
 } from './engine'
@@ -351,7 +352,7 @@ export default function CorporateClimb() {
     // A reload resumes wherever the flow resolver says the sequence
     // stands (act transitions and event offers are session-only, so
     // they are skipped on resume by construction).
-    goToStop(saved, { actPending: false, eventsDone: true }, false)
+    goToStop(saved, { actPending: false, eventsDone: true })
   }
 
   /** Offer/drop pools for a fresh run, from current achievement unlocks. */
@@ -421,11 +422,12 @@ export default function CorporateClimb() {
   // ─── Between-floor flow ────────────────────────────────────
   /**
    * Drive the UI to wherever the engine's flow resolver says the
-   * between-floor sequence goes next. The only side effects live
-   * here: rolling the hallway event offer on entry to the route
-   * choice, and the promotion fanfare (suppressed on save resume).
+   * between-floor sequence goes next; returns the stop so callers can
+   * attach their own presentation (e.g. the victory path's promotion
+   * fanfare). The only side effect here is rolling the hallway event
+   * offer on entry to the route choice.
    */
-  const goToStop = (current: RunState, ctx: FlowContext, celebrate = true) => {
+  const goToStop = (current: RunState, ctx: FlowContext): FlowStop => {
     const stop = nextStop(current, ctx)
     if (stop === 'routeChoice') {
       const rng = new GameRng(current.rngState)
@@ -433,8 +435,8 @@ export default function CorporateClimb() {
       setRun({ ...next, rngState: rng.serialize() })
       setRouteOptions(options)
     }
-    if (stop === 'promotion' && celebrate) SFX.fanfare()
     setScreen(stop)
+    return stop
   }
 
   const handleElevatorPick = (elite: boolean) => {
@@ -443,7 +445,7 @@ export default function CorporateClimb() {
     const next = chooseElevator(run, elite)
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    setScreen('floorIntro')
+    goToStop(next, { actPending: false, eventsDone: true })
   }
 
   const handleMysteryPick = () => {
@@ -453,7 +455,7 @@ export default function CorporateClimb() {
     const next = { ...chooseMysteryFloor(run, rng.next), rngState: rng.serialize() }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    setScreen('floorIntro')
+    goToStop(next, { actPending: false, eventsDone: true })
   }
 
   const handleVictoryContinue = () => {
@@ -522,7 +524,9 @@ export default function CorporateClimb() {
       !isDaily && getAct(prevFloor) !== getAct(next.floor) ? getAct(next.floor) : null
     if (actPending) setPendingActTransition(actPending)
 
-    goToStop(next, { actPending: actPending !== null, eventsDone: false })
+    if (goToStop(next, { actPending: actPending !== null, eventsDone: false }) === 'promotion') {
+      SFX.fanfare()
+    }
   }
 
   const handlePerkPick = (perkId: PerkId) => {
@@ -540,7 +544,7 @@ export default function CorporateClimb() {
     next = { ...next, hp: fullHp }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false }, false)
+    goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
   const handleShopBuyItem = (stockIdx: number) => {
@@ -799,11 +803,8 @@ export default function CorporateClimb() {
             onLeave={handleShopLeave}
           />
         )}
-        {screen === 'actTransition' && pendingActTransition && (
-          <ActTransitionScreen
-            act={pendingActTransition}
-            onContinue={handleActTransitionContinue}
-          />
+        {screen === 'actTransition' && run && (
+          <ActTransitionScreen act={getAct(run.floor)} onContinue={handleActTransitionContinue} />
         )}
         {screen === 'dailyResult' && run && player && run.mode.kind === 'daily' && (
           <DailyResultScreen

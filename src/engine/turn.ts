@@ -21,7 +21,7 @@ import {
 import type { Rng } from './rng'
 import type { BattleState, RunState } from './state'
 import type { BattleEvent, Effectiveness, ViewPatch } from './events'
-import { collectMods } from './modifiers'
+import { collectMods, type Mods } from './modifiers'
 import { resolveEnemy, resolveNgBaseEnemy } from './enemy'
 
 export interface TurnContext {
@@ -180,13 +180,15 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
 
   events.push({ kind: 'attack', side: 'player', moveType: move.type })
 
+  const mods = collectMods(run.perks, run.relics)
+
   // Accuracy
   const acc = move.acc ?? 100
   if (rng() * 100 >= acc) {
     events.push({ kind: 'miss', target: 'enemy' })
     events.push({ kind: 'log', text: `${effectivePlayer.name} used ${move.name}! But it missed!` })
     // On a miss the enemy acts without its statuses ticking (original behavior).
-    return resolveEnemyTurn(runWithTurn, w, events, rng)
+    return resolveEnemyTurn(runWithTurn, w, events, rng, mods)
   }
 
   // Damage
@@ -194,7 +196,6 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   const defMod = getStatusDefMod(w.enemyStatuses)
   const critBonus = getStatusCritBonus(w.playerStatuses)
   const { dmgMult, critBonus: perkCrit } = getClassPerkMods(run.classId)
-  const mods = collectMods(run.perks, run.relics)
   const typeResult = getTypeMultiplier(move.type, enemy.types)
   const [rawDmg, isCrit] = calcDamage(
     rng,
@@ -294,7 +295,7 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   w.enemyStatuses = tickStatuses(w.enemyStatuses)
   events.push({ kind: 'tick', patch: statusPatch(w) })
 
-  return resolveEnemyTurn(runWithTurn, w, events, rng)
+  return resolveEnemyTurn(runWithTurn, w, events, rng, mods)
 }
 
 /** Use an inventory item (consumes the turn; the enemy then acts). */
@@ -412,6 +413,7 @@ function resolveEnemyTurn(
   w: Working,
   events: BattleEvent[],
   rng: Rng,
+  mods: Mods = collectMods(ctx.run.perks, ctx.run.relics),
 ): TurnResult {
   const { run, effectivePlayer } = ctx
   const enemy = resolveEnemy(run, w.enemyPhase)
@@ -419,9 +421,7 @@ function resolveEnemyTurn(
   // Burnout chips the player before the enemy acts — and can end the
   // run. A Stress Ball relic halves the chip.
   const baseBurn = getBurnDamage(w.playerStatuses)
-  const playerBurn = collectMods(run.perks, run.relics).burnGuard
-    ? Math.ceil(baseBurn / 2)
-    : baseBurn
+  const playerBurn = mods.burnGuard ? Math.ceil(baseBurn / 2) : baseBurn
   if (playerBurn > 0) {
     w.playerHp = Math.max(0, w.playerHp - playerBurn)
     events.push({

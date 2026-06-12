@@ -1,5 +1,8 @@
 import type { HallwayEvent } from '../types'
 
+/** Base chance a hallway event also drops a bonus item. */
+export const EVENT_ITEM_BASE_CHANCE = 0.3
+
 // ─── HALLWAY EVENTS ──────────────────────────────────────────
 export const HALLWAY_EVENTS: HallwayEvent[] = [
   {

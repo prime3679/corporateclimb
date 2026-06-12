@@ -243,8 +243,6 @@ export interface DailyModifierContext {
 export interface PromotionTier {
   floor: number
   title: string
-  /** Legacy fixed boost — superseded by perk choices, kept for old saves. */
-  statBoost?: { maxHp?: number; atk?: number; def?: number }
   moveUpgrades?: { fromName: string; to: Move }[]
 }
 

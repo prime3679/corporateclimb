@@ -1,6 +1,4 @@
-import type { AchievementDef, AchievementId, PerkId, SaveData } from '../types'
-import { PLAYER_CLASSES } from './classes'
-import { ENEMY_POOLS } from './enemies'
+import type { AchievementDef, AchievementId, PerkId } from '../types'
 import { groupPerks, PERKS } from './perks'
 
 // ─── NEW GAME+ ───────────────────────────────────────────────

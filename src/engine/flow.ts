@@ -43,7 +43,7 @@ export function eventsEnabled(run: RunState): boolean {
 
 /** The elevator is offered until a pick is committed for this floor. */
 export function elevatorPending(run: RunState): boolean {
-  return eliteAvailable(run.floor) && !run.eliteFloor && run.mystery === null
+  return eliteAvailable(run.floor) && !run.eliteFloor && !run.mystery
 }
 
 /** Where the between-floor sequence goes next. */

@@ -55,7 +55,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
 - [x] 4. Split content tables into `src/content/`; `data.ts` becomes
      the barrel.
 - [x] 5. Table-ize save migrations.
-- [ ] 6. Final pass: docs, dead exports, full gate, live test, PR.
+- [x] 6. Final pass: docs, dead exports, auto-review, full gate, live test, PR.
 
 ## Step log
 
@@ -123,7 +123,7 @@ save version is now one table entry plus a `SAVE_VERSION` bump, and
 All migration-path tests (v1→, v2→, v3→, v4→, v5→, v6 round-trip)
 pass unchanged. Gate: 267 unit / 11 e2e green.
 
-### Step 6 — final pass (in progress)
+### Step 6 — final pass (done)
 
 Dead legacy v1 save API (`saveGame`/`loadGame`, app-unused since the
 Phase-1 engine) removed from `content/progress.ts` along with its 8
@@ -134,3 +134,51 @@ class select; save → battle → victory → perk pick → shop → events →
 elevator → elite intro) passed with zero page errors. Five parallel
 review agents are auditing the branch diff; their confirmed findings
 land as fixes before the PR.
+
+### Auto-review outcome (5 parallel finder agents over the branch diff)
+
+Two agents independently **proved fidelity**: the content move is a
+byte-identical multiset (and an in-order subsequence) of the old
+`data.ts`; `collectMods` covers every field of the five replaced
+reducers with matching semantics; `nextStop` reproduces all four
+legacy routing paths; the migration pipeline composes the exact same
+chain.
+
+13 findings consolidated; all fixed except two consciously declined:
+
+- **Fixed (correctness):** loosened save-version guard now requires
+  `Number.isInteger`; `elevatorPending` tolerates `mystery:
+undefined` from mislabeled saves; ShopScreen now shows
+  relic-discounted prices (pre-existing bug — display disagreed with
+  what `buyShopItem` charged); restored boss-floor gating test
+  coverage for Killer Instinct.
+- **Fixed (structure):** save migrations are an array the version is
+  _derived from_ (a forgotten entry can no longer silently wipe
+  saves); `collectMods` is one uniform fold over the shared
+  perk/relic vocabulary (a field added to either def type is picked
+  up automatically); `turn.ts` folds mods once per action;
+  `scaling.ts` is one parameterized transform; the dead
+  `tier.statBoost` path and its type field are gone;
+  elevator/mystery picks route through `goToStop` like every other
+  handler; the `celebrate` flag became a return value; the
+  ActTransition screen renders from run data so a flow/state desync
+  can't blank-screen; `EVENT_ITEM_BASE_CHANCE` lives with the event
+  content; five dangling imports removed.
+- **Declined:** float-associativity rounding note (no constructible
+  case; snapshot identical); persisting `actPending` into RunState
+  (a save-format change isn't worth a cosmetic interstitial — the
+  render-from-run fix removes the harmful failure mode).
+
+### Definition of done — verdict
+
+- ✅ `CorporateClimb.tsx` is screen wiring; every between-floor route
+  decision (including elevator/mystery picks and save resume) goes
+  through `engine/flow.ts`.
+- ✅ Exactly one modifier-collection path (`collectMods`, one fold).
+- ✅ `data.ts` is a 16-line barrel over `src/content/`; content
+  modules hold tables and lookups only.
+- ✅ Balance snapshot byte-identical across all six steps.
+
+Final gate: 260 unit tests (one added), 0 lint warnings (was 1 on
+main), 11/11 e2e, live browser drive of the full between-floor chain
+clean. I'm happy with the architecture.
