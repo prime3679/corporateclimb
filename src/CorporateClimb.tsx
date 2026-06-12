@@ -52,6 +52,7 @@ import {
   buyShopItem,
   buyWellnessDay,
   chooseElevator,
+  chooseMysteryFloor,
   choosePerk,
   clearSave,
   eliteAvailable,
@@ -350,7 +351,8 @@ export default function CorporateClimb() {
     // and an unpicked elevator is re-offered.
     if (saved.pendingPerkOffer) setScreen('promotion')
     else if (saved.shopStock) setScreen('shop')
-    else if (eliteAvailable(saved.floor) && !saved.eliteFloor) setScreen('elevator')
+    else if (eliteAvailable(saved.floor) && !saved.eliteFloor && !saved.mystery)
+      setScreen('elevator')
     else setScreen('floorIntro')
   }
 
@@ -441,6 +443,16 @@ export default function CorporateClimb() {
     if (!run) return
     SFX.menuConfirm()
     const next = chooseElevator(run, elite)
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+    setScreen('floorIntro')
+  }
+
+  const handleMysteryPick = () => {
+    if (!run) return
+    SFX.menuConfirm()
+    const rng = new GameRng(run.rngState)
+    const next = { ...chooseMysteryFloor(run, rng.next), rngState: rng.serialize() }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
     setScreen('floorIntro')
@@ -740,6 +752,7 @@ export default function CorporateClimb() {
             player={player ?? undefined}
             onReady={startBattle}
             totalFloors={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
+            mystery={run.mystery}
           />
         )}
         {screen === 'battle' && run && battle && view && effectivePlayer && enemy && (
@@ -787,7 +800,11 @@ export default function CorporateClimb() {
           />
         )}
         {screen === 'elevator' && run && (
-          <ElevatorScreen floorNumber={run.floor + 1} onPick={handleElevatorPick} />
+          <ElevatorScreen
+            floorNumber={run.floor + 1}
+            onPick={handleElevatorPick}
+            onPickMystery={handleMysteryPick}
+          />
         )}
         {screen === 'promotion' && player && run?.pendingPerkOffer && (
           <PromotionScreen

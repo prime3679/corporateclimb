@@ -16,6 +16,7 @@ import type {
   PerkDef,
   RelicId,
   RelicDef,
+  MysteryOutcome,
 } from './types'
 
 // ─── CONSTANTS ──────────────────────────────────────────────
@@ -869,6 +870,76 @@ export function scaleEnemyForElite(e: Enemy): Enemy {
           atk: e.phase2.atk ? Math.round(e.phase2.atk * atkMult) : undefined,
           def: e.phase2.def ? Math.round(e.phase2.def * defMult) : undefined,
           moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
+        }
+      : undefined,
+  }
+}
+
+// ─── MYSTERY FLOORS ─────────────────────────────────────────
+// The third elevator is a seeded gamble. Outcomes are weighted so the
+// expected value is a mild positive — worth taking, never free.
+export const MYSTERY_OUTCOMES: {
+  outcome: MysteryOutcome
+  weight: number
+  banner: string
+  desc: string
+}[] = [
+  {
+    outcome: 'windfall',
+    weight: 30,
+    banner: '💰 WINDFALL',
+    desc: 'Accounting made an error in your favor. Double payout!',
+  },
+  {
+    outcome: 'slacker',
+    weight: 25,
+    banner: '😴 SLACKER',
+    desc: 'They are phoning it in today. Weakened enemy.',
+  },
+  {
+    outcome: 'ambush',
+    weight: 30,
+    banner: '⚠️ AMBUSH',
+    desc: 'You walked into the elite’s office. No bonus. Good luck.',
+  },
+  {
+    outcome: 'jackpot',
+    weight: 15,
+    banner: '🎰 JACKPOT',
+    desc: 'The corner-office raffle! Win for a Status Symbol.',
+  },
+]
+
+/** Roll a mystery outcome from the weighted table. */
+export function rollMysteryOutcome(rng: () => number): MysteryOutcome {
+  const total = MYSTERY_OUTCOMES.reduce((s, o) => s + o.weight, 0)
+  let roll = rng() * total
+  for (const o of MYSTERY_OUTCOMES) {
+    roll -= o.weight
+    if (roll < 0) return o.outcome
+  }
+  return MYSTERY_OUTCOMES[MYSTERY_OUTCOMES.length - 1].outcome
+}
+
+export function getMysteryInfo(outcome: MysteryOutcome) {
+  return MYSTERY_OUTCOMES.find((o) => o.outcome === outcome)!
+}
+
+/** Slacker floors: the enemy would rather be anywhere else. */
+export function scaleEnemyForSlacker(e: Enemy): Enemy {
+  const mult = 0.75
+  return {
+    ...e,
+    name: `Slacking ${e.name}`,
+    maxHp: Math.round(e.maxHp * mult),
+    atk: Math.round(e.atk * 0.85),
+    moves: e.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * 0.9) })),
+    phase2: e.phase2
+      ? {
+          ...e.phase2,
+          maxHp: Math.round(e.phase2.maxHp * mult),
+          atk: e.phase2.atk ? Math.round(e.phase2.atk * 0.85) : undefined,
+          moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * 0.9) })),
         }
       : undefined,
   }
