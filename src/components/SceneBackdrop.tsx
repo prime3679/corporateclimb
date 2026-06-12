@@ -22,7 +22,7 @@ export default function SceneBackdrop({ act, palette }: { act: number; palette: 
     >
       {act === 1 && <OfficeScene p={palette} />}
       {act === 2 && <CorporateScene p={palette} />}
-      {act >= 3 && <ExecutiveScene p={palette} />}
+      {act >= 3 && <ExecutiveScene />}
     </div>
   )
 }
@@ -156,7 +156,7 @@ function CorporateScene({ p }: { p: ScenePalette }) {
 }
 
 /** Act 3 — executive penthouse at night: moon, stars, distant skyline. */
-function ExecutiveScene({ p }: { p: ScenePalette }) {
+function ExecutiveScene() {
   const stars: [string, string, number][] = [
     ['12%', '8%', 2.2],
     ['28%', '16%', 3.1],

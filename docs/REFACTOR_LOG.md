@@ -52,7 +52,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
 - [x] 2. Unified modifier collection (`engine/modifiers.ts`).
 - [x] 3. Move game logic out of `data.ts` into engine modules
      (`scaling`, `economy`, `player`, offer/drop rolls).
-- [ ] 4. Split content tables into `src/content/`; `data.ts` becomes
+- [x] 4. Split content tables into `src/content/`; `data.ts` becomes
      the barrel.
 - [ ] 5. Table-ize save migrations.
 - [ ] 6. Final pass: docs, dead exports, full gate, live test, PR.
@@ -103,3 +103,13 @@ content lookups (`getPromotionTrack` made public for the engine).
 All src + test imports rewired to `@/engine`; no compatibility
 re-exports. `data.ts` 3,071 → 2,844 lines. Gate: 267 unit / 11 e2e
 green; balance snapshot byte-identical.
+
+### Step 4 — content split (done)
+
+`src/content/` now holds eleven focused modules (constants, statuses,
+type-chart, classes, perks, relics, mystery, enemies, events, items,
+progress) and `data.ts` is a 16-line barrel preserving the `@/data`
+import surface — zero import churn for consumers. Largest module is
+`enemies.ts` (1,442 lines of pure tables). Also cleaned two latent
+lint warnings (unused `MoveType` import; `ExecutiveScene`'s unused
+palette param). Gate: 267 unit / 11 e2e green; snapshot byte-identical.
