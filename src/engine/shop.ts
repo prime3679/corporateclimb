@@ -6,7 +6,8 @@
 // returns the run unchanged.
 
 import type { ItemId, PerkId, RelicId } from '@/types'
-import { ALL_ITEM_IDS, ITEMS, PERKS, RELICS, getAct } from '@/data'
+import { ALL_ITEM_IDS, ITEMS, getAct } from '@/data'
+import { collectMods } from './modifiers'
 import type { Rng } from './rng'
 import { MAX_INVENTORY, type RunState } from './state'
 
@@ -44,9 +45,8 @@ export function shopPrice(
   floor = 0,
   relics: RelicId[] = [],
 ): number {
-  const perkMult = perks.reduce((m, id) => m * (PERKS[id]?.priceMult ?? 1), 1)
-  const relicMult = relics.reduce((m, id) => m * (RELICS[id]?.priceMult ?? 1), 1)
-  return Math.max(1, Math.round(basePrice * ACT_PRICE_MULT[getAct(floor)] * perkMult * relicMult))
+  const { priceMult } = collectMods(perks, relics)
+  return Math.max(1, Math.round(basePrice * ACT_PRICE_MULT[getAct(floor)] * priceMult))
 }
 
 /** Roll the stop's stock: SHOP_STOCK_SIZE distinct items. */

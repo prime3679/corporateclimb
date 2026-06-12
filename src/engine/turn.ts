@@ -7,14 +7,7 @@
 // rng, so seeded daily runs stay deterministic.
 
 import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
-import {
-  ITEMS,
-  STATUS_DEFS,
-  getConditionalDmgMult,
-  getPerkCombatMods,
-  getRelicCombatMods,
-  getTypeMultiplier,
-} from '@/data'
+import { ITEMS, STATUS_DEFS, getTypeMultiplier } from '@/data'
 import {
   STRUGGLE_MOVE,
   calcDamage,
@@ -28,6 +21,7 @@ import {
 import type { Rng } from './rng'
 import type { BattleState, RunState } from './state'
 import type { BattleEvent, Effectiveness, ViewPatch } from './events'
+import { collectMods, type Mods } from './modifiers'
 import { resolveEnemy, resolveNgBaseEnemy } from './enemy'
 
 export interface TurnContext {
@@ -186,13 +180,15 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
 
   events.push({ kind: 'attack', side: 'player', moveType: move.type })
 
+  const mods = collectMods(run.perks, run.relics)
+
   // Accuracy
   const acc = move.acc ?? 100
   if (rng() * 100 >= acc) {
     events.push({ kind: 'miss', target: 'enemy' })
     events.push({ kind: 'log', text: `${effectivePlayer.name} used ${move.name}! But it missed!` })
     // On a miss the enemy acts without its statuses ticking (original behavior).
-    return resolveEnemyTurn(runWithTurn, w, events, rng)
+    return resolveEnemyTurn(runWithTurn, w, events, rng, mods)
   }
 
   // Damage
@@ -200,23 +196,20 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   const defMod = getStatusDefMod(w.enemyStatuses)
   const critBonus = getStatusCritBonus(w.playerStatuses)
   const { dmgMult, critBonus: perkCrit } = getClassPerkMods(run.classId)
-  const perkMods = getPerkCombatMods(run.perks)
-  const relicMods = getRelicCombatMods(run.relics)
   const typeResult = getTypeMultiplier(move.type, enemy.types)
   const [rawDmg, isCrit] = calcDamage(
     rng,
     effectivePlayer.atk + run.level * 2 + run.atkBuff + atkMod,
     enemy.def + defMod,
     move.dmg,
-    critBonus + perkCrit + perkMods.critBonus + relicMods.critBonus,
+    critBonus + perkCrit + mods.critBonus,
     typeResult.mult,
   )
-  // Situational perks: clutch damage below 30% HP, boss-floor damage.
-  const condMult = getConditionalDmgMult(run.perks, {
-    lowHp: w.playerHp < effectivePlayer.maxHp * 0.3,
-    bossFloor: run.floor % 10 >= 8,
-  })
-  const dmg = Math.round(rawDmg * dmgMult * perkMods.dmgMult * relicMods.dmgMult * condMult)
+  // Situational mods: clutch damage below 30% HP, boss-floor damage.
+  const condMult =
+    (w.playerHp < effectivePlayer.maxHp * 0.3 ? mods.lowHpDmgMult : 1) *
+    (run.floor % 10 >= 8 ? mods.bossDmgMult : 1)
+  const dmg = Math.round(rawDmg * dmgMult * mods.dmgMult * condMult)
   w.enemyHp = Math.max(0, w.enemyHp - dmg)
   w.damageDealt += dmg
 
@@ -268,8 +261,8 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   }
 
   // Networking Guru perk: heal a fraction of damage dealt.
-  if (perkMods.lifesteal > 0) {
-    const steal = Math.min(Math.floor(dmg * perkMods.lifesteal), effectivePlayer.maxHp - w.playerHp)
+  if (mods.lifesteal > 0) {
+    const steal = Math.min(Math.floor(dmg * mods.lifesteal), effectivePlayer.maxHp - w.playerHp)
     if (steal > 0) {
       w.playerHp += steal
       events.push({
@@ -302,7 +295,7 @@ export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): 
   w.enemyStatuses = tickStatuses(w.enemyStatuses)
   events.push({ kind: 'tick', patch: statusPatch(w) })
 
-  return resolveEnemyTurn(runWithTurn, w, events, rng)
+  return resolveEnemyTurn(runWithTurn, w, events, rng, mods)
 }
 
 /** Use an inventory item (consumes the turn; the enemy then acts). */
@@ -420,6 +413,7 @@ function resolveEnemyTurn(
   w: Working,
   events: BattleEvent[],
   rng: Rng,
+  mods: Mods = collectMods(ctx.run.perks, ctx.run.relics),
 ): TurnResult {
   const { run, effectivePlayer } = ctx
   const enemy = resolveEnemy(run, w.enemyPhase)
@@ -427,7 +421,7 @@ function resolveEnemyTurn(
   // Burnout chips the player before the enemy acts — and can end the
   // run. A Stress Ball relic halves the chip.
   const baseBurn = getBurnDamage(w.playerStatuses)
-  const playerBurn = getRelicCombatMods(run.relics).burnGuard ? Math.ceil(baseBurn / 2) : baseBurn
+  const playerBurn = mods.burnGuard ? Math.ceil(baseBurn / 2) : baseBurn
   if (playerBurn > 0) {
     w.playerHp = Math.max(0, w.playerHp - playerBurn)
     events.push({

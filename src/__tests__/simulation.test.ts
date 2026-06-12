@@ -6,16 +6,8 @@
 // progress, so balance changes show up as reviewable test diffs.
 
 import { describe, it, expect } from 'vitest'
+import { ENEMY_POOLS, ITEMS, PERKS, PLAYER_CLASSES, getTypeMultiplier } from '@/data'
 import {
-  ENEMY_POOLS,
-  ITEMS,
-  PERKS,
-  PLAYER_CLASSES,
-  getEffectivePlayer,
-  getTypeMultiplier,
-} from '@/data'
-import {
-  GameRng,
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
@@ -25,6 +17,8 @@ import {
   chooseElevator,
   choosePerk,
   eliteAvailable,
+  GameRng,
+  getEffectivePlayer,
   leaveShop,
   newBattle,
   newRun,

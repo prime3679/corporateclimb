@@ -47,4 +47,10 @@ export {
   rollShopStock,
   shopPrice,
 } from './shop'
+export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowStop } from './flow'
+export { collectMods, type Mods } from './modifiers'
+export { getEffectivePlayer } from './player'
+export { getVictoryPayout } from './economy'
+export { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
+export { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'

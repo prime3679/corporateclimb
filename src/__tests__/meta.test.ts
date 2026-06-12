@@ -14,20 +14,17 @@ import {
   PERKS,
   PLAYER_CLASSES,
   RELICS,
-  getConditionalDmgMult,
-  getEffectivePlayer,
-  getVictoryPayout,
-  rollPerkOffer,
-  rollRelicDrop,
   unlockAchievement,
   unlockedPerkPool,
   unlockedRelicPool,
 } from '@/data'
 import {
-  SAVE_KEY,
   advanceFloor,
   awardEliteSpoils,
   clearSave,
+  collectMods,
+  getEffectivePlayer,
+  getVictoryPayout,
   loadRun,
   newBattle,
   newDailyRun,
@@ -35,6 +32,9 @@ import {
   newRun,
   resolveEnemy,
   resolvePlayerMove,
+  rollPerkOffer,
+  rollRelicDrop,
+  SAVE_KEY,
   saveRun,
   shopPrice,
   type RunState,
@@ -120,13 +120,41 @@ describe('unlock pools', () => {
 })
 
 describe('unlockable content effects', () => {
-  it('conditional damage multipliers fire only in their situation', () => {
-    expect(getConditionalDmgMult(['golden_handcuffs'], { lowHp: true, bossFloor: false })).toBe(
-      1.25,
-    )
-    expect(getConditionalDmgMult(['golden_handcuffs'], { lowHp: false, bossFloor: false })).toBe(1)
-    expect(getConditionalDmgMult(['killer_instinct'], { lowHp: false, bossFloor: true })).toBe(1.2)
-    expect(getConditionalDmgMult(['killer_instinct'], { lowHp: false, bossFloor: false })).toBe(1)
+  it('conditional damage multipliers are collected per situation', () => {
+    const cuffs = collectMods(['golden_handcuffs'], [])
+    expect(cuffs.lowHpDmgMult).toBe(1.25)
+    expect(cuffs.bossDmgMult).toBe(1)
+    const shark = collectMods(['killer_instinct'], [])
+    expect(shark.bossDmgMult).toBe(1.2)
+    expect(shark.lowHpDmgMult).toBe(1)
+  })
+
+  it('Killer Instinct fires on boss floors only', () => {
+    const mk = (floor: number): TurnContext => {
+      const run = makeRun({ perks: ['killer_instinct'], floor })
+      return {
+        run,
+        battle: { ...newBattle(resolveEnemy(run, 1)), enemyHp: 9999 },
+        effectivePlayer: getEffectivePlayer(PM, 'pm', floor, run.perks),
+      }
+    }
+    const rng = () => seq(0, 0.5, 0.99, 0.99, 0.5, 0.99, 0.99)
+    const dmg = (ctx: TurnContext) =>
+      resolvePlayerMove(ctx, 2, rng()).events.find(
+        (e): e is BattleEvent & { kind: 'hit'; amount: number } => e.kind === 'hit',
+      )!.amount
+    // Same enemy archetype either side of the boss gate would differ by
+    // floor content; compare against the no-perk baseline per floor.
+    const base = (floor: number): TurnContext => {
+      const run = makeRun({ floor })
+      return {
+        run,
+        battle: { ...newBattle(resolveEnemy(run, 1)), enemyHp: 9999 },
+        effectivePlayer: getEffectivePlayer(PM, 'pm', floor, run.perks),
+      }
+    }
+    expect(dmg(mk(8))).toBeGreaterThan(dmg(base(8))) // boss floor: fires
+    expect(dmg(mk(3))).toBe(dmg(base(3))) // normal floor: inert
   })
 
   it('Golden Handcuffs boosts damage in battle below 30% HP', () => {

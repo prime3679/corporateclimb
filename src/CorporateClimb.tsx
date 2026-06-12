@@ -13,7 +13,6 @@ import {
   checkAchievements,
   getAct,
   getBestNgPlus,
-  getEffectivePlayer,
   getPromotion,
   getUnlockedAchievements,
   saveBestNgPlus,
@@ -55,19 +54,22 @@ import {
   chooseMysteryFloor,
   choosePerk,
   clearSave,
-  eliteAvailable,
+  getEffectivePlayer,
   leaveShop,
   loadRun,
   newBattle,
   newDailyRun,
   newNgPlusRun,
   newRun,
+  nextStop,
   pickTwoEvents,
   resolveEnemy,
   resolveItemUse,
   resolvePlayerMove,
   saveRun,
   type BattleState,
+  type FlowContext,
+  type FlowStop,
   type RunState,
   type TurnResult,
 } from './engine'
@@ -347,13 +349,10 @@ export default function CorporateClimb() {
     if (!saved) return
     SFX.menuConfirm()
     setRun(saved)
-    // A reload mid-promotion or mid-shop resumes the pending choice,
-    // and an unpicked elevator is re-offered.
-    if (saved.pendingPerkOffer) setScreen('promotion')
-    else if (saved.shopStock) setScreen('shop')
-    else if (eliteAvailable(saved.floor) && !saved.eliteFloor && !saved.mystery)
-      setScreen('elevator')
-    else setScreen('floorIntro')
+    // A reload resumes wherever the flow resolver says the sequence
+    // stands (act transitions and event offers are session-only, so
+    // they are skipped on resume by construction).
+    goToStop(saved, { actPending: false, eventsDone: true })
   }
 
   /** Offer/drop pools for a fresh run, from current achievement unlocks. */
@@ -421,22 +420,23 @@ export default function CorporateClimb() {
   }
 
   // ─── Between-floor flow ────────────────────────────────────
-  /** Last stop before the fight: the elevator bank (when available). */
-  const proceedToFloorEntry = (current: RunState) => {
-    if (eliteAvailable(current.floor)) setScreen('elevator')
-    else setScreen('floorIntro')
-  }
-
-  const proceedToRouteChoice = (current: RunState) => {
-    if (current.mode.kind === 'daily' && !current.mode.modifier.eventsEnabled) {
-      proceedToFloorEntry(current)
-      return
+  /**
+   * Drive the UI to wherever the engine's flow resolver says the
+   * between-floor sequence goes next; returns the stop so callers can
+   * attach their own presentation (e.g. the victory path's promotion
+   * fanfare). The only side effect here is rolling the hallway event
+   * offer on entry to the route choice.
+   */
+  const goToStop = (current: RunState, ctx: FlowContext): FlowStop => {
+    const stop = nextStop(current, ctx)
+    if (stop === 'routeChoice') {
+      const rng = new GameRng(current.rngState)
+      const { options, run: next } = pickTwoEvents(current, rng.next)
+      setRun({ ...next, rngState: rng.serialize() })
+      setRouteOptions(options)
     }
-    const rng = new GameRng(current.rngState)
-    const { options, run: next } = pickTwoEvents(current, rng.next)
-    setRun({ ...next, rngState: rng.serialize() })
-    setRouteOptions(options)
-    setScreen('routeChoice')
+    setScreen(stop)
+    return stop
   }
 
   const handleElevatorPick = (elite: boolean) => {
@@ -445,7 +445,7 @@ export default function CorporateClimb() {
     const next = chooseElevator(run, elite)
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    setScreen('floorIntro')
+    goToStop(next, { actPending: false, eventsDone: true })
   }
 
   const handleMysteryPick = () => {
@@ -455,21 +455,7 @@ export default function CorporateClimb() {
     const next = { ...chooseMysteryFloor(run, rng.next), rngState: rng.serialize() }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    setScreen('floorIntro')
-  }
-
-  /** Route to whichever interstitial the advanced run calls for. */
-  const proceedAfterFloorAdvance = (next: RunState, actPending: number | null) => {
-    if (next.pendingPerkOffer) {
-      SFX.fanfare()
-      setScreen('promotion')
-    } else if (next.shopStock) {
-      setScreen('shop')
-    } else if (actPending) {
-      setScreen('actTransition')
-    } else {
-      proceedToRouteChoice(next)
-    }
+    goToStop(next, { actPending: false, eventsDone: true })
   }
 
   const handleVictoryContinue = () => {
@@ -538,7 +524,9 @@ export default function CorporateClimb() {
       !isDaily && getAct(prevFloor) !== getAct(next.floor) ? getAct(next.floor) : null
     if (actPending) setPendingActTransition(actPending)
 
-    proceedAfterFloorAdvance(next, actPending)
+    if (goToStop(next, { actPending: actPending !== null, eventsDone: false }) === 'promotion') {
+      SFX.fanfare()
+    }
   }
 
   const handlePerkPick = (perkId: PerkId) => {
@@ -556,13 +544,7 @@ export default function CorporateClimb() {
     next = { ...next, hp: fullHp }
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    if (next.shopStock) {
-      setScreen('shop')
-    } else if (pendingActTransition) {
-      setScreen('actTransition')
-    } else {
-      proceedToRouteChoice(next)
-    }
+    goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
   const handleShopBuyItem = (stockIdx: number) => {
@@ -589,18 +571,14 @@ export default function CorporateClimb() {
     const next = leaveShop(run)
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
-    if (pendingActTransition) {
-      setScreen('actTransition')
-    } else {
-      proceedToRouteChoice(next)
-    }
+    goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
   const handleActTransitionContinue = () => {
     if (!run) return
     SFX.menuConfirm()
     setPendingActTransition(null)
-    proceedToRouteChoice(run)
+    goToStop(run, { actPending: false, eventsDone: false })
   }
 
   const handleRoutePick = (event: HallwayEvent) => {
@@ -625,7 +603,7 @@ export default function CorporateClimb() {
   }
 
   const handleEventContinue = () => {
-    if (run) proceedToFloorEntry(run)
+    if (run) goToStop(run, { actPending: false, eventsDone: true })
   }
 
   const handleDailyBack = () => {
@@ -825,11 +803,8 @@ export default function CorporateClimb() {
             onLeave={handleShopLeave}
           />
         )}
-        {screen === 'actTransition' && pendingActTransition && (
-          <ActTransitionScreen
-            act={pendingActTransition}
-            onContinue={handleActTransitionContinue}
-          />
+        {screen === 'actTransition' && run && (
+          <ActTransitionScreen act={getAct(run.floor)} onContinue={handleActTransitionContinue} />
         )}
         {screen === 'dailyResult' && run && player && run.mode.kind === 'daily' && (
           <DailyResultScreen

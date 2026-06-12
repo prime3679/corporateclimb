@@ -28,9 +28,13 @@ and the remaining roadmap):
 
 - `src/engine/` — pure game logic. `state.ts` holds the canonical `RunState`/`BattleState`;
   `turn.ts` resolves a full turn into an ordered event list (no timers, no React);
-  `run.ts` handles floor/XP/promotion-perk/hallway-event transitions; `shop.ts` is the
-  mid-act Stock Option shop; `save.ts` is the versioned save (v6, migrates v5..v1);
-  `events.ts` defines the battle event vocabulary.
+  `run.ts` handles floor/promotion/elevator transitions and `flow.ts` is the single
+  between-floor router (used by gameplay and save resume alike); `modifiers.ts` is the one
+  place perk+relic effects are collected; `player.ts`/`economy.ts`/`scaling.ts`/`offers.ts`
+  hold effective stats, payouts, enemy transforms, and seeded reward rolls; `shop.ts` is the
+  mid-act Stock Option shop; `save.ts` is the versioned save (v6, migrated via a pipeline
+  table — add an entry, bump `SAVE_VERSION`); `events.ts` defines the battle event
+  vocabulary.
 - `src/battle.ts` — pure combat math (damage, type effectiveness, status). RNG is always
   injected, never `Math.random()` inline, so dailies stay deterministic.
 - `src/sequencer.ts` — plays engine event lists back as timed view mutations; cancellable
@@ -40,7 +44,10 @@ and the remaining roadmap):
 - `src/components/` + `src/ui/` — reusable pieces; `ui/tokens.css` is the single source of
   design tokens (colors, type scale, shadows). Prefer CSS modules + tokens over new inline
   styles.
-- `src/data.ts` — all game content (classes, enemies, items, perks, relics, events, achievements).
+- `src/content/` — all game content, one module per table (classes, enemies, items, perks,
+  relics, mystery, events, statuses, type chart, achievements/progress). `src/data.ts` is the
+  barrel that preserves the `@/data` import surface. Content modules hold tables and lookups
+  only — game logic belongs in `src/engine/`.
 - `src/daily.ts` — daily challenge seeding (Mulberry32) and result persistence.
 
 ## Conventions
