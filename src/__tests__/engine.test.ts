@@ -1,10 +1,12 @@
 import { describe, it, expect, beforeEach } from 'vitest'
 import {
-  GameRng,
   applyEventChoice,
   applyPostBattlePerk,
   applyVictory,
   battleIntroLine,
+  clearSave,
+  GameRng,
+  getEffectivePlayer,
   loadRun,
   newBattle,
   newDailyRun,
@@ -15,12 +17,11 @@ import {
   resolveItemUse,
   resolvePlayerMove,
   saveRun,
-  clearSave,
   type BattleEvent,
   type RunState,
   type TurnContext,
 } from '@/engine'
-import { ENEMY_POOLS, HALLWAY_EVENTS, PLAYER_CLASSES, getEffectivePlayer } from '@/data'
+import { ENEMY_POOLS, HALLWAY_EVENTS, PLAYER_CLASSES } from '@/data'
 import { createSeededRandom } from '@/daily'
 import type { Rng } from '@/battle'
 

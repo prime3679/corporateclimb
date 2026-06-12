@@ -50,7 +50,7 @@ migrateToV4(...)))` × 5 branches — table-ize into a pipeline.
      `CorporateClimb.tsx` + resume. Fixes the resume/act-transition
      drift by construction.
 - [x] 2. Unified modifier collection (`engine/modifiers.ts`).
-- [ ] 3. Move game logic out of `data.ts` into engine modules
+- [x] 3. Move game logic out of `data.ts` into engine modules
      (`scaling`, `economy`, `player`, offer/drop rolls).
 - [ ] 4. Split content tables into `src/content/`; `data.ts` becomes
      the barrel.
@@ -91,3 +91,15 @@ their own loops in `data.ts` to avoid an engine→data→engine cycle;
 they move into the engine in step 3, which closes the "exactly one
 collection path" goal. Gate: 267 unit / 11 e2e green; balance
 snapshot byte-identical.
+
+### Step 3 — logic out of the content layer (done)
+
+Four new engine modules: `scaling.ts` (NG+/elite/slacker enemy
+transforms), `player.ts` (`getEffectivePlayer`, now via
+`collectMods` — closing step 2's "one collection path" goal),
+`economy.ts` (`getVictoryPayout`), `offers.ts` (perk offer, relic
+drop, mystery rolls). `data.ts` keeps only content tables, pools, and
+content lookups (`getPromotionTrack` made public for the engine).
+All src + test imports rewired to `@/engine`; no compatibility
+re-exports. `data.ts` 3,071 → 2,844 lines. Gate: 267 unit / 11 e2e
+green; balance snapshot byte-identical.

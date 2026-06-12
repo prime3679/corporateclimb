@@ -14,16 +14,13 @@ import {
   HALLWAY_EVENTS,
   PERKS,
   PLAYER_CLASSES,
-  RELICS,
   RELIC_DUPLICATE_OPTIONS,
   STATUS_DEFS,
   getPromotion,
-  getVictoryPayout,
   rollFloorEnemies,
-  rollMysteryOutcome,
-  rollPerkOffer,
-  rollRelicDrop,
 } from '@/data'
+import { getVictoryPayout } from './economy'
+import { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
 import {
   createSeededRandom,
   getDailyFloorMap,

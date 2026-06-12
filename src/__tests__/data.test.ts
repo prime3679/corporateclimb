@@ -4,8 +4,6 @@ import {
   getTypeMultiplier,
   TYPE_STRONG,
   TYPE_COLORS,
-  scaleEnemyForNgPlus,
-  getEffectivePlayer,
   getPromotion,
   PERKS,
   PLAYER_CLASSES,
@@ -24,6 +22,7 @@ import {
   saveBestNgPlus,
   SAVE_KEY,
 } from '@/data'
+import { getEffectivePlayer, scaleEnemyForNgPlus } from '@/engine'
 import type { Enemy, PerkId, PlayerClass, SaveData } from '@/types'
 
 // ─── getAct ──────────────────────────────────────────────────

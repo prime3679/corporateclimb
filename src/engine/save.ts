@@ -16,11 +16,11 @@ import {
   PROMOTION_TRACKS,
   RELICS,
   getUnlockedAchievements,
-  getVictoryPayout,
   rollFloorEnemies,
   unlockedPerkPool,
   unlockedRelicPool,
 } from '@/data'
+import { getVictoryPayout } from './economy'
 import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'

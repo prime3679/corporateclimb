@@ -411,58 +411,13 @@ export const PROMOTION_TRACKS: Record<ClassId, PromotionTier[]> = {
 
 // Run state carries classId as a plain string (it round-trips through
 // saves), so promotion lookups tolerate unknown ids at the boundary.
-function promotionTrack(classId: string): PromotionTier[] {
+export function getPromotionTrack(classId: string): PromotionTier[] {
   return PROMOTION_TRACKS[classId as ClassId] ?? []
 }
 
 export function getPromotion(classId: string, floor: number): PromotionTier | undefined {
-  const track = promotionTrack(classId)
+  const track = getPromotionTrack(classId)
   return [...track].reverse().find((t) => floor >= t.floor) || track[0]
-}
-
-export function getEffectivePlayer(
-  base: PlayerClass,
-  classId: string,
-  currentFloor: number,
-  perks: PerkId[] = [],
-  relics: RelicId[] = [],
-): PlayerClass {
-  const track = promotionTrack(classId)
-  let maxHp = base.maxHp
-  let atk = base.atk
-  let def = base.def
-  const moves = [...base.moves]
-  for (const tier of track) {
-    if (currentFloor < tier.floor) break
-    if (tier.statBoost) {
-      maxHp += tier.statBoost.maxHp || 0
-      atk += tier.statBoost.atk || 0
-      def += tier.statBoost.def || 0
-    }
-    if (tier.moveUpgrades) {
-      for (const up of tier.moveUpgrades) {
-        const idx = moves.findIndex((m) => m.name === up.fromName)
-        if (idx >= 0) moves[idx] = up.to
-      }
-    }
-  }
-  for (const id of perks) {
-    const boost = PERKS[id]?.statBoost
-    if (boost) {
-      maxHp += boost.maxHp || 0
-      atk += boost.atk || 0
-      def += boost.def || 0
-    }
-  }
-  for (const id of relics) {
-    const boost = RELICS[id]?.statBoost
-    if (boost) {
-      maxHp += boost.maxHp || 0
-      atk += boost.atk || 0
-      def += boost.def || 0
-    }
-  }
-  return { ...base, maxHp, atk, def, moves }
 }
 
 // ─── PERKS ──────────────────────────────────────────────────
@@ -639,33 +594,6 @@ export function unlockedPerkPool(unlocked: Set<AchievementId>): PerkId[] {
   })
 }
 
-/**
- * Roll a promotion's pick-1-of-3 offer: [stat, passive, economy].
- * Owned one-time perks are excluded; if a category is exhausted it
- * falls back to a stat package (always repeatable).
- */
-export function rollPerkOffer(
-  owned: PerkId[],
-  rng: () => number,
-  offerPool: PerkId[] = BASE_PERK_POOL,
-): PerkId[] {
-  const pickFrom = (kind: PerkDef['kind']): PerkId | undefined => {
-    const pool = offerPool.filter((id) => {
-      const p = PERKS[id]
-      return p.kind === kind && (p.repeatable || !owned.includes(id))
-    })
-    return pool[Math.floor(rng() * pool.length)]
-  }
-  const stat = pickFrom('stat')!
-  const fallback = (): PerkId => {
-    let alt = pickFrom('stat')!
-    // Avoid duplicating the stat slot when possible.
-    for (let i = 0; i < 4 && alt === stat; i++) alt = pickFrom('stat')!
-    return alt
-  }
-  return [stat, pickFrom('passive') ?? fallback(), pickFrom('economy') ?? fallback()]
-}
-
 /** Owned perks grouped for display, in first-pick order, with stack counts. */
 export function groupPerks(perks: PerkId[]): { perk: PerkDef; count: number }[] {
   const grouped: { perk: PerkDef; count: number }[] = []
@@ -781,46 +709,10 @@ export function unlockedRelicPool(unlocked: Set<AchievementId>): RelicId[] {
   })
 }
 
-/** A random relic the run doesn't own yet, or null when complete. */
-export function rollRelicDrop(
-  owned: RelicId[],
-  rng: () => number,
-  dropPool: RelicId[] = BASE_RELIC_POOL,
-): RelicId | null {
-  const pool = dropPool.filter((id) => !owned.includes(id))
-  if (pool.length === 0) return null
-  return pool[Math.floor(rng() * pool.length)]
-}
-
 // ─── ELITE FLOORS ───────────────────────────────────────────
 // The Executive Track: a meaner take on the floor's enemy in exchange
 // for double payout and a Status Symbol.
 export const ELITE_PAYOUT_MULT = 2
-
-export function scaleEnemyForElite(e: Enemy): Enemy {
-  const hpMult = 1.35
-  const atkMult = 1.15
-  const defMult = 1.1
-  const dmgMult = 1.08
-  return {
-    ...e,
-    name: `Elite ${e.name}`,
-    title: `ELITE ${e.title}`,
-    maxHp: Math.round(e.maxHp * hpMult),
-    atk: Math.round(e.atk * atkMult),
-    def: Math.round(e.def * defMult),
-    moves: e.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
-    phase2: e.phase2
-      ? {
-          ...e.phase2,
-          maxHp: Math.round(e.phase2.maxHp * hpMult),
-          atk: e.phase2.atk ? Math.round(e.phase2.atk * atkMult) : undefined,
-          def: e.phase2.def ? Math.round(e.phase2.def * defMult) : undefined,
-          moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
-        }
-      : undefined,
-  }
-}
 
 // ─── MYSTERY FLOORS ─────────────────────────────────────────
 // The third elevator is a seeded gamble. Outcomes are weighted so the
@@ -857,57 +749,14 @@ export const MYSTERY_OUTCOMES: {
   },
 ]
 
-/** Roll a mystery outcome from the weighted table. */
-export function rollMysteryOutcome(rng: () => number): MysteryOutcome {
-  const total = MYSTERY_OUTCOMES.reduce((s, o) => s + o.weight, 0)
-  let roll = rng() * total
-  for (const o of MYSTERY_OUTCOMES) {
-    roll -= o.weight
-    if (roll < 0) return o.outcome
-  }
-  return MYSTERY_OUTCOMES[MYSTERY_OUTCOMES.length - 1].outcome
-}
-
 export function getMysteryInfo(outcome: MysteryOutcome) {
   return MYSTERY_OUTCOMES.find((o) => o.outcome === outcome)!
-}
-
-/** Slacker floors: the enemy would rather be anywhere else. */
-export function scaleEnemyForSlacker(e: Enemy): Enemy {
-  const mult = 0.75
-  return {
-    ...e,
-    name: `Slacking ${e.name}`,
-    maxHp: Math.round(e.maxHp * mult),
-    atk: Math.round(e.atk * 0.85),
-    moves: e.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * 0.9) })),
-    phase2: e.phase2
-      ? {
-          ...e.phase2,
-          maxHp: Math.round(e.phase2.maxHp * mult),
-          atk: e.phase2.atk ? Math.round(e.phase2.atk * 0.85) : undefined,
-          moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * 0.9) })),
-        }
-      : undefined,
-  }
 }
 
 // ─── STOCK OPTIONS (currency) ───────────────────────────────
 // Earned on every battle win, scaled by floor; spent at the shop.
 export const CURRENCY_NAME = 'Stock Options'
 export const CURRENCY_ICON = '📈'
-
-export function getVictoryPayout(
-  floor: number,
-  perks: PerkId[] = [],
-  relics: RelicId[] = [],
-): number {
-  const base = 8 + floor * 3
-  const perkMult = perks.reduce((m, id) => m * (PERKS[id]?.payoutMult ?? 1), 1)
-  const relicMult = relics.reduce((m, id) => m * (RELICS[id]?.payoutMult ?? 1), 1)
-  const flat = perks.reduce((s, id) => s + (PERKS[id]?.flatPayout ?? 0), 0)
-  return Math.round(base * perkMult * relicMult) + flat
-}
 
 // ─── ENEMIES ─────────────────────────────────────────────────
 export const ENEMIES: Enemy[] = [
@@ -2796,29 +2645,6 @@ export function getFloorEnemy(floor: number, enemyName: string): Enemy {
 
 // ─── NEW GAME+ ───────────────────────────────────────────────
 const NG_PLUS_KEY = 'corporate-climb-ng-best'
-
-/** Scale an enemy's stats for NG+ (30% per NG+ level) */
-export function scaleEnemyForNgPlus(e: Enemy, ngLevel: number): Enemy {
-  if (ngLevel <= 0) return e
-  const mult = 1 + ngLevel * 0.3
-  const dmgMult = 1 + ngLevel * 0.15
-  return {
-    ...e,
-    maxHp: Math.round(e.maxHp * mult),
-    atk: Math.round(e.atk * mult),
-    def: Math.round(e.def * mult),
-    moves: e.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
-    phase2: e.phase2
-      ? {
-          ...e.phase2,
-          maxHp: Math.round(e.phase2.maxHp * mult),
-          atk: e.phase2.atk ? Math.round(e.phase2.atk * mult) : undefined,
-          def: e.phase2.def ? Math.round(e.phase2.def * mult) : undefined,
-          moves: e.phase2.moves.map((m) => ({ ...m, dmg: Math.round(m.dmg * dmgMult) })),
-        }
-      : undefined,
-  }
-}
 
 export function getBestNgPlus(): number {
   try {

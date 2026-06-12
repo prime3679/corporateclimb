@@ -5,13 +5,8 @@
 // re-derived it by hand inside doPlayerMove; this is now the only copy.
 
 import type { Enemy } from '@/types'
-import {
-  ENEMIES,
-  getFloorEnemy,
-  scaleEnemyForElite,
-  scaleEnemyForNgPlus,
-  scaleEnemyForSlacker,
-} from '@/data'
+import { ENEMIES, getFloorEnemy } from '@/data'
+import { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
 import type { RunState } from './state'
 
 /** Daily runs remap logical floor (0-14) onto the harder enemy pools. */
