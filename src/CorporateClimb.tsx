@@ -17,6 +17,8 @@ import {
   getPromotion,
   getUnlockedAchievements,
   saveBestNgPlus,
+  unlockedPerkPool,
+  unlockedRelicPool,
 } from './data'
 import {
   TitleScreen,
@@ -30,6 +32,7 @@ import {
   RouteChoice,
   ShopScreen,
   ElevatorScreen,
+  CodexScreen,
 } from './screens'
 import PromotionScreen from './screens/PromotionScreen'
 import ActTransitionScreen from './screens/ActTransitionScreen'
@@ -351,9 +354,15 @@ export default function CorporateClimb() {
     else setScreen('floorIntro')
   }
 
+  /** Offer/drop pools for a fresh run, from current achievement unlocks. */
+  const currentPools = () => {
+    const unlocked = getUnlockedAchievements()
+    return { perkPool: unlockedPerkPool(unlocked), relicPool: unlockedRelicPool(unlocked) }
+  }
+
   const selectClass = (cls: PlayerClass) => {
     SFX.menuConfirm()
-    setRun(newRun(cls))
+    setRun(newRun(cls, currentPools()))
     setScreen('floorIntro')
   }
 
@@ -366,7 +375,7 @@ export default function CorporateClimb() {
   const startNgPlus = () => {
     if (!run || !player) return
     SFX.menuConfirm()
-    setRun(newNgPlusRun(run, player))
+    setRun(newNgPlusRun(run, player, currentPools()))
     setView(null)
     setBattle(null)
     setScreen('floorIntro')
@@ -704,8 +713,10 @@ export default function CorporateClimb() {
             onStart={startGame}
             onContinue={loadRun() ? continueGame : undefined}
             onDaily={() => setScreen('dailyPre')}
+            onCodex={() => setScreen('codex')}
           />
         )}
+        {screen === 'codex' && <CodexScreen onBack={() => setScreen('title')} />}
         {screen === 'dailyPre' && (
           <DailyPreScreen onStart={startDaily} onBack={() => setScreen('title')} />
         )}

@@ -7,6 +7,8 @@
 import type { ClassId, Enemy, HallwayEvent, ItemId, PerkId, PlayerClass, RelicId } from '@/types'
 import {
   ALL_ITEM_IDS,
+  BASE_PERK_POOL,
+  BASE_RELIC_POOL,
   CLASS_STARTING_ITEMS,
   ELITE_PAYOUT_MULT,
   HALLWAY_EVENTS,
@@ -52,6 +54,14 @@ const FRESH_PROGRESS = {
   eliteFloor: false,
 }
 
+/** Unlock-dependent offer/drop pools, frozen onto the run at start. */
+export interface RunPools {
+  perkPool: PerkId[]
+  relicPool: RelicId[]
+}
+
+export const BASE_POOLS: RunPools = { perkPool: BASE_PERK_POOL, relicPool: BASE_RELIC_POOL }
+
 function startingInventory(classId: string): ItemId[] {
   // classId is a plain string in RunState (it round-trips through saves).
   const item = CLASS_STARTING_ITEMS[classId as ClassId] as ItemId | undefined
@@ -59,7 +69,7 @@ function startingInventory(classId: string): ItemId[] {
 }
 
 /** A fresh normal run for the chosen class. */
-export function newRun(cls: PlayerClass): RunState {
+export function newRun(cls: PlayerClass, pools: RunPools = BASE_POOLS): RunState {
   return {
     mode: { kind: 'normal' },
     classId: cls.id,
@@ -70,6 +80,8 @@ export function newRun(cls: PlayerClass): RunState {
     floorEnemyIds: rollFloorEnemies(),
     ngPlus: 0,
     rngState: null,
+    perkPool: pools.perkPool,
+    relicPool: pools.relicPool,
   }
 }
 
@@ -111,11 +123,15 @@ export function newDailyRun(chosenClass: PlayerClass, date: Date = new Date()): 
     floorEnemyIds,
     ngPlus: 1, // dailies run at NG+1 difficulty
     rngState: (seed + 10) | 0,
+    // Dailies always draw from the base pools so everyone's offers and
+    // drops are identical regardless of personal unlocks.
+    perkPool: BASE_PERK_POOL,
+    relicPool: BASE_RELIC_POOL,
   }
 }
 
 /** New Game+: keep level/xp, reset progress through the tower. */
-export function newNgPlusRun(run: RunState, cls: PlayerClass): RunState {
+export function newNgPlusRun(run: RunState, cls: PlayerClass, pools?: RunPools): RunState {
   return {
     ...run,
     mode: { kind: 'normal' },
@@ -136,6 +152,9 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass): RunState {
     shopStock: null,
     relics: [],
     eliteFloor: false,
+    // Refresh pools: the win that led here may have unlocked content.
+    perkPool: pools?.perkPool ?? run.perkPool,
+    relicPool: pools?.relicPool ?? run.relicPool,
   }
 }
 
@@ -272,7 +291,7 @@ export function awardEliteSpoils(
   rng: Rng,
 ): { run: RunState; relicGained: RelicId | null; bonusOptions: number } {
   if (!run.eliteFloor) return { run, relicGained: null, bonusOptions: 0 }
-  const relicGained = rollRelicDrop(run.relics, rng)
+  const relicGained = rollRelicDrop(run.relics, rng, run.relicPool)
   if (relicGained) {
     return { run: { ...run, relics: [...run.relics, relicGained] }, relicGained, bonusOptions: 0 }
   }
@@ -328,7 +347,7 @@ export function advanceFloor(run: RunState, rng: Rng): RunState {
   return {
     ...run,
     floor: nextFloor,
-    pendingPerkOffer: promoted ? rollPerkOffer(run.perks, rng) : run.pendingPerkOffer,
+    pendingPerkOffer: promoted ? rollPerkOffer(run.perks, rng, run.perkPool) : run.pendingPerkOffer,
     shopStock: shop ? rollShopStock(rng) : null,
     // The elevator pick for the new floor hasn't happened yet.
     eliteFloor: false,
