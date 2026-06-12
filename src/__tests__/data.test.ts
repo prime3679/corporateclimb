@@ -13,14 +13,10 @@ import {
   TOTAL_FLOORS,
   rollFloorEnemies,
   getFloorEnemy,
-  saveGame,
-  loadGame,
-  clearSave,
   checkAchievements,
   getUnlockedAchievements,
   getBestNgPlus,
   saveBestNgPlus,
-  SAVE_KEY,
 } from '@/data'
 import { getEffectivePlayer, scaleEnemyForNgPlus } from '@/engine'
 import type { Enemy, PerkId, PlayerClass, SaveData } from '@/types'
@@ -303,67 +299,6 @@ describe('getFloorEnemy', () => {
 })
 
 // ─── Save / load game ────────────────────────────────────────
-
-describe('save / load game', () => {
-  const validSave: SaveData = {
-    classId: PLAYER_CLASSES[0].id,
-    floor: 5,
-    level: 3,
-    xp: 10,
-    xpToNext: 100,
-    playerHp: 80,
-    playerPp: [10, 10, 5, 3],
-    atkBuff: 0,
-    defBuff: 0,
-    usedEvents: [],
-    inventory: [],
-  }
-
-  beforeEach(() => localStorage.clear())
-  afterEach(() => localStorage.clear())
-
-  it('returns null when no save exists', () => {
-    expect(loadGame()).toBeNull()
-  })
-
-  it('returns null for invalid JSON', () => {
-    localStorage.setItem(SAVE_KEY, 'invalid-json')
-    expect(loadGame()).toBeNull()
-  })
-
-  it('returns null for an unknown classId', () => {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...validSave, classId: 'invalid_class' }))
-    expect(loadGame()).toBeNull()
-  })
-
-  it('returns null for a negative floor', () => {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...validSave, floor: -1 }))
-    expect(loadGame()).toBeNull()
-  })
-
-  it('returns null for floor >= ENEMY_POOLS length', () => {
-    localStorage.setItem(SAVE_KEY, JSON.stringify({ ...validSave, floor: ENEMY_POOLS.length }))
-    expect(loadGame()).toBeNull()
-  })
-
-  it('round-trips a valid save through saveGame/loadGame', () => {
-    saveGame(validSave)
-    expect(loadGame()).toEqual(validSave)
-  })
-
-  it('clearSave removes the save', () => {
-    saveGame(validSave)
-    clearSave()
-    expect(loadGame()).toBeNull()
-  })
-
-  it('returns null if localStorage throws', () => {
-    vi.spyOn(localStorage, 'getItem').mockImplementation(() => {
-      throw new Error('Access denied')
-    })
-    expect(loadGame()).toBeNull()
-  })
-})
 
 // ─── NG+ persistence ─────────────────────────────────────────
 

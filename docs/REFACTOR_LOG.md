@@ -122,3 +122,15 @@ save version is now one table entry plus a `SAVE_VERSION` bump, and
 `loadRun` never changes again. Typed per-step migrators unchanged.
 All migration-path tests (v1→, v2→, v3→, v4→, v5→, v6 round-trip)
 pass unchanged. Gate: 267 unit / 11 e2e green.
+
+### Step 6 — final pass (in progress)
+
+Dead legacy v1 save API (`saveGame`/`loadGame`, app-unused since the
+Phase-1 engine) removed from `content/progress.ts` along with its 8
+tests; CLAUDE.md architecture section updated for `engine/flow|
+modifiers|player|economy|scaling|offers` and the `src/content/`
+split. Live browser drive of the full refactored chain (fresh start →
+class select; save → battle → victory → perk pick → shop → events →
+elevator → elite intro) passed with zero page errors. Five parallel
+review agents are auditing the branch diff; their confirmed findings
+land as fixes before the PR.

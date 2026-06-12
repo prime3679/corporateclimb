@@ -23,38 +23,6 @@ export function saveBestNgPlus(level: number) {
   }
 }
 
-// ─── SAVE SYSTEM ─────────────────────────────────────────────
-export const SAVE_KEY = 'corporate-climb-save'
-
-export function saveGame(data: SaveData) {
-  try {
-    localStorage.setItem(SAVE_KEY, JSON.stringify(data))
-  } catch {
-    /* storage unavailable */
-  }
-}
-
-export function loadGame(): SaveData | null {
-  try {
-    const raw = localStorage.getItem(SAVE_KEY)
-    if (!raw) return null
-    const data = JSON.parse(raw) as SaveData
-    if (!PLAYER_CLASSES.find((c) => c.id === data.classId)) return null
-    if (data.floor < 0 || data.floor >= ENEMY_POOLS.length) return null
-    return data
-  } catch {
-    return null
-  }
-}
-
-export function clearSave() {
-  try {
-    localStorage.removeItem(SAVE_KEY)
-  } catch {
-    /* storage unavailable */
-  }
-}
-
 // ─── ACHIEVEMENTS ────────────────────────────────────────────
 const ACHIEVEMENT_KEY = 'corporate-climb-achievements'
 
