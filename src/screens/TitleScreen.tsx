@@ -175,9 +175,9 @@ export default function TitleScreen({
           bottom: 0,
           left: 0,
           right: 0,
-          height: 120,
+          height: 136,
           background:
-            'linear-gradient(0deg, rgba(2,6,23,.96) 0%, rgba(13,19,32,.62) 58%, transparent 100%)',
+            'linear-gradient(0deg, rgba(2,6,23,.98) 0%, rgba(13,19,32,.78) 52%, rgba(13,19,32,.34) 76%, transparent 100%)',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -276,8 +276,12 @@ export default function TitleScreen({
           fontSize: 'var(--body-sm)',
           color: '#64B5F6',
           position: 'absolute',
-          bottom: 12,
+          bottom: 28,
           zIndex: 2,
+          padding: '3px 8px',
+          borderRadius: 999,
+          background: 'rgba(5,7,13,.58)',
+          textShadow: '0 1px 0 rgba(5,7,13,.72)',
         }}
       >
         Q4 ladder simulation • HR approved-ish

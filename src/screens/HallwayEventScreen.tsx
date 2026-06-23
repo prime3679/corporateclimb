@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react'
 import type { HallwayEvent } from '@/types'
 import { SFX } from '@/sfx'
-import { Button, Panel } from '@/ui'
+import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
+import styles from './InterludeScreen.module.css'
 
 export default function HallwayEventScreen({
   event,
@@ -39,17 +40,14 @@ export default function HallwayEventScreen({
 
   return (
     <div
+      className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
         gap: 16,
-        padding: 24,
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
+        padding: '24px 24px 30px',
+        justifyContent: 'flex-start',
       }}
     >
+      <div className={styles.board} />
       <div
         className="t-display"
         style={{
@@ -59,9 +57,10 @@ export default function HallwayEventScreen({
           right: 56,
           fontSize: 'var(--display-2xs)',
           color: 'var(--green)',
-          background: 'rgba(0,0,0,0.4)',
+          background: 'rgba(13,19,32,.74)',
           padding: '4px 10px',
           borderRadius: 'var(--radius-sm)',
+          border: 'var(--border-w) solid rgba(66,211,146,.28)',
         }}
       >
         HP {playerHp}/{playerMaxHp}
@@ -73,6 +72,8 @@ export default function HallwayEventScreen({
           fontSize: 'var(--display-xs)',
           color: 'var(--gold-bright)',
           letterSpacing: 3,
+          textShadow: '2px 2px 0 #E65100',
+          marginTop: 118,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
         }}
@@ -80,15 +81,15 @@ export default function HallwayEventScreen({
         {event.title}
       </div>
 
-      <div
+      <IconChip
+        glyph={getIconGlyph(event.emoji, event.title)}
+        tone="ember"
+        size="lg"
         style={{
-          fontSize: 56,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.2s',
         }}
-      >
-        {event.emoji}
-      </div>
+      />
 
       <div
         className="t-body"
@@ -97,7 +98,7 @@ export default function HallwayEventScreen({
           color: 'var(--muted-light)',
           textAlign: 'center',
           lineHeight: 1.2,
-          maxWidth: 320,
+          maxWidth: 340,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.3s',
         }}
@@ -123,7 +124,15 @@ export default function HallwayEventScreen({
               variant="paper"
               size="md"
               onClick={() => handleChoice(i)}
-              style={{ width: '100%', textAlign: 'left' }}
+              style={{
+                width: '100%',
+                textAlign: 'left',
+                justifyContent: 'flex-start',
+                background:
+                  'linear-gradient(180deg, rgba(255,255,255,.05), transparent 24%), linear-gradient(180deg, rgba(39,27,18,.98), rgba(5,7,13,.94))',
+                color: 'var(--paper)',
+                borderColor: 'rgba(255,211,77,.24)',
+              }}
             >
               {c.label}
             </Button>
@@ -196,7 +205,7 @@ export default function HallwayEventScreen({
                   className="t-display"
                   style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
                 >
-                  🎁 Found: {itemGained}!
+                  LOOT: {itemGained}!
                 </span>
               )}
             </div>

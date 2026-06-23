@@ -3,7 +3,8 @@ import type { PerkId, PlayerClass, AchievementId, AchievementDef } from '@/types
 import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
-import { Button } from '@/ui'
+import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
+import styles from './InterludeScreen.module.css'
 
 interface RunCompleteScreenProps {
   player: PlayerClass
@@ -69,19 +70,14 @@ export default function RunCompleteScreen({
 
   return (
     <div
+      className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
         gap: 14,
         padding: 20,
-        background: 'linear-gradient(180deg, #FF6F00 0%, #FFA000 30%, #FFC107 60%, #FFD54F 100%)',
-        position: 'relative',
-        overflow: 'hidden',
       }}
     >
+      <div className={styles.board} />
+      <div className={`${styles.glow} ${styles.glowTop}`} />
       {Array.from({ length: 20 }).map((_, i) => (
         <div
           key={i}
@@ -101,14 +97,13 @@ export default function RunCompleteScreen({
       ))}
 
       <div
-        className="t-display"
+        className={`t-display ${styles.eyebrow}`}
         style={{
           fontSize: 'var(--display-xs)',
-          color: 'var(--ink)',
           letterSpacing: 4,
         }}
       >
-        &#x2726; CONGRATULATIONS &#x2726;
+        CONGRATULATIONS
       </div>
       <div className="sprite-idle" style={{ width: 80, height: 92 }}>
         <img
@@ -125,13 +120,10 @@ export default function RunCompleteScreen({
         />
       </div>
       <div
-        className="t-display"
+        className={`t-display ${styles.header}`}
         style={{
           fontSize: 'var(--display-md)',
-          color: 'var(--ink)',
-          textAlign: 'center',
           lineHeight: 1.8,
-          textShadow: '2px 2px 0 rgba(255,255,255,0.5)',
         }}
       >
         YOU CLIMBED THE
@@ -140,12 +132,11 @@ export default function RunCompleteScreen({
       </div>
       {player.winTitle && (
         <div
-          className="t-display"
+          className={`t-display ${styles.eyebrow}`}
           style={{
             fontSize: 'var(--display-xs)',
-            color: '#E65100',
+            color: '#ffc190',
             textAlign: 'center',
-            textShadow: '1px 1px 0 rgba(255,255,255,0.3)',
           }}
         >
           {player.winTitle}
@@ -153,11 +144,9 @@ export default function RunCompleteScreen({
       )}
       {player.winText && (
         <div
-          className="t-body"
+          className={`t-body ${styles.caption}`}
           style={{
             fontSize: 'var(--body-md)',
-            color: '#4E342E',
-            textAlign: 'center',
             lineHeight: 1.2,
             maxWidth: 300,
             fontStyle: 'italic',
@@ -168,17 +157,17 @@ export default function RunCompleteScreen({
       )}
 
       {/* Share Card */}
-      <div
+      <Panel
+        variant="dark"
         style={{
-          background: 'rgba(0,0,0,0.85)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '14px 18px',
           maxWidth: 320,
           width: '100%',
-          border: '3px solid var(--gold)',
+          borderColor: 'rgba(255,211,77,0.22)',
           display: 'flex',
           flexDirection: 'column',
-          gap: 8,
+          gap: 10,
+          background:
+            'linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%), linear-gradient(180deg, rgba(39,27,18,.94), rgba(13,19,32,.96))',
         }}
       >
         <div
@@ -203,8 +192,18 @@ export default function RunCompleteScreen({
           }}
         >
           <div style={{ color: 'var(--muted-light)' }}>CLASS</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
-            {player.emoji} {player.name}
+          <div
+            style={{
+              color: 'var(--paper)',
+              textAlign: 'right',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <IconChip glyph={getIconGlyph(player.emoji, player.name)} tone="gold" size="sm" />
+            <span>{player.name}</span>
           </div>
           <div style={{ color: 'var(--muted-light)' }}>FLOORS</div>
           <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
@@ -217,13 +216,23 @@ export default function RunCompleteScreen({
             {totalDamageDealt.toLocaleString()}
           </div>
           <div style={{ color: 'var(--muted-light)' }}>OPTIONS</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
-            {stockOptions} {CURRENCY_ICON}
+          <div
+            style={{
+              color: 'var(--paper)',
+              textAlign: 'right',
+              display: 'flex',
+              justifyContent: 'flex-end',
+              alignItems: 'center',
+              gap: 8,
+            }}
+          >
+            <span>{stockOptions}</span>
+            <IconChip glyph={getIconGlyph(CURRENCY_ICON, 'OPT')} tone="gold" size="sm" />
           </div>
           {ngLevel > 0 && (
             <>
               <div style={{ color: 'var(--muted-light)' }}>NG+</div>
-              <div style={{ color: '#E65100', textAlign: 'right', fontWeight: 'bold' }}>
+              <div style={{ color: 'var(--gold-bright)', textAlign: 'right', fontWeight: 'bold' }}>
                 {ngLevel}
               </div>
             </>
@@ -247,9 +256,15 @@ export default function RunCompleteScreen({
               <span
                 key={perk.id}
                 title={`${perk.name}: ${perk.desc}`}
-                style={{ color: 'var(--paper)', fontSize: 'var(--body-md)' }}
+                style={{
+                  color: 'var(--paper)',
+                  fontSize: 'var(--body-md)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 6,
+                }}
               >
-                {perk.icon}
+                <IconChip glyph={getIconGlyph(perk.icon, perk.name)} tone="ember" size="sm" />
                 {count > 1 ? `×${count}` : ''}
               </span>
             ))}
@@ -275,18 +290,18 @@ export default function RunCompleteScreen({
         >
           {shared ? 'COPIED!' : 'SHARE RESULT'}
         </Button>
-      </div>
+      </Panel>
 
       {/* Newly unlocked achievements */}
       {newAchievements.length > 0 && (
-        <div
+        <Panel
+          variant="dark"
           style={{
-            background: 'rgba(0,0,0,0.7)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '10px 14px',
             maxWidth: 320,
             width: '100%',
-            border: '2px solid var(--gold-bright)',
+            borderColor: 'rgba(255,211,77,0.22)',
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,.05), transparent 24%), linear-gradient(180deg, rgba(39,27,18,.9), rgba(13,19,32,.95))',
           }}
         >
           <div
@@ -314,7 +329,7 @@ export default function RunCompleteScreen({
                   padding: '4px 0',
                 }}
               >
-                <span style={{ fontSize: 14 }}>{ach.icon}</span>
+                <IconChip glyph={getIconGlyph(ach.icon, ach.name)} tone="gold" size="sm" />
                 <div className="t-body" style={{ lineHeight: 1.2 }}>
                   <div style={{ fontSize: 'var(--body-md)', color: 'var(--paper)' }}>
                     {ach.name}
@@ -326,7 +341,7 @@ export default function RunCompleteScreen({
               </div>
             )
           })}
-        </div>
+        </Panel>
       )}
 
       {/* Achievement progress */}
@@ -345,10 +360,14 @@ export default function RunCompleteScreen({
             title={`${ach.name}: ${ach.desc}`}
             style={{
               opacity: unlockedAchievements.has(ach.id) ? 1 : 0.3,
-              fontSize: 14,
+              display: 'inline-flex',
             }}
           >
-            {ach.icon}
+            <IconChip
+              glyph={getIconGlyph(ach.icon, ach.name)}
+              tone={unlockedAchievements.has(ach.id) ? 'gold' : 'muted'}
+              size="sm"
+            />
           </span>
         ))}
       </div>
@@ -358,8 +377,8 @@ export default function RunCompleteScreen({
           className="t-display"
           style={{
             fontSize: 'var(--display-2xs)',
-            color: '#E65100',
-            background: 'rgba(0,0,0,0.15)',
+            color: 'var(--gold-bright)',
+            background: 'rgba(0,0,0,0.36)',
             padding: '6px 14px',
             borderRadius: 'var(--radius-md)',
           }}
@@ -380,7 +399,7 @@ export default function RunCompleteScreen({
             className="t-body"
             style={{
               fontSize: 'var(--body-sm)',
-              color: '#4E342E',
+              color: '#c9a480',
               lineHeight: 1.2,
               opacity: 0.7,
             }}

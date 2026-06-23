@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import type { HallwayEvent } from '@/types'
+import { IconChip, getIconGlyph } from '@/ui'
+import styles from './InterludeScreen.module.css'
 
 export default function RouteChoice({
   options,
@@ -12,42 +14,42 @@ export default function RouteChoice({
 
   return (
     <div
+      className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
         gap: 16,
-        padding: 20,
-        background: 'linear-gradient(180deg, #1A237E 0%, #263238 100%)',
+        padding: '20px 20px 28px',
+        justifyContent: 'flex-start',
       }}
     >
+      <div className={styles.board} />
+      <div className={`${styles.glow} ${styles.glowTop}`} />
+      <div className={styles.columns}>
+        <div className={styles.column} />
+        <div className={styles.column} />
+        <div className={styles.column} />
+      </div>
       <div
-        className="t-display"
+        className={`t-display ${styles.header}`}
         style={{
           fontSize: 'var(--display-xs)',
-          color: 'var(--gold-bright)',
-          textShadow: '2px 2px 0 #E65100',
-          textAlign: 'center',
           letterSpacing: 2,
+          marginTop: 170,
         }}
       >
         CHOOSE YOUR PATH
       </div>
       <div
-        className="t-body"
+        className={`t-body ${styles.caption}`}
         style={{
           fontSize: 'var(--body-md)',
-          lineHeight: 1.2,
-          color: 'var(--muted)',
-          textAlign: 'center',
+          lineHeight: 1.25,
+          maxWidth: 296,
         }}
       >
-        Two opportunities ahead...
+        Two opportunities ahead. Pick your next office ambush.
       </div>
 
-      <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 380 }}>
+      <div className={styles.choiceGrid} style={{ gap: 12, maxWidth: 380 }}>
         {options.map((evt, i) => {
           const isHovered = hoveredIdx === i
           return (
@@ -56,43 +58,41 @@ export default function RouteChoice({
               onClick={() => onPick(evt)}
               onMouseEnter={() => setHoveredIdx(i)}
               onMouseLeave={() => setHoveredIdx(null)}
+              className={`${styles.card} ${isHovered ? styles.cardActive : ''}`}
               style={{
                 flex: 1,
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
                 gap: 10,
                 padding: '18px 12px',
-                background: isHovered ? 'var(--ink-soft)' : 'var(--ink)',
-                border: `var(--border-w) solid ${isHovered ? 'var(--gold)' : 'var(--ink-soft)'}`,
-                borderRadius: 'var(--radius-lg)',
                 cursor: 'pointer',
-                transition: 'all 0.2s',
-                boxShadow: isHovered
-                  ? 'var(--shadow-md), 0 0 16px rgba(255,193,7,0.3)'
-                  : 'var(--shadow-md)',
                 transform: isHovered ? 'translateY(-2px)' : 'none',
               }}
             >
-              <span style={{ fontSize: 32 }}>{evt.emoji}</span>
+              <IconChip
+                glyph={getIconGlyph(evt.emoji, evt.title)}
+                tone={i === 0 ? 'ember' : 'blue'}
+                size="lg"
+              />
               <span
                 className="t-display"
                 style={{
                   fontSize: 'var(--display-2xs)',
                   color: 'var(--gold-bright)',
                   textAlign: 'center',
-                  lineHeight: 1.6,
+                  lineHeight: 1.7,
+                  textShadow: '0 1px 0 rgba(5,7,13,.38)',
                 }}
               >
                 {evt.title}
               </span>
+              <div className={styles.rule} />
               <span
                 className="t-body"
                 style={{
                   fontSize: 'var(--body-sm)',
-                  color: 'var(--muted-light)',
+                  color: 'color-mix(in srgb, var(--muted-light) 86%, var(--paper) 14%)',
                   textAlign: 'center',
-                  lineHeight: 1.2,
+                  lineHeight: 1.22,
+                  textShadow: '0 1px 0 rgba(5,7,13,.32)',
                 }}
               >
                 {evt.desc.length > 60 ? evt.desc.slice(0, 57) + '...' : evt.desc}

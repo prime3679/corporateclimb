@@ -5,34 +5,38 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 196, 138, 0.12), transparent 28%),
+    rgba(3, 4, 8, 0.78);
+  backdrop-filter: blur(4px);
 }
 
 .panel {
   width: min(340px, calc(100% - 32px));
   max-height: calc(100% - 48px);
   overflow-y: auto;
-  background: var(--paper);
-  border: var(--border-w) solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(33, 24, 18, 0.94), rgba(13, 19, 32, 0.96));
+  border-color: rgba(255, 240, 214, 0.12);
 }
 
 .title {
   font-family: var(--font-display);
   font-size: var(--display-sm);
-  color: var(--ink);
+  color: var(--gold-bright);
   text-align: center;
+  text-shadow: 2px 2px 0 rgba(122, 55, 15, 0.84);
 }
 
 .jobTitle {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--amber-deep);
+  color: #ffc190;
   text-align: center;
   line-height: 1.6;
 }
@@ -40,7 +44,7 @@
 .subline {
   font-family: var(--font-body);
   font-size: var(--body-md);
-  color: var(--ink-soft);
+  color: var(--muted-light);
   text-align: center;
 }
 
@@ -60,26 +64,26 @@
 .statLabel {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--muted);
+  color: color-mix(in srgb, var(--gold-bright) 46%, var(--muted-light));
 }
 
 .statValue {
   font-family: var(--font-display);
   font-size: var(--display-xs);
-  color: var(--ink);
+  color: var(--paper);
 }
 
 .statDelta {
   font-family: var(--font-body);
   font-size: var(--body-sm);
-  color: var(--green-deep, #2e7d32);
+  color: #8fe0ba;
 }
 
 .sectionLabel {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--ink-soft);
-  border-bottom: 2px solid var(--paper-dim);
+  color: var(--gold-bright);
+  border-bottom: 1px solid rgba(255, 240, 214, 0.16);
   padding-bottom: 4px;
 }
 
@@ -96,9 +100,7 @@
 }
 
 .perkIcon {
-  font-size: 20px;
-  width: 26px;
-  text-align: center;
+  flex-shrink: 0;
 }
 
 .perkText {
@@ -110,27 +112,27 @@
 .perkName {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--ink);
+  color: var(--paper);
   line-height: 1.5;
 }
 
 .perkDesc {
   font-family: var(--font-body);
   font-size: var(--body-sm);
-  color: var(--ink-soft);
+  color: var(--muted-light);
   line-height: 1.15;
 }
 
 .perkCount {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--amber-deep);
+  color: #ffc190;
   white-space: nowrap;
 }
 
 .empty {
   font-family: var(--font-body);
   font-size: var(--body-md);
-  color: var(--muted);
+  color: var(--muted-light);
   text-align: center;
 }
