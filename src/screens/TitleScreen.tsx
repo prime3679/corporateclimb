@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { Button } from '@/ui'
 
@@ -13,7 +13,6 @@ export default function TitleScreen({
   onDaily: () => void
   onCodex: () => void
 }) {
-  const [flicker, setFlicker] = useState(true)
   const [confirmNew, setConfirmNew] = useState(false)
   const sprites = getSpriteUrls()
 
@@ -25,11 +24,6 @@ export default function TitleScreen({
     }
     onStart()
   }
-
-  useEffect(() => {
-    const i = setInterval(() => setFlicker((f) => !f), 700)
-    return () => clearInterval(i)
-  }, [])
 
   return (
     <div
@@ -144,29 +138,78 @@ export default function TitleScreen({
       <div
         style={{
           display: 'flex',
-          gap: 12,
+          gap: 14,
           justifyContent: 'center',
+          alignItems: 'flex-end',
           position: 'relative',
           zIndex: 1,
-          margin: '8px 0',
+          margin: '8px 0 14px',
+          padding: '0 18px 24px',
         }}
       >
         {['product_manager', 'eng', 'design'].map((id) => (
-          <div key={id} className="sprite-idle" style={{ width: 64, height: 76 }}>
-            <img
-              src={sprites[id]}
-              alt=""
+          <div key={id} style={{ position: 'relative', width: 72, height: 88 }}>
+            <div
+              aria-hidden="true"
               style={{
-                width: '100%',
-                height: '100%',
-                imageRendering: 'auto',
-                padding: '8% 2% 0 2%',
-                objectFit: 'contain',
+                position: 'absolute',
+                left: '50%',
+                bottom: 10,
+                width: 42,
+                height: 12,
+                transform: 'translateX(-50%)',
+                borderRadius: '999px',
+                background: 'radial-gradient(circle, rgba(0,0,0,.44), rgba(0,0,0,0) 72%)',
+                filter: 'blur(2px)',
               }}
-              draggable={false}
             />
+            <div
+              aria-hidden="true"
+              style={{
+                position: 'absolute',
+                left: 10,
+                right: 10,
+                bottom: 12,
+                height: 2,
+                borderRadius: 999,
+                background:
+                  'linear-gradient(90deg, rgba(255,211,77,0), rgba(255,211,77,.65) 18%, rgba(142,193,255,.55) 82%, rgba(255,211,77,0))',
+                opacity: 0.72,
+              }}
+            />
+            <div className="sprite-idle" style={{ width: '100%', height: '100%' }}>
+              <img
+                src={sprites[id]}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  imageRendering: 'auto',
+                  padding: '8% 2% 8% 2%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 8px 10px rgba(0,0,0,.34))',
+                }}
+                draggable={false}
+              />
+            </div>
           </div>
         ))}
+        <div
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            bottom: 0,
+            width: 236,
+            height: 28,
+            transform: 'translateX(-50%)',
+            borderTop: '1px solid rgba(255,211,77,.28)',
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,.06), transparent 40%), linear-gradient(90deg, rgba(255,211,77,0), rgba(255,211,77,.08) 16%, rgba(77,163,255,.08) 84%, rgba(255,211,77,0))',
+            clipPath: 'polygon(6% 0, 94% 0, 100% 100%, 0 100%)',
+            boxShadow: '0 10px 30px rgba(0,0,0,.24)',
+          }}
+        />
       </div>
 
       <div
@@ -250,7 +293,12 @@ export default function TitleScreen({
           variant="primary"
           size="lg"
           onClick={handleStart}
-          style={{ opacity: flicker ? 1 : 0.6, transition: 'opacity 0.2s', zIndex: 2 }}
+          style={{
+            zIndex: 2,
+            minWidth: 210,
+            boxShadow:
+              '0 18px 32px rgba(255,211,77,.24), var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.3)',
+          }}
         >
           {onContinue ? 'NEW CLIMB' : 'START CLIMB'}
         </Button>

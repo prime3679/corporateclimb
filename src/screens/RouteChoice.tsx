@@ -11,95 +11,103 @@ export default function RouteChoice({
   onPick: (event: HallwayEvent) => void
 }) {
   const [hoveredIdx, setHoveredIdx] = useState<number | null>(null)
+  const formatRouteCopy = (desc: string) =>
+    desc
+      .replace(/\.{3,}\s*$/, '.')
+      .replace(/\s+/g, ' ')
+      .trim()
 
   return (
     <div
       className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        gap: 16,
-        padding: '20px 20px 28px',
-        justifyContent: 'flex-start',
+        padding: '24px 20px 30px',
       }}
     >
       <div className={styles.board} />
-      <div className={`${styles.glow} ${styles.glowTop}`} />
       <div className={styles.columns}>
         <div className={styles.column} />
         <div className={styles.column} />
         <div className={styles.column} />
       </div>
-      <div
-        className={`t-display ${styles.header}`}
-        style={{
-          fontSize: 'var(--display-xs)',
-          letterSpacing: 2,
-          marginTop: 170,
-        }}
-      >
-        CHOOSE YOUR PATH
-      </div>
-      <div
-        className={`t-body ${styles.caption}`}
-        style={{
-          fontSize: 'var(--body-md)',
-          lineHeight: 1.25,
-          maxWidth: 296,
-        }}
-      >
-        Two opportunities ahead. Pick your next office ambush.
-      </div>
+      <div className={styles.stage}>
+        <div className={styles.headlineStack}>
+          <div
+            className={`t-display ${styles.header}`}
+            style={{
+              fontSize: 'var(--display-xs)',
+              letterSpacing: 2,
+            }}
+          >
+            CHOOSE YOUR PATH
+          </div>
+          <div
+            className={`t-body ${styles.caption}`}
+            style={{
+              fontSize: 'var(--body-md)',
+              lineHeight: 1.25,
+              maxWidth: 312,
+            }}
+          >
+            Two opportunities ahead. Pick your next office ambush.
+          </div>
+        </div>
 
-      <div className={styles.choiceGrid} style={{ gap: 12, maxWidth: 380 }}>
-        {options.map((evt, i) => {
-          const isHovered = hoveredIdx === i
-          return (
-            <button
-              key={evt.id}
-              onClick={() => onPick(evt)}
-              onMouseEnter={() => setHoveredIdx(i)}
-              onMouseLeave={() => setHoveredIdx(null)}
-              className={`${styles.card} ${isHovered ? styles.cardActive : ''}`}
-              style={{
-                flex: 1,
-                gap: 10,
-                padding: '18px 12px',
-                cursor: 'pointer',
-                transform: isHovered ? 'translateY(-2px)' : 'none',
-              }}
-            >
-              <IconChip
-                glyph={getIconGlyph(evt.emoji, evt.title)}
-                tone={i === 0 ? 'ember' : 'blue'}
-                size="lg"
-              />
-              <span
-                className="t-display"
+        <div className={styles.choiceGrid} style={{ gap: 12, maxWidth: 396 }}>
+          {options.map((evt, i) => {
+            const isHovered = hoveredIdx === i
+            return (
+              <button
+                key={evt.id}
+                onClick={() => onPick(evt)}
+                onMouseEnter={() => setHoveredIdx(i)}
+                onMouseLeave={() => setHoveredIdx(null)}
+                className={`${styles.card} ${isHovered ? styles.cardActive : ''}`}
                 style={{
-                  fontSize: 'var(--display-2xs)',
-                  color: 'var(--gold-bright)',
-                  textAlign: 'center',
-                  lineHeight: 1.7,
-                  textShadow: '0 1px 0 rgba(5,7,13,.38)',
+                  flex: 1,
+                  gap: 12,
+                  minHeight: 224,
+                  padding: '20px 14px 18px',
+                  cursor: 'pointer',
+                  transform: isHovered ? 'translateY(-2px)' : 'none',
                 }}
               >
-                {evt.title}
-              </span>
-              <div className={styles.rule} />
-              <span
-                className="t-body"
-                style={{
-                  fontSize: 'var(--body-sm)',
-                  color: 'color-mix(in srgb, var(--muted-light) 86%, var(--paper) 14%)',
-                  textAlign: 'center',
-                  lineHeight: 1.22,
-                  textShadow: '0 1px 0 rgba(5,7,13,.32)',
-                }}
-              >
-                {evt.desc.length > 60 ? evt.desc.slice(0, 57) + '...' : evt.desc}
-              </span>
-            </button>
-          )
-        })}
+                <IconChip
+                  glyph={getIconGlyph(evt.emoji, evt.title)}
+                  tone={i === 0 ? 'ember' : 'blue'}
+                  size="lg"
+                />
+                <span
+                  className="t-display"
+                  style={{
+                    fontSize: 'var(--display-2xs)',
+                    color: 'var(--gold-bright)',
+                    textAlign: 'center',
+                    lineHeight: 1.55,
+                    textShadow: '0 1px 0 rgba(5,7,13,.38)',
+                  }}
+                >
+                  {evt.title}
+                </span>
+                <div className={styles.rule} />
+                <div className={styles.cardBody}>
+                  <span
+                    className="t-body"
+                    style={{
+                      fontSize: 'var(--body-sm)',
+                      color: 'color-mix(in srgb, var(--muted-light) 86%, var(--paper) 14%)',
+                      textAlign: 'center',
+                      lineHeight: 1.28,
+                      textShadow: '0 1px 0 rgba(5,7,13,.32)',
+                    }}
+                  >
+                    {formatRouteCopy(evt.desc)}
+                  </span>
+                </div>
+              </button>
+            )
+          })}
+        </div>
       </div>
     </div>
   )

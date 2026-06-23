@@ -81,7 +81,7 @@ export default function ActTransitionScreen({
           fontSize: 'var(--display-xs)',
           color: 'color-mix(in srgb, var(--muted-light) 64%, var(--gold-bright) 36%)',
           letterSpacing: 8,
-          opacity: phase >= 1 ? 1 : 0.42,
+          opacity: phase >= 1 ? 1 : 0.62,
           transform: phase >= 1 ? 'translateY(0)' : 'translateY(-4px)',
           transition: 'opacity 0.6s ease, transform 0.6s ease',
           textShadow: '0 1px 0 rgba(5,7,13,.34)',
@@ -98,7 +98,7 @@ export default function ActTransitionScreen({
               tone={act === 2 ? 'blue' : 'ember'}
               size="lg"
               style={{
-                opacity: phase >= 1 ? 1 : 0.72,
+                opacity: phase >= 1 ? 1 : 0.84,
                 transform: phase >= 1 ? 'scale(1)' : 'scale(0.96)',
                 transition: 'opacity 0.6s ease, transform 0.6s ease',
               }}
@@ -111,7 +111,7 @@ export default function ActTransitionScreen({
                 lineHeight: 1.8,
                 textShadow: data.subtitleShadow,
                 letterSpacing: 4,
-                opacity: phase >= 2 ? 1 : 0.34,
+                opacity: phase >= 2 ? 1 : 0.56,
                 transform: phase >= 2 ? 'scale(1)' : 'scale(0.9)',
                 transition: 'opacity 0.8s ease, transform 0.8s ease',
               }}
@@ -124,7 +124,7 @@ export default function ActTransitionScreen({
               style={{
                 width: 92,
                 background: `linear-gradient(90deg, transparent, ${data.accent}, transparent)`,
-                opacity: phase >= 2 ? 1 : 0.38,
+                opacity: phase >= 2 ? 1 : 0.58,
                 transition: 'opacity 0.6s ease',
               }}
             />
@@ -136,7 +136,7 @@ export default function ActTransitionScreen({
                 lineHeight: 1.2,
                 maxWidth: 300,
                 fontStyle: 'italic',
-                opacity: phase >= 3 ? 1 : 0.22,
+                opacity: phase >= 3 ? 1 : 0.4,
                 transform: phase >= 3 ? 'translateY(0)' : 'translateY(6px)',
                 transition: 'opacity 0.8s ease, transform 0.8s ease',
               }}

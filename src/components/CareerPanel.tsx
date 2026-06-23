@@ -1,5 +1,5 @@
 import type { PlayerClass } from '@/types'
-import { CURRENCY_ICON, CURRENCY_NAME, RELICS, TOTAL_FLOORS, groupPerks } from '@/data'
+import { CURRENCY_NAME, RELICS, TOTAL_FLOORS, groupPerks } from '@/data'
 import type { RunState } from '@/engine'
 import { DAILY_FLOOR_COUNT } from '@/daily'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
@@ -27,11 +27,15 @@ export default function CareerPanel({
   const perks = groupPerks(run.perks)
   const totalFloors = run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : TOTAL_FLOORS
 
-  const stat = (label: string, value: number, base: number) => (
+  const stat = (label: string, value: number, base: number, meta?: string) => (
     <div className={styles.stat}>
       <span className={styles.statLabel}>{label}</span>
       <span className={styles.statValue}>{value}</span>
-      {value > base && <span className={styles.statDelta}>+{value - base}</span>}
+      {value > base ? (
+        <span className={styles.statDelta}>+{value - base}</span>
+      ) : meta ? (
+        <span className={styles.statMeta}>{meta}</span>
+      ) : null}
     </div>
   )
 
@@ -56,10 +60,7 @@ export default function CareerPanel({
           {stat('HP', effective.maxHp, baseClass.maxHp)}
           {stat('ATK', effective.atk, baseClass.atk)}
           {stat('DEF', effective.def, baseClass.def)}
-          <div className={styles.stat}>
-            <IconChip glyph={getIconGlyph(CURRENCY_ICON, 'OPT')} tone="gold" size="sm" />
-            <span className={styles.statValue}>{run.stockOptions}</span>
-          </div>
+          {stat('OPT', run.stockOptions, Number.POSITIVE_INFINITY, 'STOCK')}
         </div>
 
         <div className={styles.sectionLabel}>PERKS ({run.perks.length})</div>

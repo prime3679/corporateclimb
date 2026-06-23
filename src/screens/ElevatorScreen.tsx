@@ -1,5 +1,4 @@
 import { useEffect } from 'react'
-import { CURRENCY_ICON } from '@/data'
 import { IconChip, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -91,9 +90,7 @@ export default function ElevatorScreen({
     <div
       className={`premium-screen ${styles.screen} ${styles.executive}`}
       style={{
-        gap: 16,
-        padding: '20px 20px 28px',
-        justifyContent: 'flex-start',
+        padding: '24px 20px 30px',
       }}
     >
       <div className={styles.board} />
@@ -103,82 +100,82 @@ export default function ElevatorScreen({
         <div className={styles.column} />
         <div className={styles.column} />
       </div>
-      <div
-        className={`t-display ${styles.header}`}
-        style={{
-          fontSize: 'var(--display-xs)',
-          letterSpacing: 2,
-          marginTop: 166,
-        }}
-      >
-        THE ELEVATOR BANK
-      </div>
-      <div className={`t-body ${styles.caption}`} style={{ fontSize: 'var(--body-md)' }}>
-        Floor {floorNumber}. Three elevators. One choice.
-      </div>
+      <div className={styles.stage} style={{ gap: 18 }}>
+        <div className={styles.headlineStack}>
+          <div
+            className={`t-display ${styles.header}`}
+            style={{
+              fontSize: 'var(--display-xs)',
+              letterSpacing: 2,
+            }}
+          >
+            THE ELEVATOR BANK
+          </div>
+          <div className={`t-body ${styles.caption}`} style={{ fontSize: 'var(--body-md)' }}>
+            Floor {floorNumber}. Three elevators. One choice.
+          </div>
+        </div>
 
-      <div className={styles.choiceGrid} style={{ gap: 10, maxWidth: 390 }}>
-        {card({
-          key: 'standard',
-          elite: false,
-          icon: '🛗',
-          title: '[1] STANDARD FLOOR',
-          lines: ['The meeting on your calendar.', 'Normal fight, normal payout.'],
-          border: 'rgba(167,196,255,0.34)',
-          tone: 'blue',
-        })}
-        {card({
-          key: 'elite',
-          elite: true,
-          icon: '⚠️',
-          title: '[2] EXECUTIVE TRACK',
-          lines: [
-            'An ELITE version of the boss.',
-            `2× ${CURRENCY_ICON} payout · drops a Status Symbol.`,
-          ],
-          border: 'rgba(255,211,77,0.34)',
-          tone: 'gold',
-        })}
-        <button
-          onClick={onPickMystery}
-          className={styles.card}
-          style={{
-            flex: 1,
-            gap: 10,
-            padding: '20px 14px',
-            background:
-              'linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%), linear-gradient(180deg, rgba(27,28,35,.98), rgba(10,12,19,.96))',
-            border: '1px dashed rgba(214,224,236,0.62)',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
-          }}
-        >
-          <IconChip glyph={getIconGlyph('🚪', 'MYS')} tone="muted" size="lg" />
-          <span
-            className="t-display"
+        <div className={styles.choiceGrid} style={{ gap: 10, maxWidth: 390 }}>
+          {card({
+            key: 'standard',
+            elite: false,
+            icon: '🛗',
+            title: '[1] STANDARD FLOOR',
+            lines: ['The meeting on your calendar.', 'Normal fight, normal payout.'],
+            border: 'rgba(167,196,255,0.34)',
+            tone: 'blue',
+          })}
+          {card({
+            key: 'elite',
+            elite: true,
+            icon: '⚠️',
+            title: '[2] EXECUTIVE TRACK',
+            lines: ['An ELITE version of the boss.', '2x OPT payout · drops a Status Symbol.'],
+            border: 'rgba(255,211,77,0.34)',
+            tone: 'gold',
+          })}
+          <button
+            onClick={onPickMystery}
+            className={styles.card}
             style={{
-              fontSize: 'var(--display-2xs)',
-              color: 'color-mix(in srgb, var(--paper) 78%, var(--muted-light) 22%)',
-              textAlign: 'center',
-              lineHeight: 1.7,
-              textShadow: '0 1px 0 rgba(5,7,13,.42)',
+              flex: 1,
+              gap: 10,
+              padding: '20px 14px',
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%), linear-gradient(180deg, rgba(27,28,35,.98), rgba(10,12,19,.96))',
+              border: '1px dashed rgba(214,224,236,0.62)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
             }}
           >
-            [3] MYSTERY FLOOR
-          </span>
-          <span
-            className="t-body"
-            style={{
-              fontSize: 'var(--body-sm)',
-              color: 'color-mix(in srgb, var(--paper) 86%, var(--muted-light) 14%)',
-              textAlign: 'center',
-              lineHeight: 1.22,
-              textShadow: '0 1px 0 rgba(5,7,13,.38)',
-            }}
-          >
-            Unmarked button. HR won’t say.
-          </span>
-        </button>
+            <IconChip glyph={getIconGlyph('🚪', 'MYS')} tone="muted" size="lg" />
+            <span
+              className="t-display"
+              style={{
+                fontSize: 'var(--display-2xs)',
+                color: 'color-mix(in srgb, var(--paper) 78%, var(--muted-light) 22%)',
+                textAlign: 'center',
+                lineHeight: 1.7,
+                textShadow: '0 1px 0 rgba(5,7,13,.42)',
+              }}
+            >
+              [3] MYSTERY FLOOR
+            </span>
+            <span
+              className="t-body"
+              style={{
+                fontSize: 'var(--body-sm)',
+                color: 'color-mix(in srgb, var(--paper) 86%, var(--muted-light) 14%)',
+                textAlign: 'center',
+                lineHeight: 1.22,
+                textShadow: '0 1px 0 rgba(5,7,13,.38)',
+              }}
+            >
+              Unmarked button. HR won’t say.
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   )
