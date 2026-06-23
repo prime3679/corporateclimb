@@ -18,7 +18,11 @@ export default function MoveButton({
   effectiveness?: 'super' | 'weak' | null
 }) {
   return (
-    <button className={styles.move} onClick={onClick} disabled={disabled}>
+    <button
+      className={`${styles.move} ${styles[`type-${move.type}`]}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <div className={styles.header}>
         <span className={styles.name}>{move.name}</span>
         <TypeBadge type={move.type} />

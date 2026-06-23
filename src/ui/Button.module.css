@@ -1,8 +1,10 @@
 .button {
   font-family: var(--font-display);
-  border: var(--border-w) solid var(--ink);
+  border: 1px solid rgba(255, 255, 255, 0.22);
   border-radius: var(--radius-md);
-  box-shadow: var(--shadow-md);
+  box-shadow:
+    var(--shadow-md),
+    inset 0 1px 0 rgba(255, 255, 255, 0.22);
   color: var(--ink);
   cursor: pointer;
   line-height: 1.6;
@@ -29,13 +31,14 @@
 
 /* Variants */
 .primary {
-  background: var(--gold);
+  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
 }
 .secondary {
-  background: var(--sky);
+  background: linear-gradient(180deg, var(--compliance-blue), #1b6bd6);
+  color: #fff;
 }
 .accent {
-  background: var(--amber-deep);
+  background: linear-gradient(180deg, var(--hr-red), #b9272e);
   color: #fff;
 }
 .paper {

@@ -4,23 +4,36 @@
 
 :root {
   /* Palette */
-  --ink: #263238;
-  --ink-soft: #455a64;
-  --paper: #fafafa;
-  --paper-dim: #eceff1;
-  --muted: #78909c;
-  --muted-light: #b0bec5;
-  --gold: #ffc107;
-  --gold-bright: #ffd54f;
-  --amber-deep: #ff6f00;
-  --sky: #4fc3f7;
-  --sky-soft: #90caf9;
-  --blue-deep: #0d47a1;
-  --green: #4caf50;
-  --green-dark: #2e7d32;
-  --red: #e53935;
-  --orange: #ff9800;
-  --purple: #9c27b0;
+  --bg-void: #05070d;
+  --bg-panel: #0d1320;
+  --bg-panel-2: #111827;
+  --border-soft: rgba(255, 255, 255, 0.12);
+  --text-main: #f4f7fb;
+  --text-muted: #9aa4b2;
+  --gold: #ffd34d;
+  --gold-bright: #ffe58a;
+  --gold-deep: #f5a623;
+  --hr-red: #ff5f57;
+  --morale-green: #42d392;
+  --compliance-blue: #4da3ff;
+  --burnout-purple: #a78bfa;
+
+  /* Legacy aliases mapped into the premium corporate-night system */
+  --ink: #05070d;
+  --ink-soft: #172033;
+  --paper: #f4f7fb;
+  --paper-dim: #dbe4ef;
+  --muted: #9aa4b2;
+  --muted-light: #c5d0dd;
+  --amber-deep: var(--gold-deep);
+  --sky: var(--compliance-blue);
+  --sky-soft: #9fd0ff;
+  --blue-deep: #0a1f44;
+  --green: var(--morale-green);
+  --green-dark: #199f67;
+  --red: var(--hr-red);
+  --orange: var(--gold-deep);
+  --purple: var(--burnout-purple);
 
   /* Typography: pixel display face for headlines/labels only;
      a tall legible pixel face for everything readable. */
@@ -42,13 +55,15 @@
   --body-xl: 26px;
 
   /* Shape language: chunky ink borders with hard offset shadows */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --border-w: 3px;
-  --shadow-sm: 3px 3px 0 var(--ink);
-  --shadow-md: 4px 4px 0 var(--ink);
-  --shadow-lg: 6px 6px 0 var(--ink);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --border-w: 1px;
+  --shadow-sm: 0 8px 22px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 16px 42px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 24px 70px rgba(0, 0, 0, 0.54);
+  --shadow-panel: 0 20px 60px rgba(0, 0, 0, 0.45);
+  --glow-gold: 0 0 24px rgba(255, 211, 77, 0.28);
 
   /* Focus ring (keyboard navigation) */
   --focus-ring: 0 0 0 3px rgba(79, 195, 247, 0.95);

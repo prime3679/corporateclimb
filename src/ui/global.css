@@ -291,3 +291,82 @@ button {
   animation: none;
   opacity: 0;
 }
+
+@keyframes elevator-rise {
+  from {
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 -120px,
+      0 -80px,
+      0 0;
+  }
+}
+
+@keyframes bonus-pop {
+  0% {
+    transform: scale(0.92);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.04);
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+.premium-screen {
+  position: relative;
+  isolation: isolate;
+  color: var(--text-main);
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.035) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(77, 163, 255, 0.08) 0 1px, transparent 1px 36px),
+    radial-gradient(circle at 50% 0%, rgba(77, 163, 255, 0.18), transparent 38%),
+    linear-gradient(180deg, #09111f 0%, var(--bg-void) 100%);
+  background-size:
+    42px 100%,
+    100% 36px,
+    100% 100%,
+    100% 100%;
+}
+
+.premium-screen::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 30%,
+      rgba(255, 255, 255, 0.06) 31% 32%,
+      transparent 33% 67%,
+      rgba(255, 255, 255, 0.05) 68% 69%,
+      transparent 70%
+    ),
+    radial-gradient(circle at 50% 12%, rgba(255, 211, 77, 0.13), transparent 28%);
+  opacity: 0.9;
+}
+
+.premium-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    180deg,
+    transparent 0%,
+    rgba(5, 7, 13, 0.32) 58%,
+    rgba(5, 7, 13, 0.76) 100%
+  );
+}
