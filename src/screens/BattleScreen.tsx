@@ -116,7 +116,7 @@ export default function BattleScreen({
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        background: `linear-gradient(180deg, ${sc.wall} 0%, ${sc.wallBot} 55%, ${sc.floor} 55%, ${sc.floorDk} 100%)`,
+        background: `linear-gradient(180deg, rgba(9,17,31,.90) 0%, rgba(13,19,32,.92) 54%, ${sc.floor} 54%, ${sc.floorDk} 100%)`,
         position: 'relative',
         overflow: 'hidden',
       }}

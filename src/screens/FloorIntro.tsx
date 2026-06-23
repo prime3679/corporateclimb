@@ -106,6 +106,7 @@ export default function FloorIntro({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -114,7 +115,7 @@ export default function FloorIntro({
         height: '100%',
         gap: 16,
         padding: 20,
-        background: '#0D0D0D',
+        background: 'transparent',
         cursor: 'pointer',
       }}
       onClick={onReady}
@@ -362,7 +363,7 @@ export default function FloorIntro({
           animation: show ? 'pulse 2s infinite' : 'none',
         }}
       >
-        TAP TO BATTLE
+        TAP TO BATTLE • ENTER MEETING
       </div>
     </div>
   )

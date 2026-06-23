@@ -40,6 +40,7 @@ export default function ShopScreen({
   }) => (
     <div
       key={opts.key}
+      className="premium-screen"
       style={{
         display: 'flex',
         alignItems: 'center',
@@ -80,6 +81,7 @@ export default function ShopScreen({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -88,7 +90,7 @@ export default function ShopScreen({
         height: '100%',
         gap: 12,
         padding: 20,
-        background: 'linear-gradient(180deg, #102027 0%, #1B3A2F 100%)',
+        background: 'transparent',
       }}
     >
       <div
@@ -106,7 +108,7 @@ export default function ShopScreen({
         className="t-body"
         style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
       >
-        Vesting today only. No refunds.
+        Executive pricing. Intern warranty.
       </div>
 
       <Panel variant="glass" style={{ padding: '6px 14px' }}>

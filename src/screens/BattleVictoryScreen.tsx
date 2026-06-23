@@ -24,6 +24,7 @@ export default function BattleVictoryScreen({
   const sprites = getSpriteUrls()
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -32,7 +33,7 @@ export default function BattleVictoryScreen({
         height: '100%',
         gap: 20,
         padding: 30,
-        background: 'linear-gradient(180deg, #1A237E 0%, #283593 50%, #3949AB 100%)',
+        background: 'transparent',
       }}
     >
       <div
@@ -44,7 +45,7 @@ export default function BattleVictoryScreen({
           animation: 'pulse 1.5s infinite',
         }}
       >
-        &#x2726; VICTORY &#x2726;
+        ✦ VICTORY: PERFORMANCE WIN ✦
       </div>
       <div style={{ width: 80, height: 92, opacity: 0.5 }}>
         <img
@@ -82,7 +83,7 @@ export default function BattleVictoryScreen({
             marginBottom: 8,
           }}
         >
-          +{xpGained} XP GAINED
+          REPUTATION +{xpGained}
         </div>
         <div
           className="t-display"
@@ -92,7 +93,7 @@ export default function BattleVictoryScreen({
             marginBottom: 8,
           }}
         >
-          +{optionsGained} {CURRENCY_ICON} STOCK OPTIONS
+          COMP +{optionsGained} {CURRENCY_ICON} STOCK OPTIONS
         </div>
         {relic && (
           <div
@@ -151,7 +152,7 @@ export default function BattleVictoryScreen({
       </Panel>
 
       <Button variant="primary" size="lg" onClick={onContinue}>
-        CONTINUE &rarr;
+        CONTINUE: CLIMB TO NEXT FLOOR →
       </Button>
     </div>
   )

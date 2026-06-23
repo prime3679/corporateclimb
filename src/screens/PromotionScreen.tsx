@@ -48,6 +48,7 @@ export default function PromotionScreen({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -56,7 +57,7 @@ export default function PromotionScreen({
         height: '100%',
         gap: 12,
         padding: 20,
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #2a1a0e 50%, #3a2a0e 100%)',
+        background: 'transparent',
       }}
     >
       <div
@@ -70,7 +71,7 @@ export default function PromotionScreen({
           textShadow: '1px 1px 0 #E65100',
         }}
       >
-        &#x2726; PROMOTED &#x2726;
+        ✦ PROMOTED: ACCESS CARD UPGRADED ✦
       </div>
 
       <div
@@ -175,7 +176,7 @@ export default function PromotionScreen({
           transition: 'opacity 0.5s ease 0.5s',
         }}
       >
-        CHOOSE A PERK
+        CHOOSE A PERK • NEW RESPONSIBILITY
       </div>
 
       <div

@@ -12,11 +12,12 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
-        background: 'linear-gradient(180deg, #263238 0%, #37474F 100%)',
+        background: 'transparent',
         padding: 20,
         gap: 14,
       }}
@@ -30,7 +31,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           textShadow: '2px 2px 0 #E65100',
         }}
       >
-        CHOOSE YOUR CLASS
+        SELECT CAREER ARCHETYPE
       </div>
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
@@ -264,7 +265,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         onClick={() => onSelect(PLAYER_CLASSES[selected])}
         style={{ alignSelf: 'center' }}
       >
-        CONFIRM
+        ACCEPT OFFER
       </Button>
     </div>
   )

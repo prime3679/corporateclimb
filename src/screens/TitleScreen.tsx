@@ -33,6 +33,7 @@ export default function TitleScreen({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
@@ -41,7 +42,7 @@ export default function TitleScreen({
         height: '100%',
         gap: 20,
         padding: 30,
-        background: 'linear-gradient(180deg, #0D47A1 0%, #1565C0 40%, #1976D2 70%, #42A5F5 100%)',
+        background: 'transparent',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -75,7 +76,7 @@ export default function TitleScreen({
             textShadow: '2px 2px 0 #E65100',
           }}
         >
-          &#x2726; A SATIRICAL RPG &#x2726;
+          ▲ Q4 LADDER SIMULATION ▲
         </div>
         <h1
           className="t-display"
@@ -103,7 +104,7 @@ export default function TitleScreen({
             letterSpacing: 3,
           }}
         >
-          FROM CUBICLE TO CORNER OFFICE
+          HR APPROVED-ISH • ELEVATOR ACCESS PENDING
         </div>
       </div>
 
@@ -216,7 +217,7 @@ export default function TitleScreen({
           onClick={handleStart}
           style={{ opacity: flicker ? 1 : 0.6, transition: 'opacity 0.2s', zIndex: 2 }}
         >
-          {onContinue ? 'NEW GAME' : 'PRESS START'}
+          {onContinue ? 'NEW CLIMB' : 'START CLIMB'}
         </Button>
       )}
 
@@ -244,7 +245,7 @@ export default function TitleScreen({
           zIndex: 2,
         }}
       >
-        © 2026 ADRIAN LUMLEY
+        Q4 ladder simulation • HR approved-ish
       </div>
     </div>
   )

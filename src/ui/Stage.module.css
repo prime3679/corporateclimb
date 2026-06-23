@@ -6,8 +6,9 @@
   justify-content: center;
   overflow: hidden;
   background:
-    radial-gradient(ellipse at 50% 0%, #1c2738 0%, transparent 60%),
-    repeating-linear-gradient(45deg, #0f172a 0px, #0f172a 24px, #111a30 24px, #111a30 48px);
+    radial-gradient(ellipse at 50% 0%, rgba(77, 163, 255, 0.22) 0%, transparent 52%),
+    radial-gradient(ellipse at 50% 100%, rgba(255, 211, 77, 0.12) 0%, transparent 44%),
+    repeating-linear-gradient(90deg, #05070d 0 40px, #07101e 40px 42px), var(--bg-void);
 }
 
 .stage {
@@ -15,11 +16,12 @@
   overflow: hidden;
   flex: none;
   transform-origin: center center;
-  background: #000;
+  background: var(--bg-void);
   box-shadow:
-    0 0 0 1px rgba(255, 255, 255, 0.08),
-    0 24px 80px rgba(0, 0, 0, 0.7);
-  border-radius: 4px;
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 0 80px rgba(77, 163, 255, 0.18),
+    0 28px 100px rgba(0, 0, 0, 0.82);
+  border-radius: 18px;
   /* The game is a touch surface; text selection stays enabled outside it. */
   user-select: none;
   touch-action: manipulation;
