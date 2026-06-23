@@ -3,7 +3,7 @@ import type { PlayerClass } from '@/types'
 import { PLAYER_CLASSES } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import TypeBadge from '@/components/TypeBadge'
-import { Button, Panel } from '@/ui'
+import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 
 export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass) => void }) {
   const [selected, setSelected] = useState(0)
@@ -28,6 +28,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           fontSize: 'var(--display-sm)',
           color: 'var(--gold-bright)',
           textAlign: 'center',
+          padding: '0 88px 0 12px',
           textShadow: '2px 2px 0 #E65100',
         }}
       >
@@ -43,14 +44,17 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             style={{
               width: 100,
               padding: '12px 8px',
-              background: selected === i ? '#FFF8E1' : 'var(--ink-soft)',
-              border: `var(--border-w) solid ${selected === i ? 'var(--gold)' : '#546E7A'}`,
+              background:
+                selected === i
+                  ? 'linear-gradient(180deg, rgba(255,216,161,.18), rgba(22,28,42,.98) 24%, rgba(9,12,20,.98))'
+                  : 'linear-gradient(180deg, rgba(255,255,255,.06), rgba(22,28,42,.94) 20%, rgba(8,10,18,.98))',
+              border: `var(--border-w) solid ${selected === i ? 'rgba(255,211,77,.72)' : 'rgba(132,153,189,.42)'}`,
               borderRadius: 'var(--radius-md)',
               cursor: 'pointer',
               boxShadow:
                 selected === i
-                  ? 'var(--shadow-md), inset 0 0 12px rgba(255,193,7,0.15)'
-                  : '2px 2px 0 var(--ink)',
+                  ? '0 16px 28px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,240,214,.16), inset 0 0 18px rgba(255,193,7,.12)'
+                  : '0 10px 18px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.08)',
               transition: 'all 0.2s',
               display: 'flex',
               flexDirection: 'column',
@@ -76,9 +80,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               className="t-display"
               style={{
                 fontSize: 'var(--display-2xs)',
-                color: selected === i ? 'var(--ink)' : 'var(--muted-light)',
+                color: selected === i ? 'var(--gold-bright)' : 'var(--muted-light)',
                 textAlign: 'center',
                 lineHeight: 1.5,
+                textShadow: selected === i ? '0 1px 0 rgba(5,7,13,.42)' : 'none',
               }}
             >
               {c.name}
@@ -88,13 +93,18 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
       </div>
 
       <Panel
-        variant="paper"
+        variant="dark"
         style={{
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
           gap: 8,
           overflow: 'auto',
+          background:
+            'linear-gradient(180deg, rgba(255,255,255,.06), transparent 18%), linear-gradient(180deg, rgba(28,34,48,.94), rgba(9,12,20,.98))',
+          border: '1px solid rgba(255,240,214,.18)',
+          boxShadow:
+            '0 24px 44px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,211,77,.04)',
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
@@ -115,7 +125,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           <div>
             <div
               className="t-display"
-              style={{ fontSize: 'var(--display-xs)', color: 'var(--ink)' }}
+              style={{ fontSize: 'var(--display-xs)', color: 'var(--paper)' }}
             >
               {cls.name}
             </div>
@@ -124,7 +134,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               style={{
                 fontSize: 'var(--body-sm)',
                 lineHeight: 1.2,
-                color: 'var(--muted)',
+                color: 'var(--muted-light)',
                 marginTop: 4,
               }}
             >
@@ -145,7 +155,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <span
                 className="t-display"
-                style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)', width: 30 }}
+                style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', width: 30 }}
               >
                 {label}
               </span>
@@ -153,7 +163,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                 style={{
                   flex: 1,
                   height: 7,
-                  background: 'var(--paper-dim)',
+                  background: 'rgba(178, 192, 211, 0.12)',
                   borderRadius: 3,
                   overflow: 'hidden',
                 }}
@@ -172,7 +182,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                 className="t-display"
                 style={{
                   fontSize: 'var(--display-2xs)',
-                  color: 'var(--ink-soft)',
+                  color: 'var(--muted-light)',
                   width: 24,
                   textAlign: 'right',
                 }}
@@ -187,19 +197,21 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           style={{
             display: 'flex',
             alignItems: 'center',
-            gap: 8,
+            gap: 10,
             marginTop: 2,
-            padding: '6px 8px',
-            background: '#FFF8E1',
+            padding: '8px 10px',
+            background:
+              'linear-gradient(180deg, rgba(255,216,161,.14), rgba(255,216,161,.03) 34%), linear-gradient(180deg, rgba(39,29,20,.92), rgba(11,14,23,.96))',
             borderRadius: 'var(--radius-sm)',
-            border: '2px solid var(--gold-bright)',
+            border: '1px solid rgba(255,211,77,.46)',
+            boxShadow: 'inset 0 1px 0 rgba(255,240,214,.12)',
           }}
         >
-          <span style={{ fontSize: 16 }}>{cls.perk.icon}</span>
+          <IconChip glyph={getIconGlyph(cls.perk.icon, cls.perk.name)} tone="gold" size="sm" />
           <div>
             <div
               className="t-display"
-              style={{ fontSize: 'var(--display-2xs)', color: 'var(--amber-deep)' }}
+              style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
             >
               {cls.perk.name}
             </div>
@@ -208,7 +220,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               style={{
                 fontSize: 'var(--body-sm)',
                 lineHeight: 1.2,
-                color: 'var(--muted)',
+                color: 'color-mix(in srgb, var(--paper) 78%, var(--gold-bright) 22%)',
                 marginTop: 2,
               }}
             >
@@ -219,7 +231,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
 
         <div
           className="t-display"
-          style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)', marginTop: 2 }}
+          style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', marginTop: 2 }}
         >
           MOVES:
         </div>
@@ -229,9 +241,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               key={m.name}
               style={{
                 padding: '5px 6px',
-                background: 'var(--paper-dim)',
+                background:
+                  'linear-gradient(180deg, rgba(255,255,255,.06), rgba(17,23,34,.82) 28%, rgba(12,15,25,.92))',
                 borderRadius: 4,
-                border: '1px solid var(--muted-light)',
+                border: '1px solid rgba(132,153,189,.26)',
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 2,
@@ -242,7 +255,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               >
                 <span
                   className="t-display"
-                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--ink)' }}
+                  style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)' }}
                 >
                   {m.name}
                 </span>
@@ -250,7 +263,11 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               </div>
               <span
                 className="t-body"
-                style={{ fontSize: 'var(--body-sm)', lineHeight: 1.2, color: 'var(--muted)' }}
+                style={{
+                  fontSize: 'var(--body-sm)',
+                  lineHeight: 1.2,
+                  color: 'color-mix(in srgb, var(--muted-light) 88%, var(--paper) 12%)',
+                }}
               >
                 {m.desc}
               </span>

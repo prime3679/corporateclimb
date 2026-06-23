@@ -1,5 +1,6 @@
 import { useEffect } from 'react'
-import { CURRENCY_ICON } from '@/data'
+import { IconChip, getIconGlyph } from '@/ui'
+import styles from './InterludeScreen.module.css'
 
 /**
  * The elevator bank between floors: ride to the scheduled meeting,
@@ -33,6 +34,7 @@ export default function ElevatorScreen({
     title: string
     lines: string[]
     border: string
+    tone: 'blue' | 'gold' | 'muted'
     key: string
   }) => (
     <button
@@ -44,22 +46,24 @@ export default function ElevatorScreen({
         flexDirection: 'column',
         alignItems: 'center',
         gap: 10,
-        padding: '20px 12px',
-        background: 'var(--ink)',
-        border: `var(--border-w) solid ${opts.border}`,
-        borderRadius: 'var(--radius-lg)',
+        padding: '20px 14px',
+        background:
+          'linear-gradient(180deg, rgba(255,255,255,.09), transparent 24%), linear-gradient(180deg, rgba(42,30,21,.98), rgba(14,20,32,.96))',
+        border: `1px solid ${opts.border}`,
+        borderRadius: 20,
         cursor: 'pointer',
-        boxShadow: 'var(--shadow-md)',
+        boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.1)',
       }}
     >
-      <span style={{ fontSize: 34 }}>{opts.icon}</span>
+      <IconChip glyph={getIconGlyph(opts.icon, opts.title)} tone={opts.tone} size="lg" />
       <span
         className="t-display"
         style={{
           fontSize: 'var(--display-2xs)',
           color: opts.border,
           textAlign: 'center',
-          lineHeight: 1.6,
+          lineHeight: 1.7,
+          textShadow: '0 1px 0 rgba(5,7,13,.34)',
         }}
       >
         {opts.title}
@@ -70,9 +74,10 @@ export default function ElevatorScreen({
           className="t-body"
           style={{
             fontSize: 'var(--body-sm)',
-            color: 'var(--muted-light)',
+            color: 'color-mix(in srgb, var(--muted-light) 88%, var(--paper) 12%)',
             textAlign: 'center',
-            lineHeight: 1.2,
+            lineHeight: 1.22,
+            textShadow: '0 1px 0 rgba(5,7,13,.3)',
           }}
         >
           {line}
@@ -83,96 +88,94 @@ export default function ElevatorScreen({
 
   return (
     <div
+      className={`premium-screen ${styles.screen} ${styles.executive}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 16,
-        padding: 20,
-        background: 'linear-gradient(180deg, #1A1A2E 0%, #263238 100%)',
+        padding: '24px 20px 30px',
       }}
     >
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-xs)',
-          color: 'var(--gold-bright)',
-          textShadow: '2px 2px 0 #E65100',
-          textAlign: 'center',
-          letterSpacing: 2,
-        }}
-      >
-        🛗 THE ELEVATOR BANK
+      <div className={styles.board} />
+      <div className={`${styles.glow} ${styles.glowTop}`} />
+      <div className={styles.columns}>
+        <div className={styles.column} />
+        <div className={styles.column} />
+        <div className={styles.column} />
       </div>
-      <div
-        className="t-body"
-        style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
-      >
-        Floor {floorNumber}. Three elevators. One choice.
-      </div>
+      <div className={styles.stage} style={{ gap: 18 }}>
+        <div className={styles.headlineStack}>
+          <div
+            className={`t-display ${styles.header}`}
+            style={{
+              fontSize: 'var(--display-xs)',
+              letterSpacing: 2,
+            }}
+          >
+            THE ELEVATOR BANK
+          </div>
+          <div className={`t-body ${styles.caption}`} style={{ fontSize: 'var(--body-md)' }}>
+            Floor {floorNumber}. Three elevators. One choice.
+          </div>
+        </div>
 
-      <div style={{ display: 'flex', gap: 10, width: '100%', maxWidth: 390 }}>
-        {card({
-          key: 'standard',
-          elite: false,
-          icon: '🛗',
-          title: '[1] STANDARD FLOOR',
-          lines: ['The meeting on your calendar.', 'Normal fight, normal payout.'],
-          border: 'var(--sky)',
-        })}
-        {card({
-          key: 'elite',
-          elite: true,
-          icon: '⚠️',
-          title: '[2] EXECUTIVE TRACK',
-          lines: [
-            'An ELITE version of the boss.',
-            `2× ${CURRENCY_ICON} payout · drops a Status Symbol.`,
-          ],
-          border: 'var(--gold)',
-        })}
-        <button
-          onClick={onPickMystery}
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 10,
-            padding: '20px 12px',
-            background: 'var(--ink)',
-            border: 'var(--border-w) dashed var(--muted)',
-            borderRadius: 'var(--radius-lg)',
-            cursor: 'pointer',
-            boxShadow: 'var(--shadow-md)',
-          }}
-        >
-          <span style={{ fontSize: 34 }}>🚪</span>
-          <span
-            className="t-display"
+        <div className={styles.choiceGrid} style={{ gap: 10, maxWidth: 390 }}>
+          {card({
+            key: 'standard',
+            elite: false,
+            icon: '🛗',
+            title: '[1] STANDARD FLOOR',
+            lines: ['The meeting on your calendar.', 'Normal fight, normal payout.'],
+            border: 'rgba(167,196,255,0.34)',
+            tone: 'blue',
+          })}
+          {card({
+            key: 'elite',
+            elite: true,
+            icon: '⚠️',
+            title: '[2] EXECUTIVE TRACK',
+            lines: ['An ELITE version of the boss.', '2x OPT payout · drops a Status Symbol.'],
+            border: 'rgba(255,211,77,0.34)',
+            tone: 'gold',
+          })}
+          <button
+            onClick={onPickMystery}
+            className={styles.card}
             style={{
-              fontSize: 'var(--display-2xs)',
-              color: 'var(--muted-light)',
-              textAlign: 'center',
-              lineHeight: 1.6,
+              flex: 1,
+              gap: 10,
+              padding: '20px 14px',
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%), linear-gradient(180deg, rgba(27,28,35,.98), rgba(10,12,19,.96))',
+              border: '1px dashed rgba(214,224,236,0.62)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
             }}
           >
-            [3] MYSTERY FLOOR
-          </span>
-          <span
-            className="t-body"
-            style={{
-              fontSize: 'var(--body-sm)',
-              color: 'var(--muted-light)',
-              textAlign: 'center',
-              lineHeight: 1.2,
-            }}
-          >
-            Unmarked button. HR won’t say.
-          </span>
-        </button>
+            <IconChip glyph={getIconGlyph('🚪', 'MYS')} tone="muted" size="lg" />
+            <span
+              className="t-display"
+              style={{
+                fontSize: 'var(--display-2xs)',
+                color: 'color-mix(in srgb, var(--paper) 78%, var(--muted-light) 22%)',
+                textAlign: 'center',
+                lineHeight: 1.7,
+                textShadow: '0 1px 0 rgba(5,7,13,.42)',
+              }}
+            >
+              [3] MYSTERY FLOOR
+            </span>
+            <span
+              className="t-body"
+              style={{
+                fontSize: 'var(--body-sm)',
+                color: 'color-mix(in srgb, var(--paper) 86%, var(--muted-light) 14%)',
+                textAlign: 'center',
+                lineHeight: 1.22,
+                textShadow: '0 1px 0 rgba(5,7,13,.38)',
+              }}
+            >
+              Unmarked button. HR won’t say.
+            </span>
+          </button>
+        </div>
       </div>
     </div>
   )

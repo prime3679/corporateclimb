@@ -1,4 +1,5 @@
-import { Button } from '@/ui'
+import { Button, IconChip } from '@/ui'
+import styles from './InterludeScreen.module.css'
 
 const DEFEAT_FLAVOR: [number, number, string][] = [
   [1, 5, 'HR sends a polite rejection email. Better luck next quarter.'],
@@ -24,19 +25,15 @@ export default function GameOverScreen({
 }) {
   return (
     <div
+      className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
         gap: 24,
         padding: 30,
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%)',
       }}
     >
+      <div className={styles.board} />
       <div
-        className="t-display"
+        className={`t-display ${styles.header}`}
         style={{
           fontSize: 'var(--display-md)',
           color: 'var(--red)',
@@ -45,13 +42,11 @@ export default function GameOverScreen({
       >
         GAME OVER
       </div>
-      <div style={{ fontSize: 64 }}>&#x1F4BC;</div>
+      <IconChip glyph="EXIT" tone="red" size="lg" />
       <div
-        className="t-body"
+        className={`t-body ${styles.caption}`}
         style={{
           fontSize: 'var(--body-lg)',
-          color: 'var(--muted-light)',
-          textAlign: 'center',
           lineHeight: 1.2,
           maxWidth: 280,
         }}
@@ -61,11 +56,9 @@ export default function GameOverScreen({
         Floor {floor}.
       </div>
       <div
-        className="t-body"
+        className={`t-body ${styles.caption}`}
         style={{
           fontSize: 'var(--body-md)',
-          color: 'var(--muted)',
-          textAlign: 'center',
           lineHeight: 1.2,
           maxWidth: 280,
           fontStyle: 'italic',

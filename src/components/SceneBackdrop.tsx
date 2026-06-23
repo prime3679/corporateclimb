@@ -156,7 +156,7 @@ function CorporateScene({ p }: { p: ScenePalette }) {
 }
 
 /** Act 3 — executive penthouse at night: moon, stars, distant skyline. */
-function ExecutiveScene({ p }: { p: ScenePalette }) {
+function ExecutiveScene({ p: _p }: { p: ScenePalette }) {
   const stars: [string, string, number][] = [
     ['12%', '8%', 2.2],
     ['28%', '16%', 3.1],
