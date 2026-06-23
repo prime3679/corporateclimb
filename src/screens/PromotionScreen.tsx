@@ -53,23 +53,24 @@ export default function PromotionScreen({
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 12,
-        padding: 20,
+        justifyContent: 'flex-start',
+        minHeight: '100%',
+        gap: 10,
+        padding: '56px 20px 18px',
         background:
-          'radial-gradient(circle at 50% 18%, rgba(255,211,77,.18), transparent 30%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.72))',
+          'radial-gradient(circle at 50% 16%, rgba(255,211,77,.18), transparent 28%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.72))',
         position: 'relative',
-        overflow: 'hidden',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: 20,
-          width: 150,
-          height: 210,
+          top: 14,
+          width: 136,
+          height: 172,
           border: '1px solid rgba(255,211,77,.22)',
           borderRadius: 18,
           background: 'linear-gradient(180deg, rgba(255,211,77,.12), rgba(13,19,32,.28))',
@@ -98,20 +99,23 @@ export default function PromotionScreen({
         style={{
           fontSize: 'var(--display-2xs)',
           color: 'var(--gold)',
-          letterSpacing: 4,
+          letterSpacing: 2,
+          lineHeight: 1.6,
+          maxWidth: 330,
+          textAlign: 'center',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
           textShadow: '1px 1px 0 #E65100',
         }}
       >
-        ✦ PROMOTED: ACCESS CARD UPGRADED ✦
+        ✦ PROMOTED ✦ ACCESS CARD UPGRADED
       </div>
 
       <div
         className="sprite-idle"
         style={{
-          width: 72,
-          height: 84,
+          width: 60,
+          height: 70,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s',
           transform: show ? 'scale(1)' : 'scale(0.8)',
@@ -232,7 +236,7 @@ export default function PromotionScreen({
               alignItems: 'center',
               gap: 12,
               padding: '10px 12px',
-              background: 'var(--ink)',
+              background: 'rgba(13, 19, 32, 0.92)',
               border: `var(--border-w) solid ${KIND_COLORS[perk.kind]}`,
               borderRadius: 'var(--radius-lg)',
               cursor: 'pointer',
@@ -250,7 +254,7 @@ export default function PromotionScreen({
               </span>
               <span
                 className="t-body"
-                style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
+                style={{ fontSize: 'var(--body-sm)', color: 'var(--text-main)', lineHeight: 1.2 }}
               >
                 {perk.desc}
               </span>
