@@ -47,19 +47,51 @@ export default function TitleScreen({
         overflow: 'hidden',
       }}
     >
-      {Array.from({ length: 30 }).map((_, i) => (
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          inset: 0,
+          background:
+            'linear-gradient(90deg, transparent 0 12%, rgba(255,255,255,.06) 12.4% 12.8%, transparent 13% 49%, rgba(255,211,77,.10) 49.4% 50.6%, transparent 51% 87%, rgba(255,255,255,.06) 87.2% 87.6%, transparent 88%), linear-gradient(180deg, rgba(255,255,255,.035) 0 1px, transparent 1px 84px)',
+          opacity: 0.85,
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 42,
+          width: 120,
+          height: 30,
+          border: '1px solid rgba(255,211,77,.42)',
+          borderRadius: 8,
+          background: 'rgba(5,7,13,.72)',
+          boxShadow: '0 0 28px rgba(255,211,77,.18)',
+          color: 'var(--gold-bright)',
+          fontFamily: 'var(--font-display)',
+          fontSize: 'var(--display-2xs)',
+          display: 'grid',
+          placeItems: 'center',
+          zIndex: 1,
+          letterSpacing: 2,
+        }}
+      >
+        ▲ FLOOR 30
+      </div>
+      {Array.from({ length: 18 }).map((_, i) => (
         <div
           key={i}
           style={{
             position: 'absolute',
-            left: `${(i * 37) % 100}%`,
-            top: `${(i * 23) % 60}%`,
-            width: i % 3 === 0 ? 3 : 2,
-            height: i % 3 === 0 ? 3 : 2,
-            background: '#fff',
-            borderRadius: '50%',
-            opacity: 0.3 + (i % 5) * 0.15,
-            animation: `twinkle ${1.5 + (i % 3) * 0.5}s infinite alternate`,
+            left: `${8 + ((i * 29) % 84)}%`,
+            top: `${16 + ((i * 17) % 38)}%`,
+            width: 6,
+            height: 2,
+            background: i % 4 === 0 ? 'var(--gold)' : 'rgba(77,163,255,.55)',
+            borderRadius: 2,
+            opacity: 0.18 + (i % 4) * 0.08,
+            animation: `twinkle ${2.5 + (i % 3) * 0.5}s infinite alternate`,
             animationDelay: `${i * 0.1}s`,
           }}
         />
@@ -70,10 +102,10 @@ export default function TitleScreen({
           className="t-display"
           style={{
             fontSize: 'var(--display-sm)',
-            color: 'var(--gold-bright)',
+            color: 'var(--gold)',
             letterSpacing: 4,
             marginBottom: 12,
-            textShadow: '2px 2px 0 #E65100',
+            textShadow: '0 0 18px rgba(255,211,77,.26)',
           }}
         >
           ▲ Q4 LADDER SIMULATION ▲
@@ -85,10 +117,11 @@ export default function TitleScreen({
             color: '#FFFFFF',
             margin: 0,
             lineHeight: 1.4,
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #E3F2FD 50%, #90CAF9 100%)',
+            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFE58A 42%, #F5A623 100%)',
             WebkitBackgroundClip: 'text',
             WebkitTextFillColor: 'transparent',
-            filter: 'drop-shadow(3px 3px 0 #0D47A1)',
+            filter:
+              'drop-shadow(0 8px 16px rgba(0,0,0,.7)) drop-shadow(0 0 18px rgba(255,211,77,.18))',
           }}
         >
           CORPORATE
@@ -104,7 +137,7 @@ export default function TitleScreen({
             letterSpacing: 3,
           }}
         >
-          HR APPROVED-ISH • ELEVATOR ACCESS PENDING
+          BOARD-LEVEL ROGUELITE • ELEVATOR ACCESS PENDING
         </div>
       </div>
 
@@ -143,7 +176,8 @@ export default function TitleScreen({
           left: 0,
           right: 0,
           height: 120,
-          background: 'linear-gradient(0deg, #0D47A1 0%, transparent 100%)',
+          background:
+            'linear-gradient(0deg, rgba(2,6,23,.96) 0%, rgba(13,19,32,.62) 58%, transparent 100%)',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -157,7 +191,8 @@ export default function TitleScreen({
             style={{
               width: 20,
               height: h,
-              background: '#0D47A1',
+              background: 'linear-gradient(180deg, #111827, #05070d)',
+              border: '1px solid rgba(255,255,255,.08)',
               borderRadius: '3px 3px 0 0',
               position: 'relative',
             }}
@@ -172,7 +207,7 @@ export default function TitleScreen({
                   width: 5,
                   height: 5,
                   borderRadius: 1,
-                  background: (i + j) % 3 === 0 ? '#FFD54F' : '#1565C0',
+                  background: (i + j) % 3 === 0 ? '#FFD54F' : '#1d4ed8',
                   opacity: 0.8,
                 }}
               />

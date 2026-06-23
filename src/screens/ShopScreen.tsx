@@ -46,10 +46,13 @@ export default function ShopScreen({
         alignItems: 'center',
         gap: 10,
         padding: '8px 10px',
-        background: 'var(--ink)',
-        border: 'var(--border-w) solid var(--ink-soft)',
+        background: opts.disabled
+          ? 'rgba(13,19,32,.62)'
+          : 'linear-gradient(180deg, rgba(17,24,39,.96), rgba(5,7,13,.94))',
+        border: `var(--border-w) solid ${opts.disabled ? 'rgba(255,255,255,.08)' : 'rgba(255,211,77,.24)'}`,
         borderRadius: 'var(--radius-md)',
         opacity: opts.disabled ? 0.6 : 1,
+        boxShadow: opts.disabled ? 'none' : 'var(--shadow-sm)',
       }}
     >
       <span style={{ fontSize: 24 }}>{opts.emoji}</span>
@@ -74,7 +77,7 @@ export default function ShopScreen({
         onClick={opts.onBuy}
         aria-label={`Buy ${opts.name} for ${opts.price} stock options`}
       >
-        {opts.price} {CURRENCY_ICON}
+        {opts.disabled ? 'LOCKED' : `${opts.price} ${CURRENCY_ICON}`}
       </Button>
     </div>
   )
@@ -90,7 +93,10 @@ export default function ShopScreen({
         height: '100%',
         gap: 12,
         padding: 20,
-        background: 'transparent',
+        background:
+          'radial-gradient(circle at 50% 0%, rgba(255,211,77,.14), transparent 32%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.74))',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
       <div
@@ -102,13 +108,13 @@ export default function ShopScreen({
           letterSpacing: 2,
         }}
       >
-        🛒 THE COMPANY STORE
+        THE COMPANY STORE
       </div>
       <div
         className="t-body"
         style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
       >
-        Executive pricing. Intern warranty.
+        Payroll-approved supplies. Exit through the gift shop.
       </div>
 
       <Panel variant="glass" style={{ padding: '6px 14px' }}>

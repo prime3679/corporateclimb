@@ -198,7 +198,18 @@ export default function BattleScreen({
         />
       )}
 
-      <div style={{ flex: 1, position: 'relative', minHeight: 220 }}>
+      <div className={styles.battlefield}>
+        <div className={styles.enemyDossier}>
+          <div className={styles.dossierKicker}>ENEMY DOSSIER</div>
+          <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
+          <div className={styles.typeRow}>
+            {enemy.types.map((t) => (
+              <TypeBadge key={t} type={t} />
+            ))}
+          </div>
+          <StatusBadges statuses={enemyStatuses} />
+          <div className={styles.intentLine}>INTENT: BLOCK PROMOTION</div>
+        </div>
         <div
           style={{
             position: 'absolute',
@@ -213,15 +224,6 @@ export default function BattleScreen({
         />
         <div style={{ position: 'absolute', top: '6%', right: 16, zIndex: 2, overflow: 'visible' }}>
           <PixelSprite spriteId={enemy.spriteId} size={120} animState={enemyAnim} flip />
-        </div>
-        <div style={{ position: 'absolute', top: 12, left: 8, zIndex: 4 }}>
-          <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
-          <div style={{ display: 'flex', gap: 3, marginTop: 3 }}>
-            {enemy.types.map((t) => (
-              <TypeBadge key={t} type={t} />
-            ))}
-          </div>
-          <StatusBadges statuses={enemyStatuses} />
         </div>
 
         <div
@@ -241,7 +243,8 @@ export default function BattleScreen({
         >
           <PixelSprite spriteId={player.spriteId} size={144} animState={playerAnim} />
         </div>
-        <div style={{ position: 'absolute', bottom: 6, right: 8, zIndex: 4 }}>
+        <div className={styles.playerResourcePanel}>
+          <div className={styles.dossierKicker}>PLAYER RESOURCES</div>
           <HpBar
             current={playerHp}
             max={playerMaxHp}
@@ -282,7 +285,7 @@ export default function BattleScreen({
         </div>
       )}
 
-      <div style={{ padding: '0 10px 10px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+      <div className={styles.commandDeck}>
         {log.length > 0 && (
           <TextBox
             lines={
@@ -297,7 +300,7 @@ export default function BattleScreen({
         {turn === 'player' && (
           <>
             {/* Mode tabs */}
-            <div style={{ display: 'flex', gap: 4, marginBottom: 2 }}>
+            <div className={styles.tabs}>
               <button
                 onClick={() => onSetBattleMode('fight')}
                 aria-pressed={battleMode === 'fight'}
@@ -326,7 +329,7 @@ export default function BattleScreen({
             </div>
 
             {battleMode === 'fight' ? (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+              <div className={styles.cardGrid}>
                 {activeMoves.map((m, i) => (
                   <MoveButton
                     key={m.name}
@@ -345,7 +348,7 @@ export default function BattleScreen({
                 ))}
               </div>
             ) : (
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 5 }}>
+              <div className={styles.cardGrid}>
                 {inventory.length === 0 ? (
                   <div className={styles.noItems}>No items</div>
                 ) : (

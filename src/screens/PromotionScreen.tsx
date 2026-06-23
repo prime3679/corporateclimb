@@ -57,9 +57,42 @@ export default function PromotionScreen({
         height: '100%',
         gap: 12,
         padding: 20,
-        background: 'transparent',
+        background:
+          'radial-gradient(circle at 50% 18%, rgba(255,211,77,.18), transparent 30%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.72))',
+        position: 'relative',
+        overflow: 'hidden',
       }}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 20,
+          width: 150,
+          height: 210,
+          border: '1px solid rgba(255,211,77,.22)',
+          borderRadius: 18,
+          background: 'linear-gradient(180deg, rgba(255,211,77,.12), rgba(13,19,32,.28))',
+          boxShadow: 'inset 0 0 30px rgba(255,211,77,.10)',
+        }}
+      />
+      {Array.from({ length: 18 }).map((_, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: `${6 + ((i * 17) % 88)}%`,
+            top: `${8 + ((i * 23) % 48)}%`,
+            width: i % 2 ? 7 : 3,
+            height: i % 2 ? 3 : 7,
+            background: i % 3 === 0 ? 'var(--gold)' : 'var(--compliance-blue)',
+            opacity: show ? 0.62 : 0,
+            transform: show ? 'translateY(18px) rotate(18deg)' : 'translateY(-16px)',
+            transition: `opacity .4s ease ${i * 0.03}s, transform 1.4s ease ${i * 0.03}s`,
+          }}
+        />
+      ))}
       <div
         className="t-display"
         style={{
@@ -176,7 +209,7 @@ export default function PromotionScreen({
           transition: 'opacity 0.5s ease 0.5s',
         }}
       >
-        CHOOSE A PERK • NEW RESPONSIBILITY
+        CHOOSE A PERK • NEW RESPONSIBILITY ASSIGNED
       </div>
 
       <div

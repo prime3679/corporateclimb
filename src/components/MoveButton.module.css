@@ -13,6 +13,28 @@
   flex-direction: column;
   gap: 4px;
   overflow: hidden;
+  border-left: 4px solid var(--border-soft);
+}
+
+.type-strategy {
+  border-left-color: var(--gold);
+}
+
+.type-influence {
+  border-left-color: var(--burnout-purple);
+}
+
+.type-execution {
+  border-left-color: var(--hr-red);
+}
+
+.type-analytics,
+.type-technical {
+  border-left-color: var(--compliance-blue);
+}
+
+.type-normal {
+  border-left-color: var(--text-muted);
 }
 
 .move:hover:not(:disabled) {
