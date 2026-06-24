@@ -8,26 +8,26 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
   {
     id: 'coffee_machine',
     title: 'BREAK ROOM',
-    desc: 'You stumble upon an unattended coffee machine. The good stuff \u2014 not that instant garbage.',
+    desc: 'You find the executive coffee machine unlocked. The beans have a procurement story.',
     emoji: '\u2615',
     choices: [
       {
         label: 'Grab a double shot',
         effect: { hp: 25 },
-        result: 'The caffeine hits immediately. You feel alive again.',
+        result: 'The caffeine hits like a calendar invite from God. You re-enter the org chart.',
         isGood: true,
       },
       {
         label: 'Take the whole pot',
         effect: { hp: 40, def: -2 },
         result:
-          "You chug the entire pot. Jittery but ENERGIZED. Your hands won't stop shaking though.",
+          'You take the whole pot. HR calls it theft; Finance calls it productivity arbitrage.',
         isGood: true,
       },
       {
         label: 'Pass \u2014 stay focused',
         effect: { atk: 1 },
-        result: 'Discipline over comfort. Your resolve strengthens.',
+        result: 'You walk past untouched. Discipline briefly outperforms espresso futures.',
         isGood: true,
       },
     ],
@@ -35,25 +35,25 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
   {
     id: 'office_gossip',
     title: 'WATER COOLER',
-    desc: 'Two VPs are whispering by the water cooler. You could eavesdrop and learn about your next opponent...',
+    desc: 'Two VPs whisper beside the water cooler, laundering gossip into strategy.',
     emoji: '\uD83D\uDDE3\uFE0F',
     choices: [
       {
         label: 'Eavesdrop carefully',
         effect: { atk: 2 },
-        result: 'You overhear their weaknesses. Knowledge is power.',
+        result: 'You catch the subtext under the subtext. Suddenly the next fight has footnotes.',
         isGood: true,
       },
       {
         label: 'Join the conversation',
         effect: { def: 1, hp: -10 },
-        result: 'They rope you into a 20-minute chat about golf. Draining, but they like you now.',
+        result: 'They trap you in a golf anecdote. Draining, but your name now sounds familiar.',
         isGood: true,
       },
       {
         label: 'Walk past quickly',
         effect: { hp: 10 },
-        result: 'You avoid the drama. Peace of mind is its own reward.',
+        result: 'You keep walking. The cleanest promotion path is sometimes plausible deniability.',
         isGood: true,
       },
     ],
