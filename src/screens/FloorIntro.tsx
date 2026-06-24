@@ -112,8 +112,8 @@ export default function FloorIntro({
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        gap: 14,
-        padding: '32px 24px',
+        gap: 12,
+        padding: '30px 24px 28px',
         background:
           'radial-gradient(circle at 50% 28%, rgba(255, 213, 79, 0.08), transparent 26%), radial-gradient(circle at 50% 62%, rgba(147, 51, 234, 0.11), transparent 30%), transparent',
         cursor: 'pointer',
@@ -211,7 +211,7 @@ export default function FloorIntro({
         <div
           className="t-body"
           style={{
-            fontSize: 'var(--body-md)',
+            fontSize: 'var(--body-lg)',
             color: 'var(--muted-light)',
             fontStyle: 'italic',
             textAlign: 'center',
@@ -248,7 +248,7 @@ export default function FloorIntro({
       <div
         className="t-display"
         style={{
-          fontSize: 'var(--display-xs)',
+          fontSize: 'var(--display-sm)',
           color: TYPE_COLORS[enemy.types[0]],
           letterSpacing: 4,
           opacity: show ? 1 : 0,
@@ -298,7 +298,7 @@ export default function FloorIntro({
           fontSize: 'var(--display-lg)',
           color: 'var(--paper)',
           textAlign: 'center',
-          lineHeight: 1.8,
+          lineHeight: 1.15,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.8s ease 0.3s',
           textShadow: `0 0 22px ${TYPE_COLORS[enemy.types[0]]}, 0 2px 0 rgba(0,0,0,.5)`,
@@ -333,8 +333,8 @@ export default function FloorIntro({
       </div>
       <div
         style={{
-          width: 178,
-          height: 180,
+          width: 232,
+          height: 238,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'center',
@@ -345,7 +345,7 @@ export default function FloorIntro({
       >
         <StagedSprite
           spriteId={enemy.spriteId}
-          size={164}
+          size={212}
           ring={TYPE_COLORS[enemy.types[0]]}
           active
         />
