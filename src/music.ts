@@ -9,6 +9,29 @@ let activeOscs: OscillatorNode[] = []
 let masterGain: GainNode | null = null
 let _muted = false
 let _volume = 1
+let pendingTrack: string | null = null
+let unlockListenerRegistered = false
+
+function hasUserActivation() {
+  if (typeof navigator === 'undefined') return true
+  if (!('userActivation' in navigator)) return true
+  return navigator.userActivation.hasBeenActive
+}
+
+function registerUnlockListener() {
+  if (unlockListenerRegistered || typeof window === 'undefined') return
+  unlockListenerRegistered = true
+
+  const unlock = () => {
+    const nextTrack = pendingTrack
+    pendingTrack = null
+    currentTrack = null
+    if (nextTrack) playTrack(nextTrack)
+  }
+
+  window.addEventListener('pointerdown', unlock, { once: true, capture: true })
+  window.addEventListener('keydown', unlock, { once: true, capture: true })
+}
 
 function applyGain() {
   if (!masterGain) return
@@ -264,6 +287,12 @@ function playTrack(name: string) {
   const track = TRACKS[name]
   if (!track) return
 
+  if (!hasUserActivation()) {
+    pendingTrack = name
+    registerUnlockListener()
+    return
+  }
+
   const c = getCtx()
   const beatDur = 60 / track.bpm
 
@@ -307,12 +336,14 @@ function playTrack(name: string) {
 
 function stopMusic() {
   currentTrack = null
+  pendingTrack = null
   if (loopTimeout) {
     clearTimeout(loopTimeout)
     loopTimeout = null
   }
+  if (!ctx) return
   // Stop all active oscillators
-  const now = getCtx().currentTime
+  const now = ctx.currentTime
   for (const osc of activeOscs) {
     try {
       osc.stop(now + 0.05)

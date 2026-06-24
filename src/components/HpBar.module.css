@@ -1,79 +1,96 @@
 .plate {
-  background: #f8f0d8;
-  border: 3px solid #484848;
-  border-radius: var(--radius-sm);
-  padding: 6px 10px;
-  min-width: 190px;
   position: relative;
-  box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.3);
+  min-width: 190px;
+  padding: 8px 11px;
+  background: var(--cc-glass);
+  border: 1px solid var(--cc-line-strong);
+  border-radius: var(--radius-md);
+  backdrop-filter: blur(var(--cc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
+  box-shadow: var(--cc-shadow-plate);
+}
+
+/* Enemy plates lead with a left accent bar; the player trails with a right one. */
+.enemy {
+  border-left: 3px solid var(--plate-accent);
+}
+.player {
+  border-right: 3px solid var(--plate-accent);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 3px;
+  gap: 8px;
+  margin-bottom: 5px;
 }
 
 .name {
-  font-family: var(--font-display);
-  font-size: var(--display-xs);
-  color: #383838;
-  letter-spacing: 0.5px;
+  font-family: var(--cc-font-display);
+  font-size: 14px;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--cc-text);
 }
 
 .level {
-  font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  color: #585858;
+  font-family: var(--cc-font-display);
+  font-size: 11px;
+  color: var(--cc-text-muted);
+  white-space: nowrap;
 }
 
 .levelPrefix {
-  font-size: 6px;
-  vertical-align: top;
+  font-family: var(--cc-font-body);
+  font-weight: 600;
+  font-size: 8px;
+  letter-spacing: 0.08em;
+  margin-right: 2px;
+  color: var(--cc-text-dim);
 }
 
 .barRow {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 7px;
 }
 
 .hpLabel {
-  font-family: var(--font-display);
-  font-size: 7px;
-  color: #f8a800;
+  font-family: var(--cc-font-body);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: 0.08em;
+  color: var(--cc-gold);
 }
 
 .track {
   flex: 1;
-  height: 8px;
-  background: #484848;
-  border-radius: 4px;
+  height: 9px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   overflow: hidden;
-  border: 1px solid #383838;
 }
 
 .fill {
   height: 100%;
-  border-radius: 4px;
+  border-radius: 6px;
   transition:
-    width 0.5s ease,
+    width var(--cc-dur-drain) var(--cc-ease-out),
     background 0.3s ease;
-  box-shadow:
-    inset 0 -2px 0 rgba(0, 0, 0, 0.15),
-    inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.25);
 }
 
 .numbers {
-  text-align: right;
-  margin-top: 1px;
-  font-family: var(--font-body);
-  font-size: var(--body-sm);
+  font-family: var(--cc-font-body);
+  font-weight: 600;
+  font-size: 11px;
   line-height: 1;
-  color: #383838;
+  color: var(--cc-text-2);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
 }
 
 .numbersMax {
-  color: #888;
+  color: var(--cc-text-faint);
 }

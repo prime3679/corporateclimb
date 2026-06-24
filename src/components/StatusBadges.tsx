@@ -1,5 +1,6 @@
 import type { StatusInstance } from '@/types'
 import { STATUS_DEFS } from '@/data'
+import { IconChip, getIconGlyph } from '@/ui'
 
 export default function StatusBadges({ statuses }: { statuses: StatusInstance[] }) {
   if (statuses.length === 0) return null
@@ -21,11 +22,16 @@ export default function StatusBadges({ statuses }: { statuses: StatusInstance[] 
               lineHeight: 1.2,
               display: 'flex',
               alignItems: 'center',
-              gap: 3,
+              gap: 4,
               border: '1px solid rgba(0,0,0,0.2)',
             }}
           >
-            <span style={{ fontSize: 10 }}>{def.icon}</span>
+            <IconChip
+              glyph={getIconGlyph(def.icon, def.name)}
+              tone="muted"
+              size="sm"
+              style={{ minWidth: 20, minHeight: 20, padding: '2px 4px', color: '#fff' }}
+            />
             <span>{s.turnsLeft}</span>
           </span>
         )

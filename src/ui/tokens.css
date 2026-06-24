@@ -1,59 +1,154 @@
 /* ─── DESIGN TOKENS ─────────────────────────────────────────
-   The single source of visual truth. Screens and components use
-   these variables — no more ad-hoc hex values per file. */
+   Corporate Climb's single source of visual truth: a cinematic
+   corporate-JRPG system — dark, glassy, type-colored energy, one
+   gold UI accent. New work references the `--cc-*` tokens directly;
+   the legacy `--*` aliases below are mapped onto the same system so
+   every existing component inherits the new look. */
 
 :root {
+  /* ═══ CANONICAL SYSTEM (--cc-*) ═══════════════════════════ */
+
+  /* Surfaces */
+  --cc-bg: #06080c; /* app frame backdrop (deepest) */
+  --cc-stage: #0a0d12; /* stage behind the frame */
+  --cc-surface-1: #1a2230; /* card top (gradient start) */
+  --cc-surface-2: #0e131c; /* card bottom (gradient end) */
+  --cc-surface-3: #161d29; /* alt card / list row */
+  --cc-glass: rgba(10, 13, 19, 0.74); /* HUD plates (use w/ blur) */
+  --cc-glass-blur: 8px;
+
+  /* Hairlines & soft fills */
+  --cc-line: rgba(255, 255, 255, 0.1);
+  --cc-line-strong: rgba(255, 255, 255, 0.13);
+  --cc-line-faint: rgba(255, 255, 255, 0.06);
+  --cc-fill-soft: rgba(255, 255, 255, 0.04);
+
+  /* Text */
+  --cc-text: #f2f6fa;
+  --cc-text-2: #cdd6e2;
+  --cc-text-3: #aebccb;
+  --cc-text-muted: #9fb0c2;
+  --cc-text-dim: #8fa0b4;
+  --cc-text-faint: #6b7c8f;
+  --cc-on-accent: #0a0d13;
+
+  /* Gold accent (primary action + highlight) */
+  --cc-gold: #ffc107;
+  --cc-gold-bright: #ffd54f;
+  --cc-amber: #ff8f00;
+  --cc-amber-deep: #ff6f00;
+
+  /* Type system (the 5 battle types + normal) */
+  --cc-type-strategy: #e53935; /* STRAT */
+  --cc-type-influence: #9333ea; /* INFL  */
+  --cc-type-execution: #ff6f00; /* EXEC  */
+  --cc-type-analytics: #2196f3; /* DATA  */
+  --cc-type-technical: #22c55e; /* TECH  */
+  --cc-type-normal: #78909c; /* NORM  */
+
+  /* HP / state feedback */
+  --cc-hp-high: #22a85a;
+  --cc-hp-high-2: #5ee08a;
+  --cc-hp-mid: #ffb300;
+  --cc-hp-mid-2: #ffd54f;
+  --cc-hp-low: #c62828;
+  --cc-hp-low-2: #ff5a5a;
+  --cc-heal: #4ade80;
+  --cc-danger: #ff5a5a;
+  --cc-info: #4fc3f7;
+
+  /* Typography */
+  --cc-font-display: 'Anton', system-ui, sans-serif;
+  --cc-font-body: 'Space Grotesk', system-ui, sans-serif;
+  --cc-track-label: 0.14em; /* uppercase eyebrows */
+  --cc-track-wide: 0.22em; /* kickers */
+  --cc-track-chip: 0.06em;
+
+  /* Shape */
+  --cc-r-chip: 5px;
+  --cc-accent-bar: 4px; /* type-colored card edge */
+
+  /* Elevation (soft, no spread) */
+  --cc-shadow-plate: 0 8px 26px rgba(0, 0, 0, 0.4);
+
+  /* Layout — phone-tall game canvas, scaled to fit any viewport */
+  --cc-frame-w: 472px;
+  --cc-frame-h: 884px;
+
+  /* Motion */
+  --cc-ease-pop: cubic-bezier(0.3, 1.4, 0.5, 1); /* overshoot */
+  --cc-ease-out: cubic-bezier(0.4, 0, 0.2, 1); /* drains, ui */
+  --cc-dur-drain: 0.55s; /* hp bar width transition */
+  --cc-type-speed: 17ms; /* typewriter ms/char */
+
+  /* ═══ LEGACY ALIASES → mapped onto the system ═════════════ */
+
   /* Palette */
-  --ink: #263238;
-  --ink-soft: #455a64;
-  --paper: #fafafa;
-  --paper-dim: #eceff1;
-  --muted: #78909c;
-  --muted-light: #b0bec5;
-  --gold: #ffc107;
-  --gold-bright: #ffd54f;
-  --amber-deep: #ff6f00;
-  --sky: #4fc3f7;
-  --sky-soft: #90caf9;
-  --blue-deep: #0d47a1;
-  --green: #4caf50;
-  --green-dark: #2e7d32;
-  --red: #e53935;
-  --orange: #ff9800;
-  --purple: #9c27b0;
+  --bg-void: var(--cc-bg);
+  --bg-panel: var(--cc-surface-2);
+  --bg-panel-2: var(--cc-surface-3);
+  --border-soft: var(--cc-line-strong);
+  --text-main: var(--cc-text);
+  --text-muted: var(--cc-text-muted);
+  --gold: var(--cc-gold);
+  --gold-bright: var(--cc-gold-bright);
+  --gold-deep: var(--cc-amber);
+  --hr-red: var(--cc-type-strategy);
+  --morale-green: var(--cc-type-technical);
+  --compliance-blue: var(--cc-type-analytics);
+  --burnout-purple: var(--cc-type-influence);
 
-  /* Typography: pixel display face for headlines/labels only;
-     a tall legible pixel face for everything readable. */
-  --font-display: 'Press Start 2P', monospace;
-  --font-body: 'VT323', monospace;
+  /* Legacy aliases mapped into the cinematic system */
+  --ink: var(--cc-on-accent);
+  --ink-soft: #172033;
+  --paper: var(--cc-text); /* doubles as a light-text token */
+  --paper-dim: var(--cc-text-2);
+  --muted: var(--cc-text-muted);
+  --muted-light: var(--cc-text-2);
+  --amber-deep: var(--cc-amber);
+  --sky: var(--cc-info);
+  --sky-soft: #9fd0ff;
+  --blue-deep: #0a1f44;
+  --green: var(--cc-type-technical);
+  --green-dark: var(--cc-hp-high);
+  --red: var(--cc-type-strategy);
+  --orange: var(--cc-amber-deep);
+  --purple: var(--cc-type-influence);
 
-  /* Display (Press Start 2P) sizes — never below 8px */
-  --display-2xs: 8px;
-  --display-xs: 10px;
-  --display-sm: 12px;
-  --display-md: 16px;
-  --display-lg: 22px;
-  --display-xl: 28px;
+  /* Typography: Anton (impact) for display, Space Grotesk for body. */
+  --font-display: var(--cc-font-display);
+  --font-body: var(--cc-font-body);
 
-  /* Body (VT323) sizes — comfortably legible */
-  --body-sm: 16px;
-  --body-md: 18px;
-  --body-lg: 22px;
-  --body-xl: 26px;
+  /* Display (Anton) — retuned for a proportional impact face, not a
+     pixel font. Small caps stay legible; headings carry weight. */
+  --display-2xs: 10px;
+  --display-xs: 12px;
+  --display-sm: 15px;
+  --display-md: 20px;
+  --display-lg: 30px;
+  --display-xl: 44px;
 
-  /* Shape language: chunky ink borders with hard offset shadows */
-  --radius-sm: 6px;
-  --radius-md: 8px;
-  --radius-lg: 12px;
-  --border-w: 3px;
-  --shadow-sm: 3px 3px 0 var(--ink);
-  --shadow-md: 4px 4px 0 var(--ink);
-  --shadow-lg: 6px 6px 0 var(--ink);
+  /* Body (Space Grotesk) — readable UI sizes, 13px floor. */
+  --body-sm: 13px;
+  --body-md: 14px;
+  --body-lg: 16px;
+  --body-xl: 18px;
 
-  /* Focus ring (keyboard navigation) */
+  /* Shape language: soft cards, hairline borders. */
+  --radius-sm: 8px;
+  --radius-md: 11px;
+  --radius-lg: 14px;
+  --border-w: 1px;
+  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.42);
+  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-panel: var(--cc-shadow-plate);
+  --glow-gold: 0 0 24px rgba(255, 193, 7, 0.28);
+
+  /* Focus ring (keyboard navigation) — info-blue, per the global rule */
   --focus-ring: 0 0 0 3px rgba(79, 195, 247, 0.95);
 
-  /* Spacing scale */
+  /* Spacing scale (4px base) */
   --space-1: 4px;
   --space-2: 8px;
   --space-3: 12px;

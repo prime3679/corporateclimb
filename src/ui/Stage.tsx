@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react'
 import styles from './Stage.module.css'
 
-/** The game's fixed design space; everything inside lays out at this size. */
-export const DESIGN_WIDTH = 420
-export const DESIGN_HEIGHT = 750
+/** The game's fixed design space; everything inside lays out at this size.
+ *  A tall 472×884 mobile-game canvas, scaled to fit any viewport. */
+export const DESIGN_WIDTH = 472
+export const DESIGN_HEIGHT = 884
 
-const MAX_SCALE = 1.6
+const MAX_SCALE = 1.35
 
 /**
  * Scales the fixed design space to fit the viewport instead of

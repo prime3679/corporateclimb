@@ -5,34 +5,44 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background:
+    radial-gradient(circle at 50% 18%, rgba(255, 196, 138, 0.16), transparent 30%),
+    radial-gradient(circle at 50% 70%, rgba(147, 51, 234, 0.08), transparent 34%),
+    rgba(3, 4, 8, 0.82);
+  backdrop-filter: blur(7px);
 }
 
 .panel {
-  width: min(340px, calc(100% - 32px));
-  max-height: calc(100% - 48px);
+  width: min(378px, calc(100% - 28px));
+  max-height: calc(100% - 40px);
   overflow-y: auto;
-  background: var(--paper);
-  border: var(--border-w) solid var(--ink);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
-  padding: var(--space-5);
+  padding: 24px 22px 20px;
   display: flex;
   flex-direction: column;
-  gap: var(--space-4);
+  gap: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), transparent 24%),
+    linear-gradient(180deg, rgba(33, 24, 18, 0.94), rgba(13, 19, 32, 0.96));
+  border: 1px solid rgba(255, 240, 214, 0.18);
+  border-radius: 22px;
+  box-shadow:
+    0 24px 60px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 211, 77, 0.06),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .title {
   font-family: var(--font-display);
-  font-size: var(--display-sm);
-  color: var(--ink);
+  font-size: var(--display-md);
+  color: var(--gold-bright);
   text-align: center;
+  text-shadow: 2px 2px 0 rgba(122, 55, 15, 0.84);
 }
 
 .jobTitle {
   font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  color: var(--amber-deep);
+  font-size: var(--display-xs);
+  color: #ffc190;
   text-align: center;
   line-height: 1.6;
 }
@@ -40,46 +50,58 @@
 .subline {
   font-family: var(--font-body);
   font-size: var(--body-md);
-  color: var(--ink-soft);
+  color: var(--muted-light);
   text-align: center;
 }
 
 .statGrid {
-  display: flex;
-  justify-content: space-around;
-  gap: var(--space-2);
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 8px;
 }
 
 .stat {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 3px;
+  padding: 9px 6px 8px;
+  border: 1px solid rgba(255, 240, 214, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .statLabel {
   font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  color: var(--muted);
+  font-size: 11px;
+  color: color-mix(in srgb, var(--gold-bright) 46%, var(--muted-light));
 }
 
 .statValue {
   font-family: var(--font-display);
-  font-size: var(--display-xs);
-  color: var(--ink);
+  font-size: var(--display-sm);
+  color: var(--paper);
+  line-height: 1;
 }
 
 .statDelta {
   font-family: var(--font-body);
   font-size: var(--body-sm);
-  color: var(--green-deep, #2e7d32);
+  color: #8fe0ba;
+}
+
+.statMeta {
+  font-family: var(--font-body);
+  font-size: var(--body-sm);
+  letter-spacing: 0.08em;
+  color: #ffc190;
 }
 
 .sectionLabel {
   font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  color: var(--ink-soft);
-  border-bottom: 2px solid var(--paper-dim);
+  font-size: var(--display-xs);
+  color: var(--gold-bright);
+  border-bottom: 1px solid rgba(255, 240, 214, 0.16);
   padding-bottom: 4px;
 }
 
@@ -92,13 +114,15 @@
 .perkRow {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: 12px;
+  padding: 10px;
+  border: 1px solid rgba(255, 240, 214, 0.1);
+  border-radius: 13px;
+  background: rgba(255, 255, 255, 0.045);
 }
 
 .perkIcon {
-  font-size: 20px;
-  width: 26px;
-  text-align: center;
+  flex-shrink: 0;
 }
 
 .perkText {
@@ -109,28 +133,28 @@
 
 .perkName {
   font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  color: var(--ink);
-  line-height: 1.5;
+  font-size: var(--display-xs);
+  color: var(--paper);
+  line-height: 1.2;
 }
 
 .perkDesc {
   font-family: var(--font-body);
-  font-size: var(--body-sm);
-  color: var(--ink-soft);
-  line-height: 1.15;
+  font-size: var(--body-md);
+  color: var(--muted-light);
+  line-height: 1.28;
 }
 
 .perkCount {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--amber-deep);
+  color: #ffc190;
   white-space: nowrap;
 }
 
 .empty {
   font-family: var(--font-body);
   font-size: var(--body-md);
-  color: var(--muted);
+  color: var(--muted-light);
   text-align: center;
 }

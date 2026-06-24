@@ -1,8 +1,8 @@
 import type { PlayerClass } from '@/types'
-import { CURRENCY_ICON, CURRENCY_NAME, RELICS, TOTAL_FLOORS, groupPerks } from '@/data'
+import { CURRENCY_NAME, RELICS, TOTAL_FLOORS, groupPerks } from '@/data'
 import type { RunState } from '@/engine'
 import { DAILY_FLOOR_COUNT } from '@/daily'
-import Button from '@/ui/Button'
+import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './CareerPanel.module.css'
 
 /**
@@ -27,17 +27,22 @@ export default function CareerPanel({
   const perks = groupPerks(run.perks)
   const totalFloors = run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : TOTAL_FLOORS
 
-  const stat = (label: string, value: number, base: number) => (
+  const stat = (label: string, value: number, base: number, meta?: string) => (
     <div className={styles.stat}>
       <span className={styles.statLabel}>{label}</span>
       <span className={styles.statValue}>{value}</span>
-      {value > base && <span className={styles.statDelta}>+{value - base}</span>}
+      {value > base ? (
+        <span className={styles.statDelta}>+{value - base}</span>
+      ) : meta ? (
+        <span className={styles.statMeta}>{meta}</span>
+      ) : null}
     </div>
   )
 
   return (
     <div className={styles.overlay} onClick={onClose}>
-      <div
+      <Panel
+        variant="dark"
         className={styles.panel}
         role="dialog"
         aria-modal="true"
@@ -55,10 +60,7 @@ export default function CareerPanel({
           {stat('HP', effective.maxHp, baseClass.maxHp)}
           {stat('ATK', effective.atk, baseClass.atk)}
           {stat('DEF', effective.def, baseClass.def)}
-          <div className={styles.stat}>
-            <span className={styles.statLabel}>{CURRENCY_ICON}</span>
-            <span className={styles.statValue}>{run.stockOptions}</span>
-          </div>
+          {stat('OPT', run.stockOptions, Number.POSITIVE_INFINITY, 'STOCK')}
         </div>
 
         <div className={styles.sectionLabel}>PERKS ({run.perks.length})</div>
@@ -70,7 +72,12 @@ export default function CareerPanel({
           <div className={styles.perkList}>
             {perks.map(({ perk, count }) => (
               <div key={perk.id} className={styles.perkRow}>
-                <span className={styles.perkIcon}>{perk.icon}</span>
+                <IconChip
+                  glyph={getIconGlyph(perk.icon, perk.name)}
+                  tone="gold"
+                  size="sm"
+                  className={styles.perkIcon}
+                />
                 <span className={styles.perkText}>
                   <span className={styles.perkName}>{perk.name}</span>
                   <span className={styles.perkDesc}>{perk.desc}</span>
@@ -90,7 +97,12 @@ export default function CareerPanel({
                 if (!relic) return null
                 return (
                   <div key={id} className={styles.perkRow}>
-                    <span className={styles.perkIcon}>{relic.icon}</span>
+                    <IconChip
+                      glyph={getIconGlyph(relic.icon, relic.name)}
+                      tone="blue"
+                      size="sm"
+                      className={styles.perkIcon}
+                    />
                     <span className={styles.perkText}>
                       <span className={styles.perkName}>{relic.name}</span>
                       <span className={styles.perkDesc}>{relic.desc}</span>
@@ -109,7 +121,7 @@ export default function CareerPanel({
         <Button variant="primary" size="md" onClick={onClose}>
           BACK
         </Button>
-      </div>
+      </Panel>
     </div>
   )
 }

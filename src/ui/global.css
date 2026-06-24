@@ -20,14 +20,17 @@ button {
   box-shadow: var(--focus-ring) !important;
 }
 
-/* ── Typography helpers ── */
+/* ── Typography helpers ──
+   Anton is a tall, condensed impact face — it wants a tight leading.
+   Space Grotesk carries readable copy at a comfortable rhythm. */
 .t-display {
   font-family: var(--font-display);
-  line-height: 1.6;
+  line-height: 1.04;
+  letter-spacing: 0.01em;
 }
 .t-body {
   font-family: var(--font-body);
-  line-height: 1.15;
+  line-height: 1.3;
 }
 
 /* ── Keyframes ── */
@@ -290,4 +293,94 @@ button {
 .reduce-motion .sprite-faint {
   animation: none;
   opacity: 0;
+}
+
+@keyframes elevator-rise {
+  from {
+    background-position:
+      0 0,
+      0 0,
+      0 0;
+  }
+  to {
+    background-position:
+      0 -120px,
+      0 -80px,
+      0 0;
+  }
+}
+
+@keyframes bonus-pop {
+  0% {
+    transform: scale(0.92);
+    filter: brightness(1);
+  }
+  45% {
+    transform: scale(1.04);
+    filter: brightness(1.35);
+  }
+  100% {
+    transform: scale(1);
+    filter: brightness(1);
+  }
+}
+
+/* Glowing ground ring under a staged sprite — slow breathing pulse. */
+@keyframes cc-ringpulse {
+  0%,
+  100% {
+    transform: translateX(-50%) scale(1);
+    opacity: 0.55;
+  }
+  50% {
+    transform: translateX(-50%) scale(1.08);
+    opacity: 0.85;
+  }
+}
+
+/* Drifting ambient light motes over the arena. */
+@keyframes cc-drift {
+  from {
+    transform: translate(0, 0);
+  }
+  to {
+    transform: translate(14px, -22px);
+  }
+}
+
+.reduce-motion .cc-ring,
+.reduce-motion .cc-mote {
+  animation: none;
+}
+@media (prefers-reduced-motion: reduce) {
+  .cc-ring,
+  .cc-mote {
+    animation: none;
+  }
+}
+
+/* ── Cinematic screen scaffold ──
+   Near-black surface with one soft ambient glow at the top and a
+   vignette pooling at the bottom — the dark, glassy stage every
+   centered/scroll screen sits on. The accent hue is overridable
+   per screen via `--screen-glow` (gold by default). */
+.premium-screen {
+  --screen-glow: rgba(255, 193, 7, 0.16);
+  position: relative;
+  isolation: isolate;
+  color: var(--text-main);
+  background:
+    radial-gradient(120% 70% at 50% -8%, var(--screen-glow), transparent 60%),
+    radial-gradient(140% 100% at 50% 120%, rgba(0, 0, 0, 0.55), transparent 55%),
+    linear-gradient(180deg, #0b1019 0%, var(--cc-bg) 64%, #04060a 100%);
+}
+
+.premium-screen::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  /* Soft cinematic vignette — frames the content, never flat. */
+  background: radial-gradient(130% 100% at 50% 42%, transparent 52%, rgba(2, 4, 8, 0.72) 100%);
 }

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { Enemy, MysteryOutcome, PlayerClass } from '@/types'
 import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct, getMysteryInfo } from '@/data'
-import { getSpriteUrls } from '@/components/PixelSprite'
+import StagedSprite from '@/components/StagedSprite'
 
 const FLOOR_LABELS: Record<number, string> = {
   // Act 1: Individual Contributor
@@ -98,7 +98,6 @@ export default function FloorIntro({
   mystery?: MysteryOutcome | null
 }) {
   const [show, setShow] = useState(false)
-  const sprites = getSpriteUrls()
 
   useEffect(() => {
     setTimeout(() => setShow(true), 200)
@@ -106,15 +105,17 @@ export default function FloorIntro({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        gap: 16,
-        padding: 20,
-        background: '#0D0D0D',
+        gap: 12,
+        padding: '30px 24px 28px',
+        background:
+          'radial-gradient(circle at 50% 28%, rgba(255, 213, 79, 0.08), transparent 26%), radial-gradient(circle at 50% 62%, rgba(147, 51, 234, 0.11), transparent 30%), transparent',
         cursor: 'pointer',
       }}
       onClick={onReady}
@@ -144,7 +145,7 @@ export default function FloorIntro({
           alignItems: 'center',
           gap: 3,
           width: '100%',
-          maxWidth: 320,
+          maxWidth: 330,
           padding: '0 8px',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.1s',
@@ -210,7 +211,7 @@ export default function FloorIntro({
         <div
           className="t-body"
           style={{
-            fontSize: 'var(--body-md)',
+            fontSize: 'var(--body-lg)',
             color: 'var(--muted-light)',
             fontStyle: 'italic',
             textAlign: 'center',
@@ -247,8 +248,8 @@ export default function FloorIntro({
       <div
         className="t-display"
         style={{
-          fontSize: 'var(--display-xs)',
-          color: 'var(--red)',
+          fontSize: 'var(--display-sm)',
+          color: TYPE_COLORS[enemy.types[0]],
           letterSpacing: 4,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
@@ -294,13 +295,13 @@ export default function FloorIntro({
       <div
         className="t-display"
         style={{
-          fontSize: 'var(--display-md)',
+          fontSize: 'var(--display-lg)',
           color: 'var(--paper)',
           textAlign: 'center',
-          lineHeight: 1.8,
+          lineHeight: 1.15,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.8s ease 0.3s',
-          textShadow: '2px 2px 0 var(--red)',
+          textShadow: `0 0 22px ${TYPE_COLORS[enemy.types[0]]}, 0 2px 0 rgba(0,0,0,.5)`,
         }}
       >
         {enemy.title}
@@ -332,24 +333,21 @@ export default function FloorIntro({
       </div>
       <div
         style={{
-          width: 96,
-          height: 110,
+          width: 232,
+          height: 238,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           opacity: show ? 1 : 0,
-          transition: 'opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s',
-          transform: show ? 'scale(1)' : 'scale(0.5)',
+          transition: 'opacity 0.42s ease 0.1s, transform 0.42s ease 0.1s',
+          transform: show ? 'scale(1)' : 'scale(0.86)',
         }}
       >
-        <img
-          src={sprites[enemy.spriteId]}
-          alt=""
-          style={{
-            width: '100%',
-            height: '100%',
-            imageRendering: 'auto',
-            padding: '8% 2% 0 2%',
-            objectFit: 'contain',
-          }}
-          draggable={false}
+        <StagedSprite
+          spriteId={enemy.spriteId}
+          size={212}
+          ring={TYPE_COLORS[enemy.types[0]]}
+          active
         />
       </div>
       <div
@@ -362,7 +360,7 @@ export default function FloorIntro({
           animation: show ? 'pulse 2s infinite' : 'none',
         }}
       >
-        TAP TO BATTLE
+        TAP TO BATTLE • ENTER MEETING
       </div>
     </div>
   )

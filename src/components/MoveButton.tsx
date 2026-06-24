@@ -18,14 +18,18 @@ export default function MoveButton({
   effectiveness?: 'super' | 'weak' | null
 }) {
   return (
-    <button className={styles.move} onClick={onClick} disabled={disabled}>
+    <button
+      className={`${styles.move} ${styles[`type-${move.type}`]}`}
+      onClick={onClick}
+      disabled={disabled}
+    >
       <div className={styles.header}>
         <span className={styles.name}>{move.name}</span>
         <TypeBadge type={move.type} />
       </div>
       <div className={styles.meta}>
         <span>
-          PWR {move.dmg}
+          <span className={styles.power}>{move.dmg}</span> PWR
           {move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ''}
           {move.acc != null && move.acc < 100 ? ` ${move.acc}%` : ''}
         </span>

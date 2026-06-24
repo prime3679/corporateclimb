@@ -48,36 +48,74 @@ export default function PromotionScreen({
 
   return (
     <div
+      className="premium-screen"
       style={{
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 12,
-        padding: 20,
-        background: 'linear-gradient(180deg, #1a1a2e 0%, #2a1a0e 50%, #3a2a0e 100%)',
+        justifyContent: 'flex-start',
+        minHeight: '100%',
+        gap: 10,
+        padding: '56px 20px 18px',
+        background:
+          'radial-gradient(circle at 50% 16%, rgba(255,211,77,.18), transparent 28%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.72))',
+        position: 'relative',
+        overflowY: 'auto',
+        overflowX: 'hidden',
       }}
     >
+      <div
+        aria-hidden="true"
+        style={{
+          position: 'absolute',
+          top: 14,
+          width: 136,
+          height: 172,
+          border: '1px solid rgba(255,211,77,.22)',
+          borderRadius: 18,
+          background: 'linear-gradient(180deg, rgba(255,211,77,.12), rgba(13,19,32,.28))',
+          boxShadow: 'inset 0 0 30px rgba(255,211,77,.10)',
+        }}
+      />
+      {Array.from({ length: 18 }).map((_, i) => (
+        <span
+          key={i}
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            left: `${6 + ((i * 17) % 88)}%`,
+            top: `${8 + ((i * 23) % 48)}%`,
+            width: i % 2 ? 7 : 3,
+            height: i % 2 ? 3 : 7,
+            background: i % 3 === 0 ? 'var(--gold)' : 'var(--compliance-blue)',
+            opacity: show ? 0.62 : 0,
+            transform: show ? 'translateY(18px) rotate(18deg)' : 'translateY(-16px)',
+            transition: `opacity .4s ease ${i * 0.03}s, transform 1.4s ease ${i * 0.03}s`,
+          }}
+        />
+      ))}
       <div
         className="t-display"
         style={{
           fontSize: 'var(--display-2xs)',
           color: 'var(--gold)',
-          letterSpacing: 4,
+          letterSpacing: 2,
+          lineHeight: 1.6,
+          maxWidth: 330,
+          textAlign: 'center',
           opacity: show ? 1 : 0,
           transition: 'opacity 0.5s ease',
           textShadow: '1px 1px 0 #E65100',
         }}
       >
-        &#x2726; PROMOTED &#x2726;
+        ✦ PROMOTED ✦ ACCESS CARD UPGRADED
       </div>
 
       <div
         className="sprite-idle"
         style={{
-          width: 72,
-          height: 84,
+          width: 60,
+          height: 70,
           opacity: show ? 1 : 0,
           transition: 'opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s',
           transform: show ? 'scale(1)' : 'scale(0.8)',
@@ -175,7 +213,7 @@ export default function PromotionScreen({
           transition: 'opacity 0.5s ease 0.5s',
         }}
       >
-        CHOOSE A PERK
+        CHOOSE A PERK • NEW RESPONSIBILITY ASSIGNED
       </div>
 
       <div
@@ -198,7 +236,7 @@ export default function PromotionScreen({
               alignItems: 'center',
               gap: 12,
               padding: '10px 12px',
-              background: 'var(--ink)',
+              background: 'rgba(13, 19, 32, 0.92)',
               border: `var(--border-w) solid ${KIND_COLORS[perk.kind]}`,
               borderRadius: 'var(--radius-lg)',
               cursor: 'pointer',
@@ -216,7 +254,7 @@ export default function PromotionScreen({
               </span>
               <span
                 className="t-body"
-                style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
+                style={{ fontSize: 'var(--body-sm)', color: 'var(--text-main)', lineHeight: 1.2 }}
               >
                 {perk.desc}
               </span>
