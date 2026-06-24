@@ -140,8 +140,21 @@ export class Sequencer {
         else if (e.crit) SFX.critHit()
         else SFX.hit()
         const label =
-          e.eff === 'super' ? 'Super effective!' : e.eff === 'weak' ? 'Not effective...' : undefined
-        const labelColor = e.eff === 'super' ? '#4CAF50' : e.eff === 'weak' ? '#FF9800' : undefined
+          e.eff === 'super'
+            ? 'Super effective!'
+            : e.eff === 'weak'
+              ? 'Not effective...'
+              : e.target === 'enemy'
+                ? 'NICE HIT'
+                : undefined
+        const labelColor =
+          e.eff === 'super'
+            ? '#4CAF50'
+            : e.eff === 'weak'
+              ? '#FF9800'
+              : e.target === 'enemy'
+                ? '#FFD54F'
+                : undefined
         this.addPopup(makePopup(e.amount, e.target, { crit: e.crit, label, labelColor }))
         this.update((v) => ({ ...v, ...patch, [this.animKey(e.target)]: 'hit', shake: true }))
         break

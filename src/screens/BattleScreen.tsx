@@ -299,6 +299,7 @@ export default function BattleScreen({
 
         {turn === 'player' && (
           <>
+            <div className={styles.commandHint}>TAP A MOVE • HOLD THE LADDER</div>
             {/* Mode tabs */}
             <div className={styles.tabs}>
               <button

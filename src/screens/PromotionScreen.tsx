@@ -213,10 +213,11 @@ export default function PromotionScreen({
           transition: 'opacity 0.5s ease 0.5s',
         }}
       >
-        CHOOSE A PERK • NEW RESPONSIBILITY ASSIGNED
+        CHOOSE A PERK • PICK YOUR ADVANTAGE
       </div>
 
       <div
+        aria-label="Promotion reward choices"
         style={{
           display: 'flex',
           flexDirection: 'column',
@@ -235,7 +236,8 @@ export default function PromotionScreen({
               display: 'flex',
               alignItems: 'center',
               gap: 12,
-              padding: '10px 12px',
+              minHeight: 82,
+              padding: '12px 12px',
               background: 'rgba(13, 19, 32, 0.92)',
               border: `var(--border-w) solid ${KIND_COLORS[perk.kind]}`,
               borderRadius: 'var(--radius-lg)',
@@ -246,6 +248,12 @@ export default function PromotionScreen({
           >
             <span style={{ fontSize: 26 }}>{perk.icon}</span>
             <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
+              <span
+                className="t-display"
+                style={{ fontSize: '10px', color: KIND_COLORS[perk.kind], letterSpacing: 1.2 }}
+              >
+                OPTION {i + 1} • {KIND_LABELS[perk.kind]}
+              </span>
               <span
                 className="t-display"
                 style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', lineHeight: 1.4 }}
@@ -267,7 +275,7 @@ export default function PromotionScreen({
                 whiteSpace: 'nowrap',
               }}
             >
-              [{i + 1}] {KIND_LABELS[perk.kind]}
+              [{i + 1}] TAP
             </span>
           </button>
         ))}

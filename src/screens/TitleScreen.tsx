@@ -123,15 +123,29 @@ export default function TitleScreen({
           CLIMB
         </h1>
         <div
-          className="t-body"
+          className="t-display"
           style={{
-            fontSize: 'var(--body-md)',
+            fontSize: 'var(--display-2xs)',
             color: 'var(--sky-soft)',
             marginTop: 14,
-            letterSpacing: 3,
+            letterSpacing: 2,
+            lineHeight: 1.45,
           }}
         >
-          BOARD-LEVEL ROGUELITE • ELEVATOR ACCESS PENDING
+          THREE ACTS. THIRTY FLOORS. ONE BADGE SWIPE FROM GLORY.
+        </div>
+        <div
+          className="t-body"
+          style={{
+            maxWidth: 340,
+            margin: '9px auto 0',
+            fontSize: 'var(--body-md)',
+            color: 'var(--text-main)',
+            lineHeight: 1.25,
+          }}
+        >
+          Pick a role, exploit type matchups, and expense your way past managers before burnout
+          catches you.
         </div>
       </div>
 
@@ -322,18 +336,21 @@ export default function TitleScreen({
       <div
         className="t-body"
         style={{
-          fontSize: 'var(--body-sm)',
+          maxWidth: 332,
+          fontSize: 'var(--body-xs)',
           color: '#64B5F6',
           position: 'absolute',
-          bottom: 28,
+          bottom: 64,
           zIndex: 2,
-          padding: '3px 8px',
+          padding: '4px 10px',
           borderRadius: 999,
-          background: 'rgba(5,7,13,.58)',
+          background: 'rgba(5,7,13,.72)',
+          textAlign: 'center',
+          lineHeight: 1.15,
           textShadow: '0 1px 0 rgba(5,7,13,.72)',
         }}
       >
-        Q4 ladder simulation • HR approved-ish
+        Tip: gold arrows mean high-leverage moves. HR says this is “development.”
       </div>
     </div>
   )

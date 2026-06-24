@@ -20,6 +20,7 @@ export default function MoveButton({
   return (
     <button
       className={`${styles.move} ${styles[`type-${move.type}`]}`}
+      data-testid="move-button"
       onClick={onClick}
       disabled={disabled}
     >
