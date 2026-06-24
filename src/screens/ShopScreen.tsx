@@ -44,28 +44,30 @@ export default function ShopScreen({
       style={{
         display: 'flex',
         alignItems: 'center',
-        gap: 10,
-        padding: '8px 10px',
+        gap: 12,
+        padding: '12px 12px',
         background: opts.disabled
           ? 'rgba(13,19,32,.62)'
           : 'linear-gradient(180deg, rgba(17,24,39,.96), rgba(5,7,13,.94))',
         border: `var(--border-w) solid ${opts.disabled ? 'rgba(255,255,255,.08)' : 'rgba(255,211,77,.24)'}`,
-        borderRadius: 'var(--radius-md)',
+        borderRadius: 'var(--radius-lg)',
         opacity: opts.disabled ? 0.6 : 1,
-        boxShadow: opts.disabled ? 'none' : 'var(--shadow-sm)',
+        boxShadow: opts.disabled ? 'none' : 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
       }}
     >
-      <span style={{ fontSize: 24 }}>{opts.emoji}</span>
+      <span style={{ fontSize: 28, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.34))' }}>
+        {opts.emoji}
+      </span>
       <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
         <span
           className="t-display"
-          style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', lineHeight: 1.4 }}
+          style={{ fontSize: 'var(--display-xs)', color: 'var(--paper)', lineHeight: 1.2 }}
         >
           {opts.name}
         </span>
         <span
           className="t-body"
-          style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
+          style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)', lineHeight: 1.25 }}
         >
           {opts.disabledReason ?? opts.desc}
         </span>
@@ -91,8 +93,8 @@ export default function ShopScreen({
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        gap: 12,
-        padding: 20,
+        gap: 14,
+        padding: '26px 22px 24px',
         background:
           'radial-gradient(circle at 50% 0%, rgba(255,211,77,.14), transparent 32%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.74))',
         position: 'relative',
@@ -102,7 +104,7 @@ export default function ShopScreen({
       <div
         className="t-display"
         style={{
-          fontSize: 'var(--display-xs)',
+          fontSize: 'var(--display-sm)',
           color: 'var(--gold-bright)',
           textShadow: '2px 2px 0 #E65100',
           letterSpacing: 2,
@@ -117,7 +119,7 @@ export default function ShopScreen({
         Payroll-approved supplies. Exit through the gift shop.
       </div>
 
-      <Panel variant="glass" style={{ padding: '6px 14px' }}>
+      <Panel variant="glass" style={{ padding: '8px 16px', borderColor: 'rgba(255,211,77,.24)' }}>
         <span
           className="t-display"
           style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold)' }}
@@ -127,7 +129,7 @@ export default function ShopScreen({
       </Panel>
 
       <div
-        style={{ display: 'flex', flexDirection: 'column', gap: 8, width: '100%', maxWidth: 350 }}
+        style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 366 }}
       >
         {stock.map((id: ItemId, i: number) => {
           const item = ITEMS[id]
@@ -164,7 +166,7 @@ export default function ShopScreen({
         })}
       </div>
 
-      <div className="t-body" style={{ fontSize: 'var(--body-sm)', color: 'var(--muted)' }}>
+      <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)' }}>
         HP {Math.max(0, run.hp)}/{maxHp} &bull; Items {run.inventory.length}/4
       </div>
 
