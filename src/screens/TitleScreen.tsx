@@ -154,13 +154,13 @@ export default function TitleScreen({
               style={{
                 position: 'absolute',
                 left: '50%',
-                bottom: 10,
-                width: 42,
-                height: 12,
+                bottom: 8,
+                width: 54,
+                height: 14,
                 transform: 'translateX(-50%)',
                 borderRadius: '999px',
-                background: 'radial-gradient(circle, rgba(0,0,0,.44), rgba(0,0,0,0) 72%)',
-                filter: 'blur(2px)',
+                background: 'radial-gradient(ellipse, rgba(0,0,0,.56), rgba(0,0,0,0) 72%)',
+                filter: 'blur(2.5px)',
               }}
             />
             <div
@@ -169,8 +169,8 @@ export default function TitleScreen({
                 position: 'absolute',
                 left: 10,
                 right: 10,
-                bottom: 12,
-                height: 2,
+                bottom: 10,
+                height: 3,
                 borderRadius: 999,
                 background:
                   'linear-gradient(90deg, rgba(255,211,77,0), rgba(255,211,77,.65) 18%, rgba(142,193,255,.55) 82%, rgba(255,211,77,0))',
@@ -185,9 +185,10 @@ export default function TitleScreen({
                   width: '100%',
                   height: '100%',
                   imageRendering: 'auto',
-                  padding: '8% 2% 8% 2%',
+                  padding: '5% 1% 10% 1%',
                   objectFit: 'contain',
-                  filter: 'drop-shadow(0 8px 10px rgba(0,0,0,.34))',
+                  filter:
+                    'drop-shadow(0 10px 12px rgba(0,0,0,.42)) drop-shadow(0 0 10px rgba(255,211,77,.08))',
                 }}
                 draggable={false}
               />

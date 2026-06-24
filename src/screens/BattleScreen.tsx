@@ -216,10 +216,10 @@ export default function BattleScreen({
           <div className={styles.intentLine}>INTENT: BLOCK PROMOTION</div>
         </div>
 
-        <div style={{ position: 'absolute', top: '8%', right: 18, zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '4%', right: 8, zIndex: 2 }}>
           <StagedSprite
             spriteId={enemy.spriteId}
-            size={120}
+            size={164}
             animState={enemyAnim}
             flip
             ring={TYPE_COLORS[enemy.types[0]]}
@@ -227,10 +227,10 @@ export default function BattleScreen({
           />
         </div>
 
-        <div style={{ position: 'absolute', bottom: '4%', left: 14, zIndex: 2 }}>
+        <div style={{ position: 'absolute', bottom: '2%', left: 12, zIndex: 2 }}>
           <StagedSprite
             spriteId={player.spriteId}
-            size={144}
+            size={154}
             animState={playerAnim}
             ring={TYPE_COLORS[player.types[0]]}
             active={turn === 'player'}
