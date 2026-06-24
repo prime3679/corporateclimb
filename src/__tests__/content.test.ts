@@ -257,6 +257,50 @@ describe('status symbols (relics)', () => {
   })
 })
 
+// ─── COPY QUALITY (satire & delight) ────────────────────────
+// The tables above keep the data honest; these keep the *voice*
+// honest. A boss that concedes with the same "Fine." as four others,
+// or an item that reads like a tooltip, drains the satire. These are
+// the backstop for recycled jokes and robotic flavor.
+describe('copy quality: satire & delight', () => {
+  const stripLead = (s: string) => s.replace(/^[^a-zA-Z]+/, '')
+
+  it('enemies do not recycle the same "Fine." capitulation button', () => {
+    const offenders = [...ENEMIES, ...ALL_POOL_ENEMIES]
+      .filter((e) => /^(fine|okay fine)\b/i.test(stripLead(e.defeat)))
+      .map((e) => e.name)
+    // One stock concession is a running gag; five is a rerun.
+    expect(offenders, `recycled "Fine" defeats: ${offenders.join(', ')}`).toHaveLength(0)
+  })
+
+  it('every item description carries voice, not a robotic stat dump', () => {
+    for (const id of ALL_ITEM_IDS) {
+      // "Enemy is X (Y down)" reads like a debug string, not a barb.
+      expect(ITEMS[id].desc, `item ${id}: robotic phrasing`).not.toMatch(/enemy is /i)
+    }
+  })
+
+  it('no two items share an identical flavor or effect sentence', () => {
+    const seen = new Map<string, string>()
+    for (const id of ALL_ITEM_IDS) {
+      const sentences = ITEMS[id].desc
+        .split(/[.!?]+/)
+        .map((s) =>
+          s
+            .replace(/[^a-z0-9% ]/gi, '')
+            .trim()
+            .toLowerCase(),
+        )
+        .filter((s) => s.length > 3)
+      for (const s of sentences) {
+        const prev = seen.get(s)
+        expect(prev, `items ${prev} and ${id} both say "${s}"`).toBeUndefined()
+        seen.set(s, id)
+      }
+    }
+  })
+})
+
 describe('shop placement', () => {
   it('shop floors land mid-act on promotion floors (normal mode)', () => {
     const tiers = PROMOTION_TRACKS.pm.map((t) => t.floor)
