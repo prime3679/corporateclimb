@@ -5,6 +5,7 @@ dist/
 .worktrees/
 test-results/
 playwright-report/
+artifacts/
 shots-before/
 shots-after/
 shots-tour/
