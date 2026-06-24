@@ -1,65 +1,56 @@
-// ─── RETRO SOUND EFFECTS via Web Audio API ──────────────────
-// All sounds are generated programmatically — no audio files needed.
+// ─── CORPORATE CLIMB SOUND EFFECTS via audio assets ───────────
+// Short office-world SFX live in /public/audio. Volume is independent
+// from music and falls back silently in test/non-browser contexts.
 
-let ctx: AudioContext | null = null
 let _volume = 1
 
-function getCtx(): AudioContext {
-  if (!ctx) ctx = new AudioContext()
-  if (ctx.state === 'suspended') ctx.resume()
-  return ctx
+const SAMPLES = {
+  uiHover: '/audio/sfx_ui_hover.mp3',
+  uiSelect: '/audio/sfx_ui_select.mp3',
+  email: '/audio/sfx_email_ding.mp3',
+  calendarDoom: '/audio/sfx_calendar_doom.mp3',
+  keyboard: '/audio/sfx_keyboard_clack.mp3',
+  badge: '/audio/sfx_badge_swipe.mp3',
+  elevatorUp: '/audio/sfx_elevator_chime_up.mp3',
+  elevatorDown: '/audio/sfx_elevator_chime_down.mp3',
+  printerJam: '/audio/sfx_printer_jam.mp3',
+  coffee: '/audio/sfx_coffee_pickup.mp3',
+  stockOption: '/audio/sfx_stock_option_shimmer.mp3',
+  comboTick: '/audio/sfx_kpi_combo_tick.mp3',
+  error: '/audio/sfx_error_buzz.mp3',
+  stamp: '/audio/sfx_rubber_stamp.mp3',
+  paper: '/audio/sfx_paper_shuffle.mp3',
+  bossPulse: '/audio/sfx_boss_proximity_pulse.mp3',
+  cash: '/audio/sfx_cash_bonus.mp3',
+  glassDoor: '/audio/sfx_glass_door_open.mp3',
+  reviewHit: '/audio/sfx_performance_review_hit.mp3',
+  ladderStep: '/audio/sfx_ladder_step.mp3',
+  promotion: '/audio/sting_promotion.mp3',
+  fired: '/audio/sting_fired.mp3',
+  record: '/audio/sting_new_record.mp3',
+  multiplier: '/audio/sting_bonus_multiplier.mp3',
+  executiveWarning: '/audio/sting_executive_warning.mp3',
+} as const
+
+type SampleName = keyof typeof SAMPLES
+
+function canPlayAudio() {
+  return typeof window !== 'undefined' && typeof Audio !== 'undefined'
 }
 
-function playTone(
-  freq: number,
-  duration: number,
-  type: OscillatorType = 'square',
-  volume = 0.15,
-  ramp = true,
-) {
-  if (_volume <= 0) return
-  volume *= _volume
-  const c = getCtx()
-  const osc = c.createOscillator()
-  const gain = c.createGain()
-  osc.type = type
-  osc.frequency.setValueAtTime(freq, c.currentTime)
-  gain.gain.setValueAtTime(volume, c.currentTime)
-  if (ramp) gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration)
-  osc.connect(gain)
-  gain.connect(c.destination)
-  osc.start(c.currentTime)
-  osc.stop(c.currentTime + duration)
+function playSample(name: SampleName, volume = 1, rateJitter = 0) {
+  if (_volume <= 0 || !canPlayAudio()) return
+  const audio = new Audio(SAMPLES[name])
+  audio.preload = 'auto'
+  audio.volume = Math.min(1, Math.max(0, _volume * volume))
+  if (rateJitter > 0) audio.playbackRate = 1 + (Math.random() * 2 - 1) * rateJitter
+  audio.play().catch(() => {})
 }
 
-const noiseBufferCache = new Map<number, AudioBuffer>()
-
-function playNoise(duration: number, volume = 0.08) {
-  if (_volume <= 0) return
-  volume *= _volume
-  const c = getCtx()
-  const bufferSize = c.sampleRate * duration
-  let buffer = noiseBufferCache.get(bufferSize)
-  if (!buffer) {
-    buffer = c.createBuffer(1, bufferSize, c.sampleRate)
-    const data = buffer.getChannelData(0)
-    for (let i = 0; i < bufferSize; i++) {
-      data[i] = Math.random() * 2 - 1
-    }
-    noiseBufferCache.set(bufferSize, buffer)
-  }
-  const src = c.createBufferSource()
-  src.buffer = buffer
-  const gain = c.createGain()
-  gain.gain.setValueAtTime(volume, c.currentTime)
-  gain.gain.exponentialRampToValueAtTime(0.001, c.currentTime + duration)
-  const filter = c.createBiquadFilter()
-  filter.type = 'highpass'
-  filter.frequency.setValueAtTime(2000, c.currentTime)
-  src.connect(filter)
-  filter.connect(gain)
-  gain.connect(c.destination)
-  src.start()
+function playSequence(samples: Array<[SampleName, number, number?]>) {
+  samples.forEach(([name, delay, volume]) => {
+    window.setTimeout(() => playSample(name, volume ?? 1), delay)
+  })
 }
 
 export const SFX = {
@@ -74,154 +65,132 @@ export const SFX = {
 
   // Menu / UI
   menuSelect() {
-    playTone(880, 0.08, 'square', 0.1)
-    setTimeout(() => playTone(1320, 0.1, 'square', 0.1), 60)
+    playSample('uiHover', 0.75)
   },
 
   menuConfirm() {
-    playTone(660, 0.06, 'square', 0.12)
-    setTimeout(() => playTone(880, 0.06, 'square', 0.12), 50)
-    setTimeout(() => playTone(1320, 0.12, 'square', 0.12), 100)
+    playSample('uiSelect', 0.9)
   },
 
   menuBack() {
-    playTone(440, 0.08, 'square', 0.08)
-    setTimeout(() => playTone(330, 0.12, 'square', 0.08), 60)
+    playSample('elevatorDown', 0.65)
   },
 
   textTick() {
-    playTone(800 + Math.random() * 200, 0.03, 'square', 0.04, false)
+    playSample('keyboard', 0.35, 0.05)
   },
 
   // Battle
   attackSwing() {
-    playNoise(0.12, 0.12)
-    playTone(200, 0.15, 'sawtooth', 0.08)
-    setTimeout(() => playTone(400, 0.08, 'sawtooth', 0.06), 80)
+    playSample('ladderStep', 0.85, 0.04)
   },
 
   hit() {
-    playNoise(0.08, 0.15)
-    playTone(150, 0.15, 'square', 0.12)
-    setTimeout(() => playTone(100, 0.2, 'square', 0.08), 50)
+    playSample('reviewHit', 0.95)
   },
 
   critHit() {
-    playNoise(0.1, 0.2)
-    playTone(200, 0.1, 'square', 0.15)
-    setTimeout(() => playTone(400, 0.1, 'square', 0.12), 40)
-    setTimeout(() => playTone(600, 0.15, 'square', 0.1), 80)
+    playSample('reviewHit', 1)
+    window.setTimeout(() => playSample('comboTick', 0.9), 80)
   },
 
   heal() {
-    playTone(523, 0.12, 'sine', 0.1)
-    setTimeout(() => playTone(659, 0.12, 'sine', 0.1), 100)
-    setTimeout(() => playTone(784, 0.15, 'sine', 0.1), 200)
+    playSample('coffee', 0.9)
   },
 
   enemyAppear() {
-    playTone(180, 0.3, 'square', 0.08)
-    setTimeout(() => playTone(220, 0.3, 'square', 0.08), 200)
-    setTimeout(() => playTone(260, 0.4, 'square', 0.1), 400)
+    playSample('badge', 0.75)
   },
 
   faint() {
-    playTone(400, 0.15, 'square', 0.1)
-    setTimeout(() => playTone(300, 0.15, 'square', 0.1), 120)
-    setTimeout(() => playTone(200, 0.2, 'square', 0.1), 240)
-    setTimeout(() => playTone(100, 0.4, 'square', 0.08), 360)
+    playSample('stamp', 1)
+    window.setTimeout(() => playSample('fired', 0.75), 180)
   },
 
   // Progression
   victory() {
-    const notes = [523, 659, 784, 1047]
-    notes.forEach((n, i) => {
-      setTimeout(() => playTone(n, 0.18, 'square', 0.12), i * 120)
-    })
-    setTimeout(() => {
-      playTone(1047, 0.4, 'square', 0.1)
-      playTone(784, 0.4, 'square', 0.07)
-    }, 500)
+    playSample('promotion', 0.9)
   },
 
   levelUp() {
-    const notes = [440, 554, 659, 880, 1109, 1319]
-    notes.forEach((n, i) => {
-      setTimeout(() => playTone(n, 0.12, 'square', 0.1), i * 70)
-    })
+    playSample('promotion', 1)
   },
 
   gameOver() {
-    const notes = [392, 330, 262, 196]
-    notes.forEach((n, i) => {
-      setTimeout(() => playTone(n, 0.3, 'square', 0.1), i * 250)
-    })
+    playSample('fired', 1)
   },
 
   bossIntro() {
-    playTone(100, 0.5, 'sawtooth', 0.08)
-    setTimeout(() => playTone(80, 0.5, 'sawtooth', 0.08), 300)
-    setTimeout(() => playTone(60, 0.8, 'sawtooth', 0.1), 600)
-    setTimeout(() => playNoise(0.3, 0.06), 900)
+    playSample('executiveWarning', 0.9)
+    window.setTimeout(() => playSample('bossPulse', 0.9), 500)
   },
 
   // Events
   eventGood() {
-    playTone(523, 0.1, 'sine', 0.1)
-    setTimeout(() => playTone(659, 0.1, 'sine', 0.1), 80)
-    setTimeout(() => playTone(784, 0.2, 'sine', 0.12), 160)
+    playSample('stockOption', 0.9)
   },
 
   eventBad() {
-    playTone(330, 0.15, 'square', 0.08)
-    setTimeout(() => playTone(262, 0.25, 'square', 0.08), 150)
+    playSample('calendarDoom', 0.9)
   },
 
   eventNeutral() {
-    playTone(440, 0.12, 'triangle', 0.08)
-    setTimeout(() => playTone(523, 0.15, 'triangle', 0.08), 100)
+    playSample('paper', 0.75)
   },
 
   coin() {
-    playTone(988, 0.06, 'square', 0.1)
-    setTimeout(() => playTone(1319, 0.15, 'square', 0.1), 60)
+    playSample('cash', 0.9)
   },
 
   miss() {
-    playTone(300, 0.08, 'triangle', 0.06)
-    setTimeout(() => playTone(200, 0.15, 'triangle', 0.04), 80)
+    playSample('error', 0.55)
   },
 
   // Type effectiveness
   superEffective() {
-    playTone(600, 0.08, 'square', 0.12)
-    setTimeout(() => playTone(800, 0.08, 'square', 0.12), 60)
-    setTimeout(() => playTone(1100, 0.12, 'square', 0.14), 120)
-    setTimeout(() => playTone(1400, 0.18, 'square', 0.1), 200)
+    playSequence([
+      ['comboTick', 0, 0.8],
+      ['comboTick', 80, 0.85],
+      ['multiplier', 160, 0.9],
+    ])
   },
 
   notEffective() {
-    playTone(400, 0.15, 'square', 0.08)
-    setTimeout(() => playTone(300, 0.2, 'square', 0.06), 100)
+    playSample('error', 0.65)
   },
 
   achievementUnlock() {
-    const notes = [523, 659, 784, 1047, 1319]
-    notes.forEach((n, i) => {
-      setTimeout(() => playTone(n, 0.15, 'sine', 0.1), i * 80)
-    })
-    setTimeout(() => {
-      playTone(1319, 0.4, 'sine', 0.08)
-      playTone(1047, 0.4, 'sine', 0.05)
-    }, 450)
+    playSample('record', 0.95)
   },
 
   // Win fanfare
   fanfare() {
-    const melody = [523, 523, 523, 698, 880, 784, 698, 880, 1047]
-    melody.forEach((n, i) => {
-      const dur = i === melody.length - 1 ? 0.5 : 0.12
-      setTimeout(() => playTone(n, dur, 'square', 0.1), i * 130)
-    })
+    playSample('record', 1)
+    window.setTimeout(() => playSample('promotion', 0.9), 650)
+  },
+
+  // Asset-specific hooks for newer UI/gameplay screens.
+  email() {
+    playSample('email', 0.9)
+  },
+
+  coffee() {
+    playSample('coffee', 0.9)
+  },
+
+  elevatorUp() {
+    playSample('elevatorUp', 0.85)
+  },
+
+  elevatorDown() {
+    playSample('elevatorDown', 0.85)
+  },
+
+  printerJam() {
+    playSample('printerJam', 0.8)
+  },
+
+  glassDoor() {
+    playSample('glassDoor', 0.75)
   },
 }
