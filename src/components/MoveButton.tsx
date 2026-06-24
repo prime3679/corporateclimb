@@ -29,7 +29,7 @@ export default function MoveButton({
       </div>
       <div className={styles.meta}>
         <span>
-          PWR {move.dmg}
+          <span className={styles.power}>{move.dmg}</span> PWR
           {move.status ? ` ${STATUS_DEFS[move.status.id].icon}` : ''}
           {move.acc != null && move.acc < 100 ? ` ${move.acc}%` : ''}
         </span>

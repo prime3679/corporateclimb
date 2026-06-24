@@ -8,10 +8,10 @@ import type {
   Move,
   ItemId,
 } from '@/types'
-import { ITEMS, TOTAL_FLOORS, getAct, getTypeMultiplier } from '@/data'
+import { ITEMS, TOTAL_FLOORS, TYPE_COLORS, getAct, getTypeMultiplier } from '@/data'
 import { getScene } from '@/ui/scenes'
 import SceneBackdrop from '@/components/SceneBackdrop'
-import PixelSprite from '@/components/PixelSprite'
+import StagedSprite from '@/components/StagedSprite'
 import HpBar from '@/components/HpBar'
 import StatusBadges from '@/components/StatusBadges'
 import XpBar from '@/components/XpBar'
@@ -86,7 +86,6 @@ export default function BattleScreen({
   textMsPerChar?: number
 }) {
   const act = getAct(floor)
-  const isDark = act >= 2
   const sc = getScene(act, Math.min(floor % 10, 4))
   const [showLog, setShowLog] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
@@ -201,7 +200,13 @@ export default function BattleScreen({
       <div className={styles.battlefield}>
         <div className={styles.enemyDossier}>
           <div className={styles.dossierKicker}>ENEMY DOSSIER</div>
-          <HpBar current={enemyHp} max={enemy.maxHp} label={enemy.name.toUpperCase()} isEnemy />
+          <HpBar
+            current={enemyHp}
+            max={enemy.maxHp}
+            label={enemy.name.toUpperCase()}
+            isEnemy
+            accent={TYPE_COLORS[enemy.types[0]]}
+          />
           <div className={styles.typeRow}>
             {enemy.types.map((t) => (
               <TypeBadge key={t} type={t} />
@@ -210,45 +215,36 @@ export default function BattleScreen({
           <StatusBadges statuses={enemyStatuses} />
           <div className={styles.intentLine}>INTENT: BLOCK PROMOTION</div>
         </div>
-        <div
-          style={{
-            position: 'absolute',
-            top: '46%',
-            right: 10,
-            width: 140,
-            height: 28,
-            background: `radial-gradient(ellipse, ${isDark ? '#38182866' : '#00000022'} 0%, transparent 70%)`,
-            borderRadius: '50%',
-            zIndex: 1,
-          }}
-        />
-        <div style={{ position: 'absolute', top: '6%', right: 16, zIndex: 2, overflow: 'visible' }}>
-          <PixelSprite spriteId={enemy.spriteId} size={120} animState={enemyAnim} flip />
+
+        <div style={{ position: 'absolute', top: '8%', right: 18, zIndex: 2 }}>
+          <StagedSprite
+            spriteId={enemy.spriteId}
+            size={120}
+            animState={enemyAnim}
+            flip
+            ring={TYPE_COLORS[enemy.types[0]]}
+            active={turn === 'enemy'}
+          />
         </div>
 
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '2%',
-            left: 0,
-            width: 170,
-            height: 28,
-            background: `radial-gradient(ellipse, ${isDark ? '#38182866' : '#00000022'} 0%, transparent 70%)`,
-            borderRadius: '50%',
-            zIndex: 1,
-          }}
-        />
-        <div
-          style={{ position: 'absolute', bottom: '4%', left: 10, zIndex: 2, overflow: 'visible' }}
-        >
-          <PixelSprite spriteId={player.spriteId} size={144} animState={playerAnim} />
+        <div style={{ position: 'absolute', bottom: '4%', left: 14, zIndex: 2 }}>
+          <StagedSprite
+            spriteId={player.spriteId}
+            size={144}
+            animState={playerAnim}
+            ring={TYPE_COLORS[player.types[0]]}
+            active={turn === 'player'}
+          />
         </div>
+
         <div className={styles.playerResourcePanel}>
           <div className={styles.dossierKicker}>PLAYER RESOURCES</div>
           <HpBar
             current={playerHp}
             max={playerMaxHp}
             label={(promotionTitle || player.name).toUpperCase()}
+            accent={TYPE_COLORS[player.types[0]]}
+            level={level}
           />
           <StatusBadges statuses={playerStatuses} />
           <div style={{ marginTop: 2 }}>
@@ -256,9 +252,13 @@ export default function BattleScreen({
           </div>
         </div>
 
-        <div className={styles.floorCounter} style={{ color: isDark ? '#FFD54F88' : '#00000044' }}>
-          F{floor}/{TOTAL_FLOORS}
-          {stockOptions !== undefined && ` · ${stockOptions}📈`}
+        <div className={styles.floorCounter}>
+          <span className={styles.floorNum}>
+            FLOOR <b>{floor}</b>/{TOTAL_FLOORS}
+          </span>
+          {stockOptions !== undefined && (
+            <span className={styles.floorStock}>{stockOptions} OPTIONS</span>
+          )}
         </div>
 
         {damagePopups.map((p) => (

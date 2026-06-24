@@ -1,6 +1,12 @@
 import { createRoot } from 'react-dom/client'
-import '@fontsource/press-start-2p'
-import '@fontsource/vt323'
+// Display = Anton (impact: headings, floor numbers, damage numerals).
+// Body = Space Grotesk (everything readable). Self-hosted so the PWA
+// stays offline-capable — no runtime Google Fonts fetch.
+import '@fontsource/anton/400.css'
+import '@fontsource/space-grotesk/400.css'
+import '@fontsource/space-grotesk/500.css'
+import '@fontsource/space-grotesk/600.css'
+import '@fontsource/space-grotesk/700.css'
 import './ui/global.css'
 import App from './App'
 
