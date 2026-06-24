@@ -1,0 +1,1442 @@
+import type { Enemy, EnemyPhase2, MoveType } from '../types'
+
+// ─── ENEMIES ─────────────────────────────────────────────────
+export const ENEMIES: Enemy[] = [
+  {
+    floor: 1,
+    name: 'Intern',
+    emoji: '🥤',
+    spriteId: 'intern',
+    maxHp: 70,
+    atk: 8,
+    def: 5,
+    types: ['normal'] as MoveType[],
+    moves: [
+      { name: 'Eager Question', dmg: 10, type: 'normal' as MoveType },
+      { name: 'Coffee Run', dmg: 6, type: 'normal' as MoveType, heal: 12 },
+    ],
+    defeat: 'The intern learned a valuable lesson today.',
+    title: 'THE EAGER INTERN',
+    taunt: "Oh great, another new hire who thinks they're special.",
+  },
+  {
+    floor: 2,
+    name: 'Recruiter',
+    emoji: '📞',
+    spriteId: 'recruiter',
+    maxHp: 85,
+    atk: 11,
+    def: 6,
+    types: ['influence'] as MoveType[],
+    moves: [
+      { name: 'LinkedIn Spam', dmg: 12, type: 'influence' as MoveType },
+      { name: 'Lowball Offer', dmg: 16, type: 'strategy' as MoveType },
+    ],
+    defeat: '\u201CLet\u2019s circle back when you have more budget.\u201D',
+    title: 'THE PERSISTENT RECRUITER',
+    taunt: "I found your profile. Let's chat about an exciting opportunity.",
+  },
+  {
+    floor: 3,
+    name: 'The Overachiever',
+    emoji: '🏆',
+    spriteId: 'overachiever',
+    maxHp: 95,
+    atk: 13,
+    def: 7,
+    types: ['execution'] as MoveType[],
+    moves: [
+      {
+        name: 'Humble Brag',
+        dmg: 16,
+        type: 'influence' as MoveType,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+      },
+      { name: 'Extra Credit', dmg: 20, type: 'execution' as MoveType },
+      {
+        name: 'Volunteer as Tribute',
+        dmg: 12,
+        type: 'strategy' as MoveType,
+        heal: 14,
+        status: { id: 'motivated', target: 'self' },
+      },
+    ],
+    defeat: '"I guess even 110% wasn\'t enough today."',
+    title: 'THE OVERACHIEVER',
+    taunt: 'I already finished my OKRs for next quarter. Have you?',
+  },
+  {
+    floor: 4,
+    name: 'Scrum Master',
+    emoji: '📝',
+    spriteId: 'scrum',
+    maxHp: 105,
+    atk: 13,
+    def: 9,
+    types: ['strategy', 'execution'] as MoveType[],
+    moves: [
+      {
+        name: 'Standup Ambush',
+        dmg: 14,
+        type: 'strategy' as MoveType,
+        status: { id: 'micromanaged', target: 'enemy' },
+      },
+      {
+        name: 'Sprint Overload',
+        dmg: 18,
+        type: 'execution' as MoveType,
+        status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+      },
+      { name: 'Retro Guilt Trip', dmg: 12, type: 'influence' as MoveType, heal: 10 },
+    ],
+    defeat: 'The daily standup has been cancelled. Forever.',
+    title: 'THE RELENTLESS SCRUM MASTER',
+    taunt: "This isn't on the sprint board. I'm going to need a ticket.",
+  },
+  {
+    floor: 5,
+    name: 'Middle Manager',
+    emoji: '👔',
+    spriteId: 'manager',
+    maxHp: 125,
+    atk: 14,
+    def: 11,
+    types: ['influence', 'strategy'] as MoveType[],
+    moves: [
+      {
+        name: 'Unnecessary Meeting',
+        dmg: 16,
+        type: 'strategy' as MoveType,
+        status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+      },
+      {
+        name: 'Passive-Aggressive Email',
+        dmg: 20,
+        type: 'influence' as MoveType,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+      },
+      {
+        name: 'Take Credit',
+        dmg: 10,
+        type: 'influence' as MoveType,
+        heal: 18,
+        status: { id: 'motivated', target: 'self' },
+      },
+    ],
+    defeat: '\u201CPer my last email\u2026 I resign.\u201D',
+    title: 'THE MIDDLE MANAGER',
+    taunt: "I don't see this meeting on the calendar.",
+  },
+  {
+    floor: 6,
+    name: 'VP of Synergy',
+    emoji: '🎯',
+    spriteId: 'vp',
+    maxHp: 155,
+    atk: 17,
+    def: 13,
+    types: ['influence', 'analytics'] as MoveType[],
+    moves: [
+      {
+        name: 'Buzzword Barrage',
+        dmg: 18,
+        type: 'influence' as MoveType,
+        status: { id: 'micromanaged', target: 'enemy', chance: 0.6 },
+      },
+      {
+        name: 'Pivot Strategy',
+        dmg: 24,
+        type: 'strategy' as MoveType,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+      },
+      {
+        name: 'Executive Presence',
+        dmg: 14,
+        type: 'influence' as MoveType,
+        heal: 14,
+        status: { id: 'motivated', target: 'self' },
+      },
+    ],
+    defeat: 'Synergy has been disrupted. The paradigm shifts.',
+    title: 'THE VP OF SYNERGY',
+    taunt: "Let's take this offline. Actually, let's not.",
+  },
+  {
+    floor: 7,
+    name: 'C-Suite Boss',
+    emoji: '👑',
+    spriteId: 'boss',
+    maxHp: 185,
+    atk: 19,
+    def: 13,
+    types: ['strategy', 'influence'] as MoveType[],
+    moves: [
+      {
+        name: 'Golden Parachute',
+        dmg: 12,
+        type: 'strategy' as MoveType,
+        heal: 18,
+        status: { id: 'motivated', target: 'self' },
+      },
+      {
+        name: 'Hostile Takeover',
+        dmg: 30,
+        type: 'execution' as MoveType,
+        acc: 90,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.6 },
+      },
+      {
+        name: 'Board Meeting Beam',
+        dmg: 32,
+        type: 'analytics' as MoveType,
+        acc: 85,
+        status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+      },
+      {
+        name: 'Layoff Wave',
+        dmg: 24,
+        type: 'influence' as MoveType,
+        status: { id: 'micromanaged', target: 'enemy' },
+      },
+    ],
+    defeat: 'The corner office is yours. Was it worth it?',
+    title: 'THE C-SUITE FINAL BOSS',
+    taunt: 'Security, who let this person onto my floor?',
+  },
+  {
+    floor: 8,
+    name: 'The Consultant',
+    emoji: '💼',
+    spriteId: 'vp',
+    maxHp: 175,
+    atk: 18,
+    def: 13,
+    types: ['strategy', 'analytics'] as MoveType[],
+    moves: [
+      {
+        name: 'Deck of Recommendations',
+        dmg: 18,
+        type: 'strategy' as MoveType,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+      },
+      { name: 'Billable Hours Blast', dmg: 24, type: 'analytics' as MoveType },
+      {
+        name: 'Synergy Framework',
+        dmg: 14,
+        type: 'strategy' as MoveType,
+        heal: 10,
+        status: { id: 'micromanaged', target: 'enemy', chance: 0.4 },
+      },
+      { name: 'Out-of-Scope Notice', dmg: 32, type: 'execution' as MoveType, acc: 85 },
+    ],
+    defeat: 'Submits final invoice, disappears forever.',
+    title: 'THE CONSULTANT',
+    taunt: 'My rate is $400/hour. This fight is already on the clock.',
+  },
+  {
+    floor: 9,
+    name: 'Head of HR',
+    emoji: '📋',
+    spriteId: 'manager',
+    maxHp: 185,
+    atk: 16,
+    def: 18,
+    types: ['influence', 'strategy'] as MoveType[],
+    moves: [
+      {
+        name: 'Mandatory Fun',
+        dmg: 12,
+        type: 'influence' as MoveType,
+        status: { id: 'burned_out', target: 'enemy', chance: 0.6 },
+      },
+      {
+        name: 'Performance Improvement Plan',
+        dmg: 20,
+        type: 'strategy' as MoveType,
+        status: { id: 'demoralized', target: 'enemy' },
+      },
+      { name: 'Policy Override', dmg: 16, type: 'influence' as MoveType, heal: 14 },
+      {
+        name: 'Culture Fit Assessment',
+        dmg: 28,
+        type: 'analytics' as MoveType,
+        status: { id: 'micromanaged', target: 'enemy' },
+      },
+    ],
+    defeat: 'Sends a mandatory training course as a parting gift.',
+    title: 'HEAD OF HR',
+    taunt: 'We need to talk. Close the door.',
+  },
+  {
+    floor: 10,
+    name: 'The Founder',
+    emoji: '🚀',
+    spriteId: 'boss',
+    maxHp: 240,
+    atk: 20,
+    def: 16,
+    types: ['strategy', 'influence', 'execution'] as MoveType[],
+    moves: [
+      {
+        name: 'Vision Statement',
+        dmg: 20,
+        type: 'strategy' as MoveType,
+        status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+      },
+      {
+        name: 'Move Fast',
+        dmg: 28,
+        type: 'execution' as MoveType,
+        status: { id: 'caffeinated', target: 'self' },
+      },
+      { name: "We're a Family", dmg: 12, type: 'influence' as MoveType, heal: 20 },
+      { name: 'Disrupt the Market', dmg: 38, type: 'strategy' as MoveType, acc: 85 },
+    ],
+    defeat: 'The company is yours now. All of it.',
+    title: 'THE FOUNDER',
+    taunt: 'I built this company from nothing. You ARE nothing.',
+    phase2: {
+      name: 'The Founder (Pivoting)',
+      emoji: '🔥',
+      maxHp: 120,
+      atk: 22,
+      def: 12,
+      types: ['execution', 'strategy', 'technical'] as MoveType[],
+      moves: [
+        {
+          name: 'Pivot Everything',
+          dmg: 22,
+          type: 'execution' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Blame the Market',
+          dmg: 16,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.7 },
+        },
+        { name: 'Emergency Board Call', dmg: 30, type: 'strategy' as MoveType, heal: 15 },
+        { name: 'Going Dark', dmg: 45, type: 'technical' as MoveType, acc: 80 },
+      ],
+      taunt: "The Founder grins. 'Time to pivot.'",
+    } as EnemyPhase2,
+  },
+]
+
+// ─── ENEMY VARIANTS (per floor) ──────────────────────────────
+// Each floor has a pool of enemies; one is randomly selected per run.
+// Floors 6-7 are fixed (VP + C-Suite).
+export const ENEMY_POOLS: Enemy[][] = [
+  // Floor 1
+  [
+    ENEMIES[0], // Intern
+    {
+      floor: 1,
+      name: 'The Coffee Runner',
+      emoji: '\u2615',
+      spriteId: 'intern',
+      maxHp: 65,
+      atk: 7,
+      def: 7,
+      types: ['normal'] as MoveType[],
+      moves: [
+        { name: 'Latte Splash', dmg: 12, type: 'normal' as MoveType },
+        { name: 'Oat Milk Shield', dmg: 5, type: 'normal' as MoveType, heal: 14 },
+      ],
+      defeat: '"I just wanted to get the order right..."',
+      title: 'THE COFFEE RUNNER',
+      taunt: 'Venti oat milk latte with two pumps of ambition, coming up!',
+    },
+  ],
+  // Floor 2
+  [
+    ENEMIES[1], // Recruiter
+    {
+      floor: 2,
+      name: 'The Ghosting Recruiter',
+      emoji: '\uD83D\uDC7B',
+      spriteId: 'recruiter',
+      maxHp: 80,
+      atk: 12,
+      def: 5,
+      types: ['influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Read Receipt',
+          dmg: 14,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        { name: '"We\'ll Be In Touch"', dmg: 10, type: 'strategy' as MoveType },
+      ],
+      defeat: '"Let me check with my hiring manager and get back to you. (They won\'t.)"',
+      title: 'THE GHOSTING RECRUITER',
+      taunt: "I'll get back to you. Maybe.",
+    },
+  ],
+  // Floor 3
+  [
+    ENEMIES[2], // Overachiever
+    {
+      floor: 3,
+      name: 'The Credit Thief',
+      emoji: '\uD83E\uDD78',
+      spriteId: 'overachiever',
+      maxHp: 90,
+      atk: 14,
+      def: 6,
+      types: ['influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Steal the Spotlight',
+          dmg: 18,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: '"WE Did This"',
+          dmg: 14,
+          type: 'strategy' as MoveType,
+          heal: 10,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"Fine, I\'ll put your name on the deck. In size 8 font."',
+      title: 'THE CREDIT THIEF',
+      taunt: "Great work on that project. I'll present it to leadership.",
+    },
+  ],
+  // Floor 4
+  [
+    ENEMIES[3], // Scrum Master
+    {
+      floor: 4,
+      name: 'The Scope Creeper',
+      emoji: '\uD83D\uDC1B',
+      spriteId: 'scrum',
+      maxHp: 100,
+      atk: 13,
+      def: 8,
+      types: ['strategy', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: '"One More Thing"',
+          dmg: 16,
+          type: 'strategy' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        { name: 'Feature Bloat', dmg: 20, type: 'execution' as MoveType },
+        { name: 'Moving Goalposts', dmg: 10, type: 'strategy' as MoveType, heal: 12 },
+      ],
+      defeat: '"I know we said MVP but what if we also added..." No. Stop.',
+      title: 'THE SCOPE CREEPER',
+      taunt: 'Before we start, I just have one small addition...',
+    },
+  ],
+  // Floor 5
+  [
+    ENEMIES[4], // Middle Manager
+    {
+      floor: 5,
+      name: 'The Micromanager',
+      emoji: '\uD83D\uDD0D',
+      spriteId: 'manager',
+      maxHp: 120,
+      atk: 13,
+      def: 13,
+      types: ['influence', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Check-In Barrage',
+          dmg: 14,
+          type: 'influence' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Calendar Tetris',
+          dmg: 18,
+          type: 'strategy' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Status Report Demand',
+          dmg: 12,
+          type: 'influence' as MoveType,
+          heal: 12,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"But how will I know you\'re working if I can\'t see your screen?!"',
+      title: 'THE MICROMANAGER',
+      taunt: 'I noticed you were idle on Slack for 3 minutes. Everything okay?',
+    },
+  ],
+  // Floor 6
+  [
+    ENEMIES[5], // VP of Synergy
+    {
+      floor: 6,
+      name: 'The Data Tyrant',
+      emoji: '📊',
+      spriteId: 'vp',
+      maxHp: 150,
+      atk: 16,
+      def: 15,
+      types: ['analytics', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Dashboard Interrogation',
+          dmg: 18,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'KPI Guillotine',
+          dmg: 24,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Vanity Metrics',
+          dmg: 10,
+          type: 'analytics' as MoveType,
+          heal: 14,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: 'The dashboard goes dark. No more red numbers.',
+      title: 'THE DATA TYRANT',
+      taunt: 'Show me the numbers. ALL of them.',
+    },
+  ],
+  // Floor 7
+  [
+    ENEMIES[6], // C-Suite Boss
+    {
+      floor: 7,
+      name: 'The Board Member',
+      emoji: '🏛️',
+      spriteId: 'boss',
+      maxHp: 180,
+      atk: 18,
+      def: 14,
+      types: ['influence', 'analytics'] as MoveType[],
+      moves: [
+        {
+          name: 'Shareholder Pressure',
+          dmg: 20,
+          type: 'influence' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        { name: 'Fiduciary Fury', dmg: 30, type: 'analytics' as MoveType },
+        {
+          name: 'Stock Buyback',
+          dmg: 8,
+          type: 'strategy' as MoveType,
+          heal: 15,
+          status: { id: 'motivated', target: 'self' },
+        },
+        {
+          name: 'Vote of No Confidence',
+          dmg: 26,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy' },
+        },
+      ],
+      defeat: 'The board adjourns. Your motion carries.',
+      title: 'THE BOARD MEMBER',
+      taunt: 'This better be worth my time. I bill by the quarter.',
+    },
+  ],
+  // Floor 8
+  [
+    ENEMIES[7], // The Consultant
+    {
+      floor: 8,
+      name: 'The Agency Creative',
+      emoji: '🎬',
+      spriteId: 'vp',
+      maxHp: 165,
+      atk: 19,
+      def: 12,
+      types: ['execution', 'technical'] as MoveType[],
+      moves: [
+        {
+          name: 'Mood Board Assault',
+          dmg: 20,
+          type: 'execution' as MoveType,
+          status: { id: 'focused', target: 'self', chance: 0.4 },
+        },
+        { name: 'Brand Guidelines Bomb', dmg: 26, type: 'technical' as MoveType },
+        {
+          name: '"Trust the Process"',
+          dmg: 14,
+          type: 'influence' as MoveType,
+          heal: 12,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.3 },
+        },
+        { name: 'Deliverable Dump', dmg: 34, type: 'execution' as MoveType },
+      ],
+      defeat: 'The retainer has been terminated. No more revisions.',
+      title: 'THE AGENCY CREATIVE',
+      taunt: 'This is just v1. Wait until you see the mood board.',
+    },
+  ],
+  // Floor 9
+  [
+    ENEMIES[8], // Head of HR
+    {
+      floor: 9,
+      name: 'The Compliance Officer',
+      emoji: '⚖️',
+      spriteId: 'manager',
+      maxHp: 180,
+      atk: 15,
+      def: 20,
+      types: ['strategy', 'analytics'] as MoveType[],
+      moves: [
+        {
+          name: 'Regulatory Audit',
+          dmg: 16,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Policy Violation Notice',
+          dmg: 22,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.6 },
+        },
+        {
+          name: 'Risk Mitigation',
+          dmg: 10,
+          type: 'strategy' as MoveType,
+          heal: 16,
+          status: { id: 'motivated', target: 'self' },
+        },
+        {
+          name: 'Legal Hold',
+          dmg: 30,
+          type: 'analytics' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+      ],
+      defeat: 'Case dismissed. The paperwork dissolves.',
+      title: 'THE COMPLIANCE OFFICER',
+      taunt: "I'm going to need that in writing. Notarized.",
+    },
+  ],
+  // Floor 10: The Founder (Act 1 boss with phase 2)
+  [ENEMIES[9]],
+
+  // ═══ ACT 2: MANAGEMENT (Floors 11-20, 0-indexed 10-19) ═══
+
+  // Floor 11
+  [
+    {
+      floor: 11,
+      name: 'The Reorg Survivor',
+      emoji: '🔄',
+      spriteId: 'manager',
+      maxHp: 260,
+      atk: 22,
+      def: 17,
+      types: ['strategy', 'influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Pivot Punch',
+          dmg: 22,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Org Chart Shuffle',
+          dmg: 18,
+          type: 'influence' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Survival Instinct',
+          dmg: 14,
+          type: 'strategy' as MoveType,
+          heal: 18,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"I\'ve survived six reorgs. I can\'t survive you."',
+      title: 'THE REORG SURVIVOR',
+      taunt: "I've been here longer than the mission statement.",
+    },
+  ],
+  // Floor 12
+  [
+    {
+      floor: 12,
+      name: 'The Budget Gatekeeper',
+      emoji: '🔒',
+      spriteId: 'vp',
+      maxHp: 275,
+      atk: 23,
+      def: 18,
+      types: ['analytics', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Budget Denied',
+          dmg: 24,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Fiscal Audit',
+          dmg: 18,
+          type: 'strategy' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        { name: 'Cost Optimization', dmg: 12, type: 'analytics' as MoveType, heal: 16 },
+      ],
+      defeat: '"Fine. I\'ll approve the line item. This once."',
+      title: 'THE BUDGET GATEKEEPER',
+      taunt: "Where's the ROI on you, exactly?",
+    },
+  ],
+  // Floor 13
+  [
+    {
+      floor: 13,
+      name: 'The Skip-Level Politician',
+      emoji: '🪜',
+      spriteId: 'vp',
+      maxHp: 290,
+      atk: 24,
+      def: 18,
+      types: ['influence', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Go Over Your Head',
+          dmg: 26,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Political Maneuver',
+          dmg: 20,
+          type: 'strategy' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Alliance Building',
+          dmg: 14,
+          type: 'influence' as MoveType,
+          heal: 16,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"I suppose going over YOUR head won\'t work either."',
+      title: 'THE SKIP-LEVEL POLITICIAN',
+      taunt: "I already talked to your boss's boss about this.",
+    },
+  ],
+  // Floor 14
+  [
+    {
+      floor: 14,
+      name: 'The OKR Fanatic',
+      emoji: '📊',
+      spriteId: 'scrum',
+      maxHp: 300,
+      atk: 25,
+      def: 19,
+      types: ['analytics', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'KR Interrogation',
+          dmg: 22,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Alignment Check',
+          dmg: 26,
+          type: 'execution' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Metric Mastery',
+          dmg: 16,
+          type: 'analytics' as MoveType,
+          heal: 14,
+          status: { id: 'focused', target: 'self' },
+        },
+      ],
+      defeat: '"My key results... they\'re all red..."',
+      title: 'THE OKR FANATIC',
+      taunt: "If it's not measurable, it doesn't exist.",
+    },
+  ],
+  // Floor 15
+  [
+    {
+      floor: 15,
+      name: 'The Town Hall Heckler',
+      emoji: '📢',
+      spriteId: 'overachiever',
+      maxHp: 315,
+      atk: 26,
+      def: 20,
+      types: ['influence', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Public Callout',
+          dmg: 28,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Disruptive Question',
+          dmg: 22,
+          type: 'execution' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Crowd Energy',
+          dmg: 16,
+          type: 'influence' as MoveType,
+          heal: 16,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"Okay fine, I\'ll hold my questions until the end."',
+      title: 'THE TOWN HALL HECKLER',
+      taunt: "Quick question that's actually a 10-minute speech.",
+    },
+  ],
+  // Floor 16
+  [
+    {
+      floor: 16,
+      name: 'The Offsite Facilitator',
+      emoji: '🏕️',
+      spriteId: 'recruiter',
+      maxHp: 330,
+      atk: 27,
+      def: 21,
+      types: ['influence', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Trust Fall Attack',
+          dmg: 24,
+          type: 'influence' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        { name: 'Breakout Session Blast', dmg: 28, type: 'strategy' as MoveType },
+        {
+          name: 'Team Building Exercise',
+          dmg: 14,
+          type: 'influence' as MoveType,
+          heal: 18,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"The real deliverable was the friends we made along the way."',
+      title: 'THE OFFSITE FACILITATOR',
+      taunt: "Everyone find a partner. We're doing improv.",
+    },
+  ],
+  // Floor 17
+  [
+    {
+      floor: 17,
+      name: 'The Headcount Freeze',
+      emoji: '🧊',
+      spriteId: 'manager',
+      maxHp: 345,
+      atk: 28,
+      def: 22,
+      types: ['strategy', 'analytics'] as MoveType[],
+      moves: [
+        {
+          name: 'Hiring Freeze',
+          dmg: 26,
+          type: 'strategy' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Attrition Wave',
+          dmg: 30,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+        },
+        { name: 'Backfill Denial', dmg: 18, type: 'strategy' as MoveType, heal: 16 },
+      ],
+      defeat: '"Fine. You can have ONE headcount. Junior level."',
+      title: 'THE HEADCOUNT FREEZE',
+      taunt: "Do more with less. That's not a suggestion.",
+    },
+  ],
+  // Floor 18
+  [
+    {
+      floor: 18,
+      name: 'The Cross-Functional Blocker',
+      emoji: '🚧',
+      spriteId: 'scrum',
+      maxHp: 360,
+      atk: 29,
+      def: 23,
+      types: ['strategy', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Scope Expansion',
+          dmg: 28,
+          type: 'strategy' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Dependency Lock',
+          dmg: 24,
+          type: 'execution' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        { name: 'RACI Confusion', dmg: 32, type: 'strategy' as MoveType, acc: 85 },
+        {
+          name: 'Process Shield',
+          dmg: 14,
+          type: 'execution' as MoveType,
+          heal: 18,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"I was just following the process..."',
+      title: 'THE CROSS-FUNCTIONAL BLOCKER',
+      taunt: "That's not in our team's charter. File a request.",
+    },
+  ],
+  // Floor 19
+  [
+    {
+      floor: 19,
+      name: 'The Strategy Consultant',
+      emoji: '💎',
+      spriteId: 'vp',
+      maxHp: 380,
+      atk: 30,
+      def: 23,
+      types: ['analytics', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Framework Overload',
+          dmg: 30,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: '2x2 Matrix',
+          dmg: 26,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Engagement Extension',
+          dmg: 18,
+          type: 'analytics' as MoveType,
+          heal: 20,
+          status: { id: 'motivated', target: 'self' },
+        },
+        { name: 'McKinsey Slide', dmg: 36, type: 'strategy' as MoveType, acc: 80 },
+      ],
+      defeat: '"Per our analysis, I was wrong. Invoice still applies."',
+      title: 'THE STRATEGY CONSULTANT',
+      taunt: "We've prepared a 200-slide deck. Let's begin.",
+    },
+  ],
+  // Floor 20: Act 2 boss (Chief of Staff) — with phase2
+  [
+    {
+      floor: 20,
+      name: 'The Chief of Staff',
+      emoji: '🗝️',
+      spriteId: 'boss',
+      maxHp: 400,
+      atk: 32,
+      def: 24,
+      types: ['strategy', 'influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Executive Agenda',
+          dmg: 28,
+          type: 'strategy' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Information Gatekeep',
+          dmg: 24,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Calendar Control',
+          dmg: 20,
+          type: 'strategy' as MoveType,
+          heal: 22,
+          status: { id: 'motivated', target: 'self' },
+        },
+        {
+          name: 'Boardroom Whisper',
+          dmg: 36,
+          type: 'influence' as MoveType,
+          acc: 85,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+      ],
+      defeat: '"You\'ve earned your seat. The CEO will see you now."',
+      title: 'THE CHIEF OF STAFF',
+      taunt: 'Nobody gets to the top without going through me.',
+      phase2: {
+        name: 'The Chief of Staff (Unleashed)',
+        emoji: '⚡',
+        maxHp: 180,
+        atk: 34,
+        def: 20,
+        types: ['strategy', 'influence', 'execution'] as MoveType[],
+        moves: [
+          {
+            name: 'Full Authority',
+            dmg: 32,
+            type: 'strategy' as MoveType,
+            status: { id: 'micromanaged', target: 'enemy' },
+          },
+          {
+            name: 'Executive Override',
+            dmg: 28,
+            type: 'execution' as MoveType,
+            status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+          },
+          { name: 'Power Consolidation', dmg: 20, type: 'influence' as MoveType, heal: 24 },
+          { name: 'Kill the Initiative', dmg: 42, type: 'strategy' as MoveType, acc: 80 },
+        ],
+        taunt: "Gloves off. I didn't get here by being nice.",
+      } as EnemyPhase2,
+    },
+  ],
+
+  // ═══ ACT 3: EXECUTIVE (Floors 21-30, 0-indexed 20-29) ═══
+
+  // Floor 21
+  [
+    {
+      floor: 21,
+      name: 'The Activist Investor',
+      emoji: '📈',
+      spriteId: 'boss',
+      maxHp: 420,
+      atk: 34,
+      def: 25,
+      types: ['analytics', 'influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Shareholder Letter',
+          dmg: 30,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Proxy Fight',
+          dmg: 34,
+          type: 'influence' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Short Position',
+          dmg: 20,
+          type: 'analytics' as MoveType,
+          heal: 20,
+          status: { id: 'motivated', target: 'self' },
+        },
+      ],
+      defeat: '"Fine. I\'ll liquidate my position. You win this round."',
+      title: 'THE ACTIVIST INVESTOR',
+      taunt: 'Your margins are a joke. I bought 12% of this company.',
+    },
+  ],
+  // Floor 22
+  [
+    {
+      floor: 22,
+      name: 'The M&A Shark',
+      emoji: '🦈',
+      spriteId: 'boss',
+      maxHp: 435,
+      atk: 35,
+      def: 26,
+      types: ['strategy', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Hostile Bid',
+          dmg: 34,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Due Diligence Strike',
+          dmg: 28,
+          type: 'execution' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        { name: 'Poison Pill', dmg: 18, type: 'strategy' as MoveType, heal: 22 },
+        { name: 'Leveraged Buyout', dmg: 40, type: 'execution' as MoveType, acc: 80 },
+      ],
+      defeat: '"The deal is dead. You\'ve earned my respect."',
+      title: 'THE M&A SHARK',
+      taunt: "I'm not here to negotiate. I'm here to acquire.",
+    },
+  ],
+  // Floor 23
+  [
+    {
+      floor: 23,
+      name: 'The Regulatory Auditor',
+      emoji: '⚖️',
+      spriteId: 'manager',
+      maxHp: 450,
+      atk: 34,
+      def: 28,
+      types: ['analytics', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Compliance Trap',
+          dmg: 28,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Audit Finding',
+          dmg: 32,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Remediation Plan',
+          dmg: 18,
+          type: 'analytics' as MoveType,
+          heal: 22,
+          status: { id: 'motivated', target: 'self' },
+        },
+        {
+          name: 'Cease and Desist',
+          dmg: 38,
+          type: 'strategy' as MoveType,
+          acc: 85,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+      ],
+      defeat: '"No further findings. You\'re... clean."',
+      title: 'THE REGULATORY AUDITOR',
+      taunt: "Section 14(a), subsection 3. You're in violation.",
+    },
+  ],
+  // Floor 24
+  [
+    {
+      floor: 24,
+      name: 'The PR Crisis',
+      emoji: '🔥',
+      spriteId: 'recruiter',
+      maxHp: 465,
+      atk: 36,
+      def: 27,
+      types: ['influence', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Viral Scandal',
+          dmg: 34,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.6 },
+        },
+        {
+          name: 'Media Frenzy',
+          dmg: 30,
+          type: 'execution' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+        { name: 'Crisis Comms', dmg: 18, type: 'influence' as MoveType, heal: 22 },
+        { name: 'Reputation Nuke', dmg: 42, type: 'execution' as MoveType, acc: 80 },
+      ],
+      defeat: '"The news cycle moves on. You survived the headlines."',
+      title: 'THE PR CRISIS',
+      taunt: 'Trending #1. And not in the good way.',
+    },
+  ],
+  // Floor 25
+  [
+    {
+      floor: 25,
+      name: 'The Board Observer',
+      emoji: '👁️',
+      spriteId: 'boss',
+      maxHp: 480,
+      atk: 37,
+      def: 29,
+      types: ['analytics', 'influence'] as MoveType[],
+      moves: [
+        {
+          name: 'Silent Judgment',
+          dmg: 30,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Written Dissent',
+          dmg: 34,
+          type: 'influence' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Abstain',
+          dmg: 12,
+          type: 'analytics' as MoveType,
+          heal: 26,
+          status: { id: 'motivated', target: 'self' },
+        },
+        {
+          name: 'No-Confidence Vote',
+          dmg: 44,
+          type: 'influence' as MoveType,
+          acc: 80,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+      ],
+      defeat: '"I\'ve seen enough. You have my vote."',
+      title: 'THE BOARD OBSERVER',
+      taunt: "Don't mind me. I'm just... observing.",
+    },
+  ],
+  // Floor 26
+  [
+    {
+      floor: 26,
+      name: 'The Whistleblower',
+      emoji: '📣',
+      spriteId: 'overachiever',
+      maxHp: 500,
+      atk: 38,
+      def: 28,
+      types: ['execution', 'technical'] as MoveType[],
+      moves: [
+        {
+          name: 'Leak to Press',
+          dmg: 36,
+          type: 'execution' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Evidence Drop',
+          dmg: 32,
+          type: 'technical' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Moral High Ground',
+          dmg: 20,
+          type: 'execution' as MoveType,
+          heal: 24,
+          status: { id: 'motivated', target: 'self' },
+        },
+        { name: 'Full Exposure', dmg: 46, type: 'technical' as MoveType, acc: 75 },
+      ],
+      defeat: '"The truth is out. I\'ve done my part."',
+      title: 'THE WHISTLEBLOWER',
+      taunt: 'I know what you did last fiscal quarter.',
+    },
+  ],
+  // Floor 27
+  [
+    {
+      floor: 27,
+      name: 'The PE Partner',
+      emoji: '🏦',
+      spriteId: 'boss',
+      maxHp: 520,
+      atk: 39,
+      def: 30,
+      types: ['strategy', 'analytics'] as MoveType[],
+      moves: [
+        {
+          name: 'Strip and Flip',
+          dmg: 36,
+          type: 'strategy' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Debt Load',
+          dmg: 34,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Portfolio Synergy',
+          dmg: 20,
+          type: 'strategy' as MoveType,
+          heal: 24,
+          status: { id: 'motivated', target: 'self' },
+        },
+        { name: 'Exit Multiple', dmg: 48, type: 'analytics' as MoveType, acc: 75 },
+      ],
+      defeat: '"You\'re not for sale. Noted."',
+      title: 'THE PE PARTNER',
+      taunt: "Everything has a price. Let's find yours.",
+    },
+  ],
+  // Floor 28
+  [
+    {
+      floor: 28,
+      name: 'The SEC Investigator',
+      emoji: '🔍',
+      spriteId: 'manager',
+      maxHp: 540,
+      atk: 40,
+      def: 31,
+      types: ['analytics', 'strategy'] as MoveType[],
+      moves: [
+        {
+          name: 'Subpoena Storm',
+          dmg: 36,
+          type: 'analytics' as MoveType,
+          status: { id: 'micromanaged', target: 'enemy' },
+        },
+        {
+          name: 'Formal Inquiry',
+          dmg: 34,
+          type: 'strategy' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        { name: 'Plea Bargain', dmg: 20, type: 'analytics' as MoveType, heal: 24 },
+        {
+          name: 'Federal Indictment',
+          dmg: 50,
+          type: 'strategy' as MoveType,
+          acc: 75,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+      ],
+      defeat: '"Case closed. You\'re free to go."',
+      title: 'THE SEC INVESTIGATOR',
+      taunt: "We've been watching you for a long time.",
+    },
+  ],
+  // Floor 29
+  [
+    {
+      floor: 29,
+      name: 'The Rival CEO',
+      emoji: '⚔️',
+      spriteId: 'boss',
+      maxHp: 560,
+      atk: 42,
+      def: 32,
+      types: ['strategy', 'influence', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Talent Poaching',
+          dmg: 36,
+          type: 'influence' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Market Disruption',
+          dmg: 40,
+          type: 'execution' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.4 },
+        },
+        {
+          name: 'Strategic Alliance',
+          dmg: 22,
+          type: 'strategy' as MoveType,
+          heal: 26,
+          status: { id: 'motivated', target: 'self' },
+        },
+        { name: 'Corporate Espionage', dmg: 50, type: 'strategy' as MoveType, acc: 80 },
+      ],
+      defeat: '"Well played. See you at the next earnings call."',
+      title: 'THE RIVAL CEO',
+      taunt: "Your company? I'll be buying it by Q4.",
+    },
+  ],
+  // Floor 30: The IPO (Final Boss) — with phase2
+  [
+    {
+      floor: 30,
+      name: 'The IPO',
+      emoji: '🔔',
+      spriteId: 'boss',
+      maxHp: 600,
+      atk: 44,
+      def: 34,
+      types: ['strategy', 'influence', 'execution'] as MoveType[],
+      moves: [
+        {
+          name: 'Roadshow Pressure',
+          dmg: 38,
+          type: 'influence' as MoveType,
+          status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Valuation Crush',
+          dmg: 42,
+          type: 'analytics' as MoveType,
+          status: { id: 'demoralized', target: 'enemy', chance: 0.5 },
+        },
+        {
+          name: 'Quiet Period',
+          dmg: 22,
+          type: 'strategy' as MoveType,
+          heal: 28,
+          status: { id: 'motivated', target: 'self' },
+        },
+        { name: 'Price the Offering', dmg: 52, type: 'strategy' as MoveType, acc: 80 },
+      ],
+      defeat: "The bell rings. The stock soars. It's yours.",
+      title: 'THE IPO',
+      taunt: "The market doesn't care about your feelings.",
+      phase2: {
+        name: 'The Market Correction',
+        emoji: '📉',
+        maxHp: 280,
+        atk: 46,
+        def: 28,
+        types: ['analytics', 'strategy', 'execution'] as MoveType[],
+        moves: [
+          {
+            name: 'Bear Market',
+            dmg: 40,
+            type: 'analytics' as MoveType,
+            status: { id: 'demoralized', target: 'enemy', chance: 0.6 },
+          },
+          {
+            name: 'Margin Call',
+            dmg: 36,
+            type: 'strategy' as MoveType,
+            status: { id: 'burned_out', target: 'enemy', chance: 0.5 },
+          },
+          { name: 'Dead Cat Bounce', dmg: 24, type: 'execution' as MoveType, heal: 30 },
+          { name: 'Flash Crash', dmg: 58, type: 'analytics' as MoveType, acc: 75 },
+        ],
+        taunt: 'The market corrects. Can you?',
+      } as EnemyPhase2,
+    },
+  ],
+]
+
+/** Pick a random enemy for each floor. Returns array of enemy IDs (name used as key). */
+export function rollFloorEnemies(): string[] {
+  return ENEMY_POOLS.map((pool) => {
+    const picked = pool[Math.floor(Math.random() * pool.length)]
+    return picked.name
+  })
+}
+
+/** Get the Enemy for a floor given the rolled enemy name. */
+export function getFloorEnemy(floor: number, enemyName: string): Enemy {
+  const pool = ENEMY_POOLS[floor] || [ENEMIES[floor]]
+  return pool.find((e) => e.name === enemyName) || pool[0]
+}
