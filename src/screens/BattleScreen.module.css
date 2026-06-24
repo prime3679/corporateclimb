@@ -17,31 +17,27 @@
 .playerResourcePanel {
   position: absolute;
   z-index: 4;
-  width: 178px;
-  padding: 8px;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-md);
-  background: linear-gradient(180deg, rgba(5, 7, 13, 0.9), rgba(13, 19, 32, 0.78));
-  box-shadow: var(--shadow-md);
+  width: 186px;
 }
 
 .enemyDossier {
-  top: 8px;
-  left: 8px;
+  top: 10px;
+  left: 10px;
 }
 
 .playerResourcePanel {
-  right: 8px;
-  bottom: 8px;
+  right: 10px;
+  bottom: 10px;
 }
 
 .dossierKicker {
-  margin-bottom: 5px;
-  font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  letter-spacing: 1px;
-  color: var(--gold);
-  opacity: 0.86;
+  margin-bottom: 6px;
+  font-family: var(--cc-font-body);
+  font-weight: 700;
+  font-size: 9px;
+  letter-spacing: var(--cc-track-label);
+  text-transform: uppercase;
+  color: var(--cc-text-dim);
 }
 
 .typeRow {
@@ -52,11 +48,21 @@
 }
 
 .intentLine {
-  margin-top: 4px;
-  font-family: var(--font-body);
-  font-size: var(--body-sm);
-  color: var(--hr-red);
-  letter-spacing: 0.5px;
+  display: inline-flex;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 6px;
+  padding: 3px 7px;
+  font-family: var(--cc-font-body);
+  font-weight: 700;
+  font-size: 8px;
+  letter-spacing: 0.07em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: #fff;
+  background: rgba(229, 57, 53, 0.68);
+  border-radius: var(--cc-r-chip);
+  box-shadow: 0 1px 8px rgba(229, 57, 53, 0.28);
 }
 
 .commandDeck {
@@ -81,23 +87,28 @@
 }
 
 .tab {
-  font-family: var(--font-display);
-  font-size: 9px;
-  padding: 12px 18px;
-  background: rgba(13, 19, 32, 0.82);
-  color: var(--muted-light);
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+  font-family: var(--cc-font-body);
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  padding: 9px 18px;
+  background: var(--cc-glass);
+  color: var(--cc-text-muted);
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-sm);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 5px;
+  backdrop-filter: blur(var(--cc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
 }
 
 .tabActive {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
-  color: var(--text-main);
-  border-bottom-color: var(--gold);
+  background: linear-gradient(180deg, var(--cc-gold-bright), var(--cc-gold));
+  color: var(--cc-on-accent);
+  border-color: rgba(255, 213, 79, 0.5);
+  box-shadow: var(--glow-gold);
 }
 
 .tabBadge {
@@ -113,16 +124,18 @@
 }
 
 .itemBtn {
-  font-family: var(--font-display);
-  font-size: 9px;
-  padding: 12px 10px;
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.94), rgba(13, 19, 32, 0.96));
-  border: 1px solid var(--border-soft);
-  border-radius: var(--radius-md);
+  font-family: var(--cc-font-body);
+  padding: 10px 12px;
+  background: linear-gradient(160deg, rgba(26, 33, 46, 0.96), rgba(14, 19, 28, 0.98));
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-lg);
   cursor: pointer;
   text-align: left;
-  transition: all 0.15s ease;
-  box-shadow: var(--shadow-md);
+  transition:
+    transform 0.14s var(--cc-ease-out),
+    box-shadow 0.14s var(--cc-ease-out),
+    border-color 0.14s var(--cc-ease-out);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -130,9 +143,9 @@
 }
 
 .itemBtn:hover {
-  background: #e8f5e9;
-  box-shadow: var(--shadow-sm);
-  transform: translate(-1px, -1px);
+  border-color: rgba(255, 255, 255, 0.2);
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
 }
 
 .itemName {
@@ -140,45 +153,69 @@
   align-items: center;
   gap: 6px;
   width: 100%;
-  color: var(--text-main);
+  font-weight: 700;
+  font-size: 12.5px;
+  color: var(--cc-text);
 }
 
 .itemDesc {
-  font-family: var(--font-body);
+  font-family: var(--cc-font-body);
   font-size: var(--body-sm);
-  line-height: 1.1;
-  color: var(--text-muted);
+  line-height: 1.25;
+  color: var(--cc-text-muted);
 }
 
 .noItems {
   grid-column: 1 / -1;
-  font-family: var(--font-body);
+  font-family: var(--cc-font-body);
   font-size: var(--body-md);
-  color: var(--text-muted);
+  color: var(--cc-text-muted);
   text-align: center;
-  padding: 16px;
-  background: var(--paper);
-  border: var(--border-w) solid var(--ink);
+  padding: 18px;
+  background: var(--cc-glass);
+  border: 1px solid var(--cc-line);
   border-radius: var(--radius-md);
 }
 
 .floorCounter {
   position: absolute;
   top: 14px;
-  /* Clear of the mute + settings buttons in the top-right corner. */
-  right: 96px;
-  font-family: var(--font-display);
-  font-size: var(--display-2xs);
+  right: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 1px;
   z-index: 3;
 }
 
+.floorNum {
+  font-family: var(--cc-font-display);
+  font-size: 17px;
+  letter-spacing: 0.02em;
+  color: var(--cc-text-faint);
+}
+
+.floorNum b {
+  color: var(--cc-gold);
+}
+
+.floorStock {
+  font-family: var(--cc-font-body);
+  font-weight: 600;
+  font-size: 9px;
+  letter-spacing: 0.1em;
+  color: var(--cc-text-dim);
+}
+
 .logClose {
-  font-family: var(--font-display);
-  font-size: var(--display-2xs);
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.45);
-  color: var(--gold-bright);
-  border: 2px solid rgba(255, 255, 255, 0.25);
+  font-family: var(--cc-font-body);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  padding: 11px;
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--cc-text);
+  border: 1px solid var(--cc-line-strong);
   border-radius: var(--radius-sm);
   cursor: pointer;
 }
@@ -197,14 +234,16 @@
 .logHistory {
   flex: 1;
   overflow-y: auto;
-  background: var(--paper);
-  border: var(--border-w) solid var(--ink);
+  background: var(--cc-glass);
+  border: 1px solid var(--cc-line-strong);
   border-radius: var(--radius-md);
-  padding: 10px 12px;
-  font-family: var(--font-body);
+  padding: 12px 14px;
+  font-family: var(--cc-font-body);
   font-size: var(--body-md);
-  line-height: 1.35;
-  color: var(--text-main);
+  line-height: 1.4;
+  color: var(--cc-text-2);
+  backdrop-filter: blur(var(--cc-glass-blur));
+  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
 }
 
 .logHistory p {
