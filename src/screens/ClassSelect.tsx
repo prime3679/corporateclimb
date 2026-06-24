@@ -18,8 +18,8 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         flexDirection: 'column',
         height: '100%',
         background: 'transparent',
-        padding: 20,
-        gap: 14,
+        padding: '22px 20px 20px',
+        gap: 12,
       }}
     >
       <div
@@ -35,15 +35,15 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         SELECT CAREER ARCHETYPE
       </div>
 
-      <div style={{ display: 'flex', gap: 10, justifyContent: 'center' }}>
+      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
         {PLAYER_CLASSES.map((c, i) => (
           <button
             key={c.id}
             onClick={() => setSelected(i)}
             aria-pressed={selected === i}
             style={{
-              width: 100,
-              padding: '12px 8px',
+              width: 104,
+              padding: '13px 8px 11px',
               background:
                 selected === i
                   ? 'linear-gradient(180deg, rgba(255,216,161,.18), rgba(22,28,42,.98) 24%, rgba(9,12,20,.98))'
@@ -62,7 +62,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               gap: 8,
             }}
           >
-            <div className="sprite-idle" style={{ width: 52, height: 60 }}>
+            <div className="sprite-idle" style={{ width: 58, height: 66 }}>
               <img
                 src={sprites[c.spriteId]}
                 alt=""
@@ -98,7 +98,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
           flex: 1,
           display: 'flex',
           flexDirection: 'column',
-          gap: 8,
+          gap: 11,
           overflow: 'auto',
           background:
             'linear-gradient(180deg, rgba(255,255,255,.06), transparent 18%), linear-gradient(180deg, rgba(28,34,48,.94), rgba(9,12,20,.98))',
@@ -107,35 +107,68 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             '0 24px 44px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.08), inset 0 0 0 1px rgba(255,211,77,.04)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 2 }}>
-          <div style={{ width: 40, height: 46 }}>
-            <img
-              src={sprites[cls.spriteId]}
-              alt=""
+        <div
+          style={{
+            display: 'grid',
+            gridTemplateColumns: '104px 1fr',
+            alignItems: 'center',
+            gap: 14,
+            marginBottom: 2,
+            padding: '10px 10px 12px',
+            borderRadius: 'var(--radius-lg)',
+            border: '1px solid rgba(255,211,77,.18)',
+            background:
+              'radial-gradient(circle at 24% 48%, rgba(255,211,77,.13), transparent 38%), linear-gradient(180deg, rgba(255,255,255,.045), rgba(255,255,255,0))',
+          }}
+        >
+          <div style={{ position: 'relative', width: 104, height: 118 }}>
+            <div
+              aria-hidden="true"
               style={{
-                width: '100%',
-                height: '100%',
-                imageRendering: 'auto',
-                padding: '8% 2% 0 2%',
-                objectFit: 'contain',
+                position: 'absolute',
+                left: '50%',
+                bottom: 8,
+                width: 82,
+                height: 18,
+                transform: 'translateX(-50%)',
+                borderRadius: 999,
+                background: 'radial-gradient(ellipse, rgba(0,0,0,.52), rgba(0,0,0,0) 72%)',
+                filter: 'blur(2px)',
               }}
-              draggable={false}
             />
+            <div
+              className="sprite-idle"
+              style={{ position: 'relative', width: '100%', height: '100%' }}
+            >
+              <img
+                src={sprites[cls.spriteId]}
+                alt=""
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  imageRendering: 'auto',
+                  padding: '4% 1% 10%',
+                  objectFit: 'contain',
+                  filter: 'drop-shadow(0 10px 12px rgba(0,0,0,.38))',
+                }}
+                draggable={false}
+              />
+            </div>
           </div>
           <div>
             <div
               className="t-display"
-              style={{ fontSize: 'var(--display-xs)', color: 'var(--paper)' }}
+              style={{ fontSize: 'var(--display-sm)', color: 'var(--paper)', lineHeight: 1.1 }}
             >
               {cls.name}
             </div>
             <div
               className="t-body"
               style={{
-                fontSize: 'var(--body-sm)',
-                lineHeight: 1.2,
+                fontSize: 'var(--body-md)',
+                lineHeight: 1.28,
                 color: 'var(--muted-light)',
-                marginTop: 4,
+                marginTop: 6,
               }}
             >
               {cls.desc}
@@ -152,19 +185,30 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
               ['SPD', cls.spd, 'var(--orange)'],
             ] as const
           ).map(([label, val, color]) => (
-            <div key={label} style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <div
+              key={label}
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '30px 1fr 24px',
+                alignItems: 'center',
+                gap: 6,
+                padding: '6px 7px',
+                borderRadius: 9,
+                background: 'rgba(255,255,255,.04)',
+                border: '1px solid rgba(255,255,255,.075)',
+              }}
+            >
               <span
                 className="t-display"
-                style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', width: 30 }}
+                style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)' }}
               >
                 {label}
               </span>
               <div
                 style={{
-                  flex: 1,
-                  height: 7,
+                  height: 8,
                   background: 'rgba(178, 192, 211, 0.12)',
-                  borderRadius: 3,
+                  borderRadius: 999,
                   overflow: 'hidden',
                 }}
               >
@@ -173,8 +217,9 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                     width: `${(val / 20) * 100}%`,
                     height: '100%',
                     background: color,
-                    borderRadius: 3,
+                    borderRadius: 999,
                     maxWidth: '100%',
+                    boxShadow: `0 0 10px ${color}`,
                   }}
                 />
               </div>
@@ -183,7 +228,6 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
                 style={{
                   fontSize: 'var(--display-2xs)',
                   color: 'var(--muted-light)',
-                  width: 24,
                   textAlign: 'right',
                 }}
               >
@@ -240,10 +284,10 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
             <div
               key={m.name}
               style={{
-                padding: '5px 6px',
+                padding: '7px 8px',
                 background:
                   'linear-gradient(180deg, rgba(255,255,255,.06), rgba(17,23,34,.82) 28%, rgba(12,15,25,.92))',
-                borderRadius: 4,
+                borderRadius: 8,
                 border: '1px solid rgba(132,153,189,.26)',
                 display: 'flex',
                 flexDirection: 'column',
@@ -280,7 +324,7 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         variant="primary"
         size="lg"
         onClick={() => onSelect(PLAYER_CLASSES[selected])}
-        style={{ alignSelf: 'center' }}
+        style={{ alignSelf: 'center', minWidth: 220 }}
       >
         ACCEPT OFFER
       </Button>
