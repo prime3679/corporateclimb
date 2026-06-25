@@ -28,6 +28,10 @@ test('floor 9 win chains promotion and act 2 screens', async ({ page }) => {
   // of the three offered perks, then Act 2.
   await expect(page.getByText('PROMOTED')).toBeVisible({ timeout: 10_000 })
   await expect(page.getByText('CHOOSE A PERK')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText(/BEST FOR:/).first()).toBeVisible({ timeout: 10_000 })
+  await expect(
+    page.getByText(/SAFE|GREEDY|COMBO|DEFENSE|BOSS KILLER|ECONOMY/).first(),
+  ).toBeVisible()
   await page.locator('button').filter({ hasText: '[1]' }).click({ timeout: 5_000 })
 
   await expect(page.getByText('MANAGEMENT')).toBeVisible({ timeout: 10_000 })

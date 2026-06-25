@@ -276,6 +276,7 @@ export type PerkId =
   | 'dividends'
 
 export type PerkKind = 'stat' | 'passive' | 'economy'
+export type PerkChoiceTag = 'SAFE' | 'GREEDY' | 'COMBO' | 'DEFENSE' | 'BOSS KILLER' | 'ECONOMY'
 
 export interface PerkDef {
   id: PerkId
@@ -283,6 +284,10 @@ export interface PerkDef {
   desc: string
   icon: string
   kind: PerkKind
+  /** Fast promotion-card labels that explain the run-shaping choice. */
+  choiceTags: PerkChoiceTag[]
+  /** Concise "best for" copy shown on promotion cards. */
+  buildHint: string
   /** Stat packages stack; passives/economy can be owned once. */
   repeatable?: boolean
   /** Locked until this achievement is earned (normal runs only). */

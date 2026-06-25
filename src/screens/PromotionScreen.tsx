@@ -261,10 +261,42 @@ export default function PromotionScreen({
                 {perk.name}
               </span>
               <span
+                style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 1 }}
+                aria-label={`${perk.name} choice tags`}
+              >
+                {perk.choiceTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="t-display"
+                    style={{
+                      fontSize: 8.5,
+                      color: '#05070d',
+                      background: KIND_COLORS[perk.kind],
+                      borderRadius: 999,
+                      padding: '2px 6px',
+                      lineHeight: 1.2,
+                      letterSpacing: 0.7,
+                    }}
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </span>
+              <span
                 className="t-body"
                 style={{ fontSize: 'var(--body-sm)', color: 'var(--text-main)', lineHeight: 1.2 }}
               >
                 {perk.desc}
+              </span>
+              <span
+                className="t-body"
+                style={{
+                  fontSize: 'var(--body-xs)',
+                  color: 'var(--muted-light)',
+                  lineHeight: 1.15,
+                }}
+              >
+                <strong>BEST FOR:</strong> {perk.buildHint}
               </span>
             </span>
             <span

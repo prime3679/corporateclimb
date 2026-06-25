@@ -205,11 +205,14 @@ describe('perks', () => {
     }
   })
 
-  it('every perk has a name, desc, and icon', () => {
+  it('every perk has choice tags and a build hint for promotion decisions', () => {
     for (const id of ALL_PERK_IDS) {
       expect(PERKS[id].name, `perk ${id}: name`).toBeTruthy()
       expect(PERKS[id].desc, `perk ${id}: desc`).toBeTruthy()
       expect(PERKS[id].icon, `perk ${id}: icon`).toBeTruthy()
+      expect(PERKS[id].choiceTags?.length, `perk ${id}: choice tags`).toBeGreaterThanOrEqual(1)
+      expect(PERKS[id].buildHint, `perk ${id}: build hint`).toBeTruthy()
+      expect(PERKS[id].buildHint.length, `perk ${id}: concise build hint`).toBeLessThanOrEqual(80)
     }
   })
 })
