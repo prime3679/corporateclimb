@@ -791,6 +791,7 @@ export default function CorporateClimb() {
             newTier={getPromotion(run.classId, run.floor) ?? { floor: 0, title: '' }}
             offers={run.pendingPerkOffer.map((id) => PERKS[id])}
             onPick={handlePerkPick}
+            ownedPerks={run.perks}
           />
         )}
         {screen === 'shop' && run && effectivePlayer && (

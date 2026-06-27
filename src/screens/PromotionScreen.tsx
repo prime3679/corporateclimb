@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import type { PerkDef, PerkId, PromotionTier, PlayerClass } from '@/types'
 import { getSpriteUrls } from '@/components/PixelSprite'
+import { getCareerArchetype } from '@/engine'
 
 const KIND_LABELS: Record<PerkDef['kind'], string> = {
   stat: 'STATS',
@@ -20,6 +21,7 @@ export default function PromotionScreen({
   newTier,
   offers,
   onPick,
+  ownedPerks = [],
 }: {
   player: PlayerClass
   oldTier: PromotionTier
@@ -27,6 +29,8 @@ export default function PromotionScreen({
   /** The pick-1-of-3 perk offer (keys 1-3 also select). */
   offers: PerkDef[]
   onPick: (id: PerkId) => void
+  /** Perks accumulated this run; drives the career trajectory read-out. */
+  ownedPerks?: PerkId[]
 }) {
   const [show, setShow] = useState(false)
   const sprites = getSpriteUrls()
@@ -312,6 +316,49 @@ export default function PromotionScreen({
           </button>
         ))}
       </div>
+
+      {(() => {
+        const archetype = getCareerArchetype(ownedPerks)
+        return (
+          <div
+            aria-label="Current career trajectory"
+            data-testid="trajectory-panel"
+            style={{
+              marginTop: 14,
+              width: '100%',
+              maxWidth: 340,
+              padding: '10px 12px',
+              borderRadius: 'var(--radius)',
+              border: 'var(--border-w) solid var(--line)',
+              background: 'var(--surface-2, rgba(0,0,0,0.18))',
+              opacity: show ? 1 : 0,
+              transition: 'opacity 0.5s ease 0.7s',
+            }}
+          >
+            <div
+              className="t-display"
+              style={{
+                fontSize: '10px',
+                letterSpacing: 1.2,
+                color: 'var(--muted)',
+                marginBottom: 4,
+              }}
+            >
+              CURRENT TRAJECTORY
+            </div>
+            <div
+              className="t-display"
+              data-testid="trajectory-name"
+              style={{ fontSize: 'var(--display-sm)', color: 'var(--ink)' }}
+            >
+              {archetype.name}
+            </div>
+            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginTop: 2 }}>
+              {archetype.description}
+            </div>
+          </div>
+        )
+      })()}
     </div>
   )
 }
