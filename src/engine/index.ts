@@ -54,3 +54,12 @@ export { getVictoryPayout } from './economy'
 export { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
 export { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'
+export {
+  CAREER_ARCHETYPES,
+  UNDEFINED_INTERN,
+  getCareerArchetype,
+  getCareerArchetypeFromPoints,
+  tallyArchetypePoints,
+  type ArchetypePoints,
+  type CareerArchetype,
+} from './archetypes'
