@@ -3,6 +3,7 @@
 // this barrel keeps the long-standing `@/data` import surface.
 // Game LOGIC does not belong here — it lives in src/engine/.
 
+export * from './content/ascension'
 export * from './content/constants'
 export * from './content/statuses'
 export * from './content/type-chart'

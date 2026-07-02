@@ -6,7 +6,13 @@
 
 import type { Enemy } from '@/types'
 import { ENEMIES, getFloorEnemy } from '@/data'
-import { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
+import { ascensionEffects } from './ascension'
+import {
+  scaleEnemyForAscension,
+  scaleEnemyForElite,
+  scaleEnemyForNgPlus,
+  scaleEnemyForSlacker,
+} from './scaling'
 import type { RunState } from './state'
 
 /** Daily runs remap logical floor (0-14) onto the harder enemy pools. */
@@ -27,8 +33,15 @@ export function resolveNgBaseEnemy(run: RunState): Enemy {
     run.floorEnemyIds.length > 0
       ? getFloorEnemy(floorIdx, run.floorEnemyIds[run.floor])
       : ENEMIES[floorIdx] || ENEMIES[0]
-  const scaled = scaleEnemyForNgPlus(variant, run.ngPlus)
-  if (run.eliteFloor || run.mystery === 'ambush') return scaleEnemyForElite(scaled)
+  const asc = ascensionEffects(run.ascension)
+  const reorged = scaleEnemyForAscension(variant, {
+    hp: asc.enemyHpMult,
+    atk: asc.enemyAtkMult,
+    dmg: asc.enemyDmgMult,
+  })
+  const scaled = scaleEnemyForNgPlus(reorged, run.ngPlus)
+  if (run.eliteFloor || run.mystery === 'ambush')
+    return scaleEnemyForElite(scaled, { hp: asc.eliteHpMult, atk: asc.eliteAtkMult })
   if (run.mystery === 'slacker') return scaleEnemyForSlacker(scaled)
   return scaled
 }

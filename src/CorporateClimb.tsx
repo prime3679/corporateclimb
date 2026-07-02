@@ -9,6 +9,7 @@ import {
   ACHIEVEMENTS,
   ENEMY_POOLS,
   ITEMS,
+  MAX_ASCENSION,
   PERKS,
   PLAYER_CLASSES,
   checkAchievements,
@@ -16,6 +17,7 @@ import {
   getBestNgPlus,
   getPromotion,
   getUnlockedAchievements,
+  recordAscensionWin,
   saveBestNgPlus,
   unlockedPerkPool,
   unlockedRelicPool,
@@ -47,6 +49,7 @@ import {
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
+  applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
   battleIntroLine,
@@ -390,9 +393,9 @@ export default function CorporateClimb() {
     return { perkPool: unlockedPerkPool(unlocked), relicPool: unlockedRelicPool(unlocked) }
   }
 
-  const selectClass = (cls: PlayerClass) => {
+  const selectClass = (cls: PlayerClass, ascension = 0) => {
     SFX.menuConfirm()
-    setRun(newRun(cls, currentPools()))
+    setRun(newRun(cls, currentPools(), ascension))
     setScreen('floorIntro')
   }
 
@@ -406,6 +409,16 @@ export default function CorporateClimb() {
     if (!run || !player) return
     SFX.menuConfirm()
     setRun(newNgPlusRun(run, player, currentPools()))
+    setView(null)
+    setBattle(null)
+    setScreen('floorIntro')
+  }
+
+  /** Fresh run one Re-Org tier up, same class (the post-win ladder CTA). */
+  const startClimbHigher = () => {
+    if (!run || !player) return
+    SFX.menuConfirm()
+    setRun(newRun(player, currentPools(), Math.min(MAX_ASCENSION, run.ascension + 1)))
     setView(null)
     setBattle(null)
     setScreen('floorIntro')
@@ -524,6 +537,7 @@ export default function CorporateClimb() {
       } else {
         clearSave()
         saveBestNgPlus(next.ngPlus)
+        recordAscensionWin(next.classId, next.ascension)
         setNewAchievements(
           checkAchievements({
             classId: next.classId,
@@ -563,15 +577,12 @@ export default function CorporateClimb() {
     if (!run || !player) return
     SFX.menuConfirm()
     let next = choosePerk(run, perkId)
-    // A promotion comes with a full heal (against the new perk's max HP).
-    const fullHp = getEffectivePlayer(
-      player,
-      next.classId,
-      next.floor,
-      next.perks,
-      next.relics,
-    ).maxHp
-    next = { ...next, hp: fullHp }
+    // The promotion heal (full at base difficulty, halved under Hiring
+    // Freeze) — measured against the new perk's max HP.
+    next = applyPromotionHeal(
+      next,
+      getEffectivePlayer(player, next.classId, next.floor, next.perks, next.relics).maxHp,
+    )
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
     goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
@@ -784,6 +795,7 @@ export default function CorporateClimb() {
             onReady={startBattle}
             totalFloors={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
             mystery={run.mystery}
+            ascension={run.ascension}
           />
         )}
         {screen === 'battle' && run && battle && view && effectivePlayer && enemy && (
@@ -894,6 +906,8 @@ export default function CorporateClimb() {
             player={effectivePlayer || player}
             onRestart={restart}
             onNgPlus={startNgPlus}
+            onClimbHigher={run.ascension < MAX_ASCENSION ? startClimbHigher : undefined}
+            ascension={run.ascension}
             ngLevel={run.ngPlus}
             bestNgLevel={getBestNgPlus()}
             totalTurns={run.stats.totalTurns}

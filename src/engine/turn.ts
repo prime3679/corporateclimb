@@ -12,6 +12,7 @@ import {
   STRUGGLE_MOVE,
   calcDamage,
   chooseEnemyMove,
+  chooseEnemyMoveSmart,
   getBurnDamage,
   getClassPerkMods,
   getStatusAtkMod,
@@ -19,6 +20,7 @@ import {
   getStatusDefMod,
 } from '@/battle'
 import type { Rng } from './rng'
+import { ascensionEffects } from './ascension'
 import type { BattleState, RunState } from './state'
 import type { BattleEvent, Effectiveness, ViewPatch } from './events'
 import { collectMods, type Mods } from './modifiers'
@@ -125,7 +127,14 @@ function finish(
 function resolveEnemyDown(ctx: TurnContext, w: Working, events: BattleEvent[]): TurnResult | null {
   const { run } = ctx
   const ngBase = resolveNgBaseEnemy(run)
-  if (w.enemyPhase === 1 && ngBase.phase2 && w.enemyHp > 0 && w.enemyHp <= ngBase.maxHp * 0.5) {
+  // Founder Mode (Re-Org 9) raises the transform trigger to 60% HP.
+  const threshold = ascensionEffects(run.ascension).bossPhase2Threshold
+  if (
+    w.enemyPhase === 1 &&
+    ngBase.phase2 &&
+    w.enemyHp > 0 &&
+    w.enemyHp <= ngBase.maxHp * threshold
+  ) {
     const phase2 = resolveEnemy(run, 2)
     w.enemyPhase = 2
     w.enemyHp = phase2.maxHp
@@ -359,7 +368,12 @@ export function resolveItemUse(ctx: TurnContext, itemIdx: number, rng: Rng): Tur
   }
   if (item.effect.dmgEnemy) {
     const enemy = resolveEnemy(run, w.enemyPhase)
-    const dmg = item.effect.dmgEnemy
+    // The Endless Re-Org (tier 10) halves flat item burst — the item
+    // cheese that trivializes boss HP walls stops working at the cap.
+    const dmg = Math.max(
+      1,
+      Math.round(item.effect.dmgEnemy * ascensionEffects(run.ascension).itemDmgMult),
+    )
     w.enemyHp = Math.max(0, w.enemyHp - dmg)
     w.damageDealt += dmg
     events.push({
@@ -437,13 +451,39 @@ function resolveEnemyTurn(
     }
   }
 
-  const eMove = chooseEnemyMove(
-    rng,
-    enemy.moves,
-    w.enemyHp / enemy.maxHp,
-    w.playerHp / effectivePlayer.maxHp,
-    w.playerStatuses.length,
+  const asc = ascensionEffects(run.ascension)
+  const enemyAtkMod = getStatusAtkMod(w.enemyStatuses)
+  const playerDefMod = getStatusDefMod(w.playerStatuses)
+  const dailyDefMult = run.mode.kind === 'daily' ? run.mode.modifier.playerDefMult : 1
+  const playerDefStat = Math.round(
+    (effectivePlayer.def + run.level + run.defBuff + playerDefMod) * dailyDefMult,
   )
+
+  // Smarter Managers (Re-Org 3+) swap in the type-aware chooser; the
+  // legacy chooser keeps its exact rng draw order for base runs and
+  // seeded dailies.
+  const eMove =
+    asc.smartAiTier > 0
+      ? chooseEnemyMoveSmart(rng, enemy.moves, {
+          tier: asc.smartAiTier as 1 | 2,
+          enemyHpPct: w.enemyHp / enemy.maxHp,
+          enemyMissingHp: enemy.maxHp - w.enemyHp,
+          playerHpPct: w.playerHp / effectivePlayer.maxHp,
+          playerStatuses: w.playerStatuses,
+          enemyStatuses: w.enemyStatuses,
+          playerHp: w.playerHp,
+          expectedDamage: (m) =>
+            m.dmg *
+            (Math.max(1, enemy.atk + enemyAtkMod) / Math.max(1, playerDefStat)) *
+            getTypeMultiplier(m.type || 'normal', effectivePlayer.types).mult,
+        })
+      : chooseEnemyMove(
+          rng,
+          enemy.moves,
+          w.enemyHp / enemy.maxHp,
+          w.playerHp / effectivePlayer.maxHp,
+          w.playerStatuses.length,
+        )
 
   events.push({ kind: 'attack', side: 'enemy', moveType: eMove.type || 'normal' })
 
@@ -456,19 +496,19 @@ function resolveEnemyTurn(
     return finish(ctx, w, events, 'player')
   }
 
-  const enemyAtkMod = getStatusAtkMod(w.enemyStatuses)
-  const playerDefMod = getStatusDefMod(w.playerStatuses)
   const enemyCritBonus = getStatusCritBonus(w.enemyStatuses)
   const typeResult = getTypeMultiplier(eMove.type || 'normal', effectivePlayer.types)
-  const dailyDefMult = run.mode.kind === 'daily' ? run.mode.modifier.playerDefMult : 1
-  const [dmg, isCrit] = calcDamage(
+  const [rawDmg, isCrit] = calcDamage(
     rng,
     enemy.atk + enemyAtkMod,
-    Math.round((effectivePlayer.def + run.level + run.defBuff + playerDefMod) * dailyDefMult),
+    playerDefStat,
     eMove.dmg,
     enemyCritBonus,
     typeResult.mult,
   )
+  // Founder Mode: bosses hit harder (identity ×1 elsewhere).
+  const dmg =
+    run.floor % 10 >= 8 && asc.bossDmgMult !== 1 ? Math.round(rawDmg * asc.bossDmgMult) : rawDmg
 
   let logMsg = `${enemy.name} used ${eMove.name}! ${dmg} damage!`
   if (isCrit) logMsg += ' Critical hit!'

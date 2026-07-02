@@ -1,6 +1,13 @@
 import { useState, useEffect } from 'react'
 import type { Enemy, MysteryOutcome, PlayerClass } from '@/types'
-import { TYPE_COLORS, TYPE_LABELS, TOTAL_FLOORS, getAct, getMysteryInfo } from '@/data'
+import {
+  TYPE_COLORS,
+  TYPE_LABELS,
+  TOTAL_FLOORS,
+  getAct,
+  getAscensionTier,
+  getMysteryInfo,
+} from '@/data'
 import StagedSprite from '@/components/StagedSprite'
 
 const FLOOR_LABELS: Record<number, string> = {
@@ -88,6 +95,7 @@ export default function FloorIntro({
   onReady,
   totalFloors,
   mystery,
+  ascension = 0,
 }: {
   enemy: Enemy
   floor: number
@@ -96,8 +104,11 @@ export default function FloorIntro({
   totalFloors?: number
   /** Revealed Mystery Floor outcome, if the unmarked elevator was taken. */
   mystery?: MysteryOutcome | null
+  /** Active Re-Org tier, shown as a chip when above the base game. */
+  ascension?: number
 }) {
   const [show, setShow] = useState(false)
+  const reorgTier = ascension > 0 ? getAscensionTier(ascension) : null
 
   useEffect(() => {
     setTimeout(() => setShow(true), 200)
@@ -205,6 +216,25 @@ export default function FloorIntro({
       >
         {FLOOR_LABELS[floor] || `Floor ${floor + 1}`}
       </div>
+
+      {reorgTier && (
+        <div
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--red)',
+            letterSpacing: 2,
+            padding: '3px 10px',
+            borderRadius: 999,
+            border: '1px solid rgba(229,57,53,.5)',
+            background: 'rgba(229,57,53,.12)',
+            opacity: show ? 1 : 0,
+            transition: 'opacity 0.5s ease 0.25s',
+          }}
+        >
+          {reorgTier.icon} RE-ORG {ascension} · {reorgTier.name.toUpperCase()}
+        </div>
+      )}
 
       {/* Floor flavor text */}
       {FLOOR_FLAVOR[floor] && (

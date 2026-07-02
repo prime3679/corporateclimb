@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import type { PlayerClass } from '@/types'
-import { CURRENCY_ICON, groupPerks } from '@/data'
+import { CURRENCY_ICON, getAscensionTier, groupPerks } from '@/data'
 import type { LifetimeStats, RunRecord } from '@/history'
 import { share } from '@/platform'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
@@ -37,6 +37,7 @@ export default function GameOverScreen({
 }) {
   const [shared, setShared] = useState(false)
   const build = record ? groupPerks(record.perks) : []
+  const reorgTier = record && record.ascension > 0 ? getAscensionTier(record.ascension) : null
 
   const shareText = record
     ? `Corporate Climb ended my run on Floor ${floor}${record.defeatedBy ? ` — taken down by ${record.defeatedBy}` : ''}. ${record.totalTurns} turns, ${record.totalDamageDealt.toLocaleString()} damage dealt.${record.ngPlus > 0 ? ` NG+${record.ngPlus}.` : ''} The climb continues. corporateclimb.vercel.app`
@@ -70,6 +71,22 @@ export default function GameOverScreen({
       >
         GAME OVER
       </div>
+      {reorgTier && record && (
+        <div
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--red)',
+            letterSpacing: 2,
+            padding: '3px 10px',
+            borderRadius: 999,
+            border: '1px solid rgba(229,57,53,.5)',
+            background: 'rgba(229,57,53,.12)',
+          }}
+        >
+          {reorgTier.icon} RE-ORG {record.ascension} · {reorgTier.name.toUpperCase()}
+        </div>
+      )}
       <IconChip glyph="EXIT" tone="red" size="lg" />
       <div
         className={`t-body ${styles.caption}`}

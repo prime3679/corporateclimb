@@ -84,6 +84,95 @@ export function calcDamage(
 }
 
 /**
+ * Smart enemy move selection, used on Re-Org tiers 3+ ("Smarter
+ * Managers"). Kept strictly separate from chooseEnemyMove so the base
+ * game and seeded dailies keep their exact rng draw order.
+ *
+ * Tier 1 — type-aware: moves are scored by expected damage against
+ * the player's types (dmg × type multiplier × accuracy) and the pick
+ * comes from the top two scores (one rng draw keeps it non-robotic).
+ *
+ * Tier 2 — ruthless: adds a guaranteed-lethal check (take the kill
+ * when even a minimum roll ends the player), disciplined healing
+ * (only under 50% HP, only when little is wasted), no re-applying an
+ * already-active status, and pressing the biggest hit once the player
+ * is under 40% HP.
+ */
+export function chooseEnemyMoveSmart(
+  rng: Rng,
+  moves: EnemyMove[],
+  opts: {
+    tier: 1 | 2
+    enemyHpPct: number
+    enemyMissingHp: number
+    playerHpPct: number
+    playerStatuses: StatusInstance[]
+    enemyStatuses: StatusInstance[]
+    /** Mean damage estimate for a move against the current player. */
+    expectedDamage: (m: EnemyMove) => number
+    /** Absolute player HP, for the lethal check. */
+    playerHp: number
+  },
+): EnemyMove {
+  if (moves.length <= 1) return moves[0]
+
+  if (opts.tier >= 2) {
+    // Take a guaranteed kill: minimum damage roll (0.85×) still lands it.
+    const lethal = moves
+      .filter((m) => m.dmg > 0 && opts.expectedDamage(m) * 0.85 >= opts.playerHp)
+      .sort((a, b) => (b.acc ?? 100) - (a.acc ?? 100))[0]
+    if (lethal) return lethal
+
+    // Heal only when meaningfully hurt and the heal isn't mostly
+    // wasted — and never so often that healing starves the offense
+    // (a chain-healing enemy makes fights long but SAFE, which reads
+    // as easier, not harder).
+    const healMove = moves.find((m) => m.heal && m.heal > 0)
+    if (
+      healMove &&
+      opts.enemyHpPct < 0.4 &&
+      opts.enemyMissingHp >= (healMove.heal ?? 0) * 0.8 &&
+      rng() < 0.5
+    ) {
+      return healMove
+    }
+  }
+
+  const activeOnPlayer = new Set(opts.playerStatuses.map((s) => s.id))
+  const activeOnEnemy = new Set(opts.enemyStatuses.map((s) => s.id))
+  const biggest = Math.max(...moves.map((m) => m.dmg))
+
+  const scored = moves
+    .map((m) => {
+      let score = opts.expectedDamage(m) * ((m.acc ?? 100) / 100)
+      // A status the target already carries adds nothing.
+      if (m.status) {
+        const active = m.status.target === 'enemy' ? activeOnPlayer : activeOnEnemy
+        if (active.has(m.status.id)) score *= 0.5
+        else score += 6 // fresh status pressure has value beyond damage
+      }
+      // Pure heals: tier 2 heals only through the disciplined gate
+      // above (scoring them too would double the heal frequency);
+      // tier 1 scores them by need.
+      if (m.heal && m.dmg === 0) {
+        score = opts.tier >= 2 ? 0 : opts.enemyHpPct < 0.5 ? opts.enemyMissingHp * 0.5 : 0
+      }
+      // Kill pressure: press the biggest hit once the player is wounded.
+      if (opts.tier >= 2 && m.dmg === biggest && m.dmg > 0 && opts.playerHpPct < 0.4) {
+        score *= 1.25
+      }
+      return { m, score }
+    })
+    .sort((a, b) => b.score - a.score)
+
+  // One draw picks between the top two, favoring the best.
+  if (scored.length >= 2 && scored[1].score > 0) {
+    return rng() < 0.72 ? scored[0].m : scored[1].m
+  }
+  return scored[0].m
+}
+
+/**
  * Enemy move selection policy, in priority order:
  * 1. Below 35% HP: 70% chance to pick a healing move if one exists.
  * 2. Player healthy (>60%) and unafflicted: 50% chance to open with a debuff.

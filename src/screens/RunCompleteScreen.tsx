@@ -11,6 +11,10 @@ interface RunCompleteScreenProps {
   player: PlayerClass
   onRestart: () => void
   onNgPlus: () => void
+  /** Start a fresh run one Re-Org tier up (hidden at the cap). */
+  onClimbHigher?: () => void
+  /** Re-Org tier this run was cleared at. */
+  ascension?: number
   ngLevel: number
   bestNgLevel: number
   totalTurns: number
@@ -27,6 +31,8 @@ export default function RunCompleteScreen({
   player,
   onRestart,
   onNgPlus,
+  onClimbHigher,
+  ascension = 0,
   ngLevel,
   bestNgLevel,
   totalTurns,
@@ -367,7 +373,7 @@ export default function RunCompleteScreen({
         ))}
       </div>
 
-      {ngLevel > 0 && (
+      {(ngLevel > 0 || ascension > 0) && (
         <div
           className="t-display"
           style={{
@@ -378,12 +384,17 @@ export default function RunCompleteScreen({
             borderRadius: 'var(--radius-md)',
           }}
         >
-          NG+{ngLevel} CLEARED!
+          {ascension > 0 ? `RE-ORG ${ascension} CLEARED!` : `NG+${ngLevel} CLEARED!`}
         </div>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-        <Button variant="accent" size="lg" onClick={onNgPlus}>
+        {onClimbHigher && (
+          <Button variant="primary" size="lg" onClick={onClimbHigher}>
+            CLIMB HIGHER — RE-ORG {ascension + 1}
+          </Button>
+        )}
+        <Button variant="accent" size={onClimbHigher ? 'md' : 'lg'} onClick={onNgPlus}>
           NEW GAME+ {ngLevel + 1}
         </Button>
         <Button variant="ghost" size="md" onClick={onRestart}>

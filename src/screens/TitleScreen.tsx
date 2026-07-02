@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
+import { getBestAscension } from '@/data'
 import { getDailyStreak, hasPlayedToday } from '@/daily'
 import { getLifetimeStats } from '@/history'
 import { Button } from '@/ui'
@@ -20,6 +21,7 @@ export default function TitleScreen({
   const streak = getDailyStreak()
   const playedToday = hasPlayedToday()
   const lifetime = getLifetimeStats()
+  const bestReorg = getBestAscension()
 
   // Starting over with a save in place erases it — make that explicit.
   const handleStart = () => {
@@ -355,6 +357,7 @@ export default function TitleScreen({
             </span>
           )}
           {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
+          {bestReorg > 0 && <span>🌀 Re-Org {bestReorg}</span>}
         </div>
       )}
 

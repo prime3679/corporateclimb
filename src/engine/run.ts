@@ -19,6 +19,7 @@ import {
   getPromotion,
   rollFloorEnemies,
 } from '@/data'
+import { ascensionEffects } from './ascension'
 import { getVictoryPayout } from './economy'
 import { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
 import {
@@ -68,8 +69,8 @@ function startingInventory(classId: string): ItemId[] {
   return item ? [item] : []
 }
 
-/** A fresh normal run for the chosen class. */
-export function newRun(cls: PlayerClass, pools: RunPools = BASE_POOLS): RunState {
+/** A fresh normal run for the chosen class, at a Re-Org tier. */
+export function newRun(cls: PlayerClass, pools: RunPools = BASE_POOLS, ascension = 0): RunState {
   return {
     mode: { kind: 'normal' },
     classId: cls.id,
@@ -82,6 +83,7 @@ export function newRun(cls: PlayerClass, pools: RunPools = BASE_POOLS): RunState
     rngState: null,
     perkPool: pools.perkPool,
     relicPool: pools.relicPool,
+    ascension,
   }
 }
 
@@ -124,9 +126,11 @@ export function newDailyRun(chosenClass: PlayerClass, date: Date = new Date()): 
     ngPlus: 1, // dailies run at NG+1 difficulty
     rngState: (seed + 10) | 0,
     // Dailies always draw from the base pools so everyone's offers and
-    // drops are identical regardless of personal unlocks.
+    // drops are identical regardless of personal unlocks — and always
+    // run at Re-Org 0 so share grids stay comparable.
     perkPool: BASE_PERK_POOL,
     relicPool: BASE_RELIC_POOL,
+    ascension: 0,
   }
 }
 
@@ -250,9 +254,12 @@ export function applyVictory(
   run: RunState,
   effectiveMaxHp: number,
 ): { run: RunState; xpGained: number; leveledUp: boolean; optionsGained: number } {
+  const asc = ascensionEffects(run.ascension)
   const xpGained = 15 + run.floor * 7
   const bonusMult = run.eliteFloor || run.mystery === 'windfall' ? ELITE_PAYOUT_MULT : 1
-  const optionsGained = getVictoryPayout(run.floor, run.perks, run.relics) * bonusMult
+  const optionsGained = Math.round(
+    getVictoryPayout(run.floor, run.perks, run.relics) * bonusMult * asc.payoutMult,
+  )
   const newXp = run.xp + xpGained
   const stockOptions = run.stockOptions + optionsGained
   const leveledUp = newXp >= run.xpToNext
@@ -265,7 +272,7 @@ export function applyVictory(
       level: run.level + 1,
       xp: newXp - run.xpToNext,
       xpToNext: run.xpToNext + 25,
-      hp: Math.min(effectiveMaxHp, run.hp + 20),
+      hp: Math.min(effectiveMaxHp, run.hp + asc.levelUpHeal),
       stockOptions,
     },
     xpGained,
@@ -276,9 +283,24 @@ export function applyVictory(
 
 /** Post-battle healing: PM class perk (5 HP), Self Care, relic thrones. */
 export function applyPostBattlePerk(run: RunState, effectiveMaxHp: number): RunState {
-  const heal = (run.classId === 'pm' ? 5 : 0) + collectMods(run.perks, run.relics).postBattleHeal
+  const base = (run.classId === 'pm' ? 5 : 0) + collectMods(run.perks, run.relics).postBattleHeal
+  const heal = Math.round(base * ascensionEffects(run.ascension).postBattleHealMult)
   if (heal === 0) return run
   return { ...run, hp: Math.min(effectiveMaxHp, run.hp + heal) }
+}
+
+/**
+ * The heal a promotion grants — a full reset at base difficulty, a
+ * half measure under Hiring Freeze (Re-Org 4+). The one code path the
+ * game component and the balance sim both call.
+ */
+export function applyPromotionHeal(run: RunState, effectiveMaxHp: number): RunState {
+  const frac = ascensionEffects(run.ascension).promotionHealFraction
+  const hp =
+    frac >= 1
+      ? effectiveMaxHp
+      : Math.min(effectiveMaxHp, run.hp + Math.round(effectiveMaxHp * frac))
+  return { ...run, hp }
 }
 
 /**
