@@ -30,9 +30,11 @@ and the remaining roadmap):
   `turn.ts` resolves a full turn into an ordered event list (no timers, no React);
   `run.ts` handles floor/promotion/elevator transitions and `flow.ts` is the single
   between-floor router (used by gameplay and save resume alike); `modifiers.ts` is the one
-  place perk+relic effects are collected; `player.ts`/`economy.ts`/`scaling.ts`/`offers.ts`
+  place perk+relic effects are collected and `ascension.ts` folds the Re-Org difficulty
+  tiers the same way (level 0 must stay a strict identity — that's what keeps the balance
+  snapshot stable); `player.ts`/`economy.ts`/`scaling.ts`/`offers.ts`
   hold effective stats, payouts, enemy transforms, and seeded reward rolls; `shop.ts` is the
-  mid-act Stock Option shop; `save.ts` is the versioned save (v6, migrated via a pipeline
+  mid-act Stock Option shop; `save.ts` is the versioned save (v7, migrated via a pipeline
   table — add an entry, bump `SAVE_VERSION`); `events.ts` defines the battle event
   vocabulary.
 - `src/battle.ts` — pure combat math (damage, type effectiveness, status). RNG is always
@@ -48,7 +50,18 @@ and the remaining roadmap):
   relics, mystery, events, statuses, type chart, achievements/progress). `src/data.ts` is the
   barrel that preserves the `@/data` import surface. Content modules hold tables and lookups
   only — game logic belongs in `src/engine/`.
-- `src/daily.ts` — daily challenge seeding (Mulberry32) and result persistence.
+- `src/daily.ts` — daily challenge seeding (Mulberry32) and result persistence. Dailies are
+  pinned to Re-Org 0 and the legacy enemy AI so seeded runs stay deterministic and share
+  grids comparable — the smart AI (`chooseEnemyMoveSmart`) is only reachable at ascension 3+.
+- `src/platform/` — framework-free native-capability adapters (haptics, wake lock,
+  lifecycle, install prompt, share). Nothing here may import React; the Capacitor
+  store-build swap is documented in `docs/PLATFORM.md`.
+- `src/history.ts` / `src/onboarding.ts` — run history + lifetime stats, and the first-run
+  coach-mark / install-nudge gates (both persistence modules in the style of `daily.ts`).
+- `public/sw.js` is a template: `scripts/sw-precache-plugin.ts` injects the precache
+  manifest and a content-hash VERSION at build time (`npm run build` prints the entry
+  count). Keep its `self.__PRECACHE = ['/']` and `const VERSION = 'dev'` placeholders
+  intact.
 
 ## Conventions
 
@@ -60,7 +73,9 @@ and the remaining roadmap):
 - Move/enemy types use the `MoveType` union — never bare strings.
 - `src/__tests__/simulation.test.ts` snapshots the balance curve: any combat/content change
   must update that snapshot deliberately, and the winnability floor (the greedy bot clears
-  ≥ 7 floors on every class/seed) must keep holding.
+  ≥ 7 floors on every class/seed) must keep holding. The Re-Org guards must hold too: the
+  base table stays bit-identical unless deliberately retuned, and at Re-Org 10 the greedy
+  bot must never clear the tower.
 - New run state needs a save migration in `src/engine/save.ts` — never a breaking change.
 - Keep keyboard support working: battle moves are bound to keys 1–4, focus rings come from
   the global `:focus-visible` rule.

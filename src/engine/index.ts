@@ -22,6 +22,7 @@ export {
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
+  applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
   chooseElevator,
@@ -36,6 +37,7 @@ export {
   promotionBetween,
   type RunPools,
 } from './run'
+export { ascensionEffects, type AscensionEffects } from './ascension'
 export {
   SHOP_FLOORS,
   SHOP_STOCK_SIZE,
@@ -46,6 +48,7 @@ export {
   leaveShop,
   rollShopStock,
   shopPrice,
+  wellnessPrice,
 } from './shop'
 export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowStop } from './flow'
 export { collectMods, type Mods } from './modifiers'

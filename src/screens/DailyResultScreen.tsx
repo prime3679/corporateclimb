@@ -8,7 +8,9 @@ import {
   getDailyStreak,
 } from '@/daily'
 import { Button } from '@/ui'
+import { share } from '@/platform'
 import DailyLeaderboard from '@/components/DailyLeaderboard'
+import InstallNudge from '@/components/InstallNudge'
 
 export default function DailyResultScreen({
   player,
@@ -58,15 +60,9 @@ export default function DailyResultScreen({
   ].join('\n')
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: shareText })
-        setShared(true)
-      } catch {
-        /* share cancelled or unavailable */
-      }
-    } else {
-      await navigator.clipboard.writeText(shareText)
+    const result = await share(shareText)
+    if (result === 'shared') setShared(true)
+    else if (result === 'copied') {
       setShared(true)
       setTimeout(() => setShared(false), 2000)
     }
@@ -200,6 +196,8 @@ export default function DailyResultScreen({
         floorsCleared={floorsCleared}
         won={won}
       />
+
+      <InstallNudge />
 
       <Button variant="ghost" size="md" onClick={onBack}>
         BACK TO TITLE

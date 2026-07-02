@@ -1,6 +1,9 @@
 // ─── BACKGROUND MUSIC via HTMLAudioElement assets ─────────────
 // Corporate Climb uses short loopable music beds in /public/audio.
 // Playback is gated by user activation on browsers that block autoplay.
+// Track changes crossfade (~450ms) instead of hard-cutting; volume
+// ramps are per-element and cancellable, so a settings change or a
+// rapid screen hop simply supersedes the in-flight fade.
 
 type TrackName = 'title' | 'battle' | 'boss' | 'event'
 
@@ -11,12 +14,17 @@ const TRACKS: Record<TrackName, string> = {
   event: '/audio/music_gameplay_pressure_review.mp3',
 }
 
+/** Every bed, for the service worker's background warm-up. */
+export const MUSIC_URLS: string[] = Object.values(TRACKS)
+
 let currentTrack: TrackName | null = null
 let currentAudio: HTMLAudioElement | null = null
 let _muted = false
 let _volume = 1
 let pendingTrack: TrackName | null = null
 let unlockListenerRegistered = false
+/** App backgrounded: playback paused but the track selection kept. */
+let suspended = false
 
 function hasUserActivation() {
   if (typeof navigator === 'undefined') return true
@@ -24,10 +32,47 @@ function hasUserActivation() {
   return navigator.userActivation.hasBeenActive
 }
 
+const FADE_MS = 450
+
+// Each element's active ramp id; starting a new ramp (or setting the
+// volume directly) bumps the id, which cancels the superseded ramp.
+const fadeIds = new WeakMap<HTMLAudioElement, number>()
+let fadeSeq = 0
+
+function cancelFade(audio: HTMLAudioElement) {
+  fadeIds.set(audio, ++fadeSeq)
+}
+
+function fadeTo(audio: HTMLAudioElement, target: number, onDone?: () => void) {
+  if (typeof requestAnimationFrame === 'undefined') {
+    audio.volume = target
+    onDone?.()
+    return
+  }
+  const id = ++fadeSeq
+  fadeIds.set(audio, id)
+  const start = audio.volume
+  let t0: number | null = null
+  const tick = (t: number) => {
+    if (fadeIds.get(audio) !== id) return // superseded
+    if (t0 === null) t0 = t
+    const k = Math.min(1, (t - t0) / FADE_MS)
+    audio.volume = start + (target - start) * k
+    if (k < 1) requestAnimationFrame(tick)
+    else onDone?.()
+  }
+  requestAnimationFrame(tick)
+}
+
+function targetVolume() {
+  return _muted ? 0 : _volume
+}
+
 function applyGain() {
   if (!currentAudio) return
+  cancelFade(currentAudio)
   currentAudio.muted = _muted
-  currentAudio.volume = _muted ? 0 : _volume
+  currentAudio.volume = targetVolume()
 }
 
 function registerUnlockListener() {
@@ -46,17 +91,28 @@ function registerUnlockListener() {
   window.addEventListener('keydown', unlock, { once: true, capture: true })
 }
 
+/** Fade the outgoing bed to silence, then release it. */
+function retireAudio(audio: HTMLAudioElement) {
+  if (audio.paused) {
+    audio.currentTime = 0
+    return
+  }
+  fadeTo(audio, 0, () => {
+    audio.pause()
+    audio.currentTime = 0
+  })
+}
+
 function stopMusic() {
   pendingTrack = null
   currentTrack = null
   if (!currentAudio) return
-  currentAudio.pause()
-  currentAudio.currentTime = 0
+  retireAudio(currentAudio)
   currentAudio = null
 }
 
 function playTrack(name: TrackName) {
-  if (currentTrack === name && currentAudio && !currentAudio.paused) return
+  if (currentTrack === name && currentAudio && (!currentAudio.paused || suspended)) return
   stopMusic()
   currentTrack = name
 
@@ -70,13 +126,25 @@ function playTrack(name: TrackName) {
   audio.loop = true
   audio.preload = 'auto'
   currentAudio = audio
-  applyGain()
+  audio.muted = _muted
+  audio.volume = 0 // crossfade in from silence
 
-  audio.play().catch(() => {
-    if (currentTrack !== name) return
-    pendingTrack = name
-    registerUnlockListener()
-  })
+  if (suspended) return // resume() starts playback when the app returns
+
+  const started = audio.play()
+  if (started && typeof started.then === 'function') {
+    started
+      .then(() => {
+        if (currentAudio === audio) fadeTo(audio, targetVolume())
+      })
+      .catch(() => {
+        if (currentTrack !== name) return
+        pendingTrack = name
+        registerUnlockListener()
+      })
+  } else {
+    fadeTo(audio, targetVolume())
+  }
 }
 
 export const Music = {
@@ -94,6 +162,26 @@ export const Music = {
   },
   stop() {
     stopMusic()
+  },
+
+  /** App went to the background: pause without losing the selection. */
+  suspend() {
+    suspended = true
+    if (!currentAudio) return
+    cancelFade(currentAudio)
+    currentAudio.pause()
+  },
+
+  /** App is visible again: pick up where suspend() left off. */
+  resume() {
+    if (!suspended) return
+    suspended = false
+    if (!currentAudio) return
+    applyGain()
+    // jsdom's play() returns undefined — guard before chaining.
+    currentAudio.play()?.catch(() => {
+      /* autoplay refusal — the next user gesture restarts music */
+    })
   },
 
   get muted() {

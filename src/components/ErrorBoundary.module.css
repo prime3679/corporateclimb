@@ -1,5 +1,7 @@
 .fallback {
+  /* dvh tracks the mobile URL bar; the vh line is the older-browser fallback. */
   min-height: 100vh;
+  min-height: 100dvh;
   display: flex;
   flex-direction: column;
   align-items: center;

@@ -1,6 +1,8 @@
 .backdrop {
   width: 100%;
+  /* dvh tracks the mobile URL bar; the vh line is the older-browser fallback. */
   height: 100vh;
+  height: 100dvh;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,4 +1,5 @@
-import type { ButtonHTMLAttributes, ReactNode } from 'react'
+import type { ButtonHTMLAttributes, MouseEvent, ReactNode } from 'react'
+import { Haptics } from '@/platform'
 import styles from './Button.module.css'
 
 export type ButtonVariant = 'primary' | 'secondary' | 'accent' | 'paper' | 'ghost'
@@ -14,6 +15,7 @@ export default function Button({
   size = 'md',
   className,
   children,
+  onClick,
   ...rest
 }: {
   variant?: ButtonVariant
@@ -23,8 +25,12 @@ export default function Button({
   const classes = [styles.button, styles[variant], styles[size], className]
     .filter(Boolean)
     .join(' ')
+  const handleClick = (e: MouseEvent<HTMLButtonElement>) => {
+    Haptics.selection()
+    onClick?.(e)
+  }
   return (
-    <button className={classes} {...rest}>
+    <button className={classes} onClick={handleClick} {...rest}>
       {children}
     </button>
   )

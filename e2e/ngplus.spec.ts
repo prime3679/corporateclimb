@@ -21,8 +21,9 @@ test('clearing the final floor wins the game and starts New Game+', async ({ pag
   await expect(page.getByText('VICTORY')).toBeVisible({ timeout: 10_000 })
   await page.getByRole('button', { name: /CONTINUE/ }).click({ timeout: 5_000 })
 
-  // Win screen.
+  // Win screen. A base-game win opens the Re-Org ladder alongside NG+.
   await expect(page.getByText('CONGRATULATIONS')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByRole('button', { name: /CLIMB HIGHER/ })).toBeVisible()
   const ngPlusBtn = page.getByRole('button', { name: /NEW GAME\+/ })
   await expect(ngPlusBtn).toBeVisible()
   await ngPlusBtn.click()
