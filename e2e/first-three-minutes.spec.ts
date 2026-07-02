@@ -24,7 +24,13 @@ test('daily first battle has mobile-friendly commands and satisfying hit feedbac
   page,
 }) => {
   await page.goto('/')
-  await page.evaluate(() => localStorage.clear())
+  await page.evaluate(() => {
+    localStorage.clear()
+    // Today's daily enemy types vary by date, so whether the type-matchup
+    // coach-mark applies here is nondeterministic — pre-dismiss it and
+    // leave hint behavior to e2e/onboarding.spec.ts.
+    localStorage.setItem('corporate-climb-seen-hint', '1')
+  })
   await page.reload()
 
   await page.getByRole('button', { name: 'DAILY CHALLENGE' }).click()
@@ -36,10 +42,6 @@ test('daily first battle has mobile-friendly commands and satisfying hit feedbac
   await expect(fightTab).toBeVisible({ timeout: 10_000 })
   await expect(page.getByText('TAP A MOVE')).toBeVisible()
 
-  // A virgin profile gets the type-matchup coach-mark exactly once:
-  // it's up before the first move and gone for good after it.
-  await expect(page.getByText(/super effective/)).toBeVisible()
-
   const firstMove = page.locator('[data-testid="move-button"]').first()
   await expect(firstMove).toBeVisible()
   await firstMove.click()
@@ -47,17 +49,4 @@ test('daily first battle has mobile-friendly commands and satisfying hit feedbac
   await expect(page.getByText(/NICE HIT|Super effective!|Not effective\.\.\./)).toBeVisible({
     timeout: 2_000,
   })
-  await expect(page.getByRole('note')).toBeHidden()
-
-  // Still dismissed after a reload (persisted, not just component state).
-  await page.reload()
-  await expect(page.getByRole('button', { name: 'DAILY CHALLENGE' })).toBeVisible({
-    timeout: 15_000,
-  })
-  await page.getByRole('button', { name: 'DAILY CHALLENGE' }).click()
-  await page.getByRole('button', { name: 'BEGIN CHALLENGE' }).click()
-  await expect(page.getByText('TAP TO BATTLE')).toBeVisible({ timeout: 10_000 })
-  await page.locator('#root').click()
-  await expect(page.getByRole('button', { name: 'FIGHT' })).toBeVisible({ timeout: 10_000 })
-  await expect(page.getByRole('note')).toBeHidden()
 })

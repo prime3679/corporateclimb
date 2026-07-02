@@ -9,6 +9,7 @@ import type {
   ItemId,
 } from '@/types'
 import { ITEMS, TOTAL_FLOORS, TYPE_COLORS, getAct, getTypeMultiplier } from '@/data'
+import { battleHintApplicable } from '@/onboarding'
 import { getScene } from '@/ui/scenes'
 import SceneBackdrop from '@/components/SceneBackdrop'
 import StagedSprite from '@/components/StagedSprite'
@@ -94,6 +95,9 @@ export default function BattleScreen({
   const sc = getScene(act, Math.min(floor % 10, 4))
   const [showLog, setShowLog] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
+  // The coach-mark waits for a battle it can actually demonstrate in;
+  // an unshown hint survives (undismissed) to a later floor.
+  const hintVisible = !!showHint && battleHintApplicable(activeMoves, enemy.types)
 
   // Scrollback opens at the latest line.
   useEffect(() => {
@@ -309,7 +313,7 @@ export default function BattleScreen({
 
         {turn === 'player' && (
           <>
-            {showHint && (
+            {hintVisible && (
               <div
                 className="t-body"
                 role="note"
@@ -389,7 +393,7 @@ export default function BattleScreen({
                     currentPp={i < playerPp.length ? playerPp[i] : m.pp}
                     disabled={i < playerPp.length && playerPp[i] <= 0}
                     onClick={() => {
-                      if (showHint) onHintDismiss?.()
+                      if (hintVisible) onHintDismiss?.()
                       onMove(i)
                     }}
                     effectiveness={

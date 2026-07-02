@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it } from 'vitest'
 import {
   INSTALL_NUDGE_COOLDOWN_MS,
   INSTALL_NUDGE_MAX,
+  battleHintApplicable,
   markBattleHintSeen,
   markInstallNudgeShown,
   nudgeAllowed,
@@ -24,6 +25,14 @@ describe('first-battle hint', () => {
   it('never shows to a player with run history', () => {
     recordRunEnd(newRun(PLAYER_CLASSES[0]), { won: false, floorReached: 3 })
     expect(shouldShowBattleHint()).toBe(false)
+  })
+
+  it('only applies to battles where a ▲ actually exists', () => {
+    const pm = PLAYER_CLASSES.find((c) => c.id === 'pm')!
+    // NORM-type Intern: every matchup is neutral — nothing to point at.
+    expect(battleHintApplicable(pm.moves, ['normal'])).toBe(false)
+    // Influence-type Recruiter: the PM's strategy move is super effective.
+    expect(battleHintApplicable(pm.moves, ['influence'])).toBe(true)
   })
 })
 

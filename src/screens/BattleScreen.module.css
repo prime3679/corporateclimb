@@ -72,6 +72,10 @@
   padding: 9px 10px 10px;
   background: linear-gradient(180deg, rgba(5, 7, 13, 0.12), rgba(5, 7, 13, 0.76));
   border-top: 1px solid rgba(255, 255, 255, 0.08);
+  /* Keep the player-turn footprint while only the text box is mounted
+     during playback — otherwise the battlefield balloons into a pale
+     empty band each enemy turn and snaps back. */
+  min-height: 322px;
 }
 
 .tabs {
@@ -171,6 +175,7 @@
   .commandDeck {
     gap: 8px;
     padding: 10px 10px 12px;
+    min-height: 338px;
   }
 
   .cardGrid {

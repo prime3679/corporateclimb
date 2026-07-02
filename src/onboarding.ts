@@ -3,6 +3,8 @@
 // Storage access is try/catch throughout; when storage is unavailable
 // we err on the side of showing nothing (no nag loops).
 
+import type { Move, MoveType } from './types'
+import { getTypeMultiplier } from './data'
 import { getRunHistory } from './history'
 import { canInstall, isIOS, isStandalone } from './platform'
 
@@ -28,6 +30,16 @@ export function markBattleHintSeen() {
   } catch {
     /* storage unavailable */
   }
+}
+
+/**
+ * The type-matchup hint only teaches when a ▲ is actually on screen —
+ * against a NORM-type floor-1 Intern it would point at a marker that
+ * doesn't exist, so the hint waits for the first battle where a move
+ * is genuinely super effective.
+ */
+export function battleHintApplicable(moves: Move[], enemyTypes: MoveType[]): boolean {
+  return moves.some((m) => getTypeMultiplier(m.type, enemyTypes).mult > 1)
 }
 
 interface NudgeState {
