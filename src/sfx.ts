@@ -1,6 +1,12 @@
 // ─── CORPORATE CLIMB SOUND EFFECTS via audio assets ───────────
-// Short office-world SFX live in /public/audio. Volume is independent
-// from music and falls back silently in test/non-browser contexts.
+// Short office-world SFX live in /public/audio. Playback goes through
+// a single AudioContext with a decoded buffer pool (created and warmed
+// on the first user gesture) — per-play `new Audio()` had first-play
+// fetch latency and hit iOS's concurrent-element throttle on rapid
+// combos. Contexts without WebAudio (jsdom, ancient browsers) and
+// samples not yet decoded fall back to the old HTMLAudio path.
+// Volume is independent from music and falls back silently in
+// test/non-browser contexts.
 
 let _volume = 1
 
@@ -38,13 +44,99 @@ function canPlayAudio() {
   return typeof window !== 'undefined' && typeof Audio !== 'undefined'
 }
 
+// ─── WebAudio engine ────────────────────────────────────────
+
+let ctx: AudioContext | null = null
+let masterGain: GainNode | null = null
+const buffers = new Map<SampleName, AudioBuffer>()
+let preloadStarted = false
+let unlockRegistered = false
+
+function audioContextCtor(): typeof AudioContext | undefined {
+  if (typeof window === 'undefined') return undefined
+  return (
+    window.AudioContext ??
+    (window as { webkitAudioContext?: typeof AudioContext }).webkitAudioContext
+  )
+}
+
+function ensureContext(): AudioContext | null {
+  const Ctor = audioContextCtor()
+  if (!Ctor) return null
+  if (!ctx) {
+    try {
+      ctx = new Ctor()
+      masterGain = ctx.createGain()
+      masterGain.gain.value = _volume
+      masterGain.connect(ctx.destination)
+    } catch {
+      ctx = null
+      masterGain = null
+      return null
+    }
+  }
+  if (ctx.state === 'suspended') ctx.resume().catch(() => {})
+  return ctx
+}
+
+/** Fetch + decode every sample into the pool (off the critical path). */
+async function preloadAll() {
+  const c = ensureContext()
+  if (!c || preloadStarted) return
+  preloadStarted = true
+  await Promise.all(
+    (Object.keys(SAMPLES) as SampleName[]).map(async (name) => {
+      try {
+        const res = await fetch(SAMPLES[name])
+        if (!res.ok) return
+        buffers.set(name, await c.decodeAudioData(await res.arrayBuffer()))
+      } catch {
+        /* sample stays on the HTMLAudio fallback */
+      }
+    }),
+  )
+}
+
+// Autoplay policies gate AudioContexts on user activation, so the
+// engine warms up on the first gesture (same pattern as music.ts).
+function registerUnlockListener() {
+  if (unlockRegistered || typeof window === 'undefined') return
+  unlockRegistered = true
+  const unlock = () => {
+    void preloadAll()
+  }
+  window.addEventListener('pointerdown', unlock, { once: true, capture: true })
+  window.addEventListener('keydown', unlock, { once: true, capture: true })
+}
+registerUnlockListener()
+
 function playSample(name: SampleName, volume = 1, rateJitter = 0) {
-  if (_volume <= 0 || !canPlayAudio()) return
+  if (_volume <= 0) return
+
+  const buf = buffers.get(name)
+  if (buf && ctx && masterGain) {
+    try {
+      const source = ctx.createBufferSource()
+      source.buffer = buf
+      if (rateJitter > 0) source.playbackRate.value = 1 + (Math.random() * 2 - 1) * rateJitter
+      const gain = ctx.createGain()
+      gain.gain.value = Math.min(1, Math.max(0, volume))
+      source.connect(gain)
+      gain.connect(masterGain)
+      source.start()
+      return
+    } catch {
+      /* fall through to the element path */
+    }
+  }
+
+  if (!canPlayAudio()) return
   const audio = new Audio(SAMPLES[name])
   audio.preload = 'auto'
   audio.volume = Math.min(1, Math.max(0, _volume * volume))
   if (rateJitter > 0) audio.playbackRate = 1 + (Math.random() * 2 - 1) * rateJitter
-  audio.play().catch(() => {})
+  // jsdom's play() returns undefined — guard before chaining.
+  audio.play()?.catch(() => {})
 }
 
 function playSequence(samples: Array<[SampleName, number, number?]>) {
@@ -61,6 +153,7 @@ export const SFX = {
   /** Sound-effect volume 0..1. 0 silences all SFX. */
   setVolume(volume: number) {
     _volume = Math.min(1, Math.max(0, volume))
+    if (masterGain) masterGain.gain.value = _volume
   },
 
   // Menu / UI
