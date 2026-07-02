@@ -6,6 +6,7 @@
 // applying the remaining patches without the delays).
 
 import { SFX } from './sfx'
+import { Haptics } from './platform'
 import { TYPE_COLORS } from './data'
 import type { BattleEvent, Side } from './engine'
 import type { AnimState, DamagePopup, StatusInstance } from './types'
@@ -139,6 +140,11 @@ export class Sequencer {
         else if (e.eff === 'weak') SFX.notEffective()
         else if (e.crit) SFX.critHit()
         else SFX.hit()
+        // Haptic weight follows the beat: crits/super hits land heavy,
+        // damage taken lands harder than damage dealt.
+        Haptics.impact(
+          e.crit || e.eff === 'super' ? 'heavy' : e.target === 'player' ? 'medium' : 'light',
+        )
         const label =
           e.eff === 'super'
             ? 'Super effective!'
@@ -160,7 +166,10 @@ export class Sequencer {
         break
       }
       case 'heal':
-        if (e.target === 'player') SFX.heal()
+        if (e.target === 'player') {
+          SFX.heal()
+          Haptics.selection()
+        }
         this.addPopup(makePopup(e.amount, e.target, { heal: true }))
         this.update((v) => ({ ...v, ...patch }))
         break
@@ -178,10 +187,12 @@ export class Sequencer {
         break
       case 'phase2':
         SFX.bossIntro()
+        Haptics.warning()
         this.update((v) => ({ ...v, ...patch, shake: true }))
         break
       case 'faint':
         SFX.faint()
+        Haptics.impact('heavy')
         this.update((v) => ({ ...v, ...patch, [this.animKey(e.side)]: 'faint' }))
         break
       case 'log':

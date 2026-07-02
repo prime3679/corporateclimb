@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SFX } from './sfx'
 import { Music } from './music'
+import { Haptics, WakeLock } from './platform'
 import { buildSpriteUrls } from './sprites'
 import type { HallwayEvent, Move, PerkId, PlayerClass, RelicId, Screen } from './types'
 import { Button, Stage } from './ui'
@@ -208,8 +209,15 @@ export default function CorporateClimb() {
   useEffect(() => {
     Music.setVolume(settings.musicVolume)
     SFX.setVolume(settings.sfxVolume)
+    Haptics.setEnabled(settings.haptics)
     saveSettings(settings)
   }, [settings])
+
+  // Keep the screen awake while a battle is on.
+  useEffect(() => {
+    if (screen === 'battle') void WakeLock.acquire()
+    else void WakeLock.release()
+  }, [screen])
 
   // Escape closes whichever overlay panel is open.
   useEffect(() => {

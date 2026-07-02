@@ -3,6 +3,7 @@ import type { PerkId, PlayerClass, AchievementId, AchievementDef } from '@/types
 import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
+import { share } from '@/platform'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -54,15 +55,9 @@ export default function RunCompleteScreen({
   const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corporateclimb.vercel.app`
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: shareText })
-        setShared(true)
-      } catch {
-        // User cancelled share
-      }
-    } else {
-      await navigator.clipboard.writeText(shareText)
+    const result = await share(shareText)
+    if (result === 'shared') setShared(true)
+    else if (result === 'copied') {
       setShared(true)
       setTimeout(() => setShared(false), 2000)
     }

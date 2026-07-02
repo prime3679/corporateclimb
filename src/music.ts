@@ -17,6 +17,8 @@ let _muted = false
 let _volume = 1
 let pendingTrack: TrackName | null = null
 let unlockListenerRegistered = false
+/** App backgrounded: playback paused but the track selection kept. */
+let suspended = false
 
 function hasUserActivation() {
   if (typeof navigator === 'undefined') return true
@@ -56,7 +58,7 @@ function stopMusic() {
 }
 
 function playTrack(name: TrackName) {
-  if (currentTrack === name && currentAudio && !currentAudio.paused) return
+  if (currentTrack === name && currentAudio && (!currentAudio.paused || suspended)) return
   stopMusic()
   currentTrack = name
 
@@ -71,6 +73,8 @@ function playTrack(name: TrackName) {
   audio.preload = 'auto'
   currentAudio = audio
   applyGain()
+
+  if (suspended) return // resume() starts playback when the app returns
 
   audio.play().catch(() => {
     if (currentTrack !== name) return
@@ -94,6 +98,21 @@ export const Music = {
   },
   stop() {
     stopMusic()
+  },
+
+  /** App went to the background: pause without losing the selection. */
+  suspend() {
+    suspended = true
+    currentAudio?.pause()
+  },
+
+  /** App is visible again: pick up where suspend() left off. */
+  resume() {
+    if (!suspended) return
+    suspended = false
+    currentAudio?.play().catch(() => {
+      /* autoplay refusal — the next user gesture restarts music */
+    })
   },
 
   get muted() {

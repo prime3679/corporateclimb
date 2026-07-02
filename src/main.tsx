@@ -9,6 +9,13 @@ import '@fontsource/space-grotesk/600.css'
 import '@fontsource/space-grotesk/700.css'
 import './ui/global.css'
 import App from './App'
+import { registerInstallCapture, registerLifecycle } from './platform'
+
+// Platform services that must be listening before the app mounts:
+// beforeinstallprompt can fire early, and backgrounding should always
+// pause music regardless of which screen is up.
+registerInstallCapture()
+registerLifecycle()
 
 createRoot(document.getElementById('root')!).render(<App />)
 
