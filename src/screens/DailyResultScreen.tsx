@@ -10,6 +10,7 @@ import {
 import { Button } from '@/ui'
 import { share } from '@/platform'
 import DailyLeaderboard from '@/components/DailyLeaderboard'
+import InstallNudge from '@/components/InstallNudge'
 
 export default function DailyResultScreen({
   player,
@@ -195,6 +196,8 @@ export default function DailyResultScreen({
         floorsCleared={floorsCleared}
         won={won}
       />
+
+      <InstallNudge />
 
       <Button variant="ghost" size="md" onClick={onBack}>
         BACK TO TITLE

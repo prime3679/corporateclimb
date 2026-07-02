@@ -42,6 +42,7 @@ import DailyPreScreen from './screens/DailyPreScreen'
 import DailyResultScreen from './screens/DailyResultScreen'
 import { DAILY_FLOOR_COUNT, calculateDailyScore, saveDailyResult } from './daily'
 import { getLifetimeStats, recordRunEnd, type RunRecord } from './history'
+import { markBattleHintSeen, shouldShowBattleHint } from './onboarding'
 import { STRUGGLE_MOVE } from './battle'
 import {
   GameRng,
@@ -146,6 +147,12 @@ export default function CorporateClimb() {
   const [showCareer, setShowCareer] = useState(false)
   /** The just-finished run's history record, shown on the game-over screen. */
   const [lastRecord, setLastRecord] = useState<RunRecord | null>(null)
+  /** First-run coach-mark: evaluated once, dismissed forever. */
+  const [showBattleHint, setShowBattleHint] = useState(shouldShowBattleHint)
+  const dismissBattleHint = useCallback(() => {
+    markBattleHintSeen()
+    setShowBattleHint(false)
+  }, [])
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -829,6 +836,8 @@ export default function CorporateClimb() {
             stockOptions={run.stockOptions}
             onTextTap={() => sequencer.skip()}
             textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
+            showHint={showBattleHint}
+            onHintDismiss={dismissBattleHint}
           />
         )}
         {screen === 'victory' && run && enemy && (

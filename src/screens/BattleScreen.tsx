@@ -51,6 +51,8 @@ export default function BattleScreen({
   stockOptions,
   onTextTap,
   textMsPerChar,
+  showHint,
+  onHintDismiss,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -84,6 +86,9 @@ export default function BattleScreen({
   onTextTap?: () => void
   /** Typewriter speed for the battle text box (0 = instant). */
   textMsPerChar?: number
+  /** First-run coach-mark for type matchups. */
+  showHint?: boolean
+  onHintDismiss?: () => void
 }) {
   const act = getAct(floor)
   const sc = getScene(act, Math.min(floor % 10, 4))
@@ -304,6 +309,47 @@ export default function BattleScreen({
 
         {turn === 'player' && (
           <>
+            {showHint && (
+              <div
+                className="t-body"
+                role="note"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 10px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(255,211,77,.45)',
+                  background: 'rgba(255,193,7,.12)',
+                  fontSize: 'var(--body-sm)',
+                  color: 'var(--paper)',
+                  lineHeight: 1.25,
+                }}
+              >
+                <span aria-hidden="true" style={{ fontSize: 16 }}>
+                  💡
+                </span>
+                <span style={{ flex: 1 }}>
+                  Moves marked <b style={{ color: 'var(--gold-bright)' }}>▲</b> are super effective
+                  against this enemy's type — exploit them.
+                </span>
+                <button
+                  onClick={onHintDismiss}
+                  className="t-display"
+                  style={{
+                    fontSize: 'var(--display-2xs)',
+                    color: 'var(--cc-on-accent)',
+                    background: 'var(--gold-bright)',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  GOT IT
+                </button>
+              </div>
+            )}
             <div className={styles.commandHint}>TAP A MOVE • HOLD THE LADDER</div>
             {/* Mode tabs */}
             <div className={styles.tabs}>
@@ -342,7 +388,10 @@ export default function BattleScreen({
                     move={m}
                     currentPp={i < playerPp.length ? playerPp[i] : m.pp}
                     disabled={i < playerPp.length && playerPp[i] <= 0}
-                    onClick={() => onMove(i)}
+                    onClick={() => {
+                      if (showHint) onHintDismiss?.()
+                      onMove(i)
+                    }}
                     effectiveness={
                       getTypeMultiplier(m.type, enemy.types).mult > 1
                         ? 'super'

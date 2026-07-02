@@ -4,6 +4,7 @@ import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
 import { share } from '@/platform'
+import InstallNudge from '@/components/InstallNudge'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -400,6 +401,7 @@ export default function RunCompleteScreen({
         <Button variant="ghost" size="md" onClick={onRestart}>
           RESTART
         </Button>
+        <InstallNudge />
         {bestNgLevel > 0 && (
           <div
             className="t-body"

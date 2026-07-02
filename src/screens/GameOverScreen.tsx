@@ -3,6 +3,7 @@ import type { PlayerClass } from '@/types'
 import { CURRENCY_ICON, getAscensionTier, groupPerks } from '@/data'
 import type { LifetimeStats, RunRecord } from '@/history'
 import { share } from '@/platform'
+import InstallNudge from '@/components/InstallNudge'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -236,6 +237,8 @@ export default function GameOverScreen({
           {shared ? 'COPIED!' : 'SHARE'}
         </Button>
       </div>
+
+      <InstallNudge />
     </div>
   )
 }
