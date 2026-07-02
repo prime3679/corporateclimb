@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
+import { getDailyStreak, hasPlayedToday } from '@/daily'
+import { getLifetimeStats } from '@/history'
 import { Button } from '@/ui'
 
 export default function TitleScreen({
@@ -15,6 +17,9 @@ export default function TitleScreen({
 }) {
   const [confirmNew, setConfirmNew] = useState(false)
   const sprites = getSpriteUrls()
+  const streak = getDailyStreak()
+  const playedToday = hasPlayedToday()
+  const lifetime = getLifetimeStats()
 
   // Starting over with a save in place erases it — make that explicit.
   const handleStart = () => {
@@ -328,6 +333,30 @@ export default function TitleScreen({
       <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
         DAILY CHALLENGE
       </Button>
+
+      {(streak.current > 0 || lifetime.bestFloor > 0) && (
+        <div
+          className="t-body"
+          style={{
+            zIndex: 2,
+            display: 'flex',
+            gap: 12,
+            fontSize: 'var(--body-sm)',
+            color: 'var(--muted-light)',
+            padding: '3px 12px',
+            borderRadius: 999,
+            background: 'rgba(5,7,13,.72)',
+            border: '1px solid var(--cc-line-faint)',
+          }}
+        >
+          {streak.current > 0 && (
+            <span>
+              🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
+            </span>
+          )}
+          {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
+        </div>
+      )}
 
       <Button variant="ghost" size="sm" onClick={onCodex} style={{ zIndex: 2 }}>
         📖 CODEX

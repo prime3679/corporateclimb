@@ -39,6 +39,7 @@ import ActTransitionScreen from './screens/ActTransitionScreen'
 import DailyPreScreen from './screens/DailyPreScreen'
 import DailyResultScreen from './screens/DailyResultScreen'
 import { DAILY_FLOOR_COUNT, calculateDailyScore, saveDailyResult } from './daily'
+import { getLifetimeStats, recordRunEnd, type RunRecord } from './history'
 import { STRUGGLE_MOVE } from './battle'
 import {
   GameRng,
@@ -140,6 +141,8 @@ export default function CorporateClimb() {
   const [settings, setSettings] = useState(loadSettings)
   const [showSettings, setShowSettings] = useState(false)
   const [showCareer, setShowCareer] = useState(false)
+  /** The just-finished run's history record, shown on the game-over screen. */
+  const [lastRecord, setLastRecord] = useState<RunRecord | null>(null)
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -291,6 +294,11 @@ export default function CorporateClimb() {
 
   const handleLoss = useCallback(
     (lossRun: RunState) => {
+      const record = recordRunEnd(lossRun, {
+        won: false,
+        floorReached: lossRun.floor + 1,
+        defeatedBy: resolveEnemy(lossRun, 1).name,
+      })
       if (lossRun.mode.kind === 'daily') {
         const mode = lossRun.mode
         saveDailyResult({
@@ -313,6 +321,7 @@ export default function CorporateClimb() {
         SFX.gameOver()
         setScreen('dailyResult')
       } else {
+        setLastRecord(record)
         clearSave()
         SFX.gameOver()
         setScreen('gameOver')
@@ -489,6 +498,7 @@ export default function CorporateClimb() {
 
     const totalFloors = next.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
     if (next.floor >= totalFloors - 1) {
+      recordRunEnd(next, { won: true, floorReached: totalFloors })
       if (next.mode.kind === 'daily') {
         const mode = next.mode
         saveDailyResult({
@@ -870,7 +880,15 @@ export default function CorporateClimb() {
             onBack={handleDailyBack}
           />
         )}
-        {screen === 'gameOver' && <GameOverScreen floor={floor + 1} onRestart={restart} />}
+        {screen === 'gameOver' && (
+          <GameOverScreen
+            floor={floor + 1}
+            onRestart={restart}
+            player={player}
+            record={lastRecord}
+            lifetime={getLifetimeStats()}
+          />
+        )}
         {screen === 'win' && run && player && (
           <RunCompleteScreen
             player={effectivePlayer || player}

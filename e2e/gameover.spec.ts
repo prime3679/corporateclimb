@@ -38,5 +38,14 @@ test('losing a battle reaches Game Over without a dead-player turn', async ({ pa
   await expect(page.getByText('GAME OVER')).toBeVisible({ timeout: 10_000 })
   // A doomed run must never slip into a victory.
   await expect(page.getByText('VICTORY')).toBeHidden()
+
+  // The exit-interview stat card and lifetime context are the retention
+  // surface of the loss screen — they must render with the run's data.
+  await expect(page.getByText('Exit Interview')).toBeVisible()
+  await expect(page.getByText('TURNS')).toBeVisible()
+  await expect(page.getByText('Taken down by')).toBeVisible()
+  await expect(page.getByText(/Run #1 ·/)).toBeVisible()
+  await expect(page.getByRole('button', { name: 'SHARE' })).toBeVisible()
+
   expect(pageErrors, 'no uncaught page errors on the death path').toEqual([])
 })
