@@ -9,6 +9,7 @@ import '@fontsource/space-grotesk/600.css'
 import '@fontsource/space-grotesk/700.css'
 import './ui/global.css'
 import App from './App'
+import { MUSIC_URLS } from './music'
 import { registerInstallCapture, registerLifecycle } from './platform'
 
 // Platform services that must be listening before the app mounts:
@@ -20,11 +21,27 @@ registerLifecycle()
 createRoot(document.getElementById('root')!).render(<App />)
 
 // Offline support: production only, so the dev server and e2e runs
-// never fight a stale cache.
+// never fight a stale cache. After the first user gesture the music
+// beds warm into the SW cache in the background (they're too heavy to
+// block install on).
 if (import.meta.env.PROD && 'serviceWorker' in navigator) {
   window.addEventListener('load', () => {
-    navigator.serviceWorker.register('/sw.js').catch(() => {
-      /* offline support is best-effort */
-    })
+    navigator.serviceWorker
+      .register('/sw.js')
+      .then(() => {
+        let warmed = false
+        const warm = () => {
+          if (warmed) return
+          warmed = true
+          navigator.serviceWorker.ready
+            .then((reg) => reg.active?.postMessage({ type: 'WARM_MUSIC', urls: MUSIC_URLS }))
+            .catch(() => {})
+        }
+        window.addEventListener('pointerdown', warm, { once: true })
+        window.addEventListener('keydown', warm, { once: true })
+      })
+      .catch(() => {
+        /* offline support is best-effort */
+      })
   })
 }

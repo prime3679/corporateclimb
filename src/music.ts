@@ -14,6 +14,9 @@ const TRACKS: Record<TrackName, string> = {
   event: '/audio/music_gameplay_pressure_review.mp3',
 }
 
+/** Every bed, for the service worker's background warm-up. */
+export const MUSIC_URLS: string[] = Object.values(TRACKS)
+
 let currentTrack: TrackName | null = null
 let currentAudio: HTMLAudioElement | null = null
 let _muted = false
