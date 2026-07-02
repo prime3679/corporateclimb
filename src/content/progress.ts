@@ -52,10 +52,10 @@ export function getClassAscension(classId: string): AscensionProgress {
 
 /** Highest tier cleared by any class (-1 = the ladder hasn't started). */
 export function getBestAscension(): number {
-  return Object.values(getAscensionProgress()).reduce(
-    (best, p) => Math.max(best, Number(p.best) ?? -1),
-    -1,
-  )
+  return Object.values(getAscensionProgress()).reduce((best, p) => {
+    const b = Number(p.best)
+    return Number.isFinite(b) ? Math.max(best, b) : best
+  }, -1)
 }
 
 export function recordAscensionWin(classId: string, level: number) {
