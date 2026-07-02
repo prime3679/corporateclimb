@@ -42,6 +42,10 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="theme-color" content="#263238" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="CorpClimb" />
 
     <style>
       * {
@@ -65,10 +69,65 @@
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
           env(safe-area-inset-left);
       }
+      /* Pre-hydration splash: static markup React replaces on mount, so
+         the first paint is branded instead of a blank void. The sprite
+         preloader screen mirrors this layout for a seamless handoff. */
+      .boot-splash {
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 20px;
+        background: #06080c;
+      }
+      .boot-splash svg {
+        width: 76px;
+        height: 76px;
+        animation: boot-pulse 1.3s ease-in-out infinite;
+      }
+      .boot-wordmark {
+        font-family:
+          system-ui,
+          -apple-system,
+          sans-serif;
+        font-weight: 800;
+        font-size: 19px;
+        letter-spacing: 0.3em;
+        color: #f2f6fa;
+        text-indent: 0.3em; /* visually recenters the tracked-out caps */
+      }
+      @keyframes boot-pulse {
+        0%,
+        100% {
+          opacity: 0.55;
+          transform: scale(1);
+        }
+        50% {
+          opacity: 1;
+          transform: scale(1.05);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .boot-splash svg {
+          animation: none;
+        }
+      }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="boot-splash" aria-hidden="true">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+          <rect x="6" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+          <rect x="22" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+          <rect x="6" y="8" width="20" height="3" rx="1" fill="#ffd54f" />
+          <rect x="6" y="16" width="20" height="3" rx="1" fill="#ffd54f" />
+          <rect x="6" y="24" width="20" height="3" rx="1" fill="#ffd54f" />
+        </svg>
+        <div class="boot-wordmark">CORPORATE CLIMB</div>
+      </div>
+    </div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

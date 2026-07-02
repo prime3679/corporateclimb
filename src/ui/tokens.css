@@ -68,6 +68,12 @@
   --cc-r-chip: 5px;
   --cc-accent-bar: 4px; /* type-colored card edge */
 
+  /* Mobile floors (design units): no text below --text-floor, nothing
+     interactive shorter than --tap-min — the Stage scale can shrink
+     physical sizes ~17% on small phones, these keep the result usable. */
+  --text-floor: 10px;
+  --tap-min: 54px;
+
   /* Elevation (soft, no spread) */
   --cc-shadow-plate: 0 8px 26px rgba(0, 0, 0, 0.4);
 

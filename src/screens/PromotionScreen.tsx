@@ -273,7 +273,7 @@ export default function PromotionScreen({
                     key={tag}
                     className="t-display"
                     style={{
-                      fontSize: 8.5,
+                      fontSize: 10.5,
                       color: '#05070d',
                       background: KIND_COLORS[perk.kind],
                       borderRadius: 999,

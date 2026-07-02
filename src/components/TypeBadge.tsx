@@ -10,7 +10,7 @@ export default function TypeBadge({ type }: { type: MoveType }) {
       style={{
         fontFamily: 'var(--cc-font-body)',
         fontWeight: 700,
-        fontSize: 9,
+        fontSize: 10,
         padding: '2px 6px',
         background: color,
         color: '#fff',

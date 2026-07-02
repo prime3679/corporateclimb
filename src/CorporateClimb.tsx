@@ -211,6 +211,18 @@ export default function CorporateClimb() {
     saveSettings(settings)
   }, [settings])
 
+  // Escape closes whichever overlay panel is open.
+  useEffect(() => {
+    if (!showSettings && !showCareer) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setShowSettings(false)
+      setShowCareer(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showSettings, showCareer])
+
   // Music: play track based on current screen
   const floor = run?.floor ?? 0
   useEffect(() => {
@@ -614,6 +626,8 @@ export default function CorporateClimb() {
   }
 
   if (!spritesReady) {
+    // Mirrors the pre-hydration .boot-splash in index.html so first paint,
+    // sprite preload, and the title screen read as one continuous sequence.
     return (
       <Stage>
         <div
@@ -623,15 +637,36 @@ export default function CorporateClimb() {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            gap: 12,
-            color: 'var(--sky)',
+            gap: 20,
           }}
         >
-          <div className="t-display" style={{ fontSize: 'var(--display-md)' }}>
-            LOADING...
-          </div>
-          <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted)' }}>
-            Preparing sprites
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 32 32"
+            aria-hidden="true"
+            style={{
+              width: 76,
+              height: 76,
+              animation: settings.reduceMotion ? undefined : 'pulse 1.3s ease-in-out infinite',
+            }}
+          >
+            <rect x="6" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+            <rect x="22" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+            <rect x="6" y="8" width="20" height="3" rx="1" fill="#ffd54f" />
+            <rect x="6" y="16" width="20" height="3" rx="1" fill="#ffd54f" />
+            <rect x="6" y="24" width="20" height="3" rx="1" fill="#ffd54f" />
+          </svg>
+          <div
+            className="t-body"
+            style={{
+              fontWeight: 800,
+              fontSize: 19,
+              letterSpacing: '0.3em',
+              textIndent: '0.3em',
+              color: 'var(--cc-text)',
+            }}
+          >
+            CORPORATE CLIMB
           </div>
         </div>
       </Stage>

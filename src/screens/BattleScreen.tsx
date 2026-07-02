@@ -95,9 +95,14 @@ export default function BattleScreen({
     if (showLog) logEndRef.current?.scrollIntoView()
   }, [showLog, log.length])
 
-  // Keyboard: 1-4 fire the corresponding move on the player's turn.
+  // Keyboard: 1-4 fire the corresponding move on the player's turn;
+  // Escape closes the log scrollback.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowLog(false)
+        return
+      }
       if (turn !== 'player' || battleMode !== 'fight') return
       const idx = ['1', '2', '3', '4'].indexOf(e.key)
       if (idx < 0 || idx >= activeMoves.length) return
@@ -363,7 +368,7 @@ export default function BattleScreen({
                       >
                         <div className={styles.itemName}>
                           <span style={{ fontSize: 14 }}>{item.emoji}</span>
-                          <span style={{ fontSize: 9 }}>{item.name}</span>
+                          <span style={{ fontSize: 11 }}>{item.name}</span>
                         </div>
                         <div className={styles.itemDesc}>{item.desc}</div>
                       </button>

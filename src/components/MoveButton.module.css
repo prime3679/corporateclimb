@@ -51,12 +51,14 @@
   --mv-accent: var(--cc-type-normal);
 }
 
-.move:hover:not(:disabled) {
-  transform: translateY(-1px);
-  border-color: color-mix(in srgb, var(--mv-accent) 60%, transparent);
-  box-shadow:
-    var(--shadow-md),
-    0 0 0 1px color-mix(in srgb, var(--mv-accent) 24%, transparent);
+@media (hover: hover) {
+  .move:hover:not(:disabled) {
+    transform: translateY(-1px);
+    border-color: color-mix(in srgb, var(--mv-accent) 60%, transparent);
+    box-shadow:
+      var(--shadow-md),
+      0 0 0 1px color-mix(in srgb, var(--mv-accent) 24%, transparent);
+  }
 }
 
 .move:active:not(:disabled) {
