@@ -95,6 +95,7 @@ export default function FloorIntro({
   onReady,
   totalFloors,
   mystery,
+  treasure = false,
   ascension = 0,
 }: {
   enemy: Enemy
@@ -104,6 +105,8 @@ export default function FloorIntro({
   totalFloors?: number
   /** Revealed Mystery Floor outcome, if the unmarked elevator was taken. */
   mystery?: MysteryOutcome | null
+  /** This floor is a Supply Closet raid (half payout, cache on win). */
+  treasure?: boolean
   /** Active Re-Org tier, shown as a chip when above the base game. */
   ascension?: number
 }) {
@@ -319,6 +322,41 @@ export default function FloorIntro({
             }}
           >
             {getMysteryInfo(mystery).desc}
+          </div>
+        </div>
+      )}
+      {treasure && (
+        <div
+          style={{
+            border: '2px dashed var(--gold)',
+            borderRadius: 'var(--radius-md)',
+            padding: '8px 14px',
+            maxWidth: 320,
+            opacity: show ? 1 : 0,
+            transition: 'opacity 0.6s ease 0.2s',
+            background: 'rgba(255,193,7,0.1)',
+          }}
+        >
+          <div
+            className="t-display"
+            style={{
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--gold-bright)',
+              letterSpacing: 2,
+            }}
+          >
+            🗄️ SUPPLY RAID
+          </div>
+          <div
+            className="t-body"
+            style={{
+              fontSize: 'var(--body-sm)',
+              color: 'var(--paper)',
+              lineHeight: 1.2,
+              marginTop: 4,
+            }}
+          >
+            Win this one and help yourself. Half payout — Payroll is watching.
           </div>
         </div>
       )}

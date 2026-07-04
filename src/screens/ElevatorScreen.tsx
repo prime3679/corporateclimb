@@ -5,28 +5,35 @@ import styles from './InterludeScreen.module.css'
 /**
  * The elevator bank between floors: ride to the scheduled meeting,
  * take the Executive Track (an elite enemy for double payout and a
- * Status Symbol), or gamble on the unmarked Mystery Floor. Keys 1/2/3
- * select, matching the battle hotkeys.
+ * Status Symbol), or gamble on the unmarked Mystery Floor. On treasure
+ * floors a fourth door — the Supply Closet — stands ajar at the end of
+ * the hall. Keys 1/2/3/4 select, matching the battle hotkeys.
  */
 export default function ElevatorScreen({
   floorNumber,
   onPick,
   onPickMystery,
+  treasureOffered = false,
+  onPickTreasure,
 }: {
   /** 1-based floor number being entered. */
   floorNumber: number
   onPick: (elite: boolean) => void
   onPickMystery: () => void
+  /** The Supply Closet door is open on this floor. */
+  treasureOffered?: boolean
+  onPickTreasure?: () => void
 }) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === '1') onPick(false)
       if (e.key === '2') onPick(true)
       if (e.key === '3') onPickMystery()
+      if (e.key === '4' && treasureOffered) onPickTreasure?.()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onPick, onPickMystery])
+  }, [onPick, onPickMystery, treasureOffered, onPickTreasure])
 
   const card = (opts: {
     elite: boolean
@@ -112,7 +119,8 @@ export default function ElevatorScreen({
             THE ELEVATOR BANK
           </div>
           <div className={`t-body ${styles.caption}`} style={{ fontSize: 'var(--body-md)' }}>
-            Floor {floorNumber}. Three elevators. One choice.
+            Floor {floorNumber}.{' '}
+            {treasureOffered ? 'Three elevators and an open door.' : 'Three elevators.'} One choice.
           </div>
         </div>
 
@@ -176,6 +184,53 @@ export default function ElevatorScreen({
             </span>
           </button>
         </div>
+
+        {treasureOffered && (
+          <button
+            onClick={onPickTreasure}
+            className={styles.card}
+            style={{
+              width: '100%',
+              maxWidth: 390,
+              flexDirection: 'row',
+              justifyContent: 'flex-start',
+              gap: 14,
+              padding: '14px 16px',
+              background:
+                'linear-gradient(180deg, rgba(255,255,255,.07), transparent 30%), linear-gradient(180deg, rgba(34,32,18,.98), rgba(12,14,20,.96))',
+              border: '1px dashed rgba(255,211,77,0.5)',
+              cursor: 'pointer',
+              boxShadow: 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
+              textAlign: 'left',
+            }}
+          >
+            <IconChip glyph={getIconGlyph('🗄️', 'SUP')} tone="gold" size="lg" />
+            <span style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+              <span
+                className="t-display"
+                style={{
+                  fontSize: 'var(--display-2xs)',
+                  color: 'var(--gold-bright)',
+                  lineHeight: 1.7,
+                  textShadow: '0 1px 0 rgba(5,7,13,.42)',
+                }}
+              >
+                [4] THE SUPPLY CLOSET
+              </span>
+              <span
+                className="t-body"
+                style={{
+                  fontSize: 'var(--body-sm)',
+                  color: 'color-mix(in srgb, var(--muted-light) 88%, var(--paper) 12%)',
+                  lineHeight: 1.22,
+                  textShadow: '0 1px 0 rgba(5,7,13,.3)',
+                }}
+              >
+                Someone left it unlocked. Half payout — but pick 1 of 3 supplies after the win.
+              </span>
+            </span>
+          </button>
+        )}
       </div>
     </div>
   )

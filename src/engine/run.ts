@@ -16,12 +16,14 @@ import {
   PLAYER_CLASSES,
   RELIC_DUPLICATE_OPTIONS,
   STATUS_DEFS,
+  TREASURE_CONSOLATION_OPTIONS,
+  TREASURE_PAYOUT_MULT,
   getPromotion,
   rollFloorEnemies,
 } from '@/data'
 import { ascensionEffects } from './ascension'
 import { getVictoryPayout } from './economy'
-import { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
+import { rollMysteryOutcome, rollPerkOffer, rollRelicDrop, rollTreasureLoot } from './offers'
 import {
   createSeededRandom,
   getDailyFloorMap,
@@ -53,6 +55,8 @@ const FRESH_PROGRESS = {
   relics: [] as RelicId[],
   eliteFloor: false,
   mystery: null,
+  treasureFloor: false,
+  treasureLoot: null,
 }
 
 /** Unlock-dependent offer/drop pools, frozen onto the run at start. */
@@ -157,6 +161,8 @@ export function newNgPlusRun(run: RunState, cls: PlayerClass, pools?: RunPools):
     relics: [],
     eliteFloor: false,
     mystery: null,
+    treasureFloor: false,
+    treasureLoot: null,
     // Refresh pools: the win that led here may have unlocked content.
     perkPool: pools?.perkPool ?? run.perkPool,
     relicPool: pools?.relicPool ?? run.relicPool,
@@ -256,7 +262,14 @@ export function applyVictory(
 ): { run: RunState; xpGained: number; leveledUp: boolean; optionsGained: number } {
   const asc = ascensionEffects(run.ascension)
   const xpGained = 15 + run.floor * 7
-  const bonusMult = run.eliteFloor || run.mystery === 'windfall' ? ELITE_PAYOUT_MULT : 1
+  // Elite/windfall floors pay double; a Supply Closet raid skims the
+  // payout in kind — half the options, cache rolled separately.
+  const bonusMult =
+    run.eliteFloor || run.mystery === 'windfall'
+      ? ELITE_PAYOUT_MULT
+      : run.treasureFloor
+        ? TREASURE_PAYOUT_MULT
+        : 1
   const optionsGained = Math.round(
     getVictoryPayout(run.floor, run.perks, run.relics) * bonusMult * asc.payoutMult,
   )
@@ -324,10 +337,52 @@ export function awardEliteSpoils(
   }
 }
 
+/**
+ * Winning a Supply Closet raid rolls the cache: a pick-1-of-3 item
+ * offer stored on the run (like a pending perk offer), so a reload
+ * mid-choice resumes instead of silently skipping the reward.
+ */
+export function awardTreasureCache(
+  run: RunState,
+  rng: Rng,
+): { run: RunState; loot: ItemId[] | null } {
+  if (!run.treasureFloor || run.treasureLoot) return { run, loot: null }
+  const loot = rollTreasureLoot(rng)
+  return { run: { ...run, treasureLoot: loot }, loot }
+}
+
+/**
+ * Resolve the cache pick. `null` (or full pockets — inventory is
+ * capped) leaves the supplies behind for a petty-cash consolation.
+ * A pick that was never offered is ignored outright.
+ */
+export function chooseTreasureLoot(
+  run: RunState,
+  pick: ItemId | null,
+): { run: RunState; bonusOptions: number } {
+  if (!run.treasureLoot) return { run, bonusOptions: 0 }
+  if (pick !== null && !run.treasureLoot.includes(pick)) return { run, bonusOptions: 0 }
+  if (pick !== null && run.inventory.length < MAX_INVENTORY) {
+    return {
+      run: { ...run, inventory: [...run.inventory, pick], treasureLoot: null },
+      bonusOptions: 0,
+    }
+  }
+  return {
+    run: {
+      ...run,
+      stockOptions: run.stockOptions + TREASURE_CONSOLATION_OPTIONS,
+      treasureLoot: null,
+    },
+    bonusOptions: TREASURE_CONSOLATION_OPTIONS,
+  }
+}
+
 // ─── THE ELEVATOR BANK ──────────────────────────────────────
 // Before each non-boss floor the player picks an elevator: the
-// standard floor, or the Executive Track — an elite version of the
-// enemy for double payout and a Status Symbol.
+// standard floor, the Executive Track — an elite version of the
+// enemy for double payout and a Status Symbol — or, on scheduled
+// floors, the Supply Closet treasure raid.
 
 /**
  * The Executive Track opens after the first promotion (a perk-less
@@ -338,11 +393,26 @@ export function eliteAvailable(floor: number): boolean {
   return floor >= 5 && floor % 10 < 8
 }
 
+/**
+ * The Supply Closet is left unlocked on one scheduled floor per act
+ * (7, 17 and 27 on the door plaques) — a fixed schedule, not a roll,
+ * so dailies stay comparable and the balance rng stream is untouched.
+ */
+export function treasureAvailable(floor: number): boolean {
+  return eliteAvailable(floor) && floor % 10 === 6
+}
+
+/** Whether this run's elevator bank shows the Supply Closet door. */
+export function treasureOffered(run: RunState): boolean {
+  const itemsEnabled = run.mode.kind !== 'daily' || run.mode.modifier.itemsEnabled
+  return treasureAvailable(run.floor) && itemsEnabled
+}
+
 /** Commit the elevator pick for the upcoming floor. */
 export function chooseElevator(run: RunState, elite: boolean): RunState {
   if (elite && !eliteAvailable(run.floor)) return run
-  if (run.eliteFloor === elite && run.mystery === null) return run
-  return { ...run, eliteFloor: elite, mystery: null }
+  if (run.eliteFloor === elite && run.mystery === null && !run.treasureFloor) return run
+  return { ...run, eliteFloor: elite, mystery: null, treasureFloor: false }
 }
 
 /**
@@ -353,7 +423,13 @@ export function chooseElevator(run: RunState, elite: boolean): RunState {
 export function chooseMysteryFloor(run: RunState, rng: Rng): RunState {
   if (!eliteAvailable(run.floor)) return run
   const outcome = rollMysteryOutcome(rng)
-  return { ...run, mystery: outcome, eliteFloor: false }
+  return { ...run, mystery: outcome, eliteFloor: false, treasureFloor: false }
+}
+
+/** Take the fourth door: raid the Supply Closet on a scheduled floor. */
+export function chooseTreasureFloor(run: RunState): RunState {
+  if (!treasureOffered(run)) return run
+  return { ...run, treasureFloor: true, eliteFloor: false, mystery: null }
 }
 
 // ─── FLOOR ADVANCEMENT ──────────────────────────────────────
@@ -382,9 +458,11 @@ export function advanceFloor(run: RunState, rng: Rng): RunState {
     floor: nextFloor,
     pendingPerkOffer: promoted ? rollPerkOffer(run.perks, rng, run.perkPool) : run.pendingPerkOffer,
     shopStock: shop ? rollShopStock(rng) : null,
-    // The elevator pick for the new floor hasn't happened yet.
+    // The elevator pick for the new floor hasn't happened yet. An
+    // unopened cache (treasureLoot) survives — it's a pending reward.
     eliteFloor: false,
     mystery: null,
+    treasureFloor: false,
   }
 }
 

@@ -22,6 +22,7 @@ import type { RunState } from './state'
 import { eliteAvailable } from './run'
 
 export type FlowStop =
+  | 'treasure'
   | 'promotion'
   | 'shop'
   | 'actTransition'
@@ -43,11 +44,13 @@ export function eventsEnabled(run: RunState): boolean {
 
 /** The elevator is offered until a pick is committed for this floor. */
 export function elevatorPending(run: RunState): boolean {
-  return eliteAvailable(run.floor) && !run.eliteFloor && !run.mystery
+  return eliteAvailable(run.floor) && !run.eliteFloor && !run.mystery && !run.treasureFloor
 }
 
 /** Where the between-floor sequence goes next. */
 export function nextStop(run: RunState, ctx: FlowContext): FlowStop {
+  // The cache from the fight just won opens before anything else.
+  if (run.treasureLoot) return 'treasure'
   if (run.pendingPerkOffer) return 'promotion'
   if (run.shopStock) return 'shop'
   if (ctx.actPending) return 'actTransition'

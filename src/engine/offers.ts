@@ -4,8 +4,15 @@
 // injected rng so dailies stay deterministic, and all draw from the
 // run's frozen pools so meta-progression unlocks apply.
 
-import type { MysteryOutcome, PerkDef, PerkId, RelicId } from '@/types'
-import { BASE_PERK_POOL, BASE_RELIC_POOL, MYSTERY_OUTCOMES, PERKS } from '@/data'
+import type { ItemId, MysteryOutcome, PerkDef, PerkId, RelicId } from '@/types'
+import {
+  ALL_ITEM_IDS,
+  BASE_PERK_POOL,
+  BASE_RELIC_POOL,
+  MYSTERY_OUTCOMES,
+  PERKS,
+  TREASURE_LOOT_CHOICES,
+} from '@/data'
 import type { Rng } from './rng'
 
 /**
@@ -44,6 +51,16 @@ export function rollRelicDrop(
   const pool = dropPool.filter((id) => !owned.includes(id))
   if (pool.length === 0) return null
   return pool[Math.floor(rng() * pool.length)]
+}
+
+/** Roll a supply cache: distinct items, uniform across the table. */
+export function rollTreasureLoot(rng: Rng, count = TREASURE_LOOT_CHOICES): ItemId[] {
+  const pool = [...ALL_ITEM_IDS]
+  const loot: ItemId[] = []
+  while (loot.length < count && pool.length > 0) {
+    loot.push(pool.splice(Math.floor(rng() * pool.length), 1)[0])
+  }
+  return loot
 }
 
 /** Roll a mystery outcome from the weighted table. */
