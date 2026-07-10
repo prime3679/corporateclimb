@@ -1,6 +1,6 @@
 /* ─── DESIGN TOKENS ─────────────────────────────────────────
    Corporate Climb's single source of visual truth: a cinematic
-   corporate-JRPG system — dark, glassy, type-colored energy, one
+   corporate-JRPG system — dark, structured, type-colored energy, one
    gold UI accent. New work references the `--cc-*` tokens directly;
    the legacy `--*` aliases below are mapped onto the same system so
    every existing component inherits the new look. */
@@ -11,11 +11,11 @@
   /* Surfaces */
   --cc-bg: #06080c; /* app frame backdrop (deepest) */
   --cc-stage: #0a0d12; /* stage behind the frame */
-  --cc-surface-1: #1a2230; /* card top (gradient start) */
-  --cc-surface-2: #0e131c; /* card bottom (gradient end) */
+  --cc-surface-1: #182130; /* primary card */
+  --cc-surface-2: #101722; /* dark card */
   --cc-surface-3: #161d29; /* alt card / list row */
-  --cc-glass: rgba(10, 13, 19, 0.74); /* HUD plates (use w/ blur) */
-  --cc-glass-blur: 8px;
+  --cc-glass: rgba(13, 18, 27, 0.96); /* HUD plates */
+  --cc-glass-blur: 0px;
 
   /* Hairlines & soft fills */
   --cc-line: rgba(255, 255, 255, 0.1);
@@ -68,8 +68,8 @@
   --cc-r-chip: 5px;
   --cc-accent-bar: 4px; /* type-colored card edge */
 
-  /* Elevation (soft, no spread) */
-  --cc-shadow-plate: 0 8px 26px rgba(0, 0, 0, 0.4);
+  /* Elevation (restrained, no glow by default) */
+  --cc-shadow-plate: 0 5px 14px rgba(0, 0, 0, 0.34);
 
   /* Layout — phone-tall game canvas, scaled to fit any viewport */
   --cc-frame-w: 472px;
@@ -139,11 +139,11 @@
   --radius-md: 11px;
   --radius-lg: 14px;
   --border-w: 1px;
-  --shadow-sm: 0 6px 18px rgba(0, 0, 0, 0.4);
-  --shadow-md: 0 8px 24px rgba(0, 0, 0, 0.42);
-  --shadow-lg: 0 10px 30px rgba(0, 0, 0, 0.5);
+  --shadow-sm: 0 3px 8px rgba(0, 0, 0, 0.32);
+  --shadow-md: 0 5px 14px rgba(0, 0, 0, 0.34);
+  --shadow-lg: 0 8px 20px rgba(0, 0, 0, 0.38);
   --shadow-panel: var(--cc-shadow-plate);
-  --glow-gold: 0 0 24px rgba(255, 193, 7, 0.28);
+  --glow-gold: 0 0 0 rgba(255, 193, 7, 0);
 
   /* Focus ring (keyboard navigation) — info-blue, per the global rule */
   --focus-ring: 0 0 0 3px rgba(79, 195, 247, 0.95);

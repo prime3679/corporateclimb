@@ -646,32 +646,32 @@ export default function CorporateClimb() {
           variant="ghost"
           size="sm"
           onClick={() => setMuted((m) => !m)}
-          style={{ padding: '6px 10px' }}
+          style={{ padding: '6px 10px', minWidth: 62 }}
           title={muted ? 'Unmute music' : 'Mute music'}
           aria-label={muted ? 'Unmute music' : 'Mute music'}
         >
-          {muted ? '🔇' : '🔊'}
+          {muted ? 'MUTED' : 'SOUND'}
         </Button>
         <Button
           variant="ghost"
           size="sm"
           onClick={() => setShowSettings(true)}
-          style={{ padding: '6px 10px' }}
+          style={{ padding: '6px 10px', minWidth: 42 }}
           title="Settings"
           aria-label="Settings"
         >
-          ⚙️
+          SET
         </Button>
         {run && player && (
           <Button
             variant="ghost"
             size="sm"
             onClick={() => setShowCareer(true)}
-            style={{ padding: '6px 10px' }}
+            style={{ padding: '6px 10px', minWidth: 42 }}
             title="Career profile"
             aria-label="Career profile"
           >
-            💼
+            CV
           </Button>
         )}
       </div>

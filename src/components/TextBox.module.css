@@ -6,8 +6,6 @@
   min-height: 64px;
   cursor: pointer;
   position: relative;
-  backdrop-filter: blur(var(--cc-glass-blur));
-  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
   box-shadow: var(--cc-shadow-plate);
   user-select: none;
 }

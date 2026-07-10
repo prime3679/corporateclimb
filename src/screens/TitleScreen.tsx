@@ -25,6 +25,9 @@ export default function TitleScreen({
     onStart()
   }
 
+  const skyline = [64, 104, 78, 118, 86, 96, 70, 112, 82]
+  const cast = ['product_manager', 'eng', 'design']
+
   return (
     <div
       className="premium-screen"
@@ -34,8 +37,8 @@ export default function TitleScreen({
         alignItems: 'center',
         justifyContent: 'center',
         height: '100%',
-        gap: 20,
-        padding: 30,
+        gap: 18,
+        padding: '34px 26px 24px',
         background: 'transparent',
         position: 'relative',
         overflow: 'hidden',
@@ -47,46 +50,35 @@ export default function TitleScreen({
           position: 'absolute',
           inset: 0,
           background:
-            'linear-gradient(90deg, transparent 0 12%, rgba(255,255,255,.06) 12.4% 12.8%, transparent 13% 49%, rgba(255,211,77,.10) 49.4% 50.6%, transparent 51% 87%, rgba(255,255,255,.06) 87.2% 87.6%, transparent 88%), linear-gradient(180deg, rgba(255,255,255,.035) 0 1px, transparent 1px 84px)',
-          opacity: 0.85,
+            'linear-gradient(90deg, transparent 0 49%, rgba(255,211,77,.16) 49% 51%, transparent 51%), repeating-linear-gradient(180deg, transparent 0 76px, rgba(255,255,255,.04) 76px 77px)',
+          opacity: 0.72,
         }}
       />
       <div
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: 42,
-          width: 120,
-          height: 30,
-          border: '1px solid rgba(255,211,77,.42)',
-          borderRadius: 8,
-          background: 'rgba(5,7,13,.72)',
-          boxShadow: '0 0 28px rgba(255,211,77,.18)',
-          color: 'var(--gold-bright)',
-          fontFamily: 'var(--font-display)',
-          fontSize: 'var(--display-2xs)',
-          display: 'grid',
-          placeItems: 'center',
-          zIndex: 1,
-          letterSpacing: 2,
+          top: 22,
+          bottom: 152,
+          left: '50%',
+          width: 82,
+          transform: 'translateX(-50%)',
+          borderLeft: '2px solid rgba(255,211,77,.28)',
+          borderRight: '2px solid rgba(255,211,77,.28)',
+          opacity: 0.78,
         }}
-      >
-        ▲ FLOOR 30
-      </div>
-      {Array.from({ length: 18 }).map((_, i) => (
+      />
+      {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={i}
+          aria-hidden="true"
           style={{
             position: 'absolute',
-            left: `${8 + ((i * 29) % 84)}%`,
-            top: `${16 + ((i * 17) % 38)}%`,
-            width: 6,
+            top: 46 + i * 72,
+            left: 'calc(50% - 41px)',
+            width: 82,
             height: 2,
-            background: i % 4 === 0 ? 'var(--gold)' : 'rgba(77,163,255,.55)',
-            borderRadius: 2,
-            opacity: 0.18 + (i % 4) * 0.08,
-            animation: `twinkle ${2.5 + (i % 3) * 0.5}s infinite alternate`,
-            animationDelay: `${i * 0.1}s`,
+            background: 'rgba(255,211,77,.22)',
           }}
         />
       ))}
@@ -95,27 +87,22 @@ export default function TitleScreen({
         <div
           className="t-display"
           style={{
-            fontSize: 'var(--display-sm)',
+            fontSize: 'var(--display-xs)',
             color: 'var(--gold)',
-            letterSpacing: 4,
-            marginBottom: 12,
-            textShadow: '0 0 18px rgba(255,211,77,.26)',
+            letterSpacing: 3,
+            marginBottom: 10,
           }}
         >
-          ▲ Q4 LADDER SIMULATION ▲
+          Q4 LADDER SIMULATION
         </div>
         <h1
           className="t-display"
           style={{
             fontSize: 'var(--display-xl)',
-            color: '#FFFFFF',
+            color: 'var(--paper)',
             margin: 0,
-            lineHeight: 1.4,
-            background: 'linear-gradient(180deg, #FFFFFF 0%, #FFE58A 42%, #F5A623 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent',
-            filter:
-              'drop-shadow(0 8px 16px rgba(0,0,0,.7)) drop-shadow(0 0 18px rgba(255,211,77,.18))',
+            lineHeight: 1.06,
+            letterSpacing: 1,
           }}
         >
           CORPORATE
@@ -157,40 +144,20 @@ export default function TitleScreen({
           alignItems: 'flex-end',
           position: 'relative',
           zIndex: 1,
-          margin: '8px 0 14px',
-          padding: '0 18px 24px',
+          margin: '4px 0 10px',
+          padding: '0 18px 12px',
         }}
       >
-        {['product_manager', 'eng', 'design'].map((id) => (
-          <div key={id} style={{ position: 'relative', width: 72, height: 88 }}>
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                left: '50%',
-                bottom: 8,
-                width: 54,
-                height: 14,
-                transform: 'translateX(-50%)',
-                borderRadius: '999px',
-                background: 'radial-gradient(ellipse, rgba(0,0,0,.56), rgba(0,0,0,0) 72%)',
-                filter: 'blur(2.5px)',
-              }}
-            />
-            <div
-              aria-hidden="true"
-              style={{
-                position: 'absolute',
-                left: 10,
-                right: 10,
-                bottom: 10,
-                height: 3,
-                borderRadius: 999,
-                background:
-                  'linear-gradient(90deg, rgba(255,211,77,0), rgba(255,211,77,.65) 18%, rgba(142,193,255,.55) 82%, rgba(255,211,77,0))',
-                opacity: 0.72,
-              }}
-            />
+        {cast.map((id, i) => (
+          <div
+            key={id}
+            style={{
+              position: 'relative',
+              width: i === 1 ? 78 : 70,
+              height: i === 1 ? 94 : 86,
+              zIndex: i === 1 ? 2 : 1,
+            }}
+          >
             <div className="sprite-idle" style={{ width: '100%', height: '100%' }}>
               <img
                 src={sprites[id]}
@@ -201,8 +168,6 @@ export default function TitleScreen({
                   imageRendering: 'auto',
                   padding: '5% 1% 10% 1%',
                   objectFit: 'contain',
-                  filter:
-                    'drop-shadow(0 10px 12px rgba(0,0,0,.42)) drop-shadow(0 0 10px rgba(255,211,77,.08))',
                 }}
                 draggable={false}
               />
@@ -215,14 +180,12 @@ export default function TitleScreen({
             position: 'absolute',
             left: '50%',
             bottom: 0,
-            width: 236,
-            height: 28,
+            width: 220,
+            height: 16,
             transform: 'translateX(-50%)',
-            borderTop: '1px solid rgba(255,211,77,.28)',
-            background:
-              'linear-gradient(180deg, rgba(255,255,255,.06), transparent 40%), linear-gradient(90deg, rgba(255,211,77,0), rgba(255,211,77,.08) 16%, rgba(77,163,255,.08) 84%, rgba(255,211,77,0))',
-            clipPath: 'polygon(6% 0, 94% 0, 100% 100%, 0 100%)',
-            boxShadow: '0 10px 30px rgba(0,0,0,.24)',
+            borderTop: '1px solid rgba(255,211,77,.32)',
+            background: 'rgba(10,13,19,.72)',
+            clipPath: 'polygon(8% 0, 92% 0, 100% 100%, 0 100%)',
           }}
         />
       </div>
@@ -233,9 +196,9 @@ export default function TitleScreen({
           bottom: 0,
           left: 0,
           right: 0,
-          height: 136,
+          height: 124,
           background:
-            'linear-gradient(0deg, rgba(2,6,23,.98) 0%, rgba(13,19,32,.78) 52%, rgba(13,19,32,.34) 76%, transparent 100%)',
+            'linear-gradient(0deg, rgba(2,6,23,.98) 0%, rgba(13,19,32,.78) 64%, transparent 100%)',
           display: 'flex',
           alignItems: 'flex-end',
           justifyContent: 'center',
@@ -243,13 +206,13 @@ export default function TitleScreen({
           padding: '0 20px',
         }}
       >
-        {[60, 90, 70, 110, 80, 95, 65, 85, 100, 75].map((h, i) => (
+        {skyline.map((h, i) => (
           <div
             key={i}
             style={{
               width: 20,
               height: h,
-              background: 'linear-gradient(180deg, #111827, #05070d)',
+              background: '#0f1724',
               border: '1px solid rgba(255,255,255,.08)',
               borderRadius: '3px 3px 0 0',
               position: 'relative',
@@ -282,10 +245,11 @@ export default function TitleScreen({
             alignItems: 'center',
             gap: 10,
             zIndex: 2,
-            background: 'rgba(0,0,0,0.55)',
-            border: '2px solid var(--gold-bright)',
+            background: 'var(--cc-surface-2)',
+            border: '1px solid var(--gold-bright)',
             borderRadius: 'var(--radius-lg)',
             padding: '14px 18px',
+            boxShadow: 'var(--shadow-lg)',
           }}
         >
           <div
@@ -311,8 +275,6 @@ export default function TitleScreen({
           style={{
             zIndex: 2,
             minWidth: 210,
-            boxShadow:
-              '0 18px 32px rgba(255,211,77,.24), var(--shadow-lg), inset 0 1px 0 rgba(255,255,255,.3)',
           }}
         >
           {onContinue ? 'NEW CLIMB' : 'START CLIMB'}
@@ -330,27 +292,27 @@ export default function TitleScreen({
       </Button>
 
       <Button variant="ghost" size="sm" onClick={onCodex} style={{ zIndex: 2 }}>
-        📖 CODEX
+        CODEX
       </Button>
 
       <div
         className="t-body"
         style={{
           maxWidth: 332,
-          fontSize: 'var(--body-xs)',
+          fontSize: 'var(--body-sm)',
           color: '#64B5F6',
           position: 'absolute',
-          bottom: 64,
+          bottom: 58,
           zIndex: 2,
           padding: '4px 10px',
-          borderRadius: 999,
-          background: 'rgba(5,7,13,.72)',
+          borderRadius: 'var(--radius-sm)',
+          background: 'rgba(5,7,13,.82)',
+          border: '1px solid rgba(255,255,255,.08)',
           textAlign: 'center',
           lineHeight: 1.15,
-          textShadow: '0 1px 0 rgba(5,7,13,.72)',
         }}
       >
-        Tip: gold arrows mean high-leverage moves. HR says this is “development.”
+        Type matchups, expense reports, promotion pressure.
       </div>
     </div>
   )

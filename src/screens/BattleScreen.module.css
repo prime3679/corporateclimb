@@ -112,8 +112,6 @@
   display: flex;
   align-items: center;
   gap: 5px;
-  backdrop-filter: blur(var(--cc-glass-blur));
-  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
 }
 
 .tabActive {
@@ -280,8 +278,6 @@
   font-size: var(--body-md);
   line-height: 1.4;
   color: var(--cc-text-2);
-  backdrop-filter: blur(var(--cc-glass-blur));
-  -webkit-backdrop-filter: blur(var(--cc-glass-blur));
 }
 
 .logHistory p {

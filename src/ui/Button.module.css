@@ -1,8 +1,8 @@
 .button {
   font-family: var(--font-display);
-  border: 1px solid rgba(255, 255, 255, 0.16);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
   color: var(--ink);
   cursor: pointer;
   line-height: 1.1;
@@ -16,8 +16,8 @@
 
 .button:hover:not(:disabled) {
   transform: translateY(-1px);
-  box-shadow: var(--shadow-lg);
-  filter: brightness(1.06);
+  box-shadow: var(--shadow-md);
+  filter: brightness(1.04);
 }
 
 .button:active:not(:disabled) {
@@ -33,25 +33,25 @@
 
 /* Variants */
 .primary {
-  background: linear-gradient(180deg, var(--gold-bright), var(--gold));
+  background: var(--gold-bright);
   color: var(--cc-on-accent);
-  border-color: rgba(255, 213, 79, 0.5);
-  box-shadow: var(--shadow-lg), var(--glow-gold);
+  border-color: rgba(255, 213, 79, 0.65);
 }
 .secondary {
-  background: linear-gradient(180deg, var(--cc-info), #1b78c8);
+  background: #236ea6;
   color: #fff;
 }
 .accent {
-  background: linear-gradient(180deg, var(--cc-type-strategy), #b9272e);
+  background: #b72f34;
   color: #fff;
 }
 .paper {
-  background: linear-gradient(180deg, #f2f6fa, #d7e1ec);
+  background: #e8eef6;
   color: var(--cc-on-accent);
+  border-color: rgba(10, 13, 19, 0.22);
 }
 .ghost {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(13, 18, 27, 0.9);
   color: var(--cc-text);
   border-color: rgba(255, 255, 255, 0.16);
   box-shadow: none;
@@ -59,9 +59,9 @@
   font-weight: 700;
 }
 .ghost:hover:not(:disabled) {
-  box-shadow: none;
+  box-shadow: var(--shadow-sm);
   transform: translateY(-1px);
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(22, 30, 43, 0.96);
   filter: none;
 }
 .ghost:active:not(:disabled) {

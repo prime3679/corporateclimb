@@ -11,9 +11,9 @@
 .panel {
   width: min(340px, calc(100% - 32px));
   background: var(--paper);
-  border: var(--border-w) solid var(--ink);
+  border: var(--border-w) solid rgba(10, 13, 19, 0.24);
   border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-md);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
@@ -59,7 +59,7 @@
   font-size: var(--display-2xs);
   padding: 8px 4px;
   background: var(--paper-dim);
-  border: 2px solid var(--muted-light);
+  border: 1px solid var(--muted-light);
   border-radius: var(--radius-sm);
   color: var(--ink-soft);
   cursor: pointer;

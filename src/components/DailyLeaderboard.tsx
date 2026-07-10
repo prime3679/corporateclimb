@@ -97,7 +97,7 @@ export default function DailyLeaderboard({
           letterSpacing: 2,
         }}
       >
-        🏅 TOP CLIMBERS
+        TOP CLIMBERS
       </div>
 
       {!handle && (

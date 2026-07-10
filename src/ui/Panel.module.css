@@ -4,27 +4,22 @@
 }
 
 .paper {
-  background: linear-gradient(180deg, rgba(244, 247, 251, 0.96), rgba(219, 228, 239, 0.94));
-  border: var(--border-w) solid rgba(255, 255, 255, 0.72);
+  background: #e8eef6;
+  border: var(--border-w) solid rgba(10, 13, 19, 0.2);
   box-shadow: var(--shadow-panel);
   color: var(--ink);
 }
 
 .dark {
-  background: rgba(13, 19, 32, 0.86);
+  background: var(--cc-surface-2);
   border: 1px solid var(--border-soft);
-  box-shadow:
-    var(--shadow-panel),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  box-shadow: var(--shadow-panel);
   color: var(--paper);
 }
 
 .glass {
-  background: linear-gradient(180deg, rgba(17, 24, 39, 0.78), rgba(5, 7, 13, 0.72));
+  background: var(--cc-glass);
   border: 1px solid var(--border-soft);
-  box-shadow:
-    var(--shadow-panel),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
+  box-shadow: var(--shadow-panel);
   color: var(--paper);
 }

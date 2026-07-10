@@ -180,7 +180,7 @@ export default function DailyResultScreen({
           color: won ? 'var(--ink)' : 'var(--gold-bright)',
         }}
       >
-        🔥 STREAK: {streak.current}
+        STREAK: {streak.current}
         {streak.best > streak.current ? ` (BEST ${streak.best})` : ''}
       </div>
 

@@ -104,7 +104,7 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
           letterSpacing: 2,
         }}
       >
-        📖 THE CODEX
+        THE CODEX
       </div>
       <div className="t-body" style={{ fontSize: 'var(--body-sm)', color: 'var(--muted)' }}>
         Achievements unlock new perks and Status Symbols for future runs.

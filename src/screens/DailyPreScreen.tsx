@@ -113,7 +113,7 @@ export default function DailyPreScreen({
             className="t-display"
             style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
           >
-            🔥 {streak.current} DAY{streak.current === 1 ? '' : 'S'}
+            STREAK {streak.current} DAY{streak.current === 1 ? '' : 'S'}
           </div>
         )}
         <div
