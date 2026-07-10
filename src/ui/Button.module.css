@@ -14,10 +14,12 @@
     filter 0.14s var(--cc-ease-out);
 }
 
-.button:hover:not(:disabled) {
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-md);
-  filter: brightness(1.04);
+@media (hover: hover) {
+  .button:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+    filter: brightness(1.04);
+  }
 }
 
 .button:active:not(:disabled) {
@@ -58,11 +60,13 @@
   font-family: var(--font-body);
   font-weight: 700;
 }
-.ghost:hover:not(:disabled) {
-  box-shadow: var(--shadow-sm);
-  transform: translateY(-1px);
-  background: rgba(22, 30, 43, 0.96);
-  filter: none;
+@media (hover: hover) {
+  .ghost:hover:not(:disabled) {
+    box-shadow: var(--shadow-sm);
+    transform: translateY(-1px);
+    background: rgba(22, 30, 43, 0.96);
+    filter: none;
+  }
 }
 .ghost:active:not(:disabled) {
   box-shadow: none;

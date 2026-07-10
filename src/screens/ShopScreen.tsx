@@ -1,6 +1,6 @@
 import type { ItemId } from '@/types'
 import { CURRENCY_ICON, ITEMS } from '@/data'
-import { WELLNESS_DAY, shopPrice } from '@/engine'
+import { WELLNESS_DAY, shopPrice, wellnessPrice as wellnessPriceFor } from '@/engine'
 import type { RunState } from '@/engine'
 import { Button, Panel } from '@/ui'
 
@@ -25,7 +25,8 @@ export default function ShopScreen({
   onLeave: () => void
 }) {
   const stock = run.shopStock ?? []
-  const wellnessPrice = shopPrice(WELLNESS_DAY.price, run.perks, run.floor, run.relics)
+  // The engine helper folds in the Re-Org surcharge (Budget Scrutiny).
+  const wellnessPrice = wellnessPriceFor(run)
   const atFullHp = run.hp >= maxHp
 
   const row = (opts: {

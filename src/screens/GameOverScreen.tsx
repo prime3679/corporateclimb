@@ -1,4 +1,10 @@
-import { Button, IconChip } from '@/ui'
+import { useState } from 'react'
+import type { PlayerClass } from '@/types'
+import { CURRENCY_ICON, getAscensionTier, groupPerks } from '@/data'
+import type { LifetimeStats, RunRecord } from '@/history'
+import { share } from '@/platform'
+import InstallNudge from '@/components/InstallNudge'
+import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
 const DEFEAT_FLAVOR: [number, number, string][] = [
@@ -19,16 +25,40 @@ function getDefeatText(floor: number): string {
 export default function GameOverScreen({
   floor,
   onRestart,
+  player,
+  record,
+  lifetime,
 }: {
   floor: number
   onRestart: () => void
+  player?: PlayerClass | null
+  /** The just-recorded run, for the stat card and build recap. */
+  record?: RunRecord | null
+  lifetime?: LifetimeStats | null
 }) {
+  const [shared, setShared] = useState(false)
+  const build = record ? groupPerks(record.perks) : []
+  const reorgTier = record && record.ascension > 0 ? getAscensionTier(record.ascension) : null
+
+  const shareText = record
+    ? `Corporate Climb ended my run on Floor ${floor}${record.defeatedBy ? ` — taken down by ${record.defeatedBy}` : ''}. ${record.totalTurns} turns, ${record.totalDamageDealt.toLocaleString()} damage dealt.${record.ngPlus > 0 ? ` NG+${record.ngPlus}.` : ''} The climb continues. corporateclimb.vercel.app`
+    : `Corporate Climb ended my run on Floor ${floor}. The climb continues. corporateclimb.vercel.app`
+
+  const handleShare = async () => {
+    const result = await share(shareText)
+    if (result === 'shared') setShared(true)
+    else if (result === 'copied') {
+      setShared(true)
+      setTimeout(() => setShared(false), 2000)
+    }
+  }
+
   return (
     <div
       className={`premium-screen ${styles.screen} ${styles.warm}`}
       style={{
-        gap: 24,
-        padding: 30,
+        gap: 14,
+        padding: '24px 20px',
       }}
     >
       <div className={styles.board} />
@@ -42,18 +72,38 @@ export default function GameOverScreen({
       >
         GAME OVER
       </div>
+      {reorgTier && record && (
+        <div
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            color: 'var(--red)',
+            letterSpacing: 2,
+            padding: '3px 10px',
+            borderRadius: 999,
+            border: '1px solid rgba(229,57,53,.5)',
+            background: 'rgba(229,57,53,.12)',
+          }}
+        >
+          {reorgTier.icon} RE-ORG {record.ascension} · {reorgTier.name.toUpperCase()}
+        </div>
+      )}
       <IconChip glyph="EXIT" tone="red" size="lg" />
       <div
         className={`t-body ${styles.caption}`}
         style={{
           fontSize: 'var(--body-lg)',
-          lineHeight: 1.2,
-          maxWidth: 280,
+          lineHeight: 1.25,
+          maxWidth: 300,
         }}
       >
-        You were eliminated on
-        <br />
-        Floor {floor}.
+        {record?.defeatedBy ? (
+          <>
+            Taken down by <b>{record.defeatedBy}</b> on Floor {floor}.
+          </>
+        ) : (
+          <>You were eliminated on Floor {floor}.</>
+        )}
       </div>
       <div
         className={`t-body ${styles.caption}`}
@@ -66,9 +116,129 @@ export default function GameOverScreen({
       >
         {getDefeatText(floor)}
       </div>
-      <Button variant="primary" size="lg" onClick={onRestart}>
-        TRY AGAIN
-      </Button>
+
+      {record && (
+        <Panel
+          variant="dark"
+          style={{
+            maxWidth: 320,
+            width: '100%',
+            borderColor: 'rgba(255,90,90,0.22)',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 10,
+            background:
+              'linear-gradient(180deg, rgba(255,255,255,.06), transparent 24%), linear-gradient(180deg, rgba(39,18,18,.94), rgba(13,19,32,.96))',
+          }}
+        >
+          <div
+            className="t-display"
+            style={{
+              fontSize: 'var(--display-2xs)',
+              color: 'var(--red)',
+              textAlign: 'center',
+              letterSpacing: 2,
+            }}
+          >
+            Exit Interview
+          </div>
+          <div
+            className="t-body"
+            style={{
+              display: 'grid',
+              gridTemplateColumns: '1fr 1fr',
+              gap: 6,
+              fontSize: 'var(--body-md)',
+              lineHeight: 1.2,
+            }}
+          >
+            {player && (
+              <>
+                <div style={{ color: 'var(--muted-light)' }}>CLASS</div>
+                <div
+                  style={{
+                    color: 'var(--paper)',
+                    textAlign: 'right',
+                    display: 'flex',
+                    justifyContent: 'flex-end',
+                    alignItems: 'center',
+                    gap: 8,
+                  }}
+                >
+                  <IconChip glyph={getIconGlyph(player.emoji, player.name)} tone="gold" size="sm" />
+                  <span>{player.name}</span>
+                </div>
+              </>
+            )}
+            <div style={{ color: 'var(--muted-light)' }}>FLOOR</div>
+            <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{floor}</div>
+            <div style={{ color: 'var(--muted-light)' }}>TURNS</div>
+            <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{record.totalTurns}</div>
+            <div style={{ color: 'var(--muted-light)' }}>DAMAGE</div>
+            <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
+              {record.totalDamageDealt.toLocaleString()}
+            </div>
+            <div style={{ color: 'var(--muted-light)' }}>OPTIONS</div>
+            <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
+              {CURRENCY_ICON} {record.stockOptions}
+            </div>
+            {record.ngPlus > 0 && (
+              <>
+                <div style={{ color: 'var(--muted-light)' }}>MODE</div>
+                <div style={{ color: 'var(--paper)', textAlign: 'right' }}>NG+{record.ngPlus}</div>
+              </>
+            )}
+          </div>
+          {build.length > 0 && (
+            <div
+              className="t-body"
+              style={{
+                display: 'flex',
+                flexWrap: 'wrap',
+                gap: 4,
+                justifyContent: 'center',
+                fontSize: 'var(--body-sm)',
+                color: 'var(--muted-light)',
+              }}
+            >
+              {build.map((g) => (
+                <span
+                  key={g.perk.id}
+                  style={{
+                    padding: '2px 8px',
+                    borderRadius: 999,
+                    border: '1px solid var(--cc-line)',
+                    background: 'rgba(255,255,255,0.05)',
+                  }}
+                >
+                  {g.perk.name}
+                  {g.count > 1 ? ` ×${g.count}` : ''}
+                </span>
+              ))}
+            </div>
+          )}
+        </Panel>
+      )}
+
+      {lifetime && lifetime.runs > 0 && (
+        <div
+          className="t-body"
+          style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', letterSpacing: 0.4 }}
+        >
+          Run #{lifetime.runs} · Best: Floor {lifetime.bestFloor} · Wins: {lifetime.wins}
+        </div>
+      )}
+
+      <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
+        <Button variant="primary" size="lg" onClick={onRestart}>
+          TRY AGAIN
+        </Button>
+        <Button variant="ghost" size="md" onClick={handleShare}>
+          {shared ? 'COPIED!' : 'SHARE'}
+        </Button>
+      </div>
+
+      <InstallNudge />
     </div>
   )
 }

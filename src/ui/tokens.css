@@ -71,6 +71,12 @@
   /* Elevation (restrained, no glow by default) */
   --cc-shadow-plate: 0 5px 14px rgba(0, 0, 0, 0.34);
 
+  /* Mobile floors (design units): no text below --text-floor, nothing
+     interactive shorter than --tap-min — the Stage scale can shrink
+     physical sizes ~17% on small phones, these keep the result usable. */
+  --text-floor: 10px;
+  --tap-min: 54px;
+
   /* Layout — phone-tall game canvas, scaled to fit any viewport */
   --cc-frame-w: 472px;
   --cc-frame-h: 884px;

@@ -1,14 +1,23 @@
 import { useState } from 'react'
 import type { PlayerClass } from '@/types'
-import { PLAYER_CLASSES } from '@/data'
+import { PLAYER_CLASSES, getAscensionTier, getClassAscension } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import TypeBadge from '@/components/TypeBadge'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 
-export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass) => void }) {
+export default function ClassSelect({
+  onSelect,
+}: {
+  onSelect: (cls: PlayerClass, ascension: number) => void
+}) {
   const [selected, setSelected] = useState(0)
+  const [reorg, setReorg] = useState(0)
   const sprites = getSpriteUrls()
   const cls = PLAYER_CLASSES[selected]
+  const unlocked = getClassAscension(cls.id).unlocked
+  // Switching to a class with fewer unlocked tiers clamps the pick.
+  const ascension = Math.min(reorg, unlocked)
+  const tier = ascension > 0 ? getAscensionTier(ascension) : null
 
   return (
     <div
@@ -320,10 +329,66 @@ export default function ClassSelect({ onSelect }: { onSelect: (cls: PlayerClass)
         </div>
       </Panel>
 
+      {unlocked > 0 && (
+        <div
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 10,
+            alignSelf: 'center',
+            padding: '6px 8px',
+            borderRadius: 'var(--radius-md)',
+            border: `1px solid ${ascension > 0 ? 'rgba(229,57,53,.5)' : 'var(--cc-line)'}`,
+            background: ascension > 0 ? 'rgba(229,57,53,.1)' : 'rgba(255,255,255,.04)',
+          }}
+          role="group"
+          aria-label="Re-Org difficulty"
+        >
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setReorg(Math.max(0, ascension - 1))}
+            disabled={ascension <= 0}
+            aria-label="Lower Re-Org tier"
+            style={{ padding: '6px 12px' }}
+          >
+            ◀
+          </Button>
+          <div style={{ textAlign: 'center', minWidth: 168 }}>
+            <div
+              className="t-display"
+              style={{
+                fontSize: 'var(--display-2xs)',
+                color: ascension > 0 ? 'var(--red)' : 'var(--muted-light)',
+                letterSpacing: 2,
+              }}
+            >
+              {tier ? `${tier.icon} RE-ORG ${ascension}` : 'BASE DIFFICULTY'}
+            </div>
+            <div
+              className="t-body"
+              style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
+            >
+              {tier ? tier.desc : 'Win to climb the Re-Org ladder.'}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setReorg(Math.min(unlocked, ascension + 1))}
+            disabled={ascension >= unlocked}
+            aria-label="Raise Re-Org tier"
+            style={{ padding: '6px 12px' }}
+          >
+            ▶
+          </Button>
+        </div>
+      )}
+
       <Button
         variant="primary"
         size="lg"
-        onClick={() => onSelect(PLAYER_CLASSES[selected])}
+        onClick={() => onSelect(PLAYER_CLASSES[selected], ascension)}
         style={{ alignSelf: 'center', minWidth: 220 }}
       >
         ACCEPT OFFER

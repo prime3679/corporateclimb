@@ -3,6 +3,8 @@ import type { PerkId, PlayerClass, AchievementId, AchievementDef } from '@/types
 import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
+import { share } from '@/platform'
+import InstallNudge from '@/components/InstallNudge'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -10,6 +12,10 @@ interface RunCompleteScreenProps {
   player: PlayerClass
   onRestart: () => void
   onNgPlus: () => void
+  /** Start a fresh run one Re-Org tier up (hidden at the cap). */
+  onClimbHigher?: () => void
+  /** Re-Org tier this run was cleared at. */
+  ascension?: number
   ngLevel: number
   bestNgLevel: number
   totalTurns: number
@@ -26,6 +32,8 @@ export default function RunCompleteScreen({
   player,
   onRestart,
   onNgPlus,
+  onClimbHigher,
+  ascension = 0,
   ngLevel,
   bestNgLevel,
   totalTurns,
@@ -54,15 +62,9 @@ export default function RunCompleteScreen({
   const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corporateclimb.vercel.app`
 
   const handleShare = async () => {
-    if (navigator.share) {
-      try {
-        await navigator.share({ text: shareText })
-        setShared(true)
-      } catch {
-        // User cancelled share
-      }
-    } else {
-      await navigator.clipboard.writeText(shareText)
+    const result = await share(shareText)
+    if (result === 'shared') setShared(true)
+    else if (result === 'copied') {
       setShared(true)
       setTimeout(() => setShared(false), 2000)
     }
@@ -372,7 +374,7 @@ export default function RunCompleteScreen({
         ))}
       </div>
 
-      {ngLevel > 0 && (
+      {(ngLevel > 0 || ascension > 0) && (
         <div
           className="t-display"
           style={{
@@ -383,17 +385,23 @@ export default function RunCompleteScreen({
             borderRadius: 'var(--radius-md)',
           }}
         >
-          NG+{ngLevel} CLEARED!
+          {ascension > 0 ? `RE-ORG ${ascension} CLEARED!` : `NG+${ngLevel} CLEARED!`}
         </div>
       )}
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 8, alignItems: 'center' }}>
-        <Button variant="accent" size="lg" onClick={onNgPlus}>
+        {onClimbHigher && (
+          <Button variant="primary" size="lg" onClick={onClimbHigher}>
+            CLIMB HIGHER — RE-ORG {ascension + 1}
+          </Button>
+        )}
+        <Button variant="accent" size={onClimbHigher ? 'md' : 'lg'} onClick={onNgPlus}>
           NEW GAME+ {ngLevel + 1}
         </Button>
         <Button variant="ghost" size="md" onClick={onRestart}>
           RESTART
         </Button>
+        <InstallNudge />
         {bestNgLevel > 0 && (
           <div
             className="t-body"

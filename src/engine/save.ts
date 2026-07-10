@@ -1,5 +1,6 @@
 // ─── VERSIONED SAVE ──────────────────────────────────────────
-// v6 adds the mystery-floor outcome.
+// v7 adds the Re-Org ascension level.
+// v6 added the mystery-floor outcome.
 // v5 added the meta-progression pools (perkPool/relicPool, frozen at
 // run start from the player's achievement unlocks).
 // v4 added the branching-tower fields (relics, elite floor flag).
@@ -11,6 +12,7 @@
 import type { ClassId, PerkId, SaveData } from '@/types'
 import {
   ENEMY_POOLS,
+  MAX_ASCENSION,
   PERKS,
   PLAYER_CLASSES,
   PROMOTION_TRACKS,
@@ -25,9 +27,14 @@ import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'
 
+interface SaveFileV6 {
+  version: 6
+  run: Omit<RunState, 'ascension'>
+}
+
 interface SaveFileV5 {
   version: 5
-  run: Omit<RunState, 'mystery'>
+  run: Omit<SaveFileV6['run'], 'mystery'>
 }
 
 interface SaveFileV4 {
@@ -52,11 +59,18 @@ function isValidRun(run: RunState): boolean {
   if (!Array.isArray(run.relics) || run.relics.some((id) => !RELICS[id])) return false
   if (!Array.isArray(run.perkPool) || run.perkPool.some((id) => !PERKS[id])) return false
   if (!Array.isArray(run.relicPool) || run.relicPool.some((id) => !RELICS[id])) return false
+  if (!Number.isInteger(run.ascension) || run.ascension < 0 || run.ascension > MAX_ASCENSION)
+    return false
   return true
 }
 
+/** v6 → v7: pre-ladder saves are base-difficulty runs. */
+function migrateToV7(run: SaveFileV6['run']): RunState {
+  return { ...run, ascension: 0 }
+}
+
 /** v5 → v6: a saved floor simply isn't a mystery. */
-function migrateToV6(run: SaveFileV5['run']): RunState {
+function migrateToV6(run: SaveFileV5['run']): SaveFileV6['run'] {
   return { ...run, mystery: null }
 }
 
@@ -121,7 +135,7 @@ function migrateV1(data: SaveData): SaveFileV2['run'] {
  * a migration and bumping the version are physically one edit — a
  * forgotten entry cannot silently wipe saves.
  */
-const MIGRATIONS = [migrateToV3, migrateToV4, migrateToV5, migrateToV6] as const
+const MIGRATIONS = [migrateToV3, migrateToV4, migrateToV5, migrateToV6, migrateToV7] as const
 
 export const SAVE_VERSION = MIGRATIONS.length + 2
 

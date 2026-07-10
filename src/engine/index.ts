@@ -22,6 +22,7 @@ export {
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
+  applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
   chooseElevator,
@@ -36,6 +37,7 @@ export {
   promotionBetween,
   type RunPools,
 } from './run'
+export { ascensionEffects, type AscensionEffects } from './ascension'
 export {
   SHOP_FLOORS,
   SHOP_STOCK_SIZE,
@@ -46,6 +48,7 @@ export {
   leaveShop,
   rollShopStock,
   shopPrice,
+  wellnessPrice,
 } from './shop'
 export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowStop } from './flow'
 export { collectMods, type Mods } from './modifiers'
@@ -54,3 +57,12 @@ export { getVictoryPayout } from './economy'
 export { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
 export { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'
+export {
+  CAREER_ARCHETYPES,
+  UNDEFINED_INTERN,
+  getCareerArchetype,
+  getCareerArchetypeFromPoints,
+  tallyArchetypePoints,
+  type ArchetypePoints,
+  type CareerArchetype,
+} from './archetypes'

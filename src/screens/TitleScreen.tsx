@@ -1,6 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
+import { getBestAscension } from '@/data'
+import { getDailyStreak, hasPlayedToday } from '@/daily'
+import { getLifetimeStats } from '@/history'
+import {
+  KONAMI_SEQUENCE,
+  SIGN_TAPS_REQUIRED,
+  advanceKonami,
+  hasGoldenBadge,
+  markGoldenBadgeFound,
+} from '@/konami'
+import { SFX } from '@/sfx'
 import { Button } from '@/ui'
+
+const CONFETTI_GLYPHS = ['💰', '🪪', '📈', '☕', '📎', '💼']
 
 export default function TitleScreen({
   onStart,
@@ -14,7 +27,51 @@ export default function TitleScreen({
   onCodex: () => void
 }) {
   const [confirmNew, setConfirmNew] = useState(false)
+  const [goldenBadge, setGoldenBadge] = useState(hasGoldenBadge)
+  const [celebrating, setCelebrating] = useState(false)
+  const konamiProgress = useRef(0)
+  const signTaps = useRef(0)
   const sprites = getSpriteUrls()
+  const streak = getDailyStreak()
+  const playedToday = hasPlayedToday()
+  const lifetime = getLifetimeStats()
+  const bestReorg = getBestAscension()
+
+  const unlockGoldenBadge = () => {
+    markGoldenBadgeFound()
+    setGoldenBadge(true)
+    setCelebrating(true)
+    SFX.fanfare()
+  }
+
+  useEffect(() => {
+    const onKeyDown = (e: KeyboardEvent) => {
+      konamiProgress.current = advanceKonami(konamiProgress.current, e.key)
+      if (konamiProgress.current >= KONAMI_SEQUENCE.length) {
+        konamiProgress.current = 0
+        unlockGoldenBadge()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [])
+
+  useEffect(() => {
+    if (!celebrating) return
+    const timer = window.setTimeout(() => setCelebrating(false), 4200)
+    return () => window.clearTimeout(timer)
+  }, [celebrating])
+
+  // Touch players can't type the code — tapping the floor sign works too.
+  const handleSignTap = () => {
+    signTaps.current += 1
+    if (signTaps.current >= SIGN_TAPS_REQUIRED) {
+      signTaps.current = 0
+      unlockGoldenBadge()
+    } else if (signTaps.current >= 3) {
+      SFX.menuSelect() // a little "keep going" wink
+    }
+  }
 
   // Starting over with a save in place erases it — make that explicit.
   const handleStart = () => {
@@ -58,7 +115,7 @@ export default function TitleScreen({
         aria-hidden="true"
         style={{
           position: 'absolute',
-          top: 22,
+          top: 88,
           bottom: 152,
           left: '50%',
           width: 82,
@@ -68,13 +125,37 @@ export default function TitleScreen({
           opacity: 0.78,
         }}
       />
+      <div
+        aria-hidden="true"
+        onPointerDown={handleSignTap}
+        style={{
+          position: 'absolute',
+          top: 42,
+          width: 120,
+          height: 30,
+          border: goldenBadge ? '1px solid rgba(255,211,77,.8)' : '1px solid rgba(255,211,77,.42)',
+          borderRadius: 8,
+          background: 'rgba(5,7,13,.72)',
+          boxShadow: goldenBadge ? '0 0 34px rgba(255,211,77,.4)' : '0 0 28px rgba(255,211,77,.18)',
+          color: 'var(--gold-bright)',
+          fontFamily: 'var(--font-display)',
+          fontSize: 'var(--display-2xs)',
+          display: 'grid',
+          placeItems: 'center',
+          zIndex: 1,
+          letterSpacing: 2,
+          userSelect: 'none',
+        }}
+      >
+        {goldenBadge ? '▲ FLOOR 31' : '▲ FLOOR 30'}
+      </div>
       {Array.from({ length: 7 }).map((_, i) => (
         <div
           key={i}
           aria-hidden="true"
           style={{
             position: 'absolute',
-            top: 46 + i * 72,
+            top: 102 + i * 72,
             left: 'calc(50% - 41px)',
             width: 82,
             height: 2,
@@ -290,6 +371,83 @@ export default function TitleScreen({
       <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
         DAILY CHALLENGE
       </Button>
+
+      {(streak.current > 0 || lifetime.bestFloor > 0 || goldenBadge) && (
+        <div
+          className="t-body"
+          style={{
+            zIndex: 2,
+            display: 'flex',
+            gap: 12,
+            fontSize: 'var(--body-sm)',
+            color: 'var(--muted-light)',
+            padding: '3px 12px',
+            borderRadius: 999,
+            background: 'rgba(5,7,13,.72)',
+            border: '1px solid var(--cc-line-faint)',
+          }}
+        >
+          {streak.current > 0 && (
+            <span>
+              🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
+            </span>
+          )}
+          {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
+          {bestReorg > 0 && <span>🌀 Re-Org {bestReorg}</span>}
+          {goldenBadge && <span style={{ color: 'var(--gold-bright)' }}>🪪 Golden Badge</span>}
+        </div>
+      )}
+
+      {celebrating && (
+        <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
+          {Array.from({ length: 26 }).map((_, i) => (
+            <span
+              key={i}
+              style={{
+                position: 'absolute',
+                left: `${(i * 37) % 96}%`,
+                top: -28,
+                fontSize: 14 + ((i * 7) % 12),
+                animation: `confetti ${2.2 + (i % 4) * 0.4}s ease-in ${i * 0.06}s forwards`,
+                opacity: 0,
+              }}
+            >
+              {CONFETTI_GLYPHS[i % CONFETTI_GLYPHS.length]}
+            </span>
+          ))}
+        </div>
+      )}
+
+      {celebrating && (
+        <div
+          role="status"
+          style={{
+            position: 'absolute',
+            top: '30%',
+            zIndex: 6,
+            textAlign: 'center',
+            padding: '14px 22px',
+            borderRadius: 'var(--radius-lg)',
+            border: '2px solid var(--gold-bright)',
+            background: 'rgba(5,7,13,.92)',
+            boxShadow: '0 0 44px rgba(255,211,77,.45)',
+            animation: 'bonus-pop 0.5s ease-out',
+          }}
+        >
+          <div
+            className="t-display"
+            style={{ fontSize: 'var(--display-sm)', color: 'var(--gold-bright)', letterSpacing: 2 }}
+          >
+            🪪 GOLDEN BADGE ACQUIRED
+          </div>
+          <div
+            className="t-body"
+            style={{ fontSize: 'var(--body-md)', color: 'var(--text-main)', marginTop: 6 }}
+          >
+            Executive elevator access granted. The board will remember this.
+          </div>
+        </div>
+      )}
 
       <Button variant="ghost" size="sm" onClick={onCodex} style={{ zIndex: 2 }}>
         CODEX

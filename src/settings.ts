@@ -11,6 +11,8 @@ export interface Settings {
   textSpeed: TextSpeed
   /** App-level reduced-motion override (OS preference also respected). */
   reduceMotion: boolean
+  /** Vibration on combat beats and taps (where the device supports it). */
+  haptics: boolean
 }
 
 export const SETTINGS_KEY = 'corporate-climb-settings'
@@ -20,6 +22,7 @@ export const DEFAULT_SETTINGS: Settings = {
   sfxVolume: 1,
   textSpeed: 'normal',
   reduceMotion: false,
+  haptics: true,
 }
 
 /** Typewriter delay per character. */
@@ -46,6 +49,7 @@ export function loadSettings(): Settings {
           ? parsed.textSpeed
           : DEFAULT_SETTINGS.textSpeed,
       reduceMotion: parsed.reduceMotion === true,
+      haptics: parsed.haptics !== false, // default on
     }
   } catch {
     return { ...DEFAULT_SETTINGS }

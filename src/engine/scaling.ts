@@ -45,11 +45,20 @@ export function scaleEnemyForNgPlus(e: Enemy, ngLevel: number): Enemy {
   return scaleEnemy(e, { hp: mult, atk: mult, def: mult, dmg: 1 + ngLevel * 0.15 })
 }
 
+/** Re-Org tier scaling (cumulative HP/ATK/move-damage multipliers). */
+export function scaleEnemyForAscension(
+  e: Enemy,
+  mults: { hp: number; atk: number; dmg: number },
+): Enemy {
+  if (mults.hp === 1 && mults.atk === 1 && mults.dmg === 1) return e
+  return scaleEnemy(e, { hp: mults.hp, atk: mults.atk, dmg: mults.dmg })
+}
+
 /** The Executive Track: a meaner take on the floor's enemy. */
-export function scaleEnemyForElite(e: Enemy): Enemy {
+export function scaleEnemyForElite(e: Enemy, over?: { hp?: number; atk?: number }): Enemy {
   return scaleEnemy(e, {
-    hp: 1.35,
-    atk: 1.15,
+    hp: over?.hp ?? 1.35,
+    atk: over?.atk ?? 1.15,
     def: 1.1,
     dmg: 1.08,
     rename: (n) => `Elite ${n}`,

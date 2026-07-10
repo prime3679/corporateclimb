@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { SFX } from './sfx'
 import { Music } from './music'
+import { Haptics, WakeLock } from './platform'
 import { buildSpriteUrls } from './sprites'
 import type { HallwayEvent, Move, PerkId, PlayerClass, RelicId, Screen } from './types'
 import { Button, Stage } from './ui'
@@ -8,6 +9,7 @@ import {
   ACHIEVEMENTS,
   ENEMY_POOLS,
   ITEMS,
+  MAX_ASCENSION,
   PERKS,
   PLAYER_CLASSES,
   checkAchievements,
@@ -15,6 +17,7 @@ import {
   getBestNgPlus,
   getPromotion,
   getUnlockedAchievements,
+  recordAscensionWin,
   saveBestNgPlus,
   unlockedPerkPool,
   unlockedRelicPool,
@@ -38,6 +41,8 @@ import ActTransitionScreen from './screens/ActTransitionScreen'
 import DailyPreScreen from './screens/DailyPreScreen'
 import DailyResultScreen from './screens/DailyResultScreen'
 import { DAILY_FLOOR_COUNT, calculateDailyScore, saveDailyResult } from './daily'
+import { getLifetimeStats, recordRunEnd, type RunRecord } from './history'
+import { markBattleHintSeen, shouldShowBattleHint } from './onboarding'
 import { STRUGGLE_MOVE } from './battle'
 import {
   GameRng,
@@ -45,6 +50,7 @@ import {
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
+  applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
   battleIntroLine,
@@ -139,6 +145,14 @@ export default function CorporateClimb() {
   const [settings, setSettings] = useState(loadSettings)
   const [showSettings, setShowSettings] = useState(false)
   const [showCareer, setShowCareer] = useState(false)
+  /** The just-finished run's history record, shown on the game-over screen. */
+  const [lastRecord, setLastRecord] = useState<RunRecord | null>(null)
+  /** First-run coach-mark: evaluated once, dismissed forever. */
+  const [showBattleHint, setShowBattleHint] = useState(shouldShowBattleHint)
+  const dismissBattleHint = useCallback(() => {
+    markBattleHintSeen()
+    setShowBattleHint(false)
+  }, [])
 
   // Managed timers: every delayed flow step goes through after() so
   // restart/unmount can cancel the lot (the old code leaked timeouts
@@ -208,8 +222,27 @@ export default function CorporateClimb() {
   useEffect(() => {
     Music.setVolume(settings.musicVolume)
     SFX.setVolume(settings.sfxVolume)
+    Haptics.setEnabled(settings.haptics)
     saveSettings(settings)
   }, [settings])
+
+  // Keep the screen awake while a battle is on.
+  useEffect(() => {
+    if (screen === 'battle') void WakeLock.acquire()
+    else void WakeLock.release()
+  }, [screen])
+
+  // Escape closes whichever overlay panel is open.
+  useEffect(() => {
+    if (!showSettings && !showCareer) return
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      setShowSettings(false)
+      setShowCareer(false)
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [showSettings, showCareer])
 
   // Music: play track based on current screen
   const floor = run?.floor ?? 0
@@ -271,6 +304,11 @@ export default function CorporateClimb() {
 
   const handleLoss = useCallback(
     (lossRun: RunState) => {
+      const record = recordRunEnd(lossRun, {
+        won: false,
+        floorReached: lossRun.floor + 1,
+        defeatedBy: resolveEnemy(lossRun, 1).name,
+      })
       if (lossRun.mode.kind === 'daily') {
         const mode = lossRun.mode
         saveDailyResult({
@@ -293,6 +331,7 @@ export default function CorporateClimb() {
         SFX.gameOver()
         setScreen('dailyResult')
       } else {
+        setLastRecord(record)
         clearSave()
         SFX.gameOver()
         setScreen('gameOver')
@@ -361,9 +400,9 @@ export default function CorporateClimb() {
     return { perkPool: unlockedPerkPool(unlocked), relicPool: unlockedRelicPool(unlocked) }
   }
 
-  const selectClass = (cls: PlayerClass) => {
+  const selectClass = (cls: PlayerClass, ascension = 0) => {
     SFX.menuConfirm()
-    setRun(newRun(cls, currentPools()))
+    setRun(newRun(cls, currentPools(), ascension))
     setScreen('floorIntro')
   }
 
@@ -377,6 +416,16 @@ export default function CorporateClimb() {
     if (!run || !player) return
     SFX.menuConfirm()
     setRun(newNgPlusRun(run, player, currentPools()))
+    setView(null)
+    setBattle(null)
+    setScreen('floorIntro')
+  }
+
+  /** Fresh run one Re-Org tier up, same class (the post-win ladder CTA). */
+  const startClimbHigher = () => {
+    if (!run || !player) return
+    SFX.menuConfirm()
+    setRun(newRun(player, currentPools(), Math.min(MAX_ASCENSION, run.ascension + 1)))
     setView(null)
     setBattle(null)
     setScreen('floorIntro')
@@ -469,6 +518,7 @@ export default function CorporateClimb() {
 
     const totalFloors = next.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : ENEMY_POOLS.length
     if (next.floor >= totalFloors - 1) {
+      recordRunEnd(next, { won: true, floorReached: totalFloors })
       if (next.mode.kind === 'daily') {
         const mode = next.mode
         saveDailyResult({
@@ -494,6 +544,7 @@ export default function CorporateClimb() {
       } else {
         clearSave()
         saveBestNgPlus(next.ngPlus)
+        recordAscensionWin(next.classId, next.ascension)
         setNewAchievements(
           checkAchievements({
             classId: next.classId,
@@ -533,15 +584,12 @@ export default function CorporateClimb() {
     if (!run || !player) return
     SFX.menuConfirm()
     let next = choosePerk(run, perkId)
-    // A promotion comes with a full heal (against the new perk's max HP).
-    const fullHp = getEffectivePlayer(
-      player,
-      next.classId,
-      next.floor,
-      next.perks,
-      next.relics,
-    ).maxHp
-    next = { ...next, hp: fullHp }
+    // The promotion heal (full at base difficulty, halved under Hiring
+    // Freeze) — measured against the new perk's max HP.
+    next = applyPromotionHeal(
+      next,
+      getEffectivePlayer(player, next.classId, next.floor, next.perks, next.relics).maxHp,
+    )
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
     goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
@@ -614,6 +662,8 @@ export default function CorporateClimb() {
   }
 
   if (!spritesReady) {
+    // Mirrors the pre-hydration .boot-splash in index.html so first paint,
+    // sprite preload, and the title screen read as one continuous sequence.
     return (
       <Stage>
         <div
@@ -623,15 +673,36 @@ export default function CorporateClimb() {
             alignItems: 'center',
             justifyContent: 'center',
             flexDirection: 'column',
-            gap: 12,
-            color: 'var(--sky)',
+            gap: 20,
           }}
         >
-          <div className="t-display" style={{ fontSize: 'var(--display-md)' }}>
-            LOADING...
-          </div>
-          <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted)' }}>
-            Preparing sprites
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 32 32"
+            aria-hidden="true"
+            style={{
+              width: 76,
+              height: 76,
+              animation: settings.reduceMotion ? undefined : 'pulse 1.3s ease-in-out infinite',
+            }}
+          >
+            <rect x="6" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+            <rect x="22" y="2" width="4" height="28" rx="1" fill="#ffc107" />
+            <rect x="6" y="8" width="20" height="3" rx="1" fill="#ffd54f" />
+            <rect x="6" y="16" width="20" height="3" rx="1" fill="#ffd54f" />
+            <rect x="6" y="24" width="20" height="3" rx="1" fill="#ffd54f" />
+          </svg>
+          <div
+            className="t-body"
+            style={{
+              fontWeight: 800,
+              fontSize: 19,
+              letterSpacing: '0.3em',
+              textIndent: '0.3em',
+              color: 'var(--cc-text)',
+            }}
+          >
+            CORPORATE CLIMB
           </div>
         </div>
       </Stage>
@@ -731,6 +802,7 @@ export default function CorporateClimb() {
             onReady={startBattle}
             totalFloors={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
             mystery={run.mystery}
+            ascension={run.ascension}
           />
         )}
         {screen === 'battle' && run && battle && view && effectivePlayer && enemy && (
@@ -764,6 +836,8 @@ export default function CorporateClimb() {
             stockOptions={run.stockOptions}
             onTextTap={() => sequencer.skip()}
             textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
+            showHint={showBattleHint}
+            onHintDismiss={dismissBattleHint}
           />
         )}
         {screen === 'victory' && run && enemy && (
@@ -791,6 +865,7 @@ export default function CorporateClimb() {
             newTier={getPromotion(run.classId, run.floor) ?? { floor: 0, title: '' }}
             offers={run.pendingPerkOffer.map((id) => PERKS[id])}
             onPick={handlePerkPick}
+            ownedPerks={run.perks}
           />
         )}
         {screen === 'shop' && run && effectivePlayer && (
@@ -826,12 +901,22 @@ export default function CorporateClimb() {
             onBack={handleDailyBack}
           />
         )}
-        {screen === 'gameOver' && <GameOverScreen floor={floor + 1} onRestart={restart} />}
+        {screen === 'gameOver' && (
+          <GameOverScreen
+            floor={floor + 1}
+            onRestart={restart}
+            player={player}
+            record={lastRecord}
+            lifetime={getLifetimeStats()}
+          />
+        )}
         {screen === 'win' && run && player && (
           <RunCompleteScreen
             player={effectivePlayer || player}
             onRestart={restart}
             onNgPlus={startNgPlus}
+            onClimbHigher={run.ascension < MAX_ASCENSION ? startClimbHigher : undefined}
+            ascension={run.ascension}
             ngLevel={run.ngPlus}
             bestNgLevel={getBestNgPlus()}
             totalTurns={run.stats.totalTurns}

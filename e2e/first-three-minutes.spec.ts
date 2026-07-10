@@ -24,7 +24,13 @@ test('daily first battle has mobile-friendly commands and satisfying hit feedbac
   page,
 }) => {
   await page.goto('/')
-  await page.evaluate(() => localStorage.clear())
+  await page.evaluate(() => {
+    localStorage.clear()
+    // Today's daily enemy types vary by date, so whether the type-matchup
+    // coach-mark applies here is nondeterministic — pre-dismiss it and
+    // leave hint behavior to e2e/onboarding.spec.ts.
+    localStorage.setItem('corporate-climb-seen-hint', '1')
+  })
   await page.reload()
 
   await page.getByRole('button', { name: 'DAILY CHALLENGE' }).click()

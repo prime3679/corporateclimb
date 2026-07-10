@@ -7,6 +7,7 @@
 
 import type { ItemId, PerkId, RelicId } from '@/types'
 import { ALL_ITEM_IDS, ITEMS, getAct } from '@/data'
+import { ascensionEffects } from './ascension'
 import { collectMods } from './modifiers'
 import type { Rng } from './rng'
 import { MAX_INVENTORY, type RunState } from './state'
@@ -73,9 +74,15 @@ export function buyShopItem(run: RunState, stockIdx: number): RunState {
   }
 }
 
+/** Wellness Day price at this run's floor and Re-Org tier. */
+export function wellnessPrice(run: RunState): number {
+  const base = shopPrice(WELLNESS_DAY.price, run.perks, run.floor, run.relics)
+  return Math.round(base * ascensionEffects(run.ascension).wellnessPriceMult)
+}
+
 /** Buy a Wellness Day heal; no-op if unaffordable or already at full HP. */
 export function buyWellnessDay(run: RunState, effectiveMaxHp: number): RunState {
-  const price = shopPrice(WELLNESS_DAY.price, run.perks, run.floor, run.relics)
+  const price = wellnessPrice(run)
   if (run.stockOptions < price || run.hp >= effectiveMaxHp) return run
   const heal = Math.round(effectiveMaxHp * WELLNESS_DAY.healFraction)
   return {

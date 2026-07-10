@@ -278,6 +278,9 @@ export type PerkId =
 export type PerkKind = 'stat' | 'passive' | 'economy'
 export type PerkChoiceTag = 'SAFE' | 'GREEDY' | 'COMBO' | 'DEFENSE' | 'BOSS KILLER' | 'ECONOMY'
 
+/** Identity tags driving the career-archetype "trajectory" read-out. */
+export type ArchetypeTag = 'politics' | 'productivity' | 'burnout' | 'loyalty' | 'sabotage'
+
 export interface PerkDef {
   id: PerkId
   name: string
@@ -288,6 +291,8 @@ export interface PerkDef {
   choiceTags: PerkChoiceTag[]
   /** Concise "best for" copy shown on promotion cards. */
   buildHint: string
+  /** Identity tags driving the career-archetype trajectory read-out. */
+  archetypeTags: ArchetypeTag[]
   /** Stat packages stack; passives/economy can be owned once. */
   repeatable?: boolean
   /** Locked until this achievement is earned (normal runs only). */

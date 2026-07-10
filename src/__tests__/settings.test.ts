@@ -20,6 +20,7 @@ describe('settings persistence', () => {
       sfxVolume: 0,
       textSpeed: 'instant' as const,
       reduceMotion: true,
+      haptics: false,
     }
     saveSettings(s)
     expect(loadSettings()).toEqual(s)
@@ -40,6 +41,7 @@ describe('settings persistence', () => {
       sfxVolume: 0,
       textSpeed: 'normal',
       reduceMotion: false,
+      haptics: true,
     })
   })
 

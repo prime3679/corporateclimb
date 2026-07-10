@@ -68,6 +68,8 @@ export interface RunState {
   perkPool: PerkId[]
   /** Relic ids this run can drop (unlocks frozen at run start). */
   relicPool: RelicId[]
+  /** Re-Org difficulty tier (0 = base game, capped at MAX_ASCENSION). */
+  ascension: number
 }
 
 export type BattlePhase = 'player' | 'won' | 'lost'

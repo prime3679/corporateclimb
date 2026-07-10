@@ -1,4 +1,5 @@
 import type { AchievementDef, AchievementId, PerkId } from '../types'
+import { MAX_ASCENSION } from './ascension'
 import { groupPerks, PERKS } from './perks'
 
 // ─── NEW GAME+ ───────────────────────────────────────────────
@@ -16,6 +17,56 @@ export function saveBestNgPlus(level: number) {
   try {
     const current = getBestNgPlus()
     if (level > current) localStorage.setItem(NG_PLUS_KEY, String(level))
+  } catch {
+    /* storage unavailable */
+  }
+}
+
+// ─── THE RE-ORG (ascension) PROGRESS ─────────────────────────
+// Per-class ladder state: `unlocked` is the highest tier the class may
+// start at, `best` the highest tier it has cleared (-1 = no win yet).
+// Winning at tier N unlocks N+1 (capped at MAX_ASCENSION).
+
+const ASCENSION_KEY = 'corporate-climb-ascension'
+
+export interface AscensionProgress {
+  unlocked: number
+  best: number
+}
+
+export function getAscensionProgress(): Record<string, AscensionProgress> {
+  try {
+    const raw = localStorage.getItem(ASCENSION_KEY)
+    if (!raw) return {}
+    const parsed = JSON.parse(raw)
+    return parsed && typeof parsed === 'object' ? (parsed as Record<string, AscensionProgress>) : {}
+  } catch {
+    return {}
+  }
+}
+
+export function getClassAscension(classId: string): AscensionProgress {
+  const p = getAscensionProgress()[classId]
+  return p && Number.isInteger(p.unlocked) ? p : { unlocked: 0, best: -1 }
+}
+
+/** Highest tier cleared by any class (-1 = the ladder hasn't started). */
+export function getBestAscension(): number {
+  return Object.values(getAscensionProgress()).reduce((best, p) => {
+    const b = Number(p.best)
+    return Number.isFinite(b) ? Math.max(best, b) : best
+  }, -1)
+}
+
+export function recordAscensionWin(classId: string, level: number) {
+  const progress = getAscensionProgress()
+  const current = getClassAscension(classId)
+  progress[classId] = {
+    unlocked: Math.min(MAX_ASCENSION, Math.max(current.unlocked, level + 1)),
+    best: Math.max(current.best, level),
+  }
+  try {
+    localStorage.setItem(ASCENSION_KEY, JSON.stringify(progress))
   } catch {
     /* storage unavailable */
   }

@@ -1,4 +1,5 @@
 import { SFX } from '@/sfx'
+import { Haptics } from '@/platform'
 import type { Settings, TextSpeed } from '@/settings'
 import Button from '@/ui/Button'
 import styles from './SettingsPanel.module.css'
@@ -84,6 +85,23 @@ export default function SettingsPanel({
           />
           Reduce motion (skip shakes &amp; flourishes)
         </label>
+
+        {Haptics.supported && (
+          <label className={styles.checkRow}>
+            <input
+              type="checkbox"
+              checked={settings.haptics}
+              onChange={(e) => {
+                onChange({ ...settings, haptics: e.target.checked })
+                // Apply eagerly (the settings effect re-applies) so the
+                // demo buzz below isn't gated by the stale state.
+                Haptics.setEnabled(e.target.checked)
+                if (e.target.checked) Haptics.impact('medium')
+              }}
+            />
+            Vibration (combat hits &amp; taps)
+          </label>
+        )}
 
         <Button variant="primary" size="md" onClick={onClose}>
           DONE

@@ -11,8 +11,10 @@ import {
   advanceFloor,
   applyEventChoice,
   applyPostBattlePerk,
+  applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
+  BASE_POOLS,
   buyWellnessDay,
   chooseElevator,
   choosePerk,
@@ -56,12 +58,17 @@ function pickMove(ctx: TurnContext): number {
   return best
 }
 
-function simulateRun(cls: PlayerClass, seed: number, rideElites = false): SimOutcome {
+function simulateRun(
+  cls: PlayerClass,
+  seed: number,
+  rideElites = false,
+  ascension = 0,
+): SimOutcome {
   const rng = new GameRng(seed).next
   // newRun rolls floor variants with Math.random; re-roll them from the
   // seed so the entire simulation is deterministic.
   let run: RunState = {
-    ...newRun(cls),
+    ...newRun(cls, BASE_POOLS, ascension),
     floorEnemyIds: ENEMY_POOLS.map((pool) => pool[Math.floor(rng() * pool.length)].name),
   }
 
@@ -120,12 +127,12 @@ function simulateRun(cls: PlayerClass, seed: number, rideElites = false): SimOut
       run = advanceFloor(run, rng)
 
       // Promotion: a simple bot takes the stat package (always offer #0)
-      // and banks the full heal a promotion grants.
+      // and banks the heal a promotion grants (full at base difficulty).
       if (run.pendingPerkOffer) {
         const statPick = run.pendingPerkOffer.find((id) => PERKS[id].kind === 'stat')!
         run = choosePerk(run, statPick)
         effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks, run.relics)
-        run = { ...run, hp: effectivePlayer.maxHp }
+        run = applyPromotionHeal(run, effectivePlayer.maxHp)
       }
 
       // Shop: buy a Wellness Day top-up when meaningfully hurt.
@@ -239,6 +246,50 @@ describe('seeded full-run simulation', () => {
             const o = simulateRun(cls, seed)
             return [seed, `floors=${o.floorsCleared} turns=${o.totalTurns}`]
           }),
+        ),
+      ]),
+    )
+    expect(table).toMatchSnapshot()
+  })
+
+  // ─── THE RE-ORG (ascension) ───────────────────────────────
+
+  it('the Re-Org ladder applies real pressure and the cap denies the bot', () => {
+    // The upper-bound guard the base game never had: at Re-Org 10 the
+    // greedy bot must NOT clear the tower on any class/seed, and the
+    // ladder must bite — median floors reached at the cap strictly
+    // below the base game's.
+    const floorsAt = (ascension: number) =>
+      PLAYER_CLASSES.flatMap((cls) =>
+        SEEDS.map((seed) => simulateRun(cls, seed, false, ascension).floorsCleared),
+      )
+    const median = (xs: number[]) => [...xs].sort((a, b) => a - b)[Math.floor(xs.length / 2)]
+
+    const base = floorsAt(0)
+    const capped = floorsAt(10)
+    capped.forEach((floors, i) => {
+      expect(floors, `class/seed #${i} must not clear the tower at Re-Org 10`).toBeLessThan(30)
+    })
+    expect(median(capped), 'Re-Org 10 pressure').toBeLessThan(median(base))
+  })
+
+  it('ascension 0 is a strict identity for the balance curve', () => {
+    // Belt and braces on top of the snapshot: the explicit-parameter
+    // call must replay the default-path outcome exactly.
+    for (const cls of PLAYER_CLASSES) {
+      expect(simulateRun(cls, 42, false, 0)).toEqual(simulateRun(cls, 42))
+    }
+  })
+
+  it('Re-Org balance table is stable (review the diff when tuning tiers)', () => {
+    const table = Object.fromEntries(
+      [3, 7, 10].map((asc) => [
+        `reorg-${asc}`,
+        Object.fromEntries(
+          PLAYER_CLASSES.map((cls) => [
+            cls.id,
+            SEEDS.map((seed) => simulateRun(cls, seed, false, asc).floorsCleared).join(','),
+          ]),
         ),
       ]),
     )

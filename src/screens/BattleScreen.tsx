@@ -9,6 +9,7 @@ import type {
   ItemId,
 } from '@/types'
 import { ITEMS, TOTAL_FLOORS, TYPE_COLORS, getAct, getTypeMultiplier } from '@/data'
+import { battleHintApplicable } from '@/onboarding'
 import { getScene } from '@/ui/scenes'
 import SceneBackdrop from '@/components/SceneBackdrop'
 import StagedSprite from '@/components/StagedSprite'
@@ -51,6 +52,8 @@ export default function BattleScreen({
   stockOptions,
   onTextTap,
   textMsPerChar,
+  showHint,
+  onHintDismiss,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -84,20 +87,31 @@ export default function BattleScreen({
   onTextTap?: () => void
   /** Typewriter speed for the battle text box (0 = instant). */
   textMsPerChar?: number
+  /** First-run coach-mark for type matchups. */
+  showHint?: boolean
+  onHintDismiss?: () => void
 }) {
   const act = getAct(floor)
   const sc = getScene(act, Math.min(floor % 10, 4))
   const [showLog, setShowLog] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
+  // The coach-mark waits for a battle it can actually demonstrate in;
+  // an unshown hint survives (undismissed) to a later floor.
+  const hintVisible = !!showHint && battleHintApplicable(activeMoves, enemy.types)
 
   // Scrollback opens at the latest line.
   useEffect(() => {
     if (showLog) logEndRef.current?.scrollIntoView()
   }, [showLog, log.length])
 
-  // Keyboard: 1-4 fire the corresponding move on the player's turn.
+  // Keyboard: 1-4 fire the corresponding move on the player's turn;
+  // Escape closes the log scrollback.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setShowLog(false)
+        return
+      }
       if (turn !== 'player' || battleMode !== 'fight') return
       const idx = ['1', '2', '3', '4'].indexOf(e.key)
       if (idx < 0 || idx >= activeMoves.length) return
@@ -299,6 +313,47 @@ export default function BattleScreen({
 
         {turn === 'player' && (
           <>
+            {hintVisible && (
+              <div
+                className="t-body"
+                role="note"
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  padding: '8px 10px',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(255,211,77,.45)',
+                  background: 'rgba(255,193,7,.12)',
+                  fontSize: 'var(--body-sm)',
+                  color: 'var(--paper)',
+                  lineHeight: 1.25,
+                }}
+              >
+                <span aria-hidden="true" style={{ fontSize: 16 }}>
+                  💡
+                </span>
+                <span style={{ flex: 1 }}>
+                  Moves marked <b style={{ color: 'var(--gold-bright)' }}>▲</b> are super effective
+                  against this enemy's type — exploit them.
+                </span>
+                <button
+                  onClick={onHintDismiss}
+                  className="t-display"
+                  style={{
+                    fontSize: 'var(--display-2xs)',
+                    color: 'var(--cc-on-accent)',
+                    background: 'var(--gold-bright)',
+                    border: 'none',
+                    borderRadius: 6,
+                    padding: '6px 10px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  GOT IT
+                </button>
+              </div>
+            )}
             <div className={styles.commandHint}>TAP A MOVE • HOLD THE LADDER</div>
             {/* Mode tabs */}
             <div className={styles.tabs}>
@@ -337,7 +392,10 @@ export default function BattleScreen({
                     move={m}
                     currentPp={i < playerPp.length ? playerPp[i] : m.pp}
                     disabled={i < playerPp.length && playerPp[i] <= 0}
-                    onClick={() => onMove(i)}
+                    onClick={() => {
+                      if (hintVisible) onHintDismiss?.()
+                      onMove(i)
+                    }}
                     effectiveness={
                       getTypeMultiplier(m.type, enemy.types).mult > 1
                         ? 'super'
@@ -363,7 +421,7 @@ export default function BattleScreen({
                       >
                         <div className={styles.itemName}>
                           <span style={{ fontSize: 14 }}>{item.emoji}</span>
-                          <span style={{ fontSize: 9 }}>{item.name}</span>
+                          <span style={{ fontSize: 11 }}>{item.name}</span>
                         </div>
                         <div className={styles.itemDesc}>{item.desc}</div>
                       </button>
