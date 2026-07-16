@@ -1,0 +1,87 @@
+{
+  "version": 1,
+  "repo": "corporate-climb",
+  "canonical_doctrine": "docs/ZERO-CONTEXT-CONTRIBUTION.md",
+  "source_of_truth": [
+    "docs/ZERO-CONTEXT-CONTRIBUTION.md",
+    ".agent/contribution-contract.json",
+    "CLAUDE.md",
+    "AGENTS.md",
+    "REVIEW.md",
+    "README.md"
+  ],
+  "required_files": [
+    "AGENTS.md",
+    "REVIEW.md",
+    "CLAUDE.md",
+    "docs/ZERO-CONTEXT-CONTRIBUTION.md",
+    ".agent/contribution-contract.json",
+    ".agent/zero_context_gate.py"
+  ],
+  "boundaries": {
+    "portable_paths": [".agent/", "docs/", "AGENTS.md", "REVIEW.md", "README.md", "CLAUDE.md"],
+    "protected_paths": [".git/", "node_modules/", "dist/", "playwright-report/", "test-results/"],
+    "forbidden_actions": [
+      "Do not use shell-inline or inline-code verification commands.",
+      "Do not execute install, bootstrap, preview, deploy, or network-fetch commands through the contract.",
+      "Do not mutate Vercel, auth, services, or any live/public state."
+    ]
+  },
+  "review": {
+    "rules": [
+      "Report findings first, ordered by severity, with file and line references when available.",
+      "Prioritize bugs, regressions, privacy or safety risk, deterministic breakage, and missing verification over style notes.",
+      "If there are no findings, say so explicitly and note residual risk or testing gaps."
+    ],
+    "classification": {
+      "one_off_judgment": "Keep one-off judgment in the review itself.",
+      "repeatable_defect": "Promote repeatable defects into tests, lint rules, or CI.",
+      "missing_domain_knowledge": "Promote missing domain knowledge into canonical docs or a reusable skill.",
+      "agent_behavior_failure": "Promote agent behavior failures into operating evals."
+    }
+  },
+  "escalate_if": [
+    "Existing domain instructions conflict and cannot be reconciled without product changes.",
+    "Verification requires installs, secrets, unavailable Playwright browsers, or deployment state.",
+    "Any action would trigger Vercel or mutate live/public state."
+  ],
+  "verification": {
+    "commands": [
+      {
+        "id": "lint",
+        "cwd": ".",
+        "argv": ["npm", "run", "lint"],
+        "timeout_seconds": 120,
+        "output_limit_bytes": 32768
+      },
+      {
+        "id": "format-check",
+        "cwd": ".",
+        "argv": ["npm", "run", "format:check"],
+        "timeout_seconds": 120,
+        "output_limit_bytes": 32768
+      },
+      {
+        "id": "build",
+        "cwd": ".",
+        "argv": ["npm", "run", "build"],
+        "timeout_seconds": 180,
+        "output_limit_bytes": 49152
+      },
+      {
+        "id": "unit-tests",
+        "cwd": ".",
+        "argv": ["npm", "test"],
+        "timeout_seconds": 180,
+        "output_limit_bytes": 49152
+      },
+      {
+        "id": "playwright-smoke",
+        "cwd": ".",
+        "argv": ["npm", "run", "test:smoke"],
+        "timeout_seconds": 240,
+        "output_limit_bytes": 65536
+      }
+    ]
+  }
+}

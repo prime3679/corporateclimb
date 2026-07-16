@@ -18,6 +18,10 @@ npm install       # install dependencies
 npm run dev       # start dev server at http://localhost:5173
 ```
 
+## Contribution Path
+
+Fresh coding agents should start with `AGENTS.md`, then `docs/ZERO-CONTEXT-CONTRIBUTION.md`, then `CLAUDE.md`. The local contribution gate lives at `python3 .agent/zero_context_gate.py audit|verify` and uses the exact CI verification commands without install or deploy steps.
+
 ## Testing
 
 ```bash
