@@ -16,7 +16,8 @@
     "CLAUDE.md",
     "docs/ZERO-CONTEXT-CONTRIBUTION.md",
     ".agent/contribution-contract.json",
-    ".agent/zero_context_gate.py"
+    ".agent/zero_context_gate.py",
+    "tests/test_zero_context_gate.py"
   ],
   "boundaries": {
     "portable_paths": [".agent/", "docs/", "AGENTS.md", "REVIEW.md", "README.md", "CLAUDE.md"],
@@ -47,6 +48,13 @@
   ],
   "verification": {
     "commands": [
+      {
+        "id": "gate-tests",
+        "cwd": ".",
+        "argv": ["python3", "-m", "unittest", "tests.test_zero_context_gate"],
+        "timeout_seconds": 120,
+        "output_limit_bytes": 32768
+      },
       {
         "id": "lint",
         "cwd": ".",
