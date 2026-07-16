@@ -22,6 +22,7 @@ If an important rule only exists in chat, the repo is missing source of truth. P
 - Save changes are versioned. Any new persisted run state must add a migration entry in `src/engine/save.ts`; never introduce a breaking save-format change.
 - Deterministic gameplay paths must stay deterministic. Engine RNG is always injected, dailies remain seeded, `Re-Org 0` stays a strict identity for the balance table, and daily runs remain pinned to ascension 0.
 - `verify` is defense-in-depth, not a sandbox. It executes trusted repo-owned argv-array commands with a minimal sanitized environment, closed stdin, bounded timeouts, and bounded output capture.
+- The sanitized child environment intentionally omits `HOME` and `USERPROFILE`. Verification must not depend on user-level package config, caches, or credentials; if it does, that is an escalation to fix the workflow, not a reason to weaken isolation.
 - Contract commands must stay argv arrays only. No shell-inline execution, no inline code snippets, no setup or install steps, no bootstrap or deploy commands, and no network fetchers.
 - Portable committed files must stay free of local absolute paths, credentials, channel IDs, and runtime output.
 
@@ -29,7 +30,7 @@ If an important rule only exists in chat, the repo is missing source of truth. P
 
 - `python3` must be available on `PATH` to run the local gate.
 - Use installed dependencies only. Do not run package installation from this workflow.
-- If this worktree lacks `node_modules` but `/Users/adrian/corporateclimb/node_modules` exists, create a temporary untracked symlink for verification and remove it before commit.
+- If this worktree lacks `node_modules`, you may temporarily symlink an already-installed `node_modules` from a sibling Corporate Climb worktree for local verification. Keep the symlink untracked and remove it before commit.
 
 ## Standard workflow
 

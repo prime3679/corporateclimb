@@ -111,6 +111,48 @@ class ZeroContextGateTests(unittest.TestCase):
         self.assertFalse(payload["ok"])
         self.assertRegex("\n".join(payload["errors"]), "shell-inline execution")
 
+    def test_rejects_npm_ci_verification_commands_during_audit(self):
+        temp_repo = self.make_temp_repo()
+        self.write_json(
+            temp_repo / ".agent" / "contribution-contract.json",
+            self.base_contract(
+                [{"id": "unsafe-install", "cwd": ".", "argv": ["npm", "ci"]}]
+            ),
+        )
+
+        result = run_gate(["audit", "--json"], repo_root=temp_repo)
+        self.assertEqual(result.returncode, 1)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertRegex(
+            "\n".join(payload["errors"]),
+            "setup/install or ephemeral package-fetch work",
+        )
+
+    def test_rejects_env_wrapped_npx_verification_commands_during_audit(self):
+        temp_repo = self.make_temp_repo()
+        self.write_json(
+            temp_repo / ".agent" / "contribution-contract.json",
+            self.base_contract(
+                [
+                    {
+                        "id": "unsafe-fetch",
+                        "cwd": ".",
+                        "argv": ["env", "CI=1", "npx", "vite", "--version"],
+                    }
+                ]
+            ),
+        )
+
+        result = run_gate(["audit", "--json"], repo_root=temp_repo)
+        self.assertEqual(result.returncode, 1)
+        payload = json.loads(result.stdout)
+        self.assertFalse(payload["ok"])
+        self.assertRegex(
+            "\n".join(payload["errors"]),
+            "setup/install or ephemeral package-fetch work",
+        )
+
     def test_fails_when_required_file_is_missing(self):
         temp_repo = self.make_temp_repo()
         contract = self.base_contract([{"id": "safe", "cwd": ".", "argv": ["python3", "--version"]}])
