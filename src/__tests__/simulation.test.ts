@@ -14,20 +14,25 @@ import {
   applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
+  awardTreasureCache,
   BASE_POOLS,
   buyWellnessDay,
   chooseElevator,
   choosePerk,
+  chooseTreasureFloor,
+  chooseTreasureLoot,
   eliteAvailable,
   GameRng,
   getEffectivePlayer,
   leaveShop,
+  MAX_INVENTORY,
   newBattle,
   newRun,
   pickTwoEvents,
   resolveEnemy,
   resolveItemUse,
   resolvePlayerMove,
+  treasureOffered,
   type RunState,
   type TurnContext,
 } from '@/engine'
@@ -39,6 +44,7 @@ interface SimOutcome {
   totalTurns: number
   totalDamageDealt: number
   finalHp: number
+  cachesOpened: number
 }
 
 /** Greedy move choice: highest expected damage with PP left. */
@@ -63,6 +69,7 @@ function simulateRun(
   seed: number,
   rideElites = false,
   ascension = 0,
+  raidTreasure = false,
 ): SimOutcome {
   const rng = new GameRng(seed).next
   // newRun rolls floor variants with Math.random; re-roll them from the
@@ -73,6 +80,7 @@ function simulateRun(
   }
 
   const MAX_TURNS_PER_BATTLE = 200
+  let cachesOpened = 0
   for (let floor = 0; floor < ENEMY_POOLS.length; floor++) {
     expect(run.floor, 'advanceFloor keeps the loop and the run in step').toBe(floor)
     let effectivePlayer = getEffectivePlayer(cls, run.classId, floor, run.perks, run.relics)
@@ -110,14 +118,16 @@ function simulateRun(
         totalTurns: run.stats.totalTurns,
         totalDamageDealt: run.stats.totalDamageDealt,
         finalHp: 0,
+        cachesOpened,
       }
     }
 
     // Victory bookkeeping, mirroring the app's between-floor flow:
-    // payout → elite spoils → floor advance → perk pick → shop →
-    // hallway event → elevator pick.
+    // payout → elite spoils → treasure cache → floor advance → cache
+    // pick → perk pick → shop → hallway event → elevator pick.
     run = applyVictory(run, effectivePlayer.maxHp).run
     run = awardEliteSpoils(run, rng).run
+    run = awardTreasureCache(run, rng).run
     run = applyPostBattlePerk(run, effectivePlayer.maxHp)
     effectivePlayer = getEffectivePlayer(cls, run.classId, run.floor, run.perks, run.relics)
     expect(run.hp, `floor ${floor}: hp <= effective max`).toBeLessThanOrEqual(effectivePlayer.maxHp)
@@ -125,6 +135,14 @@ function simulateRun(
 
     if (floor < ENEMY_POOLS.length - 1) {
       run = advanceFloor(run, rng)
+
+      // Supply cache: take the first item if there's room, otherwise
+      // leave it for petty cash — mirroring the treasure flow stop.
+      if (run.treasureLoot) {
+        cachesOpened++
+        const pick = run.inventory.length < MAX_INVENTORY ? run.treasureLoot[0] : null
+        run = chooseTreasureLoot(run, pick).run
+      }
 
       // Promotion: a simple bot takes the stat package (always offer #0)
       // and banks the heal a promotion grants (full at base difficulty).
@@ -168,10 +186,13 @@ function simulateRun(
       }
       run = applyEventChoice(run, effectivePlayer, bestEvent, bestChoice, rng).run
 
-      // Elevator: the greedy variant rides the Executive Track whenever
-      // comfortably healthy; the default-path bot never does (elites are
-      // opt-in risk, so the hard winnability bound excludes them).
-      if (rideElites && eliteAvailable(run.floor)) {
+      // Elevator: the raider takes every open Supply Closet; the greedy
+      // variant rides the Executive Track whenever comfortably healthy;
+      // the default-path bot does neither (both are opt-in, so the hard
+      // winnability bound excludes them).
+      if (raidTreasure && treasureOffered(run)) {
+        run = chooseTreasureFloor(run)
+      } else if (rideElites && eliteAvailable(run.floor)) {
         run = chooseElevator(run, run.hp >= effectivePlayer.maxHp * 0.8)
       }
     }
@@ -183,6 +204,7 @@ function simulateRun(
     totalTurns: run.stats.totalTurns,
     totalDamageDealt: run.stats.totalDamageDealt,
     finalHp: run.hp,
+    cachesOpened,
   }
 }
 
@@ -232,6 +254,23 @@ describe('seeded full-run simulation', () => {
       }
     }
     expect(relicRuns, 'elite runs that got past the first elite').toBeGreaterThan(0)
+  })
+
+  it('a supply-closet raider keeps the same winnability floor', () => {
+    // Treasure floors are default-difficulty fights — the raid trades
+    // Stock Options for supplies, it does not raise the danger. So the
+    // hard early-tower bound must hold for a bot that raids every open
+    // closet, and the caches must actually get opened (the first closet
+    // is on floor 7, inside the bound).
+    let opened = 0
+    for (const cls of PLAYER_CLASSES) {
+      for (const seed of SEEDS) {
+        const raider = simulateRun(cls, seed, false, 0, true)
+        expect(raider.floorsCleared, `${cls.id} seed ${seed}`).toBeGreaterThanOrEqual(7)
+        opened += raider.cachesOpened
+      }
+    }
+    expect(opened, 'caches opened across raider runs').toBeGreaterThan(0)
   })
 
   it('balance outcome table is stable (review the diff when tuning)', () => {

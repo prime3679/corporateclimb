@@ -64,6 +64,10 @@ export interface RunState {
   eliteFloor: boolean
   /** Rolled outcome of a Mystery Floor pick; null = not a mystery. */
   mystery: MysteryOutcome | null
+  /** The current floor is a Supply Closet raid (half payout, cache). */
+  treasureFloor: boolean
+  /** Unopened supply cache from a treasure win; non-null = pick pending. */
+  treasureLoot: ItemId[] | null
   /** Perk ids this run can offer (unlocks frozen at run start). */
   perkPool: PerkId[]
   /** Relic ids this run can drop (unlocks frozen at run start). */

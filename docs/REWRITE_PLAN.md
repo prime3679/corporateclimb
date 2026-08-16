@@ -357,6 +357,23 @@ Replace the 35-hook god component with a real engine:
 > unlock hints. Remaining v2.0 backlog: mystery/treasure floor nodes,
 > daily leaderboard backend (approved, not started).
 
+### Phase 8 — Branching Tower, part 2: treasure floors ✅ DONE
+
+> Shipped: **The Supply Closet** — a fourth elevator door, open on one
+> scheduled floor per act (7/17/27; a fixed schedule, not a roll, so
+> dailies stay comparable and the balance rng stream is untouched).
+> The raid fights the standard enemy for **half** the Stock Options
+> payout; the win opens a pick-1-of-3 supply cache (distinct seeded
+> items, leave-it consolation of 25 OPT, full pockets force the
+> consolation). The cache pick is a new `treasure` flow stop ahead of
+> promotion — stored on the run (save v8) so a reload resumes the
+> choice. Engine: `treasureAvailable` / `chooseTreasureFloor` /
+> `awardTreasureCache` / `chooseTreasureLoot` in `engine/run.ts`,
+> `rollTreasureLoot` in `engine/offers.ts`; a supply-raider sim bound
+> holds the same floor-7 winnability floor and the base balance table
+> was verified bit-identical. Remaining v2.0 backlog: daily
+> leaderboard backend (approved, not started).
+
 ### Sequencing & risk
 
 | Phase            | Scope                                       | Risk                                                       | Payoff                                                                          |

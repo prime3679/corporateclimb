@@ -1,5 +1,6 @@
 // ─── VERSIONED SAVE ──────────────────────────────────────────
-// v7 adds the Re-Org ascension level.
+// v8 adds the Supply Closet treasure fields (raid flag + pending cache).
+// v7 added the Re-Org ascension level.
 // v6 added the mystery-floor outcome.
 // v5 added the meta-progression pools (perkPool/relicPool, frozen at
 // run start from the player's achievement unlocks).
@@ -12,6 +13,7 @@
 import type { ClassId, PerkId, SaveData } from '@/types'
 import {
   ENEMY_POOLS,
+  ITEMS,
   MAX_ASCENSION,
   PERKS,
   PLAYER_CLASSES,
@@ -27,9 +29,14 @@ import type { RunState } from './state'
 
 export const SAVE_KEY = 'corporate-climb-save'
 
+interface SaveFileV7 {
+  version: 7
+  run: Omit<RunState, 'treasureFloor' | 'treasureLoot'>
+}
+
 interface SaveFileV6 {
   version: 6
-  run: Omit<RunState, 'ascension'>
+  run: Omit<SaveFileV7['run'], 'ascension'>
 }
 
 interface SaveFileV5 {
@@ -61,11 +68,21 @@ function isValidRun(run: RunState): boolean {
   if (!Array.isArray(run.relicPool) || run.relicPool.some((id) => !RELICS[id])) return false
   if (!Number.isInteger(run.ascension) || run.ascension < 0 || run.ascension > MAX_ASCENSION)
     return false
+  if (
+    run.treasureLoot !== null &&
+    (!Array.isArray(run.treasureLoot) || run.treasureLoot.some((id) => !ITEMS[id]))
+  )
+    return false
   return true
 }
 
+/** v7 → v8: no raid in progress, no cache pending. */
+function migrateToV8(run: SaveFileV7['run']): RunState {
+  return { ...run, treasureFloor: false, treasureLoot: null }
+}
+
 /** v6 → v7: pre-ladder saves are base-difficulty runs. */
-function migrateToV7(run: SaveFileV6['run']): RunState {
+function migrateToV7(run: SaveFileV6['run']): SaveFileV7['run'] {
   return { ...run, ascension: 0 }
 }
 
@@ -135,7 +152,14 @@ function migrateV1(data: SaveData): SaveFileV2['run'] {
  * a migration and bumping the version are physically one edit — a
  * forgotten entry cannot silently wipe saves.
  */
-const MIGRATIONS = [migrateToV3, migrateToV4, migrateToV5, migrateToV6, migrateToV7] as const
+const MIGRATIONS = [
+  migrateToV3,
+  migrateToV4,
+  migrateToV5,
+  migrateToV6,
+  migrateToV7,
+  migrateToV8,
+] as const
 
 export const SAVE_VERSION = MIGRATIONS.length + 2
 

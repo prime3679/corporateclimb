@@ -212,6 +212,7 @@ export type Screen =
   | 'promotion'
   | 'shop'
   | 'elevator'
+  | 'treasure'
   | 'codex'
   | 'actTransition'
   | 'dailyPre'

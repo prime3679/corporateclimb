@@ -25,9 +25,12 @@ export {
   applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
+  awardTreasureCache,
   chooseElevator,
   chooseMysteryFloor,
   choosePerk,
+  chooseTreasureFloor,
+  chooseTreasureLoot,
   eliteAvailable,
   newBattle,
   newDailyRun,
@@ -35,6 +38,8 @@ export {
   newRun,
   pickTwoEvents,
   promotionBetween,
+  treasureAvailable,
+  treasureOffered,
   type RunPools,
 } from './run'
 export { ascensionEffects, type AscensionEffects } from './ascension'
@@ -54,7 +59,7 @@ export { elevatorPending, eventsEnabled, nextStop, type FlowContext, type FlowSt
 export { collectMods, type Mods } from './modifiers'
 export { getEffectivePlayer } from './player'
 export { getVictoryPayout } from './economy'
-export { rollMysteryOutcome, rollPerkOffer, rollRelicDrop } from './offers'
+export { rollMysteryOutcome, rollPerkOffer, rollRelicDrop, rollTreasureLoot } from './offers'
 export { scaleEnemyForElite, scaleEnemyForNgPlus, scaleEnemyForSlacker } from './scaling'
 export { SAVE_KEY, clearSave, loadRun, saveRun } from './save'
 export {

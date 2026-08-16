@@ -3,7 +3,7 @@ import { SFX } from './sfx'
 import { Music } from './music'
 import { Haptics, WakeLock } from './platform'
 import { buildSpriteUrls } from './sprites'
-import type { HallwayEvent, Move, PerkId, PlayerClass, RelicId, Screen } from './types'
+import type { HallwayEvent, ItemId, Move, PerkId, PlayerClass, RelicId, Screen } from './types'
 import { Button, Stage } from './ui'
 import {
   ACHIEVEMENTS,
@@ -33,6 +33,7 @@ import {
   FloorIntro,
   RouteChoice,
   ShopScreen,
+  SupplyClosetScreen,
   ElevatorScreen,
   CodexScreen,
 } from './screens'
@@ -53,12 +54,15 @@ import {
   applyPromotionHeal,
   applyVictory,
   awardEliteSpoils,
+  awardTreasureCache,
   battleIntroLine,
   buyShopItem,
   buyWellnessDay,
   chooseElevator,
   chooseMysteryFloor,
   choosePerk,
+  chooseTreasureFloor,
+  chooseTreasureLoot,
   clearSave,
   getEffectivePlayer,
   leaveShop,
@@ -73,6 +77,7 @@ import {
   resolveItemUse,
   resolvePlayerMove,
   saveRun,
+  treasureOffered,
   type BattleState,
   type FlowContext,
   type FlowStop,
@@ -260,6 +265,7 @@ export default function CorporateClimb() {
       case 'floorIntro':
       case 'routeChoice':
       case 'shop':
+      case 'treasure':
         Music.playEvent()
         break
       case 'victory':
@@ -284,10 +290,12 @@ export default function CorporateClimb() {
       after(500, () => {
         SFX.victory()
         const victory = applyVictory(winRun, effMaxHp)
-        // Elite floors drop a Status Symbol (or a payout once complete).
+        // Elite floors drop a Status Symbol (or a payout once complete);
+        // a Supply Closet raid rolls its cache for the pick that follows.
         const rng = new GameRng(victory.run.rngState)
         const spoils = awardEliteSpoils(victory.run, rng.next)
-        const next = { ...spoils.run, rngState: rng.serialize() }
+        const cache = awardTreasureCache(spoils.run, rng.next)
+        const next = { ...cache.run, rngState: rng.serialize() }
         setRun(next)
         setXpResult({
           xpGained: victory.xpGained,
@@ -505,6 +513,25 @@ export default function CorporateClimb() {
     setRun(next)
     if (next.mode.kind === 'normal') saveRun(next)
     goToStop(next, { actPending: false, eventsDone: true })
+  }
+
+  const handleTreasureRide = () => {
+    if (!run) return
+    SFX.menuConfirm()
+    const next = chooseTreasureFloor(run)
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+    goToStop(next, { actPending: false, eventsDone: true })
+  }
+
+  const handleTreasureLootPick = (item: ItemId | null) => {
+    if (!run || !run.treasureLoot) return
+    if (item) SFX.heal()
+    else SFX.menuConfirm()
+    const { run: next } = chooseTreasureLoot(run, item)
+    setRun(next)
+    if (next.mode.kind === 'normal') saveRun(next)
+    goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
   const handleVictoryContinue = () => {
@@ -802,6 +829,7 @@ export default function CorporateClimb() {
             onReady={startBattle}
             totalFloors={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
             mystery={run.mystery}
+            treasure={run.treasureFloor}
             ascension={run.ascension}
           />
         )}
@@ -856,6 +884,15 @@ export default function CorporateClimb() {
             floorNumber={run.floor + 1}
             onPick={handleElevatorPick}
             onPickMystery={handleMysteryPick}
+            treasureOffered={treasureOffered(run)}
+            onPickTreasure={handleTreasureRide}
+          />
+        )}
+        {screen === 'treasure' && run && run.treasureLoot && (
+          <SupplyClosetScreen
+            loot={run.treasureLoot}
+            inventoryFull={run.inventory.length >= MAX_INVENTORY}
+            onPick={handleTreasureLootPick}
           />
         )}
         {screen === 'promotion' && player && run?.pendingPerkOffer && (
