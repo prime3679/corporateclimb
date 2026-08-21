@@ -381,8 +381,8 @@ export function chooseTreasureLoot(
 // ─── THE ELEVATOR BANK ──────────────────────────────────────
 // Before each non-boss floor the player picks an elevator: the
 // standard floor, the Executive Track — an elite version of the
-// enemy for double payout and a Status Symbol — or, on scheduled
-// floors, the Supply Closet treasure raid.
+// enemy for double payout and a Status Symbol — the unmarked Mystery
+// Floor, or, on scheduled floors, the Supply Closet treasure raid.
 
 /**
  * The Executive Track opens after the first promotion (a perk-less

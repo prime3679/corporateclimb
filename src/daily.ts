@@ -36,7 +36,7 @@ export const DAILY_MODIFIERS: DailyModifier[] = [
   {
     id: 'budget_cuts',
     name: 'Budget Cuts',
-    desc: 'No items. No healing from events.',
+    desc: 'No items. No hallway events.',
     icon: '\u2702\uFE0F',
     apply: (ctx) => {
       ctx.itemsEnabled = false

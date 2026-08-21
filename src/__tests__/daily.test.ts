@@ -68,6 +68,25 @@ describe('getDailyModifier', () => {
     const m = getDailyModifier(20260316)
     expect(DAILY_MODIFIERS.find((mod) => mod.id === m.id)).toBeDefined()
   })
+
+  it('Budget Cuts disables items and hallway events, not merely event healing', () => {
+    const mod = DAILY_MODIFIERS.find((m) => m.id === 'budget_cuts')
+    expect(mod).toBeDefined()
+    const ctx = {
+      enemyAtkMult: 1,
+      enemyHpMult: 1,
+      enemyDefMult: 1,
+      playerDefMult: 1,
+      itemsEnabled: true,
+      eventsEnabled: true,
+      ppMult: 1,
+    }
+    mod!.apply(ctx)
+    expect(ctx.itemsEnabled).toBe(false)
+    expect(ctx.eventsEnabled).toBe(false)
+    expect(mod!.desc).toMatch(/hallway events/i)
+    expect(mod!.desc).not.toMatch(/healing/i)
+  })
 })
 
 describe('getDailyFloorMap', () => {

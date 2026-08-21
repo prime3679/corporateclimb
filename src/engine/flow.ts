@@ -1,8 +1,8 @@
 // ─── BETWEEN-FLOOR FLOW ─────────────────────────────────────
 // The single router for the interstitial sequence after a victory:
 //
-//   promotion → shop → act transition → hallway events → elevator →
-//   floor intro
+//   treasure cache → promotion → shop → act transition → hallway
+//   events → elevator → floor intro
 //
 // Each stop is entered only when the run calls for it. The UI used to
 // hand-order this in four separate handlers (victory continue, perk

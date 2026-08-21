@@ -148,6 +148,16 @@ describe('hallway events', () => {
       }
     }
   })
+
+  it('titles stay unique and do not collide with the Supply Closet raid', () => {
+    const titles = HALLWAY_EVENTS.map((e) => e.title)
+    expect(new Set(titles).size).toBe(titles.length)
+    for (const e of HALLWAY_EVENTS) {
+      expect(e.title, `${e.id}: title collides with the treasure floor`).not.toMatch(
+        /supply closet/i,
+      )
+    }
+  })
 })
 
 describe('items and achievements', () => {
