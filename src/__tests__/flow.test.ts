@@ -27,7 +27,17 @@ function makeRun(overrides: Partial<RunState> = {}): RunState {
 const fresh = { actPending: false, eventsDone: false }
 
 describe('nextStop ordering', () => {
-  it('promotion outranks everything', () => {
+  it('a pending supply cache outranks promotion', () => {
+    const run = makeRun({
+      floor: 7,
+      treasureLoot: ['espresso'],
+      pendingPerkOffer: ['gym_membership', 'perfectionist', 'negotiator'],
+      shopStock: ['espresso'],
+    })
+    expect(nextStop(run, { actPending: true, eventsDone: false })).toBe('treasure')
+  })
+
+  it('promotion outranks shop, act transition, and events', () => {
     const run = makeRun({
       floor: 5,
       pendingPerkOffer: ['gym_membership', 'perfectionist', 'negotiator'],
@@ -93,6 +103,7 @@ describe('save resume (eventsDone semantics)', () => {
       ),
     ).toBe('promotion')
     expect(nextStop(makeRun({ floor: 5, shopStock: ['espresso'] }), resume)).toBe('shop')
+    expect(nextStop(makeRun({ floor: 7, treasureLoot: ['espresso'] }), resume)).toBe('treasure')
     expect(nextStop(makeRun({ floor: 5 }), resume)).toBe('elevator')
     expect(elevatorPending(makeRun({ floor: 5 }))).toBe(true)
     expect(nextStop(makeRun({ floor: 5, eliteFloor: true }), resume)).toBe('floorIntro')

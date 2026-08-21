@@ -87,8 +87,8 @@ export const HALLWAY_EVENTS: HallwayEvent[] = [
   },
   {
     id: 'supply_closet',
-    title: 'SUPPLY CLOSET',
-    desc: "The supply closet is unlocked. Inside: premium sticky notes, a Red Bull, and someone's hidden snack stash.",
+    title: 'UNLOCKED CABINET',
+    desc: 'Someone left a cabinet unlocked. Inside: premium sticky notes, a Red Bull, and a hidden snack stash.',
     emoji: '\uD83D\uDCE6',
     choices: [
       {

@@ -1,8 +1,8 @@
 // ─── SEEDED OFFERS & DROPS ──────────────────────────────────
 // Every random reward roll: the promotion's pick-1-of-3, elite relic
-// drops, and the mystery elevator's gamble. All draw through the
-// injected rng so dailies stay deterministic, and all draw from the
-// run's frozen pools so meta-progression unlocks apply.
+// drops, the mystery elevator's gamble, and the Supply Closet cache.
+// All draw through the injected rng so dailies stay deterministic, and
+// all draw from the run's frozen pools so meta-progression unlocks apply.
 
 import type { ItemId, MysteryOutcome, PerkDef, PerkId, RelicId } from '@/types'
 import {

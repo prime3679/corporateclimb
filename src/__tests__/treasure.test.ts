@@ -6,11 +6,11 @@ import { describe, it, expect, beforeEach } from 'vitest'
 import {
   ALL_ITEM_IDS,
   ITEMS,
+  PLAYER_CLASSES,
   TREASURE_CONSOLATION_OPTIONS,
   TREASURE_LOOT_CHOICES,
   TREASURE_PAYOUT_MULT,
 } from '@/data'
-import { PLAYER_CLASSES } from '@/data'
 import {
   GameRng,
   MAX_INVENTORY,
@@ -25,6 +25,7 @@ import {
   elevatorPending,
   getVictoryPayout,
   loadRun,
+  newDailyRun,
   newRun,
   nextStop,
   rollTreasureLoot,
@@ -32,7 +33,6 @@ import {
   treasureOffered,
   type RunState,
 } from '@/engine'
-import { newDailyRun } from '@/engine'
 import type { ItemId } from '@/types'
 
 const cls = PLAYER_CLASSES[0]
