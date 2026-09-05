@@ -122,7 +122,7 @@ cells are appended after every Floor 1 cell, so the 108 Floor 1 atlas indices an
 are unchanged; the sheet grows to 272×1050 (165 cells) with five room floors, a one-tile
 vertical doorway, Operations signage and the help-desk / People Ops / Facilities / Finance /
 director props. Three new walk sheets (`teddy`, `kessler`, `whitlock`) use the same rig and
-are registered in `ACTOR_IDS` ahead of the engine wiring.
+are registered in `ACTOR_IDS` and `NPC_ACTOR`.
 
 ## What stays frozen
 

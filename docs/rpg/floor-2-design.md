@@ -1,10 +1,14 @@
 # The Office — Floor 2: Operations (Design)
 
-_Status: design freeze for the second floor, revision 1. Owner: Fable (experience, content,
-wording, pacing, art). Implementation: Astra (`docs/rpg/floor-2-engine-hooks.md`). Everything
-marked **FROZEN** is an ID or value code will be written against; change it here first, then in
-code. Floor 1 (`docs/rpg/mvp-design.md`) is the base contract — this document only adds to it and
-changes exactly the Floor 1 copy listed in §2.5. Nothing in Floor 1's frozen ID table is renamed._
+_Status: design freeze for the second floor, revision 2 — rebased onto Astra's multi-floor loop
+([PR #71](https://github.com/prime3679/corporateclimb/pull/71)), whose Floor 2 stub (Callie, a
+blank map, a take-five) this branch replaces with the frozen map, cast and IDs below. Owner: Fable
+(experience, content, wording, pacing, art). Implementation: Astra
+(`docs/rpg/floor-2-engine-hooks.md`, which now opens with what is already wired on this branch).
+Everything marked **FROZEN** is an ID or value code will be written against; change it here first,
+then in code. Floor 1 (`docs/rpg/mvp-design.md`) is the base contract — this document only adds to
+it and changes exactly the Floor 1 copy listed in §2.5. Nothing in Floor 1's frozen ID table is
+renamed._
 
 Companion reading: `docs/rpg/mvp-design.md` (the loop, party rules, presentation spec §10–§14
 that Floor 2 inherits wholesale), `docs/rpg/architecture.md` (Astra/Fable split),
@@ -900,9 +904,16 @@ covers the files.
 need one `HEADSHOT_FOCALS` entry each — check the crop on the small phone as part of §12),
 `PromotionScreen`, `ShopScreen`, `RunCompleteScreen` layout, all SFX/haptics.
 
-**Not in this branch (Astra)**: the glyph → cell mapping for Floor 2 in `tiles.tsx` (the table is
-§1.2 / `FLOOR_2_PROP_CELLS`), Floor 2 `WALL_DECOR` / `RUGS` wiring (`FLOOR_2_WALL_DECOR`,
-`FLOOR_2_RUGS`), and `NPC_ACTOR` entries for the three new NPC ids.
+**Wired on this branch** (on top of PR #71's floor-keyed content and elevator ride): the Floor 2
+map, zones, floors, rugs, decor, props and doorway in `tiles.tsx`; the three NPCs on the map with
+their talk lines, sightlines and `NPC_ACTOR` entries; every Floor 2 POI prompt and inspect line;
+the transfer packet from Teddy's callout through `filed` → `complete` (booth, Holloway's signature
+downstairs, the tray's receipt and letter); Whitlock's `{n}` ledger line; Kessler's state lines;
+Facilities take-five and vending; the Floor 2 directory; the per-floor objective chain with
+`(Floor n)` destinations pinned on the elevator. **Astra's** (`docs/rpg/floor-2-engine-hooks.md`):
+compliance training (Teddy's stakes card, fight, recruit, roster), the audit's receipts step and
+fight, Kessler's door gate, review and phase 2, the badge printer, the employee badge / Floor 3 row,
+the elevator panel, save v2 and per-floor vending stock.
 
 ---
 

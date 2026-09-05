@@ -1,9 +1,37 @@
 # Floor 2 — engine hooks for Astra
 
-_Short note to go with `docs/rpg/floor-2-design.md`. Fable owns the design, copy, IDs and art
-(all in that branch); Astra owns everything below. Nothing here needs a second combat engine, a
-second perk pool, or a Classic change. Frozen names are in the design doc §12 and in
-`src/content/office/floor2.ts`; if a name here disagrees with those, those win._
+_Short note to go with `docs/rpg/floor-2-design.md`. Fable owns the design, copy, IDs and art;
+Astra owns the engine work below. Nothing here needs a second combat engine, a second perk pool,
+or a Classic change. Frozen names are in the design doc §12 and in `src/content/office/floor2.ts`;
+if a name here disagrees with those, those win._
+
+## 0. Where this branch stands
+
+`feat/office-floor-2-design` is rebased on [PR #71](https://github.com/prime3679/corporateclimb/pull/71)
+(`cursor/office-multi-floor-849d`) and replaces its Floor 2 stub. Already wired, under the frozen
+ids, with `floors.test.ts` tracing it:
+
+- **Content**: `FloorId`, all Floor 2 zones / NPCs / encounters / coworker / assignments / key
+  items / POIs / triggers / rewards / receipts / flags / dialogue ids in `ids.ts`; every node in
+  `dialogue.ts` (with the two Floor 1 copy changes); `OFFICE_ENCOUNTERS` + `COWORKER_KITS` +
+  `RECEIPTS` + `REWARD_*` rows (Kessler's `phase2` entry is present but inert until §5);
+  `floor2.ts` keyed under `floor_02` in `map.ts`.
+- **Renderer**: `tiles.tsx` draws the Floor 2 map (floors, rugs, decor, `door_v_single`, all new
+  props with their states), per-floor light pools, Floor 2 zone accents/SFX, the Floor 2
+  directory, Whitlock's `{n}` substitution in the dialogue box.
+- **Reducer (stub parity + the backtracking beat)**: Teddy's callout on the first step
+  (`trg_first_step_f2`, `flag_visited_f2`); `asg_transfer` from `not_started` through `complete`
+  — `dlg_teddy_packet` → booth (`key_badge_photo`) → Holloway on Floor 1 (`dlg_holloway_sign_transfer`,
+  `key_transfer_form`) → People Ops tray (`rcpt_transfer_filed`, +12, one letter, once) →
+  Teddy's sightline / talk (`dlg_teddy_filed`); Whitlock's sightline hook; Kessler's `early` /
+  `teddy_pending` lines; Facilities take-five / vending / cabinet; objective chain with
+  cross-floor `(Floor n)` destinations pinned on the elevator doors; letter cap 3; old saves
+  default the new assignment / encounter keys.
+
+Not wired (the rest of this note): compliance training onward. Two divergences from the design to
+settle with Adrian: PR #71 replaced the Floor 1 celebration with the ride transition (design §8.2
+keeps the celebration on the first ride with a `[Floor 2]` button), and the ride is a Floor 1 ⇄
+Floor 2 toggle rather than the `ovl_elevator_panel` in §8.2 — fine until Floor 3 needs a row.
 
 ## 1. Multi-floor state
 
@@ -60,6 +88,8 @@ spawnPoints }`) and add a `FLOORS: Record<FloorId, FloorContent>` lookup. `floor
 
 ## 4. Roster (seats, not hires)
 
+`key_offer_letter` already caps at 3 on this branch. Remaining:
+
 - `OfficeSave.hired: CoworkerId[]`. `dlg_*_joined` appends to both `party` and `hired`.
 - `act_dismiss(slot)`: remove a coworker from `party` (never slot 0); they keep `hp`/`pp` — store
   the member record on a `bench: Partial<Record<CoworkerId, { hp; pp }>>` so rejoin restores it
@@ -71,7 +101,6 @@ spawnPoints }`) and add a `FLOORS: Record<FloorId, FloorContent>` lookup. `floor
   `[Make room]` which opens the team panel in roster mode and then re-pushes the recruit overlay.
   `coach_roster` fires once (`flag_roster_coached`) when that variant first mounts.
 - Team panel empty-row copy gains the "Open seat · {Name} is at {his/her} desk (Floor {n})" state.
-- `withKey` clamps `key_offer_letter` to 2 today; raise the cap to **3**.
 
 ## 5. Phase 2 for encounters
 
