@@ -215,7 +215,7 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
     ready = closeOverlay(maybeCoachMove(state, state.overlay))
   }
   const { state: stepped, moved } = tryStep(ready, dir)
-  if (!moved) return stepped
+  if (!moved) return afterFacing(stepped)
   return afterMove(maybeFirstStep(stepped))
 }
 
@@ -255,16 +255,19 @@ function maybeFirstStep(state: OfficeState): OfficeState {
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
   }
-  return enqueueOverlays(
-    withFlag(
-      {
-        ...state,
-        firedTriggers: [...state.firedTriggers, 'trg_first_step:spawn'],
-      },
-      'flag_greeted',
-    ),
-    [{ kind: 'dialogue', nodeId: 'dlg_renata_callout', line: 0 }],
+  let next = withFlag(
+    {
+      ...state,
+      firedTriggers: [...state.firedTriggers, 'trg_first_step:spawn'],
+    },
+    'flag_greeted',
   )
+  const follow: Overlay[] = [{ kind: 'dialogue', nodeId: 'dlg_renata_callout', line: 0 }]
+  if (!next.flags.includes('flag_pin_coached')) {
+    next = withFlag(next, 'flag_pin_coached')
+    follow.push({ kind: 'coach', id: 'coach_pin' })
+  }
+  return enqueueOverlays(next, follow)
 }
 
 function visitFlagFor(
@@ -345,7 +348,7 @@ function afterMove(state: OfficeState): OfficeState {
       }
     }
   }
-  return next
+  return maybeNearbyCoaches(next)
 }
 
 function shouldPromptElevator(state: OfficeState): boolean {
@@ -356,8 +359,44 @@ function shouldPromptElevator(state: OfficeState): boolean {
   )
 }
 
+function isElevatorTarget(target: ReturnType<typeof interactTarget>): boolean {
+  return !!target && target.kind === 'poi' && target.id.startsWith('poi_elevator_door')
+}
+
+/** Turning in place still opens a boarded cab and teaches the first nearby prompt. */
+function afterFacing(state: OfficeState): OfficeState {
+  if (state.overlay) return state
+  if (shouldPromptElevator(state)) return pushOverlay(state, { kind: 'elevator_panel' })
+  return maybeNearbyCoaches(state)
+}
+
+function maybeNearbyCoaches(state: OfficeState): OfficeState {
+  if (state.overlay) return state
+  const target = interactTarget(state)
+  if (!target) return state
+  if (isElevatorTarget(target) && !state.flags.includes('flag_elevator_coached')) {
+    return withFlag(
+      pushOverlay(state, { kind: 'coach', id: 'coach_elevator' }),
+      'flag_elevator_coached',
+    )
+  }
+  if (!state.flags.includes('flag_interact_coached')) {
+    return withFlag(
+      pushOverlay(state, { kind: 'coach', id: 'coach_interact' }),
+      'flag_interact_coached',
+    )
+  }
+  return state
+}
+
 function handleInteract(state: OfficeState): OfficeState {
   if (state.screen === 'battle') return state
+  if (state.overlay?.kind === 'coach') {
+    const id = state.overlay.id
+    const next = closeOverlay(maybeCoachMove(state, state.overlay))
+    if (id === 'coach_interact' || id === 'coach_elevator') return handleInteract(next)
+    return next
+  }
   if (state.overlay) return handleAdvance(state)
   const target = interactTarget(state)
   if (!target) return state
@@ -787,6 +826,9 @@ function maybeCoachMove(state: OfficeState, ov: Overlay): OfficeState {
   if (ov.kind === 'coach' && ov.id === 'coach_move') return withFlag(state, 'flag_move_coached')
   if (ov.kind === 'coach' && ov.id === 'coach_interact')
     return withFlag(state, 'flag_interact_coached')
+  if (ov.kind === 'coach' && ov.id === 'coach_pin') return withFlag(state, 'flag_pin_coached')
+  if (ov.kind === 'coach' && ov.id === 'coach_elevator')
+    return withFlag(state, 'flag_elevator_coached')
   if (ov.kind === 'coach' && ov.id === 'coach_switch') return withFlag(state, 'flag_switch_coached')
   if (ov.kind === 'coach' && ov.id === 'coach_roster') return withFlag(state, 'flag_roster_coached')
   return state

@@ -419,7 +419,15 @@ export default function WorldMap({ state }: { state: OfficeState }) {
       )}
 
       {nearby && !cardOpen && (
-        <div className={styles.nearby} style={{ left: nearbyLeft, top: nearbyTop }}>
+        <div
+          className={`${styles.nearby} ${
+            state.overlay?.kind === 'coach' &&
+            (state.overlay.id === 'coach_interact' || state.overlay.id === 'coach_elevator')
+              ? styles.nearbyCoach
+              : ''
+          }`}
+          style={{ left: nearbyLeft, top: nearbyTop }}
+        >
           {elevatorDot && (
             <span className={styles.led} style={{ background: elevatorDot }} aria-hidden />
           )}

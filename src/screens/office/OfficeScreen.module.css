@@ -466,6 +466,17 @@
   bottom: 192px;
 }
 
+.coachPin {
+  --coach-pointer: 72px;
+  left: 12px;
+  top: 86px;
+  width: 280px;
+}
+
+.objectiveCoach {
+  animation: of-coach-pulse 700ms ease-in-out 2;
+}
+
 .coachSwitch {
   --coach-pointer: 99px; /* the SWITCH tab in the deck's tab row */
   left: 130px;
@@ -663,10 +674,23 @@
   }
 }
 
+@keyframes of-coach-pulse {
+  0%,
+  100% {
+    box-shadow: var(--cc-shadow-plate);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--cc-gold) 45%, transparent),
+      var(--cc-shadow-plate);
+  }
+}
+
 :global(.reduce-motion) .objectiveSwap,
 :global(.reduce-motion) .walletPulse,
 :global(.reduce-motion) .bench,
-:global(.reduce-motion) .sceneVeil {
+:global(.reduce-motion) .sceneVeil,
+:global(.reduce-motion) .objectiveCoach {
   animation: none;
 }
 
@@ -674,7 +698,8 @@
   .objectiveSwap,
   .walletPulse,
   .bench,
-  .sceneVeil {
+  .sceneVeil,
+  .objectiveCoach {
     animation: none;
   }
 }

@@ -850,6 +850,8 @@ export default function CorporateClimb() {
         )}
         {screen === 'officeClassSelect' && (
           <ClassSelect
+            variant="office"
+            onBack={() => setScreen('title')}
             onSelect={(cls) => {
               SFX.menuConfirm()
               const campaign = newOfficeCampaign(cls)

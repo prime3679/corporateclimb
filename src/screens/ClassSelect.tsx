@@ -1,14 +1,19 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import type { PlayerClass } from '@/types'
 import { PLAYER_CLASSES, getAscensionTier, getClassAscension } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import TypeBadge from '@/components/TypeBadge'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
+import { SFX } from '@/sfx'
 
 export default function ClassSelect({
   onSelect,
+  onBack,
+  variant = 'classic',
 }: {
   onSelect: (cls: PlayerClass, ascension: number) => void
+  onBack?: () => void
+  variant?: 'classic' | 'office'
 }) {
   const [selected, setSelected] = useState(0)
   const [reorg, setReorg] = useState(0)
@@ -16,8 +21,41 @@ export default function ClassSelect({
   const cls = PLAYER_CLASSES[selected]
   const unlocked = getClassAscension(cls.id).unlocked
   // Switching to a class with fewer unlocked tiers clamps the pick.
-  const ascension = Math.min(reorg, unlocked)
-  const tier = ascension > 0 ? getAscensionTier(ascension) : null
+  const office = variant === 'office'
+  const ascension = office ? 0 : Math.min(reorg, unlocked)
+  const tier = !office && ascension > 0 ? getAscensionTier(ascension) : null
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+        e.preventDefault()
+        setSelected((i) => (i + PLAYER_CLASSES.length - 1) % PLAYER_CLASSES.length)
+        return
+      }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+        e.preventDefault()
+        setSelected((i) => (i + 1) % PLAYER_CLASSES.length)
+        return
+      }
+      if (e.key === '1' || e.key === '2' || e.key === '3') {
+        const idx = Number(e.key) - 1
+        if (PLAYER_CLASSES[idx]) setSelected(idx)
+        return
+      }
+      if (e.key === 'Enter') {
+        if (document.activeElement instanceof HTMLButtonElement) return
+        e.preventDefault()
+        onSelect(PLAYER_CLASSES[selected], office ? 0 : Math.min(reorg, unlocked))
+        return
+      }
+      if (e.key === 'Escape' && onBack) {
+        e.preventDefault()
+        onBack()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [onBack, onSelect, office, reorg, selected, unlocked])
 
   return (
     <div
@@ -29,26 +67,91 @@ export default function ClassSelect({
         background: 'transparent',
         padding: '22px 20px 20px',
         gap: 12,
+        position: 'relative',
       }}
     >
+      {onBack && (
+        <button
+          type="button"
+          onClick={() => {
+            SFX.menuBack()
+            onBack()
+          }}
+          aria-label="Back to title"
+          style={{
+            position: 'absolute',
+            top: 14,
+            left: 14,
+            minHeight: 40,
+            padding: '0 12px',
+            borderRadius: 'var(--radius-sm)',
+            border: '1px solid var(--cc-line)',
+            background: 'var(--cc-glass)',
+            color: 'var(--cc-text-2)',
+            fontFamily: 'var(--cc-font-display)',
+            fontSize: 'var(--display-xs)',
+            letterSpacing: 'var(--cc-track-chip)',
+            cursor: 'pointer',
+          }}
+        >
+          ‹ Title
+        </button>
+      )}
+      {office && (
+        <div
+          className="t-display"
+          style={{
+            fontSize: 'var(--display-2xs)',
+            letterSpacing: 'var(--cc-track-wide)',
+            color: 'var(--cc-text-dim)',
+            textAlign: 'center',
+            paddingTop: onBack ? 18 : 0,
+          }}
+        >
+          YOUR ROLE · FLOORS 1–5
+        </div>
+      )}
       <div
         className="t-display"
         style={{
           fontSize: 'var(--display-sm)',
           color: 'var(--gold-bright)',
           textAlign: 'center',
-          padding: '0 88px 0 12px',
+          padding: office ? '0 12px' : '0 88px 0 12px',
           textShadow: '2px 2px 0 #E65100',
         }}
       >
         SELECT CAREER ARCHETYPE
       </div>
+      {office && (
+        <p
+          className="t-body"
+          style={{
+            margin: 0,
+            textAlign: 'center',
+            fontSize: 'var(--body-md)',
+            lineHeight: 1.35,
+            color: 'var(--cc-text-2)',
+            maxWidth: 320,
+            alignSelf: 'center',
+          }}
+        >
+          Reception to the board. Five floors. One badge at a time.
+        </p>
+      )}
 
-      <div style={{ display: 'flex', gap: 8, justifyContent: 'center' }}>
+      <div
+        style={{ display: 'flex', gap: 8, justifyContent: 'center' }}
+        role="radiogroup"
+        aria-label="Career archetype"
+      >
         {PLAYER_CLASSES.map((c, i) => (
           <button
             key={c.id}
+            type="button"
+            role="radio"
             onClick={() => setSelected(i)}
+            aria-checked={selected === i}
             aria-pressed={selected === i}
             style={{
               width: 104,
@@ -329,7 +432,7 @@ export default function ClassSelect({
         </div>
       </Panel>
 
-      {unlocked > 0 && (
+      {!office && unlocked > 0 && (
         <div
           style={{
             display: 'flex',
@@ -388,6 +491,7 @@ export default function ClassSelect({
       <Button
         variant="primary"
         size="lg"
+        autoFocus={office}
         onClick={() => onSelect(PLAYER_CLASSES[selected], ascension)}
         style={{ alignSelf: 'center', minWidth: 220 }}
       >

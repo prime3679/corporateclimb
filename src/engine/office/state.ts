@@ -8,6 +8,7 @@ import {
   PARTY_MAX,
   spawnForFloor,
   type AssignmentId,
+  type CoachId,
   type CoworkerId,
   type EncounterId,
   type Facing,
@@ -73,7 +74,7 @@ export type Overlay =
   | { kind: 'confirm'; prompt: 'send_to_desk'; slot: number }
   | { kind: 'pause'; reason: 'badge_print' }
   | { kind: 'team'; mode?: 'default' | 'roster'; returnRecruit?: CoworkerId }
-  | { kind: 'coach'; id: 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster' }
+  | { kind: 'coach'; id: CoachId }
   | { kind: 'interstitial'; encounterId: EncounterId }
   | { kind: 'toast'; text: string }
   | { kind: 'handout' }
