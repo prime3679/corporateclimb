@@ -9,7 +9,7 @@ export const TILE_PAD = 1
 export const TILE_STRIDE_X = 34
 export const TILE_STRIDE_Y = 50
 export const TILE_SHEET_W = 272
-export const TILE_SHEET_H = 1050
+export const TILE_SHEET_H = 1250
 
 export const TILE_ATLAS = {
   floor_hall: [0, 0],
@@ -177,6 +177,36 @@ export const TILE_ATLAS = {
   shredder_shredding_1: [4, 20],
   btable_f2_l: [5, 20],
   btable_f2_r: [6, 20],
+  floor_war: [7, 20],
+  floor_intake: [0, 21],
+  floor_product: [1, 21],
+  floor_pipeline: [2, 21],
+  floor_client: [3, 21],
+  floor_board: [4, 21],
+  plaque_product_l: [5, 21],
+  plaque_sales_l: [6, 21],
+  plaque_exec_l: [7, 21],
+  plaque_product_m: [0, 22],
+  plaque_sales_m: [1, 22],
+  plaque_exec_m: [2, 22],
+  plaque_product_r: [3, 22],
+  plaque_sales_r: [4, 22],
+  plaque_exec_r: [5, 22],
+  sign_war: [6, 22],
+  sign_intake: [7, 22],
+  sign_pipeline: [0, 23],
+  sign_client: [1, 23],
+  sign_board: [2, 23],
+  nameplate_quincy: [3, 23],
+  nameplate_ashford: [4, 23],
+  nameplate_caldwell: [5, 23],
+  directory_f3: [6, 23],
+  directory_f4: [7, 23],
+  directory_f5: [0, 24],
+  roadmap_wall: [1, 24],
+  intake_board: [2, 24],
+  pipeline_board: [3, 24],
+  sideboard: [4, 24],
 } as const satisfies Record<string, readonly [number, number]>
 
 export type TileName = keyof typeof TILE_ATLAS

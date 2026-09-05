@@ -10,7 +10,9 @@ Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.
 the #67 presentation rebuild), `CLAUDE.md` (Classic tower). Floor 2 is designed in
 `docs/rpg/floor-2-design.md`; the engine work it asks for (multi-floor state, elevator
 destinations, badges, roster, encounter phase 2) is listed in
-`docs/rpg/floor-2-engine-hooks.md`.
+`docs/rpg/floor-2-engine-hooks.md`. Floors 3–5 (the 5-floor climb) are designed in
+`docs/rpg/floor-3-5-design.md`; elevator panel, assignment reducers and boss doors
+are listed in `docs/rpg/floor-3-5-engine-hooks.md`.
 
 ## Ownership — Astra vs Fable
 
@@ -98,15 +100,15 @@ overworld / promotion / vending change, `CorporateClimb` writes
 `FloorId` is `'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05'`.
 `floorId` is authoritative for geometry and content lookups. `map.ts` keys art,
 zones, NPC tiles, sightlines, interact spots, spawn, and elevator arrival by
-floor. Floors 1–2 keep their frozen ids and maps. Floors 3–5 ship as walkable
-stubs with the same shaft (`E` at `(2,1)`/`(3,1)`, reader `(4,1)`, arrival
-`(3,2)` facing south) so Fable can replace art without engine churn. The drop-in
-checklist is `docs/rpg/floors-3-5-content-contract.md`.
+floor. Floors 1–2 keep their frozen ids and maps. Floors 3–5 are Product / Sales
+/ Exec (`docs/rpg/floor-3-5-design.md`, `floor3.ts` / `floor4.ts` / `floor5.ts`)
+on the same shaft (`E` at `(2,1)`/`(3,1)`, reader `(4,1)`, arrival `(3,2)` facing
+south). The drop-in checklist is `docs/rpg/floors-3-5-content-contract.md`.
 
 The cab panel (`ovl_elevator_panel`, table `ELEVATOR_FLOORS`) is the only
-destination picker. Rows: 5 / 4 / 3 (`key_employee_badge`), 2 OPERATIONS
-(`key_access_badge`), 1 YOUR TEAM (open). The current floor is inert ("You are
-here"). Pressing a locked 3+ row plays the Floor 2 red-reader line once
+destination picker. Rows: 5 EXEC / 4 SALES / 3 PRODUCT (`key_employee_badge`),
+2 OPERATIONS (`key_access_badge`), 1 YOUR TEAM (open). The current floor is inert
+("You are here"). Pressing a locked 3+ row plays the Floor 2 red-reader line once
 (`flag_reader_denied_f2`) and leaves the panel open.
 
 Rides stay two-phase: `RIDE_ELEVATOR { to }` → `screen_elevator_ride` (doors /

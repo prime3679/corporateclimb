@@ -6,10 +6,8 @@ import {
   COWORKER_KITS,
   COWORKER_NAME,
   DIALOGUE,
-  DIRECTORY_TEXT,
   ELEVATOR_FLOORS,
-  FLOOR_2_DIRECTORY_TEXT,
-  STUB_DIRECTORY_TEXT,
+  FLOOR_DIRECTORY_TEXT,
   canRideTo,
   deskRosterLine,
   floorLabel,
@@ -844,13 +842,7 @@ export default function OfficeOverlays({
 
   if (ov.kind === 'document') {
     const agenda = ov.docId === 'agenda'
-    const lines = agenda
-      ? AGENDA_TEXT
-      : state.floorId === 'floor_02'
-        ? FLOOR_2_DIRECTORY_TEXT
-        : state.floorId === 'floor_01'
-          ? DIRECTORY_TEXT
-          : STUB_DIRECTORY_TEXT
+    const lines = agenda ? AGENDA_TEXT : FLOOR_DIRECTORY_TEXT[state.floorId]
     return (
       <div className={styles.layer}>
         <div className={styles.scrim} role="dialog" aria-modal="true">

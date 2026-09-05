@@ -17,7 +17,85 @@ export function resolveNpcTalk(state: OfficeState, npc: NpcId): DialogueId {
   if (npc === 'npc_receptionist') return resolveRenata(state)
   if (npc === 'npc_desk_challenger') return resolveGavin(state)
   if (npc === 'npc_meeting_prepper') return resolvePriya(state)
+  if (npc === 'npc_staff_pm') return resolveSloane(state)
+  if (npc === 'npc_researcher') return resolveNico(state)
+  if (npc === 'npc_vp_product') return resolveQuincy(state)
+  if (npc === 'npc_account_exec') return resolveHarper(state)
+  if (npc === 'npc_client_success') return resolveReyes(state)
+  if (npc === 'npc_vp_sales') return resolveAshford(state)
+  if (npc === 'npc_exec_assistant') return resolveMarlowe(state)
+  if (npc === 'npc_ceo') return resolveCaldwell(state)
   return resolveHolloway(state)
+}
+
+/* Floors 3–5 (docs/rpg/floor-3-5-design.md). First-state lines so a debug
+   floorId can talk; assignment reducers are Astra's. */
+
+export function resolveSloane(state: OfficeState): DialogueId {
+  const asg = state.assignments.asg_roadmap
+  if (asg === 'not_started') return 'dlg_sloane_brief'
+  if (asg === 'accepted') return 'dlg_sloane_hint_card'
+  if (asg === 'card_held') return 'dlg_sloane_hint_nico'
+  if (asg === 'initialled') return 'dlg_sloane_filed'
+  if (state.encounters.enc_vp_product === 'won') return 'dlg_sloane_after_win'
+  return 'dlg_sloane_after'
+}
+
+export function resolveNico(state: OfficeState): DialogueId {
+  const asg = state.assignments.asg_roadmap
+  if (asg === 'card_held') return 'dlg_nico_waiting'
+  if (asg === 'initialled' || asg === 'complete') return 'dlg_nico_after'
+  return 'dlg_nico_hook'
+}
+
+export function resolveQuincy(state: OfficeState): DialogueId {
+  if (state.encounters.enc_vp_product === 'won') return 'dlg_quincy_after'
+  if (state.lastLossEncounter === 'enc_vp_product') return 'dlg_quincy_you_lost'
+  if (state.assignments.asg_roadmap === 'complete') return 'dlg_quincy_review'
+  if (state.assignments.asg_roadmap === 'initialled') return 'dlg_quincy_sloane_pending'
+  return 'dlg_quincy_early'
+}
+
+export function resolveHarper(state: OfficeState): DialogueId {
+  const asg = state.assignments.asg_leavebehind
+  if (asg === 'not_started') return 'dlg_harper_brief'
+  if (asg === 'accepted') return 'dlg_harper_hint_deck'
+  if (asg === 'deck_held') return 'dlg_harper_hint_reyes'
+  if (asg === 'delivered') return 'dlg_harper_filed'
+  if (state.encounters.enc_vp_sales === 'won') return 'dlg_harper_after_win'
+  return 'dlg_harper_after'
+}
+
+export function resolveReyes(state: OfficeState): DialogueId {
+  const asg = state.assignments.asg_leavebehind
+  if (asg === 'deck_held') return 'dlg_reyes_waiting'
+  if (asg === 'delivered' || asg === 'complete') return 'dlg_reyes_after'
+  return 'dlg_reyes_hook'
+}
+
+export function resolveAshford(state: OfficeState): DialogueId {
+  if (state.encounters.enc_vp_sales === 'won') return 'dlg_ashford_after'
+  if (state.lastLossEncounter === 'enc_vp_sales') return 'dlg_ashford_you_lost'
+  if (state.assignments.asg_leavebehind === 'complete') return 'dlg_ashford_close'
+  if (state.assignments.asg_leavebehind === 'delivered') return 'dlg_ashford_harper_pending'
+  return 'dlg_ashford_early'
+}
+
+export function resolveMarlowe(state: OfficeState): DialogueId {
+  const asg = state.assignments.asg_board_packet
+  if (asg === 'not_started') return 'dlg_marlowe_brief'
+  if (asg === 'accepted') return 'dlg_marlowe_hint_packet'
+  if (asg === 'packet_held') return 'dlg_marlowe_filed'
+  if (state.encounters.enc_ceo_review === 'won') return 'dlg_marlowe_after_win'
+  return 'dlg_marlowe_after'
+}
+
+export function resolveCaldwell(state: OfficeState): DialogueId {
+  if (state.encounters.enc_ceo_review === 'won') return 'dlg_caldwell_after'
+  if (state.lastLossEncounter === 'enc_ceo_review') return 'dlg_caldwell_you_lost'
+  if (state.assignments.asg_board_packet === 'complete') return 'dlg_caldwell_review'
+  if (state.assignments.asg_board_packet === 'packet_held') return 'dlg_caldwell_packet_pending'
+  return 'dlg_caldwell_early'
 }
 
 export function resolveTeddy(state: OfficeState): DialogueId {
@@ -160,6 +238,9 @@ export function lossDialogue(encounterId: EncounterId): DialogueId {
   if (encounterId === 'enc_help_desk_intern') return 'dlg_teddy_you_lost'
   if (encounterId === 'enc_auditor') return 'dlg_whitlock_you_lost'
   if (encounterId === 'enc_director_review') return 'dlg_kessler_you_lost'
+  if (encounterId === 'enc_vp_product') return 'dlg_quincy_you_lost'
+  if (encounterId === 'enc_vp_sales') return 'dlg_ashford_you_lost'
+  if (encounterId === 'enc_ceo_review') return 'dlg_caldwell_you_lost'
   return 'dlg_holloway_you_lost'
 }
 
@@ -189,6 +270,46 @@ export function sightDialogue(state: OfficeState, npc: NpcId): DialogueId | null
   if (npc === 'npc_director') {
     if (state.encounters.enc_director_review === 'won') return null
     return resolveKessler(state)
+  }
+  if (npc === 'npc_staff_pm') {
+    if (state.assignments.asg_roadmap !== 'not_started') return null
+    return 'dlg_sloane_callout'
+  }
+  if (npc === 'npc_researcher') {
+    if (
+      state.assignments.asg_roadmap !== 'accepted' &&
+      state.assignments.asg_roadmap !== 'card_held'
+    )
+      return null
+    return 'dlg_nico_hook'
+  }
+  if (npc === 'npc_vp_product') {
+    if (state.encounters.enc_vp_product === 'won') return null
+    return resolveQuincy(state)
+  }
+  if (npc === 'npc_account_exec') {
+    if (state.assignments.asg_leavebehind !== 'not_started') return null
+    return 'dlg_harper_callout'
+  }
+  if (npc === 'npc_client_success') {
+    if (
+      state.assignments.asg_leavebehind !== 'accepted' &&
+      state.assignments.asg_leavebehind !== 'deck_held'
+    )
+      return null
+    return 'dlg_reyes_hook'
+  }
+  if (npc === 'npc_vp_sales') {
+    if (state.encounters.enc_vp_sales === 'won') return null
+    return resolveAshford(state)
+  }
+  if (npc === 'npc_exec_assistant') {
+    if (state.assignments.asg_board_packet !== 'not_started') return null
+    return 'dlg_marlowe_callout'
+  }
+  if (npc === 'npc_ceo') {
+    if (state.encounters.enc_ceo_review === 'won') return null
+    return resolveCaldwell(state)
   }
   return null
 }

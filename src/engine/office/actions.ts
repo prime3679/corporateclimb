@@ -379,6 +379,31 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
       state.assignments.asg_audit === 'complete' ? SHREDDER_COPY.after : SHREDDER_COPY.idle,
     )
   }
+  // Floors 3–5 — shared take-five / vending / directory / elevator (assignments are Astra's)
+  if (
+    id === 'poi_elevator_door_f3' ||
+    id === 'poi_elevator_door_f4' ||
+    id === 'poi_elevator_door_f5'
+  )
+    return handleElevatorPoi(state)
+  if (
+    id === 'poi_break_counter_f3' ||
+    id === 'poi_break_counter_f4' ||
+    id === 'poi_break_counter_f5'
+  )
+    return pushOverlay(state, { kind: 'confirm', prompt: 'take_five' })
+  if (
+    id === 'poi_vending_machine_f3' ||
+    id === 'poi_vending_machine_f4' ||
+    id === 'poi_vending_machine_f5'
+  )
+    return { ...state, screen: 'vending' }
+  if (
+    id === 'poi_directory_sign_f3' ||
+    id === 'poi_directory_sign_f4' ||
+    id === 'poi_directory_sign_f5'
+  )
+    return pushOverlay(state, { kind: 'document', docId: 'directory' })
   return inspect(state, POI_INSPECT[id])
 }
 

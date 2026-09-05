@@ -13,9 +13,9 @@ export interface ElevatorFloorRow {
  * Highest floor first so the panel reads like a real elevator.
  */
 export const ELEVATOR_FLOORS: readonly ElevatorFloorRow[] = [
-  { id: 'floor_05', number: 5, name: 'FLOOR 5', requires: 'key_employee_badge' },
-  { id: 'floor_04', number: 4, name: 'FLOOR 4', requires: 'key_employee_badge' },
-  { id: 'floor_03', number: 3, name: 'FLOOR 3', requires: 'key_employee_badge' },
+  { id: 'floor_05', number: 5, name: 'EXEC', requires: 'key_employee_badge' },
+  { id: 'floor_04', number: 4, name: 'SALES', requires: 'key_employee_badge' },
+  { id: 'floor_03', number: 3, name: 'PRODUCT', requires: 'key_employee_badge' },
   { id: 'floor_02', number: 2, name: 'OPERATIONS', requires: 'key_access_badge' },
   { id: 'floor_01', number: 1, name: 'YOUR TEAM', requires: null },
 ]

@@ -42,6 +42,45 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_shredder: 'A cross-cut shredder. It has eaten better receipts than yours.',
   poi_directory_sign_stub:
     'Unmapped floor. Elevator: you are standing at it. Fable fills the rest.',
+  // Floors 3–5 (docs/rpg/floor-3-5-design.md)
+  poi_elevator_door_f3: 'The reader blinks red. Sales is above your grade. It says so, in a beep.',
+  poi_directory_sign_f3: 'FLOOR 3 — PRODUCT. War room: through the glass. Intake: far right.',
+  poi_roadmap_wall: 'A wall of cards. NOW is empty. LATER is a novel. ICEBOX has your name on it.',
+  poi_intake_board: 'A research board. The stickies are colour-coded by how tired Nico is.',
+  poi_war_desk: 'Three monitors. One of them is a spreadsheet named ROADMAP_FINAL_v7_USE_THIS.',
+  poi_filing_f3: 'Specs. Every one of them says DRAFT in a confident font.',
+  poi_water_cooler_f3: 'The gossip up here is about the column. You are not in it yet.',
+  poi_break_counter_f3:
+    'Restores HP and PP for the whole team. Product still has the good machine.',
+  poi_vending_machine_f3: 'Accepts Stock Options. Product has a ticket open about that.',
+  poi_break_table_f3: 'A pastry box. The note says FOR THE Q4 REVIEW. The box is empty.',
+  poi_quincy_desk:
+    'Nameplate: QUINCY, VP PRODUCT. The Now column on his monitor is a blinking cursor.',
+  poi_elevator_door_f4: 'The reader blinks red. Exec is above your grade. It says so, in a beep.',
+  poi_directory_sign_f4: 'FLOOR 4 — SALES. Pipeline: through the glass. Client: far right.',
+  poi_pipeline_board: 'A pipeline. Everything is Closing. Nothing is Closed. The maths is hopeful.',
+  poi_leavebehind: 'A stack of one-pagers. The number at the bottom is optimistic.',
+  poi_pipeline_desk: "Harper's desk. The phone is face-down. That is how you know it is ringing.",
+  poi_water_cooler_f4: 'The gossip up here is a number. The number changes if you ask twice.',
+  poi_break_counter_f4: 'Restores HP and PP for the whole team. Sales calls it a win-back.',
+  poi_vending_machine_f4: 'Accepts Stock Options. Someone billed a client for a bag of chips.',
+  poi_break_table_f4:
+    'A champagne flute in a coffee mug. The flute is empty. The mug is also empty.',
+  poi_ashford_desk:
+    'Nameplate: ASHFORD, VP SALES. A flute. No champagne. The Close does not need it.',
+  poi_elevator_door_f5: 'The reader is green. There is no 6. The beep is quieter up here.',
+  poi_directory_sign_f5:
+    'FLOOR 5 — EXEC. Antechamber: through the glass. Boardroom: down the hall.',
+  poi_sideboard: 'Leather. A packet with a gold clip. This is where board packets live.',
+  poi_water_cooler_f5: 'No gossip. The VPs are on this floor, being quiet.',
+  poi_break_counter_f5:
+    'Restores HP and PP for the whole team. The mugs have no logos. That is the logo.',
+  poi_vending_machine_f5:
+    'Accepts Stock Options. The prices are the same. That feels like a statement.',
+  poi_break_table_f5: 'A water pitcher. No pastries. The note says THE BOARD DOES NOT EAT.',
+  poi_board_table: 'A table that has heard worse presentations than yours. It is not impressed.',
+  poi_caldwell_desk:
+    'Nameplate: CALDWELL, CHIEF EXECUTIVE. No computer. A notepad. One line, blank.',
 }
 
 export const PRINTER_COPY = {

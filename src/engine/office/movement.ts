@@ -61,6 +61,14 @@ export function interactTarget(state: OfficeState): InteractTarget | null {
         npc_help_desk_intern: 'Teddy',
         npc_auditor: 'Whitlock',
         npc_director: 'Kessler',
+        npc_staff_pm: 'Sloane',
+        npc_researcher: 'Nico',
+        npc_vp_product: 'Quincy',
+        npc_account_exec: 'Harper',
+        npc_client_success: 'Reyes',
+        npc_vp_sales: 'Ashford',
+        npc_exec_assistant: 'Marlowe',
+        npc_ceo: 'Caldwell',
       }
       return { kind: 'npc', id, label: `Talk · ${names[id]}` }
     }

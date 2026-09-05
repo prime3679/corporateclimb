@@ -4,6 +4,7 @@ import {
   FLOOR_2_ARRIVAL,
   FLOOR_2_ART,
   FLOOR_2_DEFEAT_RESPAWN,
+  FLOOR_2_DIRECTORY_TEXT,
   FLOOR_2_INTERACT_SPOTS,
   FLOOR_2_NPC_SIGHT,
   FLOOR_2_NPC_TILE,
@@ -11,15 +12,44 @@ import {
   FLOOR_2_ZONE_LABEL,
   floor2ZoneAt,
 } from './floor2'
-import { canOpenElevatorPanel, canRideTo, elevatorRowFor } from './elevator'
 import {
-  STUB_ARRIVAL,
-  STUB_ART,
-  STUB_BOARDING,
-  STUB_DEFEAT_RESPAWN,
-  STUB_SOLID_GLYPHS,
-  stubZoneAt,
-} from './floorStubs'
+  FLOOR_3_ARRIVAL,
+  FLOOR_3_ART,
+  FLOOR_3_DEFEAT_RESPAWN,
+  FLOOR_3_DIRECTORY_TEXT,
+  FLOOR_3_INTERACT_SPOTS,
+  FLOOR_3_NPC_SIGHT,
+  FLOOR_3_NPC_TILE,
+  FLOOR_3_SOLID_GLYPHS,
+  FLOOR_3_ZONE_LABEL,
+  floor3ZoneAt,
+} from './floor3'
+import {
+  FLOOR_4_ARRIVAL,
+  FLOOR_4_ART,
+  FLOOR_4_DEFEAT_RESPAWN,
+  FLOOR_4_DIRECTORY_TEXT,
+  FLOOR_4_INTERACT_SPOTS,
+  FLOOR_4_NPC_SIGHT,
+  FLOOR_4_NPC_TILE,
+  FLOOR_4_SOLID_GLYPHS,
+  FLOOR_4_ZONE_LABEL,
+  floor4ZoneAt,
+} from './floor4'
+import {
+  FLOOR_5_ARRIVAL,
+  FLOOR_5_ART,
+  FLOOR_5_DEFEAT_RESPAWN,
+  FLOOR_5_DIRECTORY_TEXT,
+  FLOOR_5_INTERACT_SPOTS,
+  FLOOR_5_NPC_SIGHT,
+  FLOOR_5_NPC_TILE,
+  FLOOR_5_SOLID_GLYPHS,
+  FLOOR_5_ZONE_LABEL,
+  floor5ZoneAt,
+} from './floor5'
+import { canOpenElevatorPanel, canRideTo, elevatorRowFor } from './elevator'
+import { STUB_BOARDING } from './floorStubs'
 
 type SpawnPoint = { x: number; y: number; facing: Facing }
 type TilePoint = { x: number; y: number }
@@ -50,9 +80,9 @@ const FLOOR_02_ART = FLOOR_2_ART
 export const FLOOR_ART_BY_ID: Record<FloorId, readonly string[]> = {
   floor_01: FLOOR_01_ART,
   floor_02: FLOOR_02_ART,
-  floor_03: STUB_ART,
-  floor_04: STUB_ART,
-  floor_05: STUB_ART,
+  floor_03: FLOOR_3_ART,
+  floor_04: FLOOR_4_ART,
+  floor_05: FLOOR_5_ART,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -63,9 +93,9 @@ const FLOOR_01_SOLID_GLYPHS = new Set('#XERTAHc=PSKVtwip1234'.split(''))
 const SOLID_GLYPHS_BY_FLOOR: Record<FloorId, Set<string>> = {
   floor_01: FLOOR_01_SOLID_GLYPHS,
   floor_02: FLOOR_2_SOLID_GLYPHS,
-  floor_03: STUB_SOLID_GLYPHS,
-  floor_04: STUB_SOLID_GLYPHS,
-  floor_05: STUB_SOLID_GLYPHS,
+  floor_03: FLOOR_3_SOLID_GLYPHS,
+  floor_04: FLOOR_4_SOLID_GLYPHS,
+  floor_05: FLOOR_5_SOLID_GLYPHS,
 }
 
 export type TileGlyph = string
@@ -73,26 +103,26 @@ export type TileGlyph = string
 const FLOOR_SPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 12, y: 15, facing: 'n' },
   floor_02: FLOOR_2_ARRIVAL,
-  floor_03: STUB_ARRIVAL,
-  floor_04: STUB_ARRIVAL,
-  floor_05: STUB_ARRIVAL,
+  floor_03: FLOOR_3_ARRIVAL,
+  floor_04: FLOOR_4_ARRIVAL,
+  floor_05: FLOOR_5_ARRIVAL,
 }
 
 const FLOOR_DEFEAT_RESPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 19, y: 8, facing: 'n' },
   floor_02: FLOOR_2_DEFEAT_RESPAWN,
-  floor_03: STUB_DEFEAT_RESPAWN,
-  floor_04: STUB_DEFEAT_RESPAWN,
-  floor_05: STUB_DEFEAT_RESPAWN,
+  floor_03: FLOOR_3_DEFEAT_RESPAWN,
+  floor_04: FLOOR_4_DEFEAT_RESPAWN,
+  floor_05: FLOOR_5_DEFEAT_RESPAWN,
 }
 
 // One shaft: the elevator is the same three tiles on every floor.
 const FLOOR_ELEVATOR_ARRIVAL: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 3, y: 2, facing: 's' },
   floor_02: FLOOR_2_ARRIVAL,
-  floor_03: STUB_ARRIVAL,
-  floor_04: STUB_ARRIVAL,
-  floor_05: STUB_ARRIVAL,
+  floor_03: FLOOR_3_ARRIVAL,
+  floor_04: FLOOR_4_ARRIVAL,
+  floor_05: FLOOR_5_ARRIVAL,
 }
 
 const SHARED_BOARDING: ReadonlyArray<{ x: number; y: number; facing: Facing }> = [
@@ -124,6 +154,9 @@ export const ZONE_LABEL: Record<ZoneId, string> = {
   zone_elevator: 'ELEVATOR LOBBY',
   zone_hall: 'HALL',
   ...FLOOR_2_ZONE_LABEL,
+  ...FLOOR_3_ZONE_LABEL,
+  ...FLOOR_4_ZONE_LABEL,
+  ...FLOOR_5_ZONE_LABEL,
 }
 
 const FLOOR_LABEL: Record<FloorId, string> = {
@@ -201,7 +234,9 @@ function zoneAtFloor1(x: number, y: number): ZoneId {
 export function zoneAt(x: number, y: number, floorId: FloorId = 'floor_01'): ZoneId {
   if (floorId === 'floor_01') return zoneAtFloor1(x, y)
   if (floorId === 'floor_02') return floor2ZoneAt(x, y)
-  return stubZoneAt(x, y)
+  if (floorId === 'floor_03') return floor3ZoneAt(x, y)
+  if (floorId === 'floor_04') return floor4ZoneAt(x, y)
+  return floor5ZoneAt(x, y)
 }
 
 export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>> = {
@@ -212,9 +247,9 @@ export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>>
     npc_supervisor: { x: 6, y: 3, facing: 'e' },
   },
   floor_02: FLOOR_2_NPC_TILE,
-  floor_03: {},
-  floor_04: {},
-  floor_05: {},
+  floor_03: FLOOR_3_NPC_TILE,
+  floor_04: FLOOR_4_NPC_TILE,
+  floor_05: FLOOR_5_NPC_TILE,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -243,9 +278,9 @@ export const FLOOR_NPC_SIGHT: Record<FloorId, Partial<Record<NpcId, TilePoint[]>
     ],
   },
   floor_02: FLOOR_2_NPC_SIGHT,
-  floor_03: {},
-  floor_04: {},
-  floor_05: {},
+  floor_03: FLOOR_3_NPC_SIGHT,
+  floor_04: FLOOR_4_NPC_SIGHT,
+  floor_05: FLOOR_5_NPC_SIGHT,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -330,21 +365,12 @@ const FLOOR_01_INTERACT_SPOTS: InteractSpot[] = [
 
 const FLOOR_02_INTERACT_SPOTS: InteractSpot[] = FLOOR_2_INTERACT_SPOTS
 
-const stubDirectorySpots = (): InteractSpot[] => [
-  poiSpot(2, 2, 'n', 'poi_elevator_door', 'Elevator'),
-  poiSpot(3, 2, 'n', 'poi_elevator_door', 'Elevator'),
-  poiSpot(4, 2, 'n', 'poi_elevator_door', 'Elevator'),
-  poiSpot(4, 1, 'w', 'poi_elevator_door', 'Elevator'),
-  poiSpot(4, 4, 'e', 'poi_directory_sign_stub', 'Read · Directory'),
-  poiSpot(5, 5, 'n', 'poi_directory_sign_stub', 'Read · Directory'),
-]
-
 export const FLOOR_INTERACT_SPOTS: Record<FloorId, InteractSpot[]> = {
   floor_01: FLOOR_01_INTERACT_SPOTS,
   floor_02: FLOOR_02_INTERACT_SPOTS,
-  floor_03: stubDirectorySpots(),
-  floor_04: stubDirectorySpots(),
-  floor_05: stubDirectorySpots(),
+  floor_03: FLOOR_3_INTERACT_SPOTS,
+  floor_04: FLOOR_4_INTERACT_SPOTS,
+  floor_05: FLOOR_5_INTERACT_SPOTS,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -370,3 +396,11 @@ export const DIRECTORY_TEXT = [
   'FLOOR 1 — Desks: left. Break room: up the hall, right.',
   'Meeting room: top right. Elevator: top left. Badge required.',
 ]
+
+export const FLOOR_DIRECTORY_TEXT: Record<FloorId, readonly string[]> = {
+  floor_01: DIRECTORY_TEXT,
+  floor_02: FLOOR_2_DIRECTORY_TEXT,
+  floor_03: FLOOR_3_DIRECTORY_TEXT,
+  floor_04: FLOOR_4_DIRECTORY_TEXT,
+  floor_05: FLOOR_5_DIRECTORY_TEXT,
+}

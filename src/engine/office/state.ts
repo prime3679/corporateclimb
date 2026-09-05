@@ -107,6 +107,9 @@ export const FRESH_ASSIGNMENTS: Record<AssignmentId, string> = {
   asg_meeting_prep: 'not_started',
   asg_transfer: 'not_started',
   asg_audit: 'not_started',
+  asg_roadmap: 'not_started',
+  asg_leavebehind: 'not_started',
+  asg_board_packet: 'not_started',
 }
 
 export const FRESH_ENCOUNTERS: Record<EncounterId, 'open' | 'won'> = {
@@ -116,6 +119,9 @@ export const FRESH_ENCOUNTERS: Record<EncounterId, 'open' | 'won'> = {
   enc_help_desk_intern: 'open',
   enc_auditor: 'open',
   enc_director_review: 'open',
+  enc_vp_product: 'open',
+  enc_vp_sales: 'open',
+  enc_ceo_review: 'open',
 }
 
 export function newOfficeCampaign(cls: PlayerClass): OfficeState {

@@ -23,6 +23,15 @@ const SPRITES: Record<string, string> = {
   boss,
   eng,
   design,
+  // Floor 3–5 stand-ins (unique keys, house portraits) until a commission.
+  sloane: productManager,
+  nico: design,
+  quincy: vp,
+  harper: recruiter,
+  reyes: intern,
+  ashford: overachiever,
+  marlowe: scrum,
+  caldwell: boss,
 }
 
 export function buildSpriteUrls(): Record<string, string> {
