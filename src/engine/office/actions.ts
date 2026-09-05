@@ -7,11 +7,15 @@ import type { BattleEvent } from '../events'
 import type { ItemId, PerkId } from '@/types'
 import {
   CABINET_COPY,
+  canUseElevator,
   DIALOGUE,
+  elevatorArrivalForFloor,
+  elevatorBoardingSpotsForFloor,
+  elevatorDestination,
+  floorLabel,
   HANDOUT_CHOICES,
   HANDOUT_PICK_LINE,
   POI_INSPECT,
-  POST_CELEBRATION,
   PRINTER_COPY,
   type DialogueId,
   type EncounterId,
@@ -64,7 +68,7 @@ export type OfficeAction =
   | { type: 'BATTLE_SWITCH'; to: number }
   | { type: 'PICK_PERK'; perkId: PerkId }
   | { type: 'RIDE_ELEVATOR' }
-  | { type: 'RETURN_FROM_PREVIEW' }
+  | { type: 'COMPLETE_ELEVATOR_RIDE' }
   | { type: 'DOOR_STEP_IN' }
   | { type: 'DOOR_STEP_BACK' }
 
@@ -137,14 +141,8 @@ function apply(state: OfficeState, action: OfficeAction, rng: Rng): OfficeDispat
       return done(pickPerk(state, action.perkId))
     case 'RIDE_ELEVATOR':
       return done(rideElevator(state))
-    case 'RETURN_FROM_PREVIEW':
-      return done({
-        ...withFlag(state, 'flag_preview_complete'),
-        screen: 'overworld',
-        player: { ...POST_CELEBRATION },
-        overlay: null,
-        overlayQueue: [],
-      })
+    case 'COMPLETE_ELEVATOR_RIDE':
+      return done(completeElevatorRide(state))
     case 'DOOR_STEP_IN':
       return done(doorStepIn(state))
     case 'DOOR_STEP_BACK':
@@ -181,6 +179,7 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
 }
 
 function maybeFirstStep(state: OfficeState): OfficeState {
+  if (state.floorId !== 'floor_01') return state
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
   }
@@ -200,7 +199,7 @@ function afterMove(state: OfficeState): OfficeState {
   let next = withFlag(state, 'flag_move_coached')
   if (next.overlay) return next
 
-  if (next.player.x === 10 && next.player.y === 3) {
+  if (next.floorId === 'floor_01' && next.player.x === 10 && next.player.y === 3) {
     if (supervisorGateOpen(next) && next.encounters.enc_supervisor_1on1 !== 'won') {
       const key = 'trg_supervisor_door:ready'
       if (!next.firedTriggers.includes(key)) {
@@ -210,14 +209,11 @@ function afterMove(state: OfficeState): OfficeState {
     }
   }
 
-  if (
-    (next.player.x === 2 || next.player.x === 3) &&
-    next.player.y === 2 &&
-    next.player.facing === 'n' &&
-    keyCount(next, 'key_access_badge') > 0
-  ) {
+  if (shouldPromptElevator(next)) {
     return pushOverlay(next, { kind: 'confirm', prompt: 'elevator' })
   }
+
+  if (next.floorId !== 'floor_01') return next
 
   const npc = sightlineNpc(next)
   if (npc) {
@@ -243,6 +239,14 @@ function afterMove(state: OfficeState): OfficeState {
     }
   }
   return next
+}
+
+function shouldPromptElevator(state: OfficeState): boolean {
+  if (!canUseElevator(state.floorId, state.keyItems)) return false
+  return elevatorBoardingSpotsForFloor(state.floorId).some(
+    (spot) =>
+      spot.x === state.player.x && spot.y === state.player.y && spot.facing === state.player.facing,
+  )
 }
 
 function handleInteract(state: OfficeState): OfficeState {
@@ -357,7 +361,7 @@ function handleRack(state: OfficeState): OfficeState {
 }
 
 function handleElevatorPoi(state: OfficeState): OfficeState {
-  if (keyCount(state, 'key_access_badge') > 0) {
+  if (canUseElevator(state.floorId, state.keyItems)) {
     return pushOverlay(state, { kind: 'confirm', prompt: 'elevator' })
   }
   return inspect(withFlag(state, 'flag_badge_reader_denied'), POI_INSPECT.poi_elevator_door)
@@ -394,6 +398,9 @@ function maybeCoachMove(state: OfficeState, ov: Overlay): OfficeState {
 }
 
 function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
+  if (id === 'dlg_callie_floor2_intro') {
+    return withFlag(state, 'flag_floor2_briefed')
+  }
   if (id === 'dlg_renata_ticket') {
     return { ...state, assignments: { ...state.assignments, asg_printer: 'accepted' } }
   }
@@ -650,13 +657,36 @@ function pickPerk(state: OfficeState, perkId: PerkId): OfficeState {
 }
 
 function rideElevator(state: OfficeState): OfficeState {
-  if (keyCount(state, 'key_access_badge') < 1) return state
+  if (!canUseElevator(state.floorId, state.keyItems)) return state
+  const destination = elevatorDestination(state.floorId)
+  const rideKey = `trg_elevator_ride:${state.floorId}->${destination}`
   return {
     ...state,
-    screen: 'preview_complete',
-    overlay: { kind: 'celebration' },
+    firedTriggers: state.firedTriggers.includes(rideKey)
+      ? state.firedTriggers
+      : [...state.firedTriggers, rideKey],
+    screen: 'elevator_ride',
+    overlay: null,
     overlayQueue: [],
   }
+}
+
+function completeElevatorRide(state: OfficeState): OfficeState {
+  if (state.screen !== 'elevator_ride') return state
+  const from = state.floorId
+  const to = elevatorDestination(from)
+  let next: OfficeState = {
+    ...state,
+    floorId: to,
+    screen: 'overworld',
+    player: elevatorArrivalForFloor(to),
+    overlay: null,
+    overlayQueue: [],
+  }
+  if (from === 'floor_01') {
+    next = withFlag(next, 'flag_preview_complete')
+  }
+  return pushOverlay(next, { kind: 'toast', text: `Arrived: ${floorLabel(to)} · Elevator lobby` })
 }
 
 function doorStepIn(state: OfficeState): OfficeState {

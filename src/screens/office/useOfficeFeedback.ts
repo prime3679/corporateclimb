@@ -5,6 +5,8 @@ import {
   RECEIPTS,
   REWARD_OPTIONS,
   ZONE_LABEL,
+  elevatorDestination,
+  floorLabel,
   zoneAt,
 } from '@/content/office'
 import {
@@ -43,8 +45,8 @@ export function useOfficeFeedback(state: OfficeState): string {
     }
 
     // Zone change.
-    const prevZone = zoneAt(prev.player.x, prev.player.y)
-    const zone = zoneAt(state.player.x, state.player.y)
+    const prevZone = zoneAt(prev.player.x, prev.player.y, prev.floorId)
+    const zone = zoneAt(state.player.x, state.player.y, state.floorId)
     if (prevZone !== zone && state.screen === 'overworld') {
       if (zone === 'zone_break') SFX.coffee()
       else if (zone === 'zone_elevator') SFX.badgeSwipe()
@@ -82,11 +84,10 @@ export function useOfficeFeedback(state: OfficeState): string {
         else SFX.enemyAppear()
         Haptics.impact('medium')
         say(`${enc.titleCard}. ${enc.name}.`)
-      } else if (state.screen === 'preview_complete') {
+      } else if (state.screen === 'elevator_ride') {
         SFX.elevatorUp()
-        window.setTimeout(() => SFX.fanfare(), 700)
-        Haptics.success()
-        say('Floor 1 cleared.')
+        Haptics.selection()
+        say(`Elevator. Next stop: ${floorLabel(elevatorDestination(prev.floorId))}.`)
       } else if (state.screen === 'promotion') {
         SFX.fanfare()
         say('Cleared probation. Pick a perk.')
@@ -94,6 +95,9 @@ export function useOfficeFeedback(state: OfficeState): string {
         SFX.menuSelect()
         Haptics.selection()
       }
+    }
+    if (state.floorId !== prev.floorId && state.screen === 'overworld') {
+      say(`Arrived: ${floorLabel(state.floorId)}.`)
     }
 
     // Overlay openings.
@@ -144,7 +148,8 @@ export function useOfficeFeedback(state: OfficeState): string {
       } else if (ov.prompt === 'elevator') {
         SFX.badgeSwipe()
         Haptics.selection()
-        say('Elevator. The reader blinks green. Ride up?')
+        const destination = elevatorDestination(state.floorId)
+        say(`Elevator. The reader blinks green. Ride to ${floorLabel(destination)}?`)
       } else {
         SFX.menuSelect()
         Haptics.selection()

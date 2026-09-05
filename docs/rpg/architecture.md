@@ -70,7 +70,7 @@ interface OfficeSave {
   version: 1
   run: RunState // floor stays 0; hp/pp mirror party[0] at rest
   party: PartyMember[] // [0] is the lead; PARTY_MAX = 3
-  floorId: 'floor_01'
+  floorId: 'floor_01' | 'floor_02'
   player: { x: number; y: number; facing: 'n' | 'e' | 's' | 'w' }
   assignments: Record<'asg_printer' | 'asg_meeting_prep', string>
   encounters: Record<
@@ -90,6 +90,22 @@ reads or writes `localStorage`. Persistence lives at the UI boundary: after an
 overworld / promotion / vending change, `CorporateClimb` writes
 `corporate-climb-office-save` v1. Mid-battle states are not persisted. Classic
 `SAVE_KEY` (`corporate-climb-save`) is never read or written by this path.
+
+### 2.1 Multi-floor contracts
+
+- `floorId` is now authoritative for office geometry and content lookups.
+  `src/content/office/map.ts` keys map art, zones, NPC positions, sight lines,
+  interact spots, and elevator metadata by floor.
+- Floor 1 coordinates and IDs stay frozen; Floor 2 is a stub layout with
+  additive IDs only. Future design merges can replace Floor 2 content without
+  changing engine semantics.
+- Elevator transitions are two-phase: `RIDE_ELEVATOR` moves to
+  `screen_elevator_ride`, then `COMPLETE_ELEVATOR_RIDE` swaps `floorId` and
+  teleports to `elevatorArrivalForFloor(destination)`.
+- Access gating: Floor 1 → Floor 2 requires `key_access_badge`; Floor 2 → Floor 1
+  is always allowed for backtracking.
+- Save/restore persists `floorId` and exact tile/facing together. Reload resumes
+  on the same floor and tile; Classic save behavior remains unchanged.
 
 ## 3. Party
 

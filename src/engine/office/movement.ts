@@ -1,7 +1,7 @@
 import {
-  INTERACT_SPOTS,
-  NPC_SIGHT,
-  NPC_TILE,
+  interactSpotsForFloor,
+  npcSightForFloor,
+  npcTilesForFloor,
   inBounds,
   isSolid,
   type InteractTarget,
@@ -23,21 +23,23 @@ export function stepDelta(dir: Facing) {
 export function tryStep(state: OfficeState, dir: Facing): { state: OfficeState; moved: boolean } {
   const dest = { x: state.player.x + DELTA[dir].x, y: state.player.y + DELTA[dir].y }
   const facingOnly = { ...state, player: { ...state.player, facing: dir } }
-  if (!inBounds(dest.x, dest.y) || isSolid(dest.x, dest.y)) {
+  if (!inBounds(dest.x, dest.y) || isSolid(dest.x, dest.y, state.floorId)) {
     return { state: facingOnly, moved: false }
   }
-  if (occupiesNpc(dest.x, dest.y)) {
+  if (occupiesNpc(state, dest.x, dest.y)) {
     return { state: facingOnly, moved: false }
   }
   return { state: { ...state, player: { x: dest.x, y: dest.y, facing: dir } }, moved: true }
 }
 
-export function occupiesNpc(x: number, y: number): boolean {
-  return Object.values(NPC_TILE).some((t) => t.x === x && t.y === y)
+export function occupiesNpc(state: OfficeState, x: number, y: number): boolean {
+  return Object.values(npcTilesForFloor(state.floorId)).some(
+    (tile) => tile && tile.x === x && tile.y === y,
+  )
 }
 
 export function interactTarget(state: OfficeState): InteractTarget | null {
-  const spot = INTERACT_SPOTS.find(
+  const spot = interactSpotsForFloor(state.floorId).find(
     (s) => s.x === state.player.x && s.y === state.player.y && s.facing === state.player.facing,
   )
   if (spot) return spot.target
@@ -45,13 +47,18 @@ export function interactTarget(state: OfficeState): InteractTarget | null {
     x: state.player.x + DELTA[state.player.facing].x,
     y: state.player.y + DELTA[state.player.facing].y,
   }
-  for (const [id, tile] of Object.entries(NPC_TILE) as [NpcId, { x: number; y: number }][]) {
+  for (const [id, tile] of Object.entries(npcTilesForFloor(state.floorId)) as [
+    NpcId,
+    { x: number; y: number } | undefined,
+  ][]) {
+    if (!tile) continue
     if (tile.x === ahead.x && tile.y === ahead.y) {
       const names: Record<NpcId, string> = {
         npc_receptionist: 'Renata',
         npc_desk_challenger: 'Gavin',
         npc_meeting_prepper: 'Priya',
         npc_supervisor: 'Holloway',
+        npc_floor2_contractor: 'Callie',
       }
       return { kind: 'npc', id, label: `Talk · ${names[id]}` }
     }
@@ -61,10 +68,11 @@ export function interactTarget(state: OfficeState): InteractTarget | null {
 
 export function sightlineNpc(state: OfficeState): NpcId | null {
   const { x, y } = state.player
-  if (NPC_SIGHT.npc_desk_challenger.some((t) => t.x === x && t.y === y))
-    return 'npc_desk_challenger'
-  if (NPC_SIGHT.npc_meeting_prepper.some((t) => t.x === x && t.y === y))
-    return 'npc_meeting_prepper'
-  if (NPC_SIGHT.npc_supervisor.some((t) => t.x === x && t.y === y)) return 'npc_supervisor'
+  for (const [id, spots] of Object.entries(npcSightForFloor(state.floorId)) as [
+    NpcId,
+    { x: number; y: number }[] | undefined,
+  ][]) {
+    if (spots?.some((tile) => tile.x === x && tile.y === y)) return id
+  }
   return null
 }

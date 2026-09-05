@@ -8,18 +8,28 @@ export interface OfficeObjective {
 }
 
 export function currentObjective(state: OfficeSave): OfficeObjective {
-  if (state.flags.includes('flag_preview_complete')) {
+  if (state.floorId === 'floor_02') {
+    if (!state.flags.includes('flag_floor2_briefed')) {
+      return { text: 'Meet Callie', zone: 'zone_hall', pin: { x: 8, y: 2 } }
+    }
     return {
-      text: 'FLOOR 1 CLEARED · Floor 2 under construction',
-      zone: 'zone_reception',
-      pin: { x: 8, y: 14 },
+      text: 'Ride the elevator back to Floor 1',
+      zone: 'zone_elevator',
+      pin: { x: 3, y: 1 },
+    }
+  }
+  if (state.flags.includes('flag_preview_complete') && state.floorId === 'floor_01') {
+    return {
+      text: 'Floor 2 is open · Ride up anytime',
+      zone: 'zone_elevator',
+      pin: { x: 3, y: 1 },
     }
   }
   if (keyCount(state, 'key_access_badge') > 0) {
-    return { text: 'Take the elevator', zone: 'zone_elevator', pin: { x: 3, y: 1 } }
+    return { text: 'Take the elevator to Floor 2', zone: 'zone_elevator', pin: { x: 3, y: 1 } }
   }
   if (state.encounters.enc_supervisor_1on1 === 'won') {
-    return { text: 'Take the elevator', zone: 'zone_elevator', pin: { x: 3, y: 1 } }
+    return { text: 'Take the elevator to Floor 2', zone: 'zone_elevator', pin: { x: 3, y: 1 } }
   }
   if (supervisorGateOpen(state)) {
     return { text: 'See Holloway', zone: 'zone_elevator', pin: { x: 10, y: 3 } }

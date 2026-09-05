@@ -29,6 +29,7 @@ export const NPC_ACTOR: Record<NpcId, OfficeActorId> = {
   npc_desk_challenger: 'gavin',
   npc_meeting_prepper: 'priya',
   npc_supervisor: 'holloway',
+  npc_floor2_contractor: 'renata',
 }
 
 export function actorIdForSprite(spriteId: string): OfficeActorId {

@@ -1,4 +1,4 @@
-import { MAP_HEIGHT, MAP_WIDTH, glyphAt, zoneAt, type ZoneId } from '@/content/office'
+import { MAP_HEIGHT, MAP_WIDTH, glyphAt, zoneAt, type FloorId, type ZoneId } from '@/content/office'
 import { TILE_ATLAS, TILE_PAD, TILE_STRIDE_X, TILE_STRIDE_Y, type TileName } from './tileAtlas'
 
 /* ─── Floor 1 tileset ────────────────────────────────────────
@@ -102,21 +102,22 @@ function isWalkable(g: string) {
 }
 
 /** Wall autotile mask: bit set when that neighbour is open (not wall). N=1 E=2 S=4 W=8. */
-export function wallMask(tx: number, ty: number): number {
+export function wallMask(tx: number, ty: number, floorId: FloorId = 'floor_01'): number {
   return (
-    (isWall(glyphAt(tx, ty - 1)) ? 0 : 1) |
-    (isWall(glyphAt(tx + 1, ty)) ? 0 : 2) |
-    (isWall(glyphAt(tx, ty + 1)) ? 0 : 4) |
-    (isWall(glyphAt(tx - 1, ty)) ? 0 : 8)
+    (isWall(glyphAt(tx, ty - 1, floorId)) ? 0 : 1) |
+    (isWall(glyphAt(tx + 1, ty, floorId)) ? 0 : 2) |
+    (isWall(glyphAt(tx, ty + 1, floorId)) ? 0 : 4) |
+    (isWall(glyphAt(tx - 1, ty, floorId)) ? 0 : 8)
   )
 }
 
 /** A wall shows its plaster face when the tile south of it is open. */
-export function wallShowsFace(tx: number, ty: number): boolean {
-  return (wallMask(tx, ty) & 4) !== 0
+export function wallShowsFace(tx: number, ty: number, floorId: FloorId = 'floor_01'): boolean {
+  return (wallMask(tx, ty, floorId) & 4) !== 0
 }
 
-function rugPart(x: number, y: number): TileName | null {
+function rugPart(x: number, y: number, floorId: FloorId): TileName | null {
+  if (floorId !== 'floor_01') return null
   for (const r of RUGS) {
     if (x < r.x0 || x > r.x1 || y < r.y0 || y > r.y1) continue
     const v = y === r.y0 ? 't' : y === r.y1 ? 'b' : ''
@@ -130,58 +131,63 @@ function rugPart(x: number, y: number): TileName | null {
 /** Doorway frame for a `D` tile: stacked openings in the x=10 / x=14 walls
  *  read as one retracted glass partition; the single door at (5,12) sits in a
  *  horizontal wall and gets a header. */
-export function doorSprite(tx: number, ty: number): TileName {
-  const n = isWall(glyphAt(tx, ty - 1))
-  const s = isWall(glyphAt(tx, ty + 1))
-  const w = isWall(glyphAt(tx - 1, ty))
-  const e = isWall(glyphAt(tx + 1, ty))
+export function doorSprite(tx: number, ty: number, floorId: FloorId = 'floor_01'): TileName {
+  const n = isWall(glyphAt(tx, ty - 1, floorId))
+  const s = isWall(glyphAt(tx, ty + 1, floorId))
+  const w = isWall(glyphAt(tx - 1, ty, floorId))
+  const e = isWall(glyphAt(tx + 1, ty, floorId))
   if ((w || e) && !n && !s) return 'door_h'
   if (n) return 'door_v_top'
   if (s) return 'door_v_bot'
   return 'door_v_mid'
 }
 
-export function floorSprites(tx: number, ty: number): Sprite[] {
-  const g = glyphAt(tx, ty)
+export function floorSprites(tx: number, ty: number, floorId: FloorId = 'floor_01'): Sprite[] {
+  const g = glyphAt(tx, ty, floorId)
   const out: Sprite[] = []
   if (isWall(g) || g === 'X') {
-    out.push({ name: `wall_${wallMask(tx, ty)}` as TileName })
+    out.push({ name: `wall_${wallMask(tx, ty, floorId)}` as TileName })
     if (g === 'X') out.push({ name: 'street_exit' })
-    const decor = WALL_DECOR[`${tx},${ty}`]
-    if (decor && wallShowsFace(tx, ty)) out.push({ name: decor })
+    const decor = floorId === 'floor_01' ? WALL_DECOR[`${tx},${ty}`] : undefined
+    if (decor && wallShowsFace(tx, ty, floorId)) out.push({ name: decor })
     return out
   }
-  out.push({ name: rugPart(tx, ty) ?? FLOOR_FOR_ZONE[zoneAt(tx, ty)] })
-  if (isWall(glyphAt(tx, ty - 1))) out.push({ name: 'shade_n' })
-  if (isWall(glyphAt(tx - 1, ty))) out.push({ name: 'shade_w' })
-  if (g === 'D') out.push({ name: doorSprite(tx, ty) })
+  out.push({ name: rugPart(tx, ty, floorId) ?? FLOOR_FOR_ZONE[zoneAt(tx, ty, floorId)] })
+  if (isWall(glyphAt(tx, ty - 1, floorId))) out.push({ name: 'shade_n' })
+  if (isWall(glyphAt(tx - 1, ty, floorId))) out.push({ name: 'shade_w' })
+  if (g === 'D') out.push({ name: doorSprite(tx, ty, floorId) })
   return out
 }
 
 /** The static floor pass for the whole map. */
-export function floorCells(): FloorCell[] {
+export function floorCells(floorId: FloorId = 'floor_01'): FloorCell[] {
   const cells: FloorCell[] = []
   for (let y = 0; y < MAP_HEIGHT; y++) {
-    for (let x = 0; x < MAP_WIDTH; x++) cells.push({ x, y, layers: floorSprites(x, y) })
+    for (let x = 0; x < MAP_WIDTH; x++) cells.push({ x, y, layers: floorSprites(x, y, floorId) })
   }
   return cells
 }
 
 const isTable = (g: string) => g === 'T' || g === 'A'
 
-export function propSprite(tx: number, ty: number, s: TileStates): Sprite | null {
-  const g = glyphAt(tx, ty)
+export function propSprite(
+  tx: number,
+  ty: number,
+  s: TileStates,
+  floorId: FloorId = 'floor_01',
+): Sprite | null {
+  const g = glyphAt(tx, ty, floorId)
   switch (g) {
     case '=': {
-      const left = glyphAt(tx - 1, ty) === '='
-      const right = glyphAt(tx + 1, ty) === '='
+      const left = glyphAt(tx - 1, ty, floorId) === '='
+      const right = glyphAt(tx + 1, ty, floorId) === '='
       const part = left && right ? 'm' : left ? 'r' : 'l'
       if (ty === 15) return { name: `rdesk_${part}` as TileName }
       if (part === 'r') return { name: 'desk_r' }
       return { name: `desk_${part}_0` as TileName, frames: 2, periodMs: 2600 }
     }
     case 'c': {
-      const north = glyphAt(tx, ty - 1)
+      const north = glyphAt(tx, ty - 1, floorId)
       return { name: north === '=' || isTable(north) ? 'chair_n' : 'chair_s' }
     }
     case 'P':
@@ -190,8 +196,8 @@ export function propSprite(tx: number, ty: number, s: TileStates): Sprite | null
     case 'S':
       return { name: s.cabinetOpen ? 'cabinet_open' : 'cabinet_closed' }
     case 'K': {
-      const left = glyphAt(tx - 1, ty) === 'K'
-      const right = glyphAt(tx + 1, ty) === 'K'
+      const left = glyphAt(tx - 1, ty, floorId) === 'K'
+      const right = glyphAt(tx + 1, ty, floorId) === 'K'
       if (!left) {
         return s.counterSteaming
           ? { name: 'counter_steam_0', frames: 2, periodMs: 1000 }
@@ -204,12 +210,12 @@ export function propSprite(tx: number, ty: number, s: TileStates): Sprite | null
         ? { name: 'vending_lit_0', frames: 2, periodMs: 640 }
         : { name: 'vending_idle' }
     case 't':
-      return { name: glyphAt(tx - 1, ty) === 't' ? 'btable_r' : 'btable_l' }
+      return { name: glyphAt(tx - 1, ty, floorId) === 't' ? 'btable_r' : 'btable_l' }
     case 'T':
     case 'A': {
-      const top = !isTable(glyphAt(tx, ty - 1))
-      const left = !isTable(glyphAt(tx - 1, ty))
-      const right = !isTable(glyphAt(tx + 1, ty))
+      const top = !isTable(glyphAt(tx, ty - 1, floorId))
+      const left = !isTable(glyphAt(tx - 1, ty, floorId))
+      const right = !isTable(glyphAt(tx + 1, ty, floorId))
       const part = `${top ? 't' : 'b'}${left ? 'l' : right ? 'r' : ''}`
       if (g === 'A' && part === 'tl') return { name: 'mtable_tl_agenda' }
       return { name: `mtable_${part}` as TileName }
@@ -223,7 +229,7 @@ export function propSprite(tx: number, ty: number, s: TileStates): Sprite | null
     case 'p':
       return { name: (tx + ty) % 2 ? 'plant_b' : 'plant_a' }
     case 'E': {
-      const side = glyphAt(tx - 1, ty) === 'E' ? 'r' : 'l'
+      const side = glyphAt(tx - 1, ty, floorId) === 'E' ? 'r' : 'l'
       return { name: `elev_${side}_${s.elevatorOpen ? 'open' : 'closed'}` as TileName }
     }
     case 'R':
@@ -238,11 +244,11 @@ export function propSprite(tx: number, ty: number, s: TileStates): Sprite | null
 }
 
 /** Every prop on the floor for the given states. */
-export function propCells(s: TileStates): PropCell[] {
+export function propCells(s: TileStates, floorId: FloorId = 'floor_01'): PropCell[] {
   const cells: PropCell[] = []
   for (let y = 0; y < MAP_HEIGHT; y++) {
     for (let x = 0; x < MAP_WIDTH; x++) {
-      const sprite = propSprite(x, y, s)
+      const sprite = propSprite(x, y, s, floorId)
       if (sprite) cells.push({ x, y, sprite })
     }
   }

@@ -3,10 +3,11 @@ import {
   DIALOGUE,
   MAP_HEIGHT,
   MAP_WIDTH,
-  NPC_TILE,
   TILE_SIZE,
   VIEWPORT_TILES_X,
   ZONE_LABEL,
+  floorLabel,
+  npcTilesForFloor,
   zoneAt,
   type DialogueId,
   type Facing,
@@ -43,7 +44,7 @@ function facingToward(from: { x: number; y: number }, to: { x: number; y: number
 
 function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget>): TileStates {
   const printer = state.assignments.asg_printer
-  const zone = zoneAt(state.player.x, state.player.y)
+  const zone = zoneAt(state.player.x, state.player.y, state.floorId)
   return {
     printer: printer === 'installed' ? 'printing' : printer === 'complete' ? 'working' : 'error',
     cabinetOpen: printer !== 'not_started' && printer !== 'accepted',
@@ -86,10 +87,10 @@ function frameClass(sprite: Sprite): string {
 }
 
 /** Static floor pass: floors, rugs, wall autotiles, wall shadows, doorways, decor. */
-const FloorLayer = memo(function FloorLayer() {
+const FloorLayer = memo(function FloorLayer({ floorId }: { floorId: OfficeState['floorId'] }) {
   return (
     <div className={styles.floor} style={{ width: MAP_W, height: MAP_H }} aria-hidden>
-      {floorCells().map((cell) =>
+      {floorCells(floorId).map((cell) =>
         cell.layers.map((sprite, i) => (
           <span
             key={`${cell.x},${cell.y},${i}`}
@@ -103,8 +104,11 @@ const FloorLayer = memo(function FloorLayer() {
 })
 
 /** Prop pass in two layers around the actors (see above). */
-const PropLayers = memo(function PropLayers(states: TileStates) {
-  const cells = propCells(states)
+const PropLayers = memo(function PropLayers({
+  floorId,
+  ...states
+}: TileStates & { floorId: OfficeState['floorId'] }) {
+  const cells = propCells(states, floorId)
   return (
     <>
       <div className={styles.footprints} aria-hidden>
@@ -147,7 +151,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const obj = currentObjective(state)
   const nearby = interactTarget(state)
   const states = tileStates(state, nearby)
-  const zone = zoneAt(state.player.x, state.player.y)
+  const zone = zoneAt(state.player.x, state.player.y, state.floorId)
+  const npcTiles = npcTilesForFloor(state.floorId)
 
   const viewRows = viewH / T
   const lookAheadX = state.player.facing === 'e' ? 0.5 : state.player.facing === 'w' ? -0.5 : 0
@@ -176,7 +181,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     x: state.player.x + DELTA[state.player.facing].x,
     y: state.player.y + DELTA[state.player.facing].y,
   }
-  const outlineTile = nearby ? (nearby.kind === 'npc' ? NPC_TILE[nearby.id] : ahead) : null
+  const outlineTile = nearby ? (nearby.kind === 'npc' ? npcTiles[nearby.id] : ahead) : null
 
   const cardOpen = !!ov && ov.kind !== 'coach'
   const nearbyLeft = nearby
@@ -191,7 +196,10 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         : 'var(--cc-danger)'
       : null
   const pinHidden =
-    callout !== null && NPC_TILE[callout].x === obj.pin.x && NPC_TILE[callout].y === obj.pin.y
+    callout !== null &&
+    !!npcTiles[callout] &&
+    npcTiles[callout]!.x === obj.pin.x &&
+    npcTiles[callout]!.y === obj.pin.y
   const pinOffLeft = obj.pin.x < camX
   const pinOffRight = obj.pin.x >= camX + VIEWPORT_TILES_X
   const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, obj.pin.y * T - camPx.y))
@@ -210,7 +218,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     <div
       ref={mapRef}
       className={styles.map}
-      aria-label="Floor 1 office map"
+      aria-label={`${floorLabel(state.floorId)} office map`}
       style={
         {
           '--zone-accent': ZONE_ACCENT[zone],
@@ -224,8 +232,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         className={styles.camera}
         style={{ transform: `translate(${-camPx.x}px, ${-camPx.y}px)` }}
       >
-        <FloorLayer />
-        <PropLayers {...states} />
+        <FloorLayer floorId={state.floorId} />
+        <PropLayers floorId={state.floorId} {...states} />
         <div className={styles.lightPools} aria-hidden>
           <span className={`${styles.pool} ${styles.poolElevator}`} />
           <span className={`${styles.pool} ${styles.poolDesks}`} />
@@ -249,34 +257,38 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           />
         )}
 
-        {(Object.entries(NPC_TILE) as [NpcId, { x: number; y: number; facing: Facing }][]).map(
-          ([id, tile]) => {
-            const cast = NPC_CAST[id]
-            const facing = facingToward(tile, state.player) ?? tile.facing
-            return (
-              <div key={id}>
-                <OverworldActor
-                  actorId={NPC_ACTOR[id]}
-                  ring={ringColorFor(cast.types, false)}
-                  facing={facing}
-                  x={tile.x}
-                  y={tile.y}
-                  label={cast.name}
-                />
-                {callout === id && (
-                  <span
-                    key={dialogueKey}
-                    className={styles.callout}
-                    style={{ left: tile.x * T, top: tile.y * T }}
-                    aria-hidden
-                  >
-                    !
-                  </span>
-                )}
-              </div>
-            )
-          },
-        )}
+        {(
+          Object.entries(npcTiles) as [
+            NpcId,
+            { x: number; y: number; facing: Facing } | undefined,
+          ][]
+        ).map(([id, tile]) => {
+          if (!tile) return null
+          const cast = NPC_CAST[id]
+          const facing = facingToward(tile, state.player) ?? tile.facing
+          return (
+            <div key={id}>
+              <OverworldActor
+                actorId={NPC_ACTOR[id]}
+                ring={ringColorFor(cast.types, false)}
+                facing={facing}
+                x={tile.x}
+                y={tile.y}
+                label={cast.name}
+              />
+              {callout === id && (
+                <span
+                  key={dialogueKey}
+                  className={styles.callout}
+                  style={{ left: tile.x * T, top: tile.y * T }}
+                  aria-hidden
+                >
+                  !
+                </span>
+              )}
+            </div>
+          )
+        })}
 
         <OverworldActor
           actorId={leadActorId(lead.id)}

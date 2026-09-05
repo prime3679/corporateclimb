@@ -5,10 +5,11 @@ import {
   COWORKER_KITS,
   DIALOGUE,
   DIRECTORY_TEXT,
+  elevatorDestination,
+  floorLabel,
   HANDOUT_CHOICES,
   OFFICE_ENCOUNTERS,
   RECEIPTS,
-  ledgerOptionsEarned,
   type CoworkerId,
   type DialogueId,
   type ReceiptId,
@@ -518,7 +519,7 @@ function openSeatLine(state: OfficeState): string {
   const recruitables = (['cw_desk_challenger', 'cw_meeting_prepper'] as CoworkerId[]).filter(
     (id) => !state.party.some((m) => m.def.kind === 'coworker' && m.def.id === id),
   )
-  if (recruitables.length === 0) return 'Floor 1 is fully staffed.'
+  if (recruitables.length === 0) return 'Team is fully staffed.'
   if (lettersHeld(state) > 0) return 'Beat a coworker, hand them an Offer Letter.'
   return 'Out of letters. HR prints two per quarter.'
 }
@@ -528,7 +529,7 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
   return (
     <div className={styles.teamPanel} role="dialog" aria-label="Team">
       <div className={styles.teamHead}>
-        <div className={styles.eyebrow}>Team · Floor 1</div>
+        <div className={styles.eyebrow}>Team · {floorLabel(state.floorId)}</div>
         <button
           type="button"
           className={styles.close}
@@ -796,13 +797,20 @@ export default function OfficeOverlays({
         </div>
       )
     }
+    const destination = elevatorDestination(state.floorId)
+    const heading = floorLabel(destination)
+    const ridingUp = destination === 'floor_02'
     return (
       <div className={styles.layer}>
         <Confirm
-          eyebrow="Elevator · Reader green"
-          title="Floor 2"
-          body="The reader blinks green. The doors are thinking about it."
-          yes="Ride up"
+          eyebrow={`Elevator · ${ridingUp ? 'Ride up' : 'Ride down'}`}
+          title={heading}
+          body={
+            ridingUp
+              ? 'The reader blinks green. The doors close with a polite delay.'
+              : 'The car dings for reception before the doors have fully opened.'
+          }
+          yes={ridingUp ? 'Ride up' : 'Ride down'}
           no="Not yet"
           onYes={() => act({ type: 'RIDE_ELEVATOR' })}
           onNo={() => {
@@ -929,90 +937,40 @@ export function Interstitial({ state, onChange }: OverlayProps) {
   )
 }
 
-/** Floor 1 Cleared — `screen_preview_complete`. */
-export function Celebration({
-  state,
-  onChange,
-  onTitle,
-  reduceMotion = false,
-}: OverlayProps & { onTitle: () => void }) {
+/** Full-screen elevator transfer between campaign floors. */
+export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayProps) {
   const act = useAct(state, onChange)
-  const hasGavin = state.party.some(
-    (m) => m.def.kind === 'coworker' && m.def.id === 'cw_desk_challenger',
-  )
-  const hasPriya = state.party.some(
-    (m) => m.def.kind === 'coworker' && m.def.id === 'cw_meeting_prepper',
-  )
-  const hired =
-    hasGavin && hasPriya
-      ? 'hired two people'
-      : hasGavin
-        ? 'hired a critic'
-        : hasPriya
-          ? 'hired the calendar'
-          : 'hired nobody'
-  const assignments = Object.values(state.assignments).filter((s) => s === 'complete').length
-  const options = ledgerOptionsEarned(state.rewardsClaimed)
-  const minutes = Math.floor(state.stats.msOnFloor / 60000)
-  const seconds = Math.floor((state.stats.msOnFloor % 60000) / 1000)
-  const time = `${minutes}:${String(seconds).padStart(2, '0')}`
-  const won = useCountUp(state.stats.battlesWon, 600, reduceMotion)
-  const lost = useCountUp(state.stats.losses, 600, reduceMotion)
-  const sw = useCountUp(state.stats.switches, 600, reduceMotion)
-  const opt = useCountUp(options, 600, reduceMotion)
+  const destination = elevatorDestination(state.floorId)
+  const goingUp = destination === 'floor_02'
+  const heading = floorLabel(destination)
+  useEffect(() => {
+    const t = window.setTimeout(
+      () => act({ type: 'COMPLETE_ELEVATOR_RIDE' }),
+      reduceMotion ? 120 : 950,
+    )
+    return () => window.clearTimeout(t)
+  }, [act, reduceMotion, state.floorId])
   return (
     <div className={`premium-screen ${styles.celebration}`}>
-      <div className={styles.celebTitle}>FLOOR 1 CLEARED</div>
+      <div className={styles.celebTitle}>ELEVATOR</div>
       <div className={styles.celebLine}>
-        You fixed a printer, {hired}, survived a one-on-one, and got laminated. That's a career.
-      </div>
-      <PartyChips state={state} size={64} showNames />
-      <div className={styles.stats}>
-        <div className={styles.stat}>
-          <span>Assignments</span>
-          <span className={styles.statVal}>{assignments} / 2</span>
-        </div>
-        <div className={styles.stat}>
-          <span>Battles won</span>
-          <span className={styles.statVal}>{won}</span>
-        </div>
-        <div className={styles.stat}>
-          <span>Losses</span>
-          <span className={styles.statVal}>{lost}</span>
-        </div>
-        <div className={styles.stat}>
-          <span>Switches</span>
-          <span className={styles.statVal}>{sw}</span>
-        </div>
-        <div className={styles.stat}>
-          <span>Options earned</span>
-          <span className={styles.statVal}>
-            {opt} {CURRENCY_ICON}
-          </span>
-        </div>
-        <div className={styles.stat}>
-          <span>Time on floor</span>
-          <span className={styles.statVal}>{time}</span>
-        </div>
+        {goingUp
+          ? 'Doors close, the old fluorescent hum shifts pitch, and Floor 2 lights up.'
+          : 'Doors close, one floor clicks by, and reception comes back into view.'}
       </div>
       <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
-        Floor 2 is under construction.
-        <br />
-        The elevator goes back down.
+        Arriving at <b>{heading}</b>.
       </div>
-      <div className={styles.actions} style={{ width: 'min(380px, 100%)' }}>
+      <div className={styles.actions} style={{ width: 'min(320px, 100%)' }}>
         <Button
           variant="primary"
           autoFocus
           onClick={() => {
             SFX.menuConfirm()
-            act({ type: 'RETURN_FROM_PREVIEW' })
+            act({ type: 'COMPLETE_ELEVATOR_RIDE' })
           }}
         >
-          Back to Floor 1
-        </Button>
-        <Button variant="secondary" onClick={onTitle}>
-          Title
+          Arrive · {heading}
         </Button>
       </div>
     </div>

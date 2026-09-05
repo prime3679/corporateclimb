@@ -1,4 +1,4 @@
-// Frozen Floor 1 ids — names match docs/rpg/mvp-design.md §15.
+// Frozen Floor 1 ids remain unchanged; Floor 2 adds stub-only ids.
 
 export const PARTY_MAX = 3
 export const MAP_WIDTH = 24
@@ -9,7 +9,7 @@ export const MOVE_MS = 250
 
 export type Facing = 'n' | 'e' | 's' | 'w'
 
-export type FloorId = 'floor_01'
+export type FloorId = 'floor_01' | 'floor_02'
 export type ZoneId =
   | 'zone_reception'
   | 'zone_desks'
@@ -23,6 +23,7 @@ export type NpcId =
   | 'npc_desk_challenger'
   | 'npc_meeting_prepper'
   | 'npc_supervisor'
+  | 'npc_floor2_contractor'
 
 export type EncounterId = 'enc_desk_challenger' | 'enc_meeting_prepper' | 'enc_supervisor_1on1'
 
@@ -97,6 +98,7 @@ export type FlagId =
   | 'flag_interact_coached'
   | 'flag_preview_complete'
   | 'flag_renata_recruit_hint'
+  | 'flag_floor2_briefed'
 
 export type CoachId = 'coach_move' | 'coach_interact' | 'coach_switch'
 
@@ -147,3 +149,5 @@ export type DialogueId =
   | 'dlg_holloway_you_lost'
   | 'dlg_holloway_beaten'
   | 'dlg_holloway_after'
+  | 'dlg_callie_floor2_intro'
+  | 'dlg_callie_floor2_repeat'

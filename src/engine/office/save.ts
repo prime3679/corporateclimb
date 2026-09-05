@@ -1,3 +1,4 @@
+import { inBounds, isKnownFloorId } from '@/content/office'
 import { fromOfficeSave, toOfficeSave, type OfficeSave, type OfficeState } from './state'
 
 export const OFFICE_SAVE_KEY = 'corporate-climb-office-save'
@@ -19,7 +20,13 @@ export function loadOfficeSave(): OfficeSave | null {
     const parsed = JSON.parse(raw) as OfficeSave
     if (parsed?.version !== OFFICE_SAVE_VERSION) return null
     if (!parsed.run || !Array.isArray(parsed.party) || parsed.party.length < 1) return null
-    if (parsed.floorId !== 'floor_01') return null
+    if (!isKnownFloorId(parsed.floorId)) return null
+    if (
+      !parsed.player ||
+      !inBounds(parsed.player.x, parsed.player.y) ||
+      !['n', 'e', 's', 'w'].includes(parsed.player.facing)
+    )
+      return null
     return parsed
   } catch {
     return null
