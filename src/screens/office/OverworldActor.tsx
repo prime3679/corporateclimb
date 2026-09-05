@@ -1,4 +1,4 @@
-import { useRef, type CSSProperties } from 'react'
+import type { CSSProperties } from 'react'
 import { MOVE_MS, TILE_SIZE, type Facing, type NpcId } from '@/content/office'
 import Headshot from './Headshot'
 import styles from './OverworldActor.module.css'
@@ -71,13 +71,6 @@ export default function OverworldActor({
   label: string
 }) {
   const tileKey = `${x},${y}`
-  const lastTile = useRef(tileKey)
-  const walkGen = useRef(0)
-  if (lastTile.current !== tileKey) {
-    lastTile.current = tileKey
-    walkGen.current += 1
-  }
-  const walking = walkGen.current > 0
 
   return (
     <div
@@ -96,8 +89,8 @@ export default function OverworldActor({
     >
       <span className={styles.ground} aria-hidden />
       <span
-        key={walkGen.current}
-        className={[styles.sheet, walking ? styles.walking : ''].filter(Boolean).join(' ')}
+        key={tileKey}
+        className={`${styles.sheet} ${styles.walking}`}
         style={{ backgroundImage: `url(${actorSheetUrl(actorId)})` }}
         aria-hidden
       />
