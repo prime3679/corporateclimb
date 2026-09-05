@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Floor 1 overworld walk-cycle sheets — hand-authored pixel art.
+"""Office overworld walk-cycle sheets (Floor 1 + Floor 2 cast) — hand-authored pixel art.
 
 Each sheet is 128x160 RGBA: 4 columns x 4 rows, frame 32x40.
 Columns: idle, stepL, idle, stepR. Rows: s, w, e, n (matches
@@ -1669,7 +1669,536 @@ LEAD_PM = Actor(
     },
 )
 
-CAST: list[Actor] = [LEAD_ENG, LEAD_DESIGN, LEAD_PM, RENATA, GAVIN, PRIYA, HOLLOWAY]
+# ===========================================================================
+# Floor 2 cast (docs/rpg/floor-2-design.md §2). Same rig, same ink.
+# ===========================================================================
+
+# --- Teddy — rotational intern, messy hair, navy blazer, tan chinos, backpack, coffee
+
+TEDDY = Actor(
+    'teddy',
+    {
+        'k': '#efc3a0',
+        'K': '#c99270',
+        'l': '#f8d6bc',
+        'H': '#6b4a2e',
+        'h': '#8c6640',
+        'G': '#4a321e',
+        'e': '#2a1a12',
+        'J': '#2b3a5c',
+        'j': '#1f2b45',
+        'i': '#3a4d78',
+        'S': '#cfe0f2',
+        's': '#a9bfd8',
+        'T': '#c43c3c',
+        't': '#8f2a2a',
+        'P': '#c9b08a',
+        'p': '#a68d68',
+        'B': '#5a3a22',
+        'd': '#3f2712',
+        'b': '#6e4a2c',
+        'X': '#f4f1ea',
+        'x': '#cfc9bc',
+        'y': '#ffffff',
+        'z': '#6b4a2e',
+        '1': '#5c4a3a',
+        '2': '#7a6452',
+        '3': '#3e3128',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ..H.HHHH.H....
+                .HHHhhHHHHHh..
+                HHhhHHHHHHHHG.
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHkkkkkkkkHG.
+                .HkkkkkkkkkGG.
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..KkkkkkmkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ...H.HHHH.H...
+                ..HHhhhHHHHHH.
+                .HHHhhHHHHHHHH
+                .HHHHHHHHHHHH.
+                .GHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkGkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ..H.HHHH.H....
+                .HHHhhHHHHHh..
+                HHhhHHHHHHHHG.
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        # backpack straps ('1') run down the open blazer
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                i1SSSSSS1j
+                J1SSTTSS1j
+                J1JSTTSJ1j
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJ1SSj
+                JJJJ1STj
+                JJJJ1STj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        # the backpack covers his back
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                ii1111111j
+                i12222211j
+                J12222211j
+                J12222211j
+                J12222211j
+                J12222211j
+                J13333311j
+                JJ111111Jj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Paper coffee cup with a lid, right hand (viewer's left).
+        's': [('hand', (6, 21), rows("""
+            yXXX
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'e': [('hand', (17, 21), rows("""
+            XXXy
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'n': [('hand', (22, 21), rows("""
+            XXXy
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+    },
+)
+
+# --- Kessler — Director of Operations, blond slicked back, navy suit, dark folder
+
+KESSLER = Actor(
+    'kessler',
+    {
+        'k': '#e8b896',
+        'K': '#c48a64',
+        'l': '#f4cdae',
+        'H': '#d9b45a',
+        'h': '#f0d27a',
+        'G': '#a8863a',
+        'e': '#1a2a40',
+        'J': '#1f2a44',
+        'j': '#161d30',
+        'i': '#2c3a5e',
+        'S': '#f4f4f0',
+        's': '#c9cbd0',
+        'T': '#7a8aa6',
+        't': '#5a6880',
+        'P': '#1f2a44',
+        'p': '#161d30',
+        'B': '#15151c',
+        'd': '#0c0c10',
+        'b': '#2a2a34',
+        'X': '#2f3646',
+        'x': '#232838',
+        'y': '#45506a',
+        'z': '#c9a24a',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHh....
+                .HHHHHHHHHHh..
+                .HhHHHHHHHHHG.
+                .HHHHHHHHHHHG.
+                .HHkkkkkkkHGG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..kkkkkkkkkK..
+                ..KkkkkmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHh....
+                ..HHHHHHHHHH..
+                .HHHHHHHHHHHH.
+                .HHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkkkk.
+                .GHHHHKkkkGkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkkkkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHh....
+                .HHHHHHHHHHh..
+                .HhHHHHHHHHHG.
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        # pocket square on the breast, tie, no pin
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                JJJSSTTSJj
+                JSJSSTTSJj
+                JJJJSTTJJj
+                JJJJJTTJJj
+                JJJJJttJJj
+                JJJJJtJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSTj
+                JJJJJSTj
+                JJJJJJTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Slim dark folder with a brass clasp under the left arm.
+        's': [('under', (22, 20), rows("""
+            XXXX
+            XzyX
+            XyyX
+            XyyX
+            xxxx
+            """))],
+        'e': [('under', (13, 21), rows("""
+            XXXXXXX
+            XyyyyzX
+            xxxxxxx
+            """))],
+        'n': [('under', (6, 20), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+# --- Whitlock — external auditor, swept white hair, black suit, red tie, green ledger
+
+WHITLOCK = Actor(
+    'whitlock',
+    {
+        'k': '#e6b48e',
+        'K': '#bf8a66',
+        'l': '#f0c8a8',
+        'H': '#e9e9ee',
+        'h': '#ffffff',
+        'G': '#b4b4c2',
+        'e': '#1a1414',
+        'J': '#202028',
+        'j': '#14141a',
+        'i': '#30303c',
+        'S': '#f4f4f0',
+        's': '#c9cbd0',
+        'T': '#b8322e',
+        't': '#7f1f1c',
+        'P': '#202028',
+        'p': '#14141a',
+        'B': '#101014',
+        'd': '#080809',
+        'b': '#24242c',
+        'X': '#2f6b4a',
+        'x': '#1f4a33',
+        'y': '#3f8a5f',
+        'z': '#c9a24a',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ..HHHHHHHHh...
+                .HhHHHHHHHHHH.
+                HHhHHHHHHHHHHG
+                HHHHHHHHHHHHGG
+                .HHkkkkkkkkHG.
+                .HHkkkkkkkkHG.
+                ..kkkkkkkkkk..
+                ..kkGkkkkGkk..
+                ..kKekkkkeKk..
+                ..kkkkkkkkkK..
+                ..KkKkkkkKkK..
+                ..KkkkmmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHHh...
+                ..HHHHHHHHHHH.
+                .HHHHHHHHHHHHH
+                .HHHHHHHHHHHHH
+                .GHHHHHHHkkkk.
+                .GHHHHHHkkkkk.
+                .GHHHHHKkkkkk.
+                .GHHHHHKkkGkk.
+                ..GHHHHKkkekk.
+                ..GHHHKKkkkkkk
+                ..GGHKKkkKkkK.
+                ...KKkkkkkkK..
+                ....KkkkkmK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ..HHHHHHHHh...
+                .HhHHHHHHHHHH.
+                HHhHHHHHHHHHHG
+                HHHHHHHHHHHHGG
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                JJSSSSSSJj
+                JJJSSTTSJj
+                JJJSSTTSJj
+                JJJJSTTJJj
+                JJJJJTTJJj
+                JJJJJttJJj
+                JJJJJtJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                JJJJJSSj
+                JJJJJSTj
+                JJJJJSTj
+                JJJJJJTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                JJJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Green ledger with a gold clasp under the left arm.
+        's': [('under', (22, 19), rows("""
+            XXXX
+            XzzX
+            XyyX
+            XyyX
+            XyyX
+            xxxx
+            """))],
+        'e': [('under', (13, 21), rows("""
+            XXXXXXX
+            XzzyyyX
+            xxxxxxx
+            """))],
+        'n': [('under', (6, 19), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+CAST: list[Actor] = [
+    LEAD_ENG,
+    LEAD_DESIGN,
+    LEAD_PM,
+    RENATA,
+    GAVIN,
+    PRIYA,
+    HOLLOWAY,
+    TEDDY,
+    KESSLER,
+    WHITLOCK,
+]
 
 
 # ---------------------------------------------------------------------------
