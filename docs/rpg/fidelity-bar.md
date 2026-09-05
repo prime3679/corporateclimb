@@ -72,6 +72,49 @@ hand-authored pixel art, versioned as ASCII templates inside
 layer, which the `Stage` scales fractionally, and every 1px detail gets
 bilinear-filtered into mush.
 
+### Environment art (`feat/office-environment-art`)
+
+The rooms now match the cast. `tiles.tsx` no longer draws SVG furniture; it
+decides which cell of a hand-authored pixel tileset goes where, and
+`WorldMap` paints those cells as sprite-sheet spans exactly like
+`OverworldActor` paints its sheet.
+
+- `scripts/gen_office_tiles.py` → `public/office/tiles.png` +
+  `src/screens/office/tileAtlas.ts` (generated name → cell index). Same
+  pipeline and art language as the actor sheets: plum ink `#1b1726`, top-left
+  light, lit / base / shadow ramp per material, no gradients, no
+  anti-aliasing. Regenerate with `python3 scripts/gen_office_tiles.py`
+  (`--preview` dumps a 3× contact sheet to `/tmp`).
+- Cells are 32×48: the bottom 32×32 is the tile footprint, the 16px above is
+  upward overflow for tall props (cabinet, vending, elevator portal, plants,
+  cooler, rack). Every cell sits in a 34×50 slot with a 1px extruded border
+  and each span is drawn one pixel larger than its art, so neighbours overlap
+  by an identical pixel — without that, the Stage's fractional scale leaves
+  anti-aliased hairline seams between adjacent spans.
+- Depth without z-sorting: props are split into a footprint layer under the
+  actors and an overflow layer over them. A person standing south of a desk
+  overlaps its footprint with their head and is in front; only a person
+  standing north can overlap the overflow, and they are behind.
+- Floors: six zone materials (hall carpet, reception planks, desks carpet
+  tiles, break lino checker, meeting diamond carpet, elevator stone), rugs in
+  front of the elevator and behind reception, a navy runner down the hall.
+  Walls autotile from a 16-way neighbour mask — dark cap, plaster face with
+  chair rail, wainscot and baseboard wherever floor lies south, lit / shadow
+  jambs at wall ends — and drop stepped shadows onto the floor south and east
+  of them. Wall-face decor (windows, whiteboard, pinboards, clocks, posters,
+  signs, the lobby plaque) is keyed by wall coordinate in `tiles.tsx`; the
+  frozen `FLOOR_ART` is untouched.
+- Doorways: every walkable `D` is drawn as floor plus a frame. The 3-tall
+  openings at x=10 / x=14 read as one retracted glass partition (aluminium
+  floor track, leaves stacked against the jamb posts); the single door at
+  (5,12) gets a header with an exit light. `tileset.test.ts` guards this.
+- Stateful props come from the existing `TileStates`: printer error /
+  working / printing (2 frames), cabinet closed / open, coffee machine idle /
+  steaming (2 frames), vending idle / lit (2 frames), badge reader red / green
+  (blink), elevator closed / open. Frames are consecutive sheet cells stepped
+  by `background-position-x`; reduced motion holds frame 0 and stills the
+  light pools, as before.
+
 ## What stays frozen
 
 - Office reducer, party projection, `corporate-climb-office-save` v1
@@ -100,8 +143,9 @@ bilinear-filtered into mush.
 #67 and this follow-up raise the presentation floor. They do **not** clear
 Fable's ownership table:
 
-- Ship-quality tileset (`mvp-design.md` §14). Character walk sheets are now
-  hand-authored pixel art (see "Sprite art" above); tiles and props are not.
+- §14 asset sign-off. Character walk sheets and the Floor 1 tileset / props
+  are now hand-authored pixel art (see "Sprite art" and "Environment art"
+  above); the §19 device pass still has to confirm them on hardware.
 - Full §12 feedback matrix and coach-mark motion
 - §13 fade/duck timings
 - §19 device sign-off (task-8 playtest)

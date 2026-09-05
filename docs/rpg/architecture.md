@@ -52,6 +52,7 @@ later polish, not a merge gate for this PR.
 | Engine       | `src/engine/office/*`                                   | `OfficeState`, `dispatchOfficeAction`, party, movement, dialogue effects, save I/O, encounter projection.       |
 | Combat       | existing `src/engine/turn.ts`                           | Damage, statuses, items, enemy AI. Office passes an `EncounterContext` projection; it does not fork a resolver. |
 | Presentation | `src/screens/OfficeScreen.tsx` + `src/screens/office/*` | Map, overlays, party strip. Reuses `BattleScreen`, `ClassSelect`, `PromotionScreen`, `ShopScreen`.              |
+| Art          | `scripts/gen_office_*.py` → `public/office/*`           | Hand-authored pixel sheets (actors, tileset + generated `tileAtlas.ts`). See `fidelity-bar.md`.                 |
 
 Classic (`corporate-climb-save`, `ENEMY_POOLS`, `BASE_PERK_POOL`, `simulation.test.ts`)
 is untouched. Office enemies never enter `ENEMY_POOLS`. Office campaigns always
