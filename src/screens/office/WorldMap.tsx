@@ -13,9 +13,10 @@ import {
   type NpcId,
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
-import Headshot, { ringColorFor } from './Headshot'
+import { ringColorFor } from './ringColor'
+import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
-import { TileDefs, renderTile, type TileStates } from './tiles'
+import { TileDefs, renderForegroundTile, renderTile, type TileStates } from './tiles'
 import styles from './WorldMap.module.css'
 
 const T = TILE_SIZE
@@ -50,11 +51,11 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
       (state.overlay?.kind === 'toast' && state.overlay.text.startsWith('You take five')),
     vendingLit: nearby?.kind === 'poi' && nearby.id === 'poi_vending_machine',
     readerGreen: (state.keyItems.key_access_badge ?? 0) > 0,
-    elevatorOpen: false,
+    elevatorOpen: state.overlay?.kind === 'confirm' && state.overlay.prompt === 'elevator',
   }
 }
 
-/** The static tile layer; only re-renders when a tile state flips (props are primitives). */
+/** Static tile pass. */
 const TileLayer = memo(function TileLayer(states: TileStates) {
   const tiles = []
   for (let y = 0; y < MAP_HEIGHT; y++) {
@@ -75,47 +76,30 @@ const TileLayer = memo(function TileLayer(states: TileStates) {
   )
 })
 
-/** Badge token: the character as their lanyard photo, notched toward their facing. */
-function BadgeToken({
-  spriteId,
-  ring,
-  facing,
-  x,
-  y,
-  player = false,
-  label,
-}: {
-  spriteId: string
-  ring: string
-  facing: Facing
-  x: number
-  y: number
-  player?: boolean
-  label: string
-}) {
+/** Foreground trim pass for desk/counter depth and emissive accents. */
+const ForegroundLayer = memo(function ForegroundLayer(states: TileStates) {
+  const tiles = []
+  for (let y = 0; y < MAP_HEIGHT; y++) {
+    for (let x = 0; x < MAP_WIDTH; x++) tiles.push(renderForegroundTile(x, y, states))
+  }
   return (
-    <div
-      className={`${styles.token} ${player ? styles.tokenPlayer : ''} ${styles[`face_${facing}`]}`}
-      style={{ left: x * T, top: y * T }}
-      aria-label={label}
-      role="img"
+    <svg
+      className={styles.foreground}
+      width={MAP_W}
+      height={MAP_H}
+      viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+      shapeRendering="crispEdges"
+      aria-hidden
     >
-      <span className={styles.tokenShadow} aria-hidden />
-      <Headshot
-        spriteId={spriteId}
-        size={28}
-        ring={ring}
-        shape="badge"
-        className={styles.tokenBadge}
-      />
-      <span className={styles.notch} style={{ background: ring }} aria-hidden />
-    </div>
+      {tiles}
+    </svg>
   )
-}
+})
 
 export default function WorldMap({ state }: { state: OfficeState }) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [viewH, setViewH] = useState(MAP_H)
+
   useLayoutEffect(() => {
     const el = mapRef.current
     if (!el) return
@@ -130,20 +114,21 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const obj = currentObjective(state)
   const nearby = interactTarget(state)
   const states = tileStates(state, nearby)
-
-  const viewRows = viewH / T
-  const camX = Math.max(
-    0,
-    Math.min(state.player.x - Math.floor(VIEWPORT_TILES_X / 2), MAP_WIDTH - VIEWPORT_TILES_X),
-  )
-  const camYMax = Math.max(0, MAP_HEIGHT - viewRows)
-  const camY = Math.max(0, Math.min(state.player.y - viewRows / 2 + 0.5, camYMax))
-
-  // Zone chip: keyed on the zone so its CSS animation (full → 60%) replays per room.
   const zone = zoneAt(state.player.x, state.player.y)
 
-  // Sightline / talk callout: a gold "!" pops over the NPC whose line just opened
-  // (keyed on the node so the pop replays per line, then fades out in CSS).
+  const viewRows = viewH / T
+  const lookAheadX = state.player.facing === 'e' ? 0.5 : state.player.facing === 'w' ? -0.5 : 0
+  const lookAheadY = state.player.facing === 's' ? 0.35 : state.player.facing === 'n' ? -0.35 : 0
+  const camX = Math.max(
+    0,
+    Math.min(
+      state.player.x + lookAheadX - Math.floor(VIEWPORT_TILES_X / 2),
+      MAP_WIDTH - VIEWPORT_TILES_X,
+    ),
+  )
+  const camYMax = Math.max(0, MAP_HEIGHT - viewRows)
+  const camY = Math.max(0, Math.min(state.player.y + lookAheadY - viewRows / 2 + 0.5, camYMax))
+
   const ov = state.overlay
   const dialogueKey = ov?.kind === 'dialogue' && ov.line === 0 ? ov.nodeId : null
   const calloutNode = dialogueKey ? DIALOGUE[dialogueKey as DialogueId] : undefined
@@ -151,7 +136,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     ? (castForSpeaker(calloutNode.speaker, dialogueKey!)?.npc ?? null)
     : null
 
-  // The faced tile gets a 1-px gold outline while something is there to interact with.
   const ahead = {
     x: state.player.x + DELTA[state.player.facing].x,
     y: state.player.y + DELTA[state.player.facing].y,
@@ -163,7 +147,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     ? Math.max(4, Math.min(VIEW_W - 4, ((outlineTile?.x ?? ahead.x) - camX) * T + T / 2))
     : 0
   const nearbyTop = nearby ? Math.max(30, ((outlineTile?.y ?? ahead.y) - camY) * T - 6) : 0
-  // The prompt chip wins the top-left corner; the zone chip yields while it is there.
   const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
   const elevatorDot =
     nearby?.kind === 'poi' && nearby.id === 'poi_elevator_door'
@@ -176,6 +159,14 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const pinOffLeft = obj.pin.x < camX
   const pinOffRight = obj.pin.x >= camX + VIEWPORT_TILES_X
   const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, (obj.pin.y - camY) * T))
+  const poiFxTile =
+    nearby?.kind === 'poi' &&
+    (nearby.id === 'poi_elevator_door' ||
+      nearby.id === 'poi_supervisor_door' ||
+      nearby.id === 'poi_printer' ||
+      nearby.id === 'poi_vending_machine')
+      ? { x: (outlineTile?.x ?? ahead.x) * T, y: (outlineTile?.y ?? ahead.y) * T }
+      : null
 
   const lead = kitFor(state.party[0])
 
@@ -191,11 +182,24 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         style={{ transform: `translate(${-camX * T}px, ${-camY * T}px)` }}
       >
         <TileLayer {...states} />
+        <div className={styles.lightPools} aria-hidden>
+          <span className={`${styles.pool} ${styles.poolElevator}`} />
+          <span className={`${styles.pool} ${styles.poolDesks}`} />
+          <span className={`${styles.pool} ${styles.poolBreak}`} />
+          <span className={`${styles.pool} ${styles.poolMeeting}`} />
+        </div>
 
         {outlineTile && (
           <div
             className={styles.target}
             style={{ left: outlineTile.x * T, top: outlineTile.y * T }}
+            aria-hidden
+          />
+        )}
+        {poiFxTile && (
+          <span
+            className={styles.poiFx}
+            style={{ left: poiFxTile.x, top: poiFxTile.y }}
             aria-hidden
           />
         )}
@@ -206,8 +210,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
             const facing = facingToward(tile, state.player) ?? tile.facing
             return (
               <div key={id}>
-                <BadgeToken
-                  spriteId={cast.spriteId}
+                <OverworldActor
+                  actorId={NPC_ACTOR[id]}
                   ring={ringColorFor(cast.types, false)}
                   facing={facing}
                   x={tile.x}
@@ -229,8 +233,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           },
         )}
 
-        <BadgeToken
-          spriteId={lead.spriteId}
+        <OverworldActor
+          actorId={leadActorId(lead.id)}
           ring="var(--cc-gold)"
           facing={state.player.facing}
           x={state.player.x}
@@ -245,9 +249,11 @@ export default function WorldMap({ state }: { state: OfficeState }) {
             style={{ left: obj.pin.x * T, top: obj.pin.y * T }}
             aria-hidden
           >
-            ?
+            <span className={styles.pinBeam} />?
           </span>
         )}
+
+        <ForegroundLayer {...states} />
       </div>
 
       <div

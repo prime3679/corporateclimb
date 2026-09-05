@@ -173,6 +173,16 @@ export const SFX = {
     playSample('keyboard', 0.35, 0.05)
   },
 
+  /** Overworld cadence while walking the office floor. */
+  step() {
+    playSample('ladderStep', 0.32, 0.05)
+  },
+
+  /** Soft invalid-move thunk when walking into a wall. */
+  bump() {
+    playSample('keyboard', 0.24, 0.02)
+  },
+
   // Battle
   attackSwing() {
     playSample('ladderStep', 0.85, 0.04)
@@ -269,6 +279,14 @@ export const SFX = {
 
   coffee() {
     playSample('coffee', 0.9)
+  },
+
+  badgeSwipe() {
+    playSample('badge', 0.78)
+  },
+
+  paper() {
+    playSample('paper', 0.76)
   },
 
   elevatorUp() {

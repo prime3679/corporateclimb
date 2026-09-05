@@ -1,12 +1,17 @@
 .strip {
   display: flex;
   align-items: center;
+  padding: 2px 0;
 }
 
 .row {
   --chip-size: 54px;
   display: flex;
   gap: 6px;
+  padding: 2px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .chip {
@@ -18,6 +23,8 @@
   gap: 3px;
   padding: 3px 0 2px;
   border-radius: var(--radius-sm);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0));
+  border: 1px solid rgba(255, 255, 255, 0.03);
 }
 
 .active::after {
@@ -26,9 +33,14 @@
   left: 8px;
   right: 8px;
   bottom: -3px;
-  height: 2px;
+  height: 3px;
   border-radius: 1px;
-  background: var(--cc-gold);
+  background: linear-gradient(
+    90deg,
+    rgba(255, 193, 7, 0.1),
+    var(--cc-gold),
+    rgba(255, 193, 7, 0.1)
+  );
 }
 
 .portrait {
@@ -48,8 +60,9 @@
   letter-spacing: 0.04em;
   line-height: 1.1;
   color: var(--cc-text);
-  background: rgba(10, 13, 19, 0.96);
+  background: rgba(10, 13, 19, 0.98);
   border: 1px solid var(--cc-line-strong);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 
 .outTag {
@@ -60,7 +73,7 @@
 .track {
   display: block;
   width: calc(var(--chip-size) - 12px);
-  height: 3px;
+  height: 4px;
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.45);
   overflow: hidden;
@@ -71,6 +84,7 @@
   height: 100%;
   border-radius: 2px;
   transition: width var(--cc-dur-drain) var(--cc-ease-out);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
 }
 
 .high {

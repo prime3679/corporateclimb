@@ -1,0 +1,93 @@
+.actor {
+  --walk-ms: 250ms;
+  --actor-ring: var(--cc-gold);
+  position: absolute;
+  width: 32px;
+  height: 40px;
+  z-index: 4;
+  pointer-events: none;
+  transition:
+    left 250ms linear,
+    top 250ms linear;
+}
+
+.player {
+  z-index: 5;
+}
+
+.ground {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 1px;
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--actor-ring) 28%, rgba(0, 0, 0, 0.5));
+  filter: blur(1.5px);
+}
+
+.sheet {
+  position: absolute;
+  inset: 0;
+  background-repeat: no-repeat;
+  background-size: 128px 160px;
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+  background-position-x: 0;
+}
+
+.face_s .sheet {
+  background-position-y: 0;
+}
+
+.face_w .sheet {
+  background-position-y: -40px;
+}
+
+.face_e .sheet {
+  background-position-y: -80px;
+}
+
+.face_n .sheet {
+  background-position-y: -120px;
+}
+
+.walking {
+  animation: of-actor-walk var(--walk-ms) steps(1) both;
+}
+
+@keyframes of-actor-walk {
+  0% {
+    background-position-x: 0;
+  }
+  25% {
+    background-position-x: -32px;
+  }
+  50% {
+    background-position-x: -64px;
+  }
+  75% {
+    background-position-x: -96px;
+  }
+  100% {
+    background-position-x: 0;
+  }
+}
+
+:global(.reduce-motion) .actor {
+  transition: none;
+}
+
+:global(.reduce-motion) .walking {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actor {
+    transition: none;
+  }
+
+  .walking {
+    animation: none;
+  }
+}

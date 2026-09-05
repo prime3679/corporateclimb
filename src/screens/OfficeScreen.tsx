@@ -61,7 +61,9 @@ export default function OfficeScreen({
   const [view, setView] = useState<BattleView | null>(null)
   const [busy, setBusy] = useState(false)
   const [battleMode, setBattleMode] = useState<'fight' | 'items'>('fight')
+  const [sceneFx, setSceneFx] = useState<'battle-in' | 'battle-out' | null>(null)
   const busyRef = useRef(false)
+  const prevScreenRef = useRef(state.screen)
   const [sequencer] = useState(() => new Sequencer((mutate) => setView((v) => (v ? mutate(v) : v))))
   const announce = useOfficeFeedback(state)
   const wallet = useDeferredWallet(state)
@@ -87,7 +89,13 @@ export default function OfficeScreen({
         const moved =
           result.state.player.x !== state.player.x || result.state.player.y !== state.player.y
         const blockedByOverlay = !!state.overlay && state.overlay.kind !== 'coach'
-        if (!moved && !blockedByOverlay) Haptics.impact('light')
+        if (moved) {
+          SFX.step()
+          Haptics.selection()
+        } else if (!blockedByOverlay) {
+          SFX.bump()
+          Haptics.impact('light')
+        }
       }
       onChange(withTime(result.state))
       return result
@@ -96,6 +104,30 @@ export default function OfficeScreen({
   )
 
   useEffect(() => () => sequencer.cancel(), [sequencer])
+
+  useEffect(() => {
+    const prev = prevScreenRef.current
+    if (prev === state.screen) return
+    prevScreenRef.current = state.screen
+    if (reduceMotion) {
+      const t = window.setTimeout(() => setSceneFx(null), 0)
+      return () => window.clearTimeout(t)
+    }
+    const nextFx =
+      prev === 'overworld' && state.screen === 'battle'
+        ? ('battle-in' as const)
+        : prev === 'battle' && state.screen === 'overworld'
+          ? ('battle-out' as const)
+          : null
+    const t = window.setTimeout(() => setSceneFx(nextFx), 0)
+    return () => window.clearTimeout(t)
+  }, [state.screen, reduceMotion])
+
+  useEffect(() => {
+    if (!sceneFx) return
+    const t = window.setTimeout(() => setSceneFx(null), 520)
+    return () => window.clearTimeout(t)
+  }, [sceneFx])
 
   // The switch coach mark dies on the action it teaches.
   useEffect(() => {
@@ -303,7 +335,11 @@ export default function OfficeScreen({
     const bench = state.encounter.party
     const firstStanding = bench.findIndex((m, i) => i !== state.encounter!.activeIndex && m.hp > 0)
     return (
-      <div style={{ height: '100%', position: 'relative' }}>
+      <div
+        className={`${styles.sceneStage} ${sceneFx === 'battle-in' ? styles.sceneBattleIn : ''}`}
+        style={{ height: '100%', position: 'relative' }}
+      >
+        {sceneFx === 'battle-in' && <span className={styles.sceneVeil} aria-hidden />}
         <BattleScreen
           player={player}
           enemy={enemy}
@@ -437,6 +473,7 @@ export default function OfficeScreen({
       reduceMotion={reduceMotion}
       announce={announce}
       wallet={wallet}
+      sceneFx={sceneFx}
     />
   )
 }
@@ -456,6 +493,7 @@ function Overworld({
   reduceMotion,
   announce,
   wallet,
+  sceneFx,
 }: {
   state: OfficeState
   act: (action: Parameters<typeof dispatchOfficeAction>[1]) => unknown
@@ -465,6 +503,7 @@ function Overworld({
   reduceMotion: boolean
   announce: string
   wallet: { shown: number; pulse: boolean }
+  sceneFx: 'battle-in' | 'battle-out' | null
 }) {
   const target = interactTarget(state)
   const prompt = target ? promptText(target, state) : null
@@ -497,7 +536,8 @@ function Overworld({
   }
 
   return (
-    <div className={styles.screen}>
+    <div className={`${styles.screen} ${sceneFx === 'battle-out' ? styles.sceneBattleOut : ''}`}>
+      {sceneFx === 'battle-out' && <span className={styles.sceneVeil} aria-hidden />}
       <div className={styles.hud}>
         <div className={styles.objective} aria-label="Objective">
           <div className={styles.objectiveHead}>

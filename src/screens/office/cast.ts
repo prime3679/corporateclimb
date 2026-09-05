@@ -11,7 +11,7 @@ import {
 } from '@/content/office'
 import { kitFor, type OfficeSave, type PartyMember } from '@/engine/office'
 import { CURRENCY_ICON } from '@/data'
-import { ringColorFor } from './Headshot'
+import { ringColorFor } from './ringColor'
 
 export function formatFloorTime(ms: number): string {
   const total = Math.max(0, Math.floor(ms / 1000))

@@ -15,7 +15,8 @@
   display: grid;
   place-items: center;
   padding: 8px;
-  background: rgba(6, 8, 12, 0.6);
+  background: rgba(4, 6, 10, 0.74);
+  backdrop-filter: blur(2px);
   pointer-events: auto;
   animation: ovl-fade 120ms var(--cc-ease-out);
 }
@@ -26,7 +27,8 @@
   overflow-y: auto;
   padding: 16px;
   color: var(--cc-text);
-  background: var(--cc-glass);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0)), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--cc-shadow-plate);
@@ -148,7 +150,7 @@
   bottom: 12px;
   padding: 12px 14px 10px;
   color: var(--cc-text);
-  background: var(--cc-glass);
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.08), transparent 22%), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
   border-radius: var(--radius-md);
   box-shadow: var(--cc-shadow-plate);
@@ -168,9 +170,10 @@
   min-height: 46px;
   font-family: var(--cc-font-body);
   font-size: var(--body-lg);
-  line-height: 1.38;
+  line-height: 1.42;
   color: var(--cc-text);
   white-space: pre-wrap;
+  text-shadow: 0 1px 0 rgba(0, 0, 0, 0.28);
 }
 
 .dlgItalic {
@@ -234,6 +237,7 @@
 /* ── Receipt ── */
 .receipt {
   position: relative;
+  padding-top: 4px;
 }
 
 .receipt::before {
@@ -252,6 +256,11 @@
   margin-top: 14px;
   display: flex;
   flex-direction: column;
+  border-radius: 8px;
+  border: 1px solid var(--cc-line);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)), rgba(0, 0, 0, 0.22);
+  overflow: hidden;
 }
 
 .row {
@@ -259,8 +268,8 @@
   align-items: baseline;
   justify-content: space-between;
   gap: 12px;
-  padding: 8px 0;
-  border-bottom: 1px dashed var(--cc-line);
+  padding: 9px 10px;
+  border-bottom: 1px dashed rgba(255, 255, 255, 0.12);
 }
 
 .row:last-child {
@@ -291,6 +300,7 @@
 .rowGold .rowLabel,
 .rowGold .rowValue {
   color: var(--cc-gold);
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.18);
 }
 
 .footer {
@@ -362,7 +372,8 @@
 .paper {
   position: relative;
   padding-top: 20px;
-  background: var(--cc-surface-1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)), var(--cc-surface-1);
 }
 
 .paper::before {
@@ -426,7 +437,8 @@
   flex-direction: column;
   padding: 14px 14px 12px;
   color: var(--cc-text);
-  background: var(--cc-glass);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0)), var(--cc-glass);
   border-left: 1px solid var(--cc-line-strong);
   box-shadow: var(--cc-shadow-plate);
   pointer-events: auto;
@@ -445,12 +457,20 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--cc-line-strong);
-  background: var(--cc-fill-soft);
+  background: color-mix(in srgb, var(--cc-fill-soft) 80%, var(--cc-gold) 20%);
   color: var(--cc-text-2);
   font-family: var(--cc-font-display);
   font-size: var(--display-xs);
   letter-spacing: var(--cc-track-chip);
   cursor: pointer;
+  transition:
+    border-color 120ms var(--cc-ease-out),
+    color 120ms var(--cc-ease-out);
+}
+
+.close:hover {
+  border-color: var(--cc-gold);
+  color: var(--cc-text);
 }
 
 .teamBody {
@@ -664,7 +684,7 @@
   text-align: left;
   border-radius: var(--radius-sm);
   border: 1px solid var(--cc-line-strong);
-  background: var(--cc-surface-1);
+  background: linear-gradient(180deg, #1a2535, #121b28);
   color: var(--cc-text);
   font-family: var(--cc-font-body);
   font-size: var(--body-md);
@@ -720,7 +740,8 @@
   max-width: calc(100% - 24px);
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: var(--cc-glass);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
   box-shadow: var(--cc-shadow-plate);
   color: var(--cc-text);
@@ -738,7 +759,7 @@
   max-width: 300px;
   padding: 10px 14px;
   border-radius: var(--radius-md);
-  background: var(--cc-glass);
+  background: linear-gradient(180deg, rgba(255, 193, 7, 0.1), transparent 32%), var(--cc-glass);
   border: 1px solid var(--cc-gold);
   box-shadow: var(--cc-shadow-plate);
   color: var(--cc-text);
@@ -852,7 +873,8 @@
   margin-top: 6px;
   padding: 12px 14px;
   border-radius: var(--radius-md);
-  background: var(--cc-glass);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
 }
 
