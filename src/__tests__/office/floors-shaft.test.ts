@@ -1,18 +1,22 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FLOOR_ART_BY_ID,
+  FLOOR_DIRECTORY_TEXT,
   FLOOR_IDS,
+  STUB_ART,
+  STUB_DIRECTORY_TEXT,
   elevatorArrivalForFloor,
   elevatorBoardingSpotsForFloor,
   glyphAt,
   inBounds,
   isSolid,
-  isStubFloor,
   mapArtForFloor,
   spawnForFloor,
   type FloorId,
 } from '@/content/office'
 import { PLAYER_CLASSES } from '@/data'
 import { dispatchOfficeAction, newOfficeCampaign, type OfficeState } from '@/engine/office'
+import { doorSprite } from '@/screens/office/tiles'
 
 const PM = PLAYER_CLASSES.find((c) => c.id === 'pm')!
 
@@ -35,7 +39,7 @@ function flood(floorId: FloorId, start: { x: number; y: number }): Set<string> {
   return seen
 }
 
-describe('floors 3–5 stub drop-in', () => {
+describe('office shaft + department floors', () => {
   it('registers floor_01 through floor_05 and keeps the same shaft', () => {
     expect(FLOOR_IDS).toEqual(['floor_01', 'floor_02', 'floor_03', 'floor_04', 'floor_05'])
     for (const id of FLOOR_IDS) {
@@ -56,7 +60,31 @@ describe('floors 3–5 stub drop-in', () => {
       expect(reach.size).toBeGreaterThan(40)
       const board = elevatorBoardingSpotsForFloor(id)[0]
       expect(reach.has(`${board.x},${board.y}`)).toBe(true)
-      expect(isStubFloor(id)).toBe(false)
+    }
+  })
+
+  it('keeps live maps off the leftover stub art and directory copy', () => {
+    for (const id of FLOOR_IDS) {
+      expect(FLOOR_ART_BY_ID[id]).not.toEqual(STUB_ART)
+      expect(FLOOR_DIRECTORY_TEXT[id]).not.toEqual(STUB_DIRECTORY_TEXT)
+      expect(FLOOR_DIRECTORY_TEXT[id].join(' ')).not.toMatch(/Unmapped floor|Fable fills/)
+    }
+  })
+
+  it('reads (6,3) / (14,3) glass as walkable openings', () => {
+    const openings: Array<{ id: FloorId; x: number; y: number }> = [
+      { id: 'floor_02', x: 6, y: 3 },
+      { id: 'floor_02', x: 14, y: 3 },
+      { id: 'floor_03', x: 6, y: 3 },
+      { id: 'floor_03', x: 14, y: 3 },
+      { id: 'floor_04', x: 6, y: 3 },
+      { id: 'floor_04', x: 14, y: 3 },
+      { id: 'floor_05', x: 6, y: 3 },
+    ]
+    for (const { id, x, y } of openings) {
+      expect(glyphAt(x, y, id), `${id} (${x},${y})`).toBe('D')
+      expect(isSolid(x, y, id), `${id} (${x},${y}) solid`).toBe(false)
+      expect(doorSprite(x, y, id), `${id} (${x},${y})`).toBe('door_v_single')
     }
   })
 
@@ -78,6 +106,5 @@ describe('floors 3–5 stub drop-in', () => {
     s = dispatchOfficeAction(s, { type: 'MOVE', dir: 'e' }).state
     expect(s.player.x).toBeGreaterThan(3)
     expect(s.overlay).toMatchObject({ kind: 'dialogue', nodeId: 'dlg_sloane_callout' })
-    expect(isStubFloor(s.floorId)).toBe(false)
   })
 })

@@ -6,6 +6,7 @@ import {
   REWARD_OPTIONS,
   ZONE_LABEL,
   floorLabel,
+  floorNumber,
   zoneAt,
 } from '@/content/office'
 import {
@@ -85,9 +86,11 @@ export function useOfficeFeedback(state: OfficeState): string {
         Haptics.impact('medium')
         say(`${enc.titleCard}. ${enc.name}.`)
       } else if (state.screen === 'elevator_ride') {
-        SFX.elevatorUp()
+        const dest = state.rideTo ?? prev.floorId
+        if (floorNumber(dest) < floorNumber(prev.floorId)) SFX.elevatorDown()
+        else SFX.elevatorUp()
         Haptics.selection()
-        say(`Elevator. Next stop: ${floorLabel(state.rideTo ?? prev.floorId)}.`)
+        say(`Elevator. Next stop: ${floorLabel(dest)}.`)
       } else if (state.screen === 'promotion') {
         SFX.fanfare()
         say('Cleared probation. Pick a perk.')
@@ -214,7 +217,8 @@ export function useOfficeFeedback(state: OfficeState): string {
         inspect === POI_INSPECT.poi_elevator_door ||
         inspect === POI_INSPECT.poi_elevator_door_f2 ||
         inspect === POI_INSPECT.poi_elevator_door_f3 ||
-        inspect === POI_INSPECT.poi_elevator_door_f4
+        inspect === POI_INSPECT.poi_elevator_door_f4 ||
+        inspect === POI_INSPECT.poi_elevator_door_f5
       ) {
         SFX.eventBad()
         Haptics.warning()

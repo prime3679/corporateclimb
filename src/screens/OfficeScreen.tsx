@@ -20,7 +20,13 @@ import {
   type PartyMember,
 } from '@/engine/office'
 import { GameRng } from '@/engine'
-import { MOVE_MS, OFFICE_ENCOUNTERS, floorLabel, type Facing } from '@/content/office'
+import {
+  MOVE_MS,
+  OFFICE_ENCOUNTERS,
+  floorLabel,
+  officeBattleChrome,
+  type Facing,
+} from '@/content/office'
 import { Haptics } from '@/platform'
 import { SFX } from '@/sfx'
 import WorldMap from './office/WorldMap'
@@ -324,6 +330,7 @@ export default function OfficeScreen({
     const member = state.encounter.party[state.encounter.activeIndex]
     const player = effectiveKit(state, member)
     const enemy = OFFICE_ENCOUNTERS[state.encounter.encounterId]
+    const battleFloor = officeBattleChrome(state.floorId)
     const forced = state.battle.phase === 'switch_required'
     const showBench = state.benchOpen || forced
     const turn = busy || state.battle.phase !== 'player' || showBench ? 'wait' : 'player'
@@ -348,7 +355,8 @@ export default function OfficeScreen({
           xp={state.run.xp}
           xpToNext={state.run.xpToNext}
           level={state.run.level}
-          floor={enemy.rank + 1}
+          floor={battleFloor.floor}
+          floorTotal={battleFloor.floorTotal}
           playerAnim={liveView.playerAnim}
           enemyAnim={liveView.enemyAnim}
           damagePopups={liveView.popups}

@@ -88,7 +88,7 @@ function arrive(floor: OfficeState['floorId'], extra?: Partial<OfficeState>): Of
 }
 
 describe('Floors 3–5 assignment + boss reducers', () => {
-  it('clears isStubFloor now that the machines are live', () => {
+  it('keeps floors 3–5 live with the shared shaft and south-floor respawn', () => {
     expect(isStubFloor('floor_03')).toBe(false)
     expect(isStubFloor('floor_04')).toBe(false)
     expect(isStubFloor('floor_05')).toBe(false)

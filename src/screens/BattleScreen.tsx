@@ -36,6 +36,7 @@ export default function BattleScreen({
   xpToNext,
   level,
   floor,
+  floorTotal = TOTAL_FLOORS,
   playerAnim,
   enemyAnim,
   damagePopups,
@@ -69,6 +70,8 @@ export default function BattleScreen({
   xpToNext: number
   level: number
   floor: number
+  /** Defaults to Classic's 30. Office passes 5 so fights never read as FLOOR 6/30. */
+  floorTotal?: number
   playerAnim: AnimState
   enemyAnim: AnimState
   damagePopups: DamagePopup[]
@@ -275,7 +278,7 @@ export default function BattleScreen({
 
         <div className={styles.floorCounter}>
           <span className={styles.floorNum}>
-            FLOOR <b>{floor}</b>/{TOTAL_FLOORS}
+            FLOOR <b>{floor}</b>/{floorTotal}
           </span>
           {stockOptions !== undefined && (
             <span className={styles.floorStock}>{stockOptions} OPTIONS</span>
