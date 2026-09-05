@@ -1,18 +1,39 @@
 #!/usr/bin/env python3
-"""Generate Floor 1 overworld walk-cycle sheets.
+"""Floor 1 overworld walk-cycle sheets — hand-authored pixel art.
 
 Each sheet is 128x160 RGBA: 4 columns x 4 rows, frame 32x40.
-Columns: idle, stepL, idle, stepR. Rows: s, w, e, n.
+Columns: idle, stepL, idle, stepR. Rows: s, w, e, n (matches
+OverworldActor.module.css). W is the mirror of E.
 
-These are presentation stand-ins that amplify PR #67's badge tokens.
-Ship-quality actor art remains Fable's §14 job.
+Every actor is drawn from the same chibi rig so the cast reads as one
+world: 13px head, 10px torso, 9px legs, feet on y=33, ~8px of head
+overflowing the tile above (the CSS positions the cell at tile_y - 8).
+Light comes from the top-left; every material has a lit / base / shadow
+ramp; a single plum ink outlines the silhouette and separates head,
+arms and props from the torso (selective outlines, Gen-4 style).
+
+The art is authored as ASCII pixel templates below. Keys:
+
+    .  transparent          O  ink outline
+    k  skin   K skin shadow l  skin light
+    H  hair   h hair light  G  hair dark
+    e  eye    m mouth       w  eye white
+    J  jacket j shadow      i  jacket light
+    S  shirt  s shirt shadow
+    T  accent (tie / lanyard) t accent shadow
+    P  pants  p pants shadow
+    B  shoe   d shoe dark   b sole / shoe light
+    X  prop   x prop shadow y prop light  z prop screen
+    1-6 per-character extras (pins, stickies, patchwork)
 
 Usage:
-    python3 scripts/gen_office_actors.py
+    python3 scripts/gen_office_actors.py            # write sheets
+    python3 scripts/gen_office_actors.py --preview  # also dump a 4x contact sheet to /tmp
 """
 
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 from PIL import Image
@@ -29,466 +50,1735 @@ FRAMES = ('idle', 'stepL', 'idle', 'stepR')
 ROOT = Path(__file__).resolve().parents[1]
 OUT_DIR = ROOT / 'public' / 'office' / 'actors'
 
-INK = (8, 11, 18, 255)
-SHADOW = (0, 0, 0, 90)
+RGBA = tuple[int, int, int, int]
+INK: RGBA = (27, 23, 38, 255)
 
 
-def hex_rgba(value: str) -> tuple[int, int, int, int]:
+def hexc(value: str) -> RGBA:
     v = value.lstrip('#')
     return int(v[0:2], 16), int(v[2:4], 16), int(v[4:6], 16), 255
 
 
+def rows(block: str) -> list[str]:
+    """Strip indentation / blank lines from a template literal."""
+    out = [ln.strip() for ln in block.strip('\n').splitlines()]
+    return [ln for ln in out if ln]
+
+
+def mirror(block: list[str]) -> list[str]:
+    return [ln[::-1] for ln in block]
+
+
+def hairline_shadow(head: list[str]) -> list[str]:
+    """Skin directly under the fringe takes the hair's shadow."""
+    out = []
+    for r, ln in enumerate(head):
+        if r == 0:
+            out.append(ln)
+            continue
+        above = head[r - 1]
+        chars = list(ln)
+        for c, ch in enumerate(chars):
+            if ch == 'k' and c < len(above) and above[c] in 'HhG':
+                chars[c] = 'K'
+        out.append(''.join(chars))
+    return out
+
+
 class Frame:
+    """One 32x40 cell. Layers are pasted in order; `outline=True` inks the
+    4-neighbour border of the layer over anything already drawn."""
+
     def __init__(self) -> None:
-        self.px: dict[tuple[int, int], tuple[int, int, int, int]] = {}
+        self.px: dict[tuple[int, int], RGBA] = {}
 
-    def put(self, x: int, y: int, color: tuple[int, int, int, int]) -> None:
-        if 0 <= x < FRAME_W and 0 <= y < FRAME_H and color[3] > 0:
-            self.px[(x, y)] = color
-
-    def fill(
+    def paste(
         self,
+        tpl: list[str],
         x0: int,
         y0: int,
-        x1: int,
-        y1: int,
-        color: tuple[int, int, int, int],
+        pal: dict[str, RGBA],
+        outline: bool = True,
     ) -> None:
-        for y in range(y0, y1 + 1):
-            for x in range(x0, x1 + 1):
-                self.put(x, y, color)
-
-    def rect(self, x: int, y: int, w: int, h: int, color: tuple[int, int, int, int]) -> None:
-        self.fill(x, y, x + w - 1, y + h - 1, color)
-
-    def ink_outline(self) -> None:
-        solid = {p for p, c in self.px.items() if c[3] == 255 and c != INK}
-        extras: dict[tuple[int, int], tuple[int, int, int, int]] = {}
-        for x, y in solid:
+        cells: set[tuple[int, int]] = set()
+        for dy, ln in enumerate(tpl):
+            for dx, ch in enumerate(ln):
+                if ch == '.':
+                    continue
+                x, y = x0 + dx, y0 + dy
+                if not (0 <= x < FRAME_W and 0 <= y < FRAME_H):
+                    continue
+                cells.add((x, y))
+                self.px[(x, y)] = INK if ch == 'O' else pal[ch]
+        if not outline:
+            return
+        for x, y in cells:
             for nx, ny in ((x - 1, y), (x + 1, y), (x, y - 1), (x, y + 1)):
-                if (nx, ny) not in self.px:
-                    extras[(nx, ny)] = INK
-        for p, c in extras.items():
-            self.put(*p, c)
+                if (nx, ny) in cells:
+                    continue
+                if 0 <= nx < FRAME_W and 0 <= ny < FRAME_H:
+                    self.px[(nx, ny)] = INK
 
     def to_image(self) -> Image.Image:
         im = Image.new('RGBA', (FRAME_W, FRAME_H), (0, 0, 0, 0))
         pix = im.load()
-        for (x, y), color in self.px.items():
-            pix[x, y] = color
+        for (x, y), c in self.px.items():
+            pix[x, y] = c
         return im
 
 
-# Palettes pulled from the existing 512px portraits so the walk-cycle
-# body and the Headshot badge read as the same person.
-ACTORS: dict[str, dict[str, str]] = {
-    'lead_eng': {
-        'skin': '#e8b896',
-        'skin_sh': '#c48a64',
-        'hair': '#1a1a1e',
-        'hair_hi': '#3a3a42',
-        'eye': '#2a1a12',
-        'top': '#2c3e50',
-        'top_hi': '#3d556d',
-        'shirt': '#e8eaed',
-        'accent': '#3b82f6',
-        'pants': '#c4b28a',
-        'pants_sh': '#9a8762',
-        'shoes': '#222226',
-        'sole': '#f2f2f2',
-        'prop': '#8b95a3',
-    },
-    'lead_design': {
-        'skin': '#f0c4a8',
-        'skin_sh': '#d49a78',
-        'hair': '#5a3a24',
-        'hair_hi': '#7a5234',
-        'eye': '#2d6a3e',
-        'top': '#3b82f6',
-        'top_hi': '#f59e0b',
-        'shirt': '#f7f7f4',
-        'accent': '#a855f7',
-        'pants': '#8b5a3c',
-        'pants_sh': '#6a4028',
-        'shoes': '#4a2c18',
-        'sole': '#4a2c18',
-        'prop': '#dc2626',
-    },
-    'lead_pm': {
-        'skin': '#c9956c',
-        'skin_sh': '#a87450',
-        'hair': '#3d2a1c',
-        'hair_hi': '#5a3e28',
-        'eye': '#4a2e1c',
-        'top': '#2a8a7a',
-        'top_hi': '#3aa494',
-        'shirt': '#f5f5f5',
-        'accent': '#c4a574',
-        'pants': '#2a2a30',
-        'pants_sh': '#1a1a20',
-        'shoes': '#1a1a1a',
-        'sole': '#1a1a1a',
-        'prop': '#4b5563',
-    },
-    'renata': {
-        'skin': '#e8b896',
-        'skin_sh': '#c48a64',
-        'hair': '#6b4423',
-        'hair_hi': '#8a5c34',
-        'eye': '#4a2e1c',
-        'top': '#1e3a5f',
-        'top_hi': '#2c5282',
-        'shirt': '#93c5e8',
-        'accent': '#f5f5f5',
-        'pants': '#c4b28a',
-        'pants_sh': '#9a8762',
-        'shoes': '#5c3a1e',
-        'sole': '#5c3a1e',
-        'prop': '#1a1a1e',
-    },
-    'gavin': {
-        'skin': '#e8b896',
-        'skin_sh': '#c48a64',
-        'hair': '#1a1a1e',
-        'hair_hi': '#2e2e34',
-        'eye': '#3a2418',
-        'top': '#1e3a5f',
-        'top_hi': '#2c5282',
-        'shirt': '#f7f7f4',
-        'accent': '#1a2744',
-        'pants': '#1e3a5f',
-        'pants_sh': '#15283f',
-        'shoes': '#111114',
-        'sole': '#111114',
-        'prop': '#f4f1ea',
-    },
-    'priya': {
-        'skin': '#e8b896',
-        'skin_sh': '#c48a64',
-        'hair': '#5a3a24',
-        'hair_hi': '#7a5234',
-        'eye': '#3a2418',
-        'top': '#7a4a2a',
-        'top_hi': '#9a6238',
-        'shirt': '#93c5e8',
-        'accent': '#f59e0b',
-        'pants': '#2a2a30',
-        'pants_sh': '#1a1a20',
-        'shoes': '#5c3a1e',
-        'sole': '#5c3a1e',
-        'prop': '#22c55e',
-    },
-    'holloway': {
-        'skin': '#e0b090',
-        'skin_sh': '#b88464',
-        'hair': '#4a3424',
-        'hair_hi': '#6a4c34',
-        'eye': '#2a1a12',
-        'top': '#3a3d44',
-        'top_hi': '#52565f',
-        'shirt': '#b8d4e8',
-        'accent': '#2563eb',
-        'pants': '#3a3d44',
-        'pants_sh': '#2a2d34',
-        'shoes': '#4a3424',
-        'sole': '#4a3424',
-        'prop': '#f5f5f5',
-    },
+# ---------------------------------------------------------------------------
+# Shared rig — legs and arms. Origins are frame coordinates of the template's
+# top-left. Step frames drop the hips by one pixel (body bob).
+# ---------------------------------------------------------------------------
+
+LEGS_S = {
+    'idle': (
+        (11, 25),
+        rows(
+            """
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            BBBBdBBBBd
+            bbbbbbbbbb
+            """
+        ),
+    ),
+    'stepL': (
+        (11, 26),
+        rows(
+            """
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            BBBBdPPPp.
+            bbbbbPPPp.
+            .....PPPp.
+            .....BBBBd
+            .....bbbbb
+            """
+        ),
+    ),
+    'stepR': (
+        (11, 26),
+        rows(
+            """
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpPPPp.
+            .PPPpBBBBd
+            .PPPpbbbbb
+            .PPPp.....
+            BBBBd.....
+            bbbbb.....
+            """
+        ),
+    ),
+}
+
+# Wide-leg trousers (lead_design) — flare out toward the cuff.
+LEGS_S_WIDE = {
+    'idle': (
+        (10, 25),
+        rows(
+            """
+            ..PPPpPPPp..
+            ..PPPpPPPp..
+            ..PPPpPPPp..
+            .PPPPpPPPPp.
+            .PPPPpPPPPp.
+            PPPPPpPPPPPp
+            PPPPPpPPPPPp
+            .BBBBd.BBBBd
+            .bbbbb.bbbbb
+            """
+        ),
+    ),
+    'stepL': (
+        (10, 26),
+        rows(
+            """
+            ..PPPpPPPp..
+            ..PPPpPPPp..
+            .PPPPpPPPPp.
+            .BBBBdPPPPp.
+            .bbbbbPPPPPp
+            ......PPPPPp
+            ......BBBBd.
+            ......bbbbb.
+            """
+        ),
+    ),
+    'stepR': (
+        (10, 26),
+        rows(
+            """
+            ..PPPpPPPp..
+            ..PPPpPPPp..
+            .PPPPpPPPPp.
+            .PPPPpBBBBd.
+            PPPPPpbbbbb.
+            PPPPPp......
+            .BBBBd......
+            .bbbbb......
+            """
+        ),
+    ),
+}
+
+LEGS_E = {
+    'idle': (
+        (12, 25),
+        rows(
+            """
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .BBBBBBd
+            .bbbbbbb
+            """
+        ),
+    ),
+    # Contact pose: near leg forward, far leg trailing (shadow tone).
+    'stepL': (
+        (10, 26),
+        rows(
+            """
+            ....PPPPpp..
+            ...pPPPPpp..
+            ..pppPPPpp..
+            ..pp..PPPp..
+            .ppp...PPPp.
+            .ppp...PPPp.
+            BBBd...BBBBd
+            bbbb...bbbbb
+            """
+        ),
+    ),
+    'stepR': (
+        (10, 26),
+        rows(
+            """
+            ....PPPPpp..
+            ...PPPPppp..
+            ..PPPPpppp..
+            ..PPP..ppp..
+            .PPPp...ppp.
+            .PPPp...ppp.
+            BBBBd...BBBd
+            bbbbb...bbbb
+            """
+        ),
+    ),
+}
+
+LEGS_E_WIDE = {
+    'idle': (
+        (12, 25),
+        rows(
+            """
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            .PPPPpp.
+            PPPPPppp
+            PPPPPppp
+            PPPPPppp
+            .BBBBBBd
+            .bbbbbbb
+            """
+        ),
+    ),
+    'stepL': (
+        (10, 26),
+        rows(
+            """
+            ....PPPPpp..
+            ...pPPPPpp..
+            ..pppPPPpp..
+            ..ppp.PPPPp.
+            .pppp..PPPPp
+            .pppp..PPPPp
+            BBBd...BBBBd
+            bbbb...bbbbb
+            """
+        ),
+    ),
+    'stepR': (
+        (10, 26),
+        rows(
+            """
+            ....PPPPpp..
+            ...PPPPppp..
+            ..PPPPpppp..
+            .PPPPp.pppp.
+            PPPPPp..pppp
+            PPPPPp..pppp
+            BBBBd...BBBd
+            bbbbb...bbbb
+            """
+        ),
+    ),
+}
+
+# Arms are 2px sleeves ending in a hand. Front/back: hang beside the torso.
+ARM_S = rows(
+    """
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    kK
+    """
+)
+ARM_S_CUFF = rows(
+    """
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    Ss
+    kK
+    """
+)
+# Side view: the near arm hangs over the torso's centre line.
+ARM_E = rows(
+    """
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    kK
+    """
+)
+ARM_E_CUFF = rows(
+    """
+    Jj
+    Jj
+    Jj
+    Jj
+    Jj
+    Ss
+    kK
+    """
+)
+
+
+# ---------------------------------------------------------------------------
+# Cast. Each actor: palette, three head templates (s / e / n) with anchors,
+# three torso templates, optional props per facing, leg variant, quirks.
+# ---------------------------------------------------------------------------
+
+BASE_PALETTE = {
+    'w': '#fff6ee',
+    'm': '#a35a48',
 }
 
 
-def pal(spec: dict[str, str]) -> dict[str, tuple[int, int, int, int]]:
-    return {k: hex_rgba(v) for k, v in spec.items()}
+def palette(spec: dict[str, str]) -> dict[str, RGBA]:
+    merged = dict(BASE_PALETTE)
+    merged.update(spec)
+    return {k: hexc(v) for k, v in merged.items()}
 
 
-def pose(facing: str, frame: str) -> dict[str, int]:
-    step = 0
-    bob = 0
-    if frame == 'stepL':
-        step = -1
-        bob = -1
-    elif frame == 'stepR':
-        step = 1
-        bob = -1
-    return {'step': step, 'bob': bob, 'facing': 0 if facing else 0}
+Prop = tuple[str, tuple[int, int], list[str]]  # ('under' | 'hand', anchor, template)
 
 
-def draw_shadow(fr: Frame) -> None:
-    for x, y in (
-        (12, 37),
-        (13, 36),
-        (14, 36),
-        (15, 36),
-        (16, 36),
-        (17, 36),
-        (18, 36),
-        (19, 37),
-        (13, 37),
-        (14, 37),
-        (15, 37),
-        (16, 37),
-        (17, 37),
-        (18, 37),
-        (14, 38),
-        (15, 38),
-        (16, 38),
-        (17, 38),
-    ):
-        fr.put(x, y, SHADOW)
+class Actor:
+    def __init__(
+        self,
+        name: str,
+        colors: dict[str, str],
+        head: dict[str, tuple[tuple[int, int], list[str]]],
+        torso: dict[str, tuple[tuple[int, int], list[str]]],
+        props: dict[str, list[Prop]] | None = None,
+        wide_legs: bool = False,
+        cuffs: bool = True,
+        slouch: int = 0,
+        arm_shift: dict[str, int] | None = None,
+    ) -> None:
+        self.name = name
+        self.pal = palette(colors)
+        self.head = head
+        self.torso = torso
+        self.props = props or {}
+        self.wide_legs = wide_legs
+        self.cuffs = cuffs
+        self.slouch = slouch
+        # Per-facing extra x offset for the near arm (side views) so the
+        # arm sits on the torso's centre for narrower / wider builds.
+        self.arm_shift = arm_shift or {}
 
 
-def draw_shoes(fr: Frame, p: dict[str, tuple[int, int, int, int]], facing: str, step: int) -> None:
-    ly = 34 + (1 if step < 0 else 0)
-    ry = 34 + (1 if step > 0 else 0)
-    if facing in ('e', 'w'):
-        x = 14 if facing == 'w' else 15
-        fr.rect(x, 34 + (1 if step else 0), 5, 3, p['shoes'])
-        fr.rect(x, 36 + (1 if step else 0), 5, 1, p['sole'])
-        return
-    if facing == 'n':
-        fr.rect(12, ly, 4, 3, p['shoes'])
-        fr.rect(16, ry, 4, 3, p['shoes'])
-        return
-    fr.rect(11, ly, 5, 3, p['shoes'])
-    fr.rect(16, ry, 5, 3, p['shoes'])
-    fr.rect(11, ly + 2, 5, 1, p['sole'])
-    fr.rect(16, ry + 2, 5, 1, p['sole'])
+# --- Gavin — Senior Associate, slicked hair, navy suit, gold pin, papers ----
+
+GAVIN = Actor(
+    'gavin',
+    {
+        'k': '#e8b896',
+        'K': '#c48a64',
+        'l': '#f4cdae',
+        'H': '#1c1c26',
+        'h': '#3c3e52',
+        'G': '#0e0e14',
+        'e': '#1a1210',
+        'J': '#294a80',
+        'j': '#1d3560',
+        'i': '#37609f',
+        'S': '#f4f4f0',
+        's': '#c9cbd0',
+        'T': '#152040',
+        't': '#0e1630',
+        'P': '#24407a',
+        'p': '#192e58',
+        'B': '#15151c',
+        'd': '#0c0c10',
+        'b': '#2a2a34',
+        'X': '#f4f1ea',
+        'x': '#cfc9bc',
+        'y': '#ffffff',
+        'z': '#8b8b96',
+        '1': '#eab308',
+        '2': '#cbd5e1',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HhhhHHHHHH..
+                .HhhHHHHHHHHG.
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHkkkkkkkkGG.
+                .HkkkkkkkkkkG.
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..KkkkkkmkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HHhhhHHHHH..
+                .HHHhhHHHHHHH.
+                .HHHHHHHHHHHH.
+                .HHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkGkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HhhhHHHHHH..
+                .HhhHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                JJ1SSTTSJj
+                JJJSSTTSJj
+                JJJJSTTJJj
+                JJJJJTTJJj
+                JJJJJttJJj
+                JJJJJtJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSTj
+                JJJJJSTj
+                JJJJJJTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Paper stack tucked under the left arm (viewer's right).
+        's': [('under', (22, 20), rows("""
+            XXXX
+            XzzX
+            XzzX
+            XzzX
+            xxxx
+            """))],
+        'e': [('under', (13, 21), rows("""
+            XXXXXXX
+            XzzzzzX
+            xxxxxxx
+            """))],
+        'n': [('under', (6, 20), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+# --- Holloway — interim team lead, tired, gray suit, blue tie, coffee -------
+
+HOLLOWAY = Actor(
+    'holloway',
+    {
+        'k': '#e0b090',
+        'K': '#b88464',
+        'l': '#ecc4a6',
+        'H': '#5a4030',
+        'h': '#7a5a44',
+        'G': '#3c2a20',
+        'e': '#241812',
+        'J': '#5d616c',
+        'j': '#464a54',
+        'i': '#737884',
+        'S': '#b8d4e8',
+        's': '#8fb0c8',
+        'T': '#2f6fe0',
+        't': '#1f4fb0',
+        'P': '#4f535d',
+        'p': '#3b3e47',
+        'B': '#4a3220',
+        'd': '#33220f',
+        'b': '#5e4530',
+        'X': '#f5f5f5',
+        'x': '#c8c8cc',
+        'y': '#d4d4d8',
+        'z': '#6b4a2e',
+        '1': '#d9c9a2',
+        '2': '#f4f1ea',
+        '3': '#a8956e',
+    },
+    head={
+        's': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHhH.....
+                .HHHHhhHHHHH..
+                .HHHhHHHHHHHG.
+                HHHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHkkkkkkkkHG.
+                .HHkkkkkkkkHG.
+                ..kkkkkkkkkk..
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkKkkkkKkK..
+                ..KkkkkkkkkK..
+                ...KkkmmkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 3),
+            rows(
+                """
+                ....HHHHhH....
+                ..HHHHhhHHHH..
+                .HHHHhHHHHHHH.
+                .HHHHHHHHHHHHH
+                .GHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkkkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GGHKKkkkKkK.
+                ...KKkkkkkkK..
+                ....KkkkkmK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHhH.....
+                .HHHHhhHHHHH..
+                .HHHhHHHHHHHG.
+                HHHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HHGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 16),
+            rows(
+                """
+                ...KKKK...
+                JJSSSSSSJj
+                JJJSSTTSJj
+                JJJSSTTSJj
+                JJJJSTTJJj
+                JJJJJTTJJj
+                JJJJJttJJj
+                JJJJJtJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 16),
+            rows(
+                """
+                ..KKKK..
+                JJJJJSSj
+                JJJJJSTj
+                JJJJJSTj
+                JJJJJJTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 16),
+            rows(
+                """
+                ...KKKK...
+                JJJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Binder under the left arm; white mug in the right hand.
+        's': [
+            ('under', (22, 19), rows("""
+                1111
+                1221
+                1221
+                1111
+                1111
+                3333
+                """)),
+            ('hand', (6, 21), rows("""
+                XXX.
+                XXXy
+                XXXy
+                xxx.
+                """)),
+        ],
+        'e': [
+            ('under', (13, 21), rows("""
+                1111111
+                1221111
+                3333333
+                """)),
+            ('hand', (17, 21), rows("""
+                .XXX
+                yXXX
+                yXXX
+                .xxx
+                """)),
+        ],
+        'n': [
+            ('under', (6, 19), rows("""
+                1111
+                1111
+                1111
+                1111
+                1111
+                3333
+                """)),
+            ('hand', (22, 21), rows("""
+                .XXX
+                yXXX
+                yXXX
+                .xxx
+                """)),
+        ],
+    },
+    slouch=1,
+)
+
+# --- Priya — Ops, spiky hair, brown blazer, sticky-note badges, cards -------
+
+PRIYA = Actor(
+    'priya',
+    {
+        'k': '#ecc0a0',
+        'K': '#c89070',
+        'l': '#f6d4b8',
+        'H': '#6b4423',
+        'h': '#8f6236',
+        'G': '#4a2e18',
+        'e': '#2a1a12',
+        'J': '#7a4a2a',
+        'j': '#5c3820',
+        'i': '#946040',
+        'S': '#93c5e8',
+        's': '#6ea3c8',
+        'T': '#3b3b44',
+        't': '#2a2a30',
+        'P': '#4a4a52',
+        'p': '#36363d',
+        'B': '#5c3a1e',
+        'd': '#3f2712',
+        'b': '#6e4a2c',
+        'X': '#f5d76e',
+        'x': '#d4b040',
+        'y': '#fff0a8',
+        'z': '#b58e2a',
+        '1': '#f97316',
+        '2': '#2563eb',
+        '3': '#22c55e',
+    },
+    head={
+        's': (
+            (9, 1),
+            rows(
+                """
+                ..H..hH..H....
+                .HHHhHHHHHHH..
+                .HhhHHHHHHHHG.
+                HHhHHHHHHHHHGG
+                HHHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHkkkkkkkkGG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..KkkkkkkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 1),
+            rows(
+                """
+                ...H.hH.H.....
+                ..HHHhHHHHH...
+                .HHhhHHHHHHHH.
+                HHhHHHHHHHHHHH
+                HHHHHHHHHHHHH.
+                .GHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkkkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 1),
+            rows(
+                """
+                ..H..hH..H....
+                .HHHhHHHHHHH..
+                .HhhHHHHHHHHG.
+                HHhHHHHHHHHHGG
+                HHHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                J1JSSSSJJj
+                JJJSSSSJJj
+                J2JJSSJJJj
+                JJJJSSJJJj
+                J3JJSSJJJj
+                JJJJSSJJJj
+                JJJJjjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSSj
+                JJJJJ1Sj
+                JJJJJJSj
+                JJJJJ2Sj
+                JJJJJJSj
+                JJJJJ3Sj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Fan of index cards in the right hand (viewer's left).
+        's': [('hand', (5, 19), rows("""
+            ..yX.
+            .yXXX
+            yXXXx
+            XXXxx
+            .Xxx.
+            """))],
+        'e': [('hand', (17, 19), rows("""
+            ..yX.
+            .yXXX
+            yXXXx
+            XXXxx
+            .Xxx.
+            """))],
+        'n': [('hand', (22, 19), rows("""
+            .Xy..
+            XXXy.
+            xXXXy
+            xxXXX
+            .xxX.
+            """))],
+    },
+)
+
+# --- Renata — front desk, wavy hair, navy blazer, phone in hand -------------
+
+RENATA = Actor(
+    'renata',
+    {
+        'k': '#e8b896',
+        'K': '#c48a64',
+        'l': '#f4cdae',
+        'H': '#6b4423',
+        'h': '#8f6236',
+        'G': '#4a2e18',
+        'e': '#3a2418',
+        'J': '#1e3a5f',
+        'j': '#15283f',
+        'i': '#2c5282',
+        'S': '#93c5e8',
+        's': '#6ea3c8',
+        'T': '#f5f5f5',
+        't': '#c9cbd0',
+        'P': '#c4b28a',
+        'p': '#9a8762',
+        'B': '#5c3a1e',
+        'd': '#3f2712',
+        'b': '#6e4a2c',
+        'X': '#3a3d4c',
+        'x': '#24262f',
+        'y': '#575b6e',
+        'z': '#8fd0ff',
+    },
+    head={
+        's': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHhhhHHHH...
+                ..HHHhhHHHHHHG..
+                .HHHhHHHHHHHHHG.
+                .HHHHHHHHHHHHHG.
+                .HHHkkkkkkkkHHG.
+                .HHHkkkkkkkkHHG.
+                .HHkkkkkkkkkkHG.
+                .HHkkekkkkekkHG.
+                .HHkkekkkkekkHG.
+                .HHkkkkkkkkkKHG.
+                .HHKkkkkkkkkKHG.
+                .HH.KkkkkkkK.HG.
+                .HH..........HG.
+                """
+            ),
+        ),
+        'e': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHHhhhHHH...
+                ..HHHHHhhHHHHH..
+                .HHHHHHHHHHHHHH.
+                .HHHHHHHHHHHHHH.
+                .HHHHHHHHkkkkkH.
+                .GHHHHHHkkkkkkH.
+                .GHHHHHKkkkkkkH.
+                .GHHHHHKkkkekk..
+                .GGHHHHKkkkekkk.
+                .GGHHHKKkkkkkK..
+                .GGGHHHKkkkkkK..
+                .GGGGHH.KkkkK...
+                ..GGGGG.........
+                """
+            ),
+        ),
+        'n': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHhhhHHHH...
+                ..HHHhhHHHHHHG..
+                .HHHhHHHHHHHHHG.
+                .HHHHHHHHHHHHHG.
+                .HHHHHHHHHHHGGG.
+                .HHHHHHHHHHHGGG.
+                .HHHHHHHHHHGGGG.
+                .HHHHHHHHHHGGGG.
+                .HHHHHHHHHGGGGG.
+                .HHHHHHHHHGGGGG.
+                .HHHHHHHHGGGGGG.
+                .HHH.HHHHGGG.HG.
+                .HH..........HG.
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                JJJSSSSJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJjjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Phone in the right hand (viewer's left), screen lit.
+        's': [('hand', (6, 20), rows("""
+            XXX
+            XzX
+            XzX
+            XzX
+            xxx
+            """))],
+        'e': [('hand', (17, 20), rows("""
+            XXX
+            XzX
+            XzX
+            XzX
+            xxx
+            """))],
+        'n': [('hand', (23, 20), rows("""
+            XX
+            XX
+            XX
+            XX
+            xx
+            """))],
+    },
+    arm_shift={'e': 0},
+)
+
+# --- Lead: Eng — hoodie, lanyard, khakis, sneakers, laptop under arm --------
+
+LEAD_ENG = Actor(
+    'lead_eng',
+    {
+        'k': '#e8b896',
+        'K': '#c48a64',
+        'l': '#f4cdae',
+        'H': '#1a1a22',
+        'h': '#3a3a48',
+        'G': '#0e0e12',
+        'e': '#2a1a12',
+        'J': '#363f57',
+        'j': '#262d40',
+        'i': '#48536e',
+        'S': '#8a9099',
+        's': '#6b7079',
+        'T': '#3b82f6',
+        't': '#2563eb',
+        'P': '#c4b28a',
+        'p': '#9a8762',
+        'B': '#2a2a30',
+        'd': '#1a1a1e',
+        'b': '#f2f2f2',
+        'X': '#9aa3ad',
+        'x': '#6f7883',
+        'y': '#c9d0d8',
+        'z': '#3a4048',
+        '1': '#e8eaed',
+        '2': '#3b82f6',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ...HH.HHHH.H..
+                ..HHHhhHHHHHH.
+                .HHHhhHHHHHHHG
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHHG.
+                .HHkkkkkkkHHG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..KkkkkkkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ...HH.HHHH.H..
+                ..HHHhhHHHHHH.
+                .HHHHhHHHHHHHH
+                .HHHHHHHHHHHHH
+                .HHHHHHHHHHHH.
+                .GHHHHHHHkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHHKkkkkkk.
+                ..GHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        # Hood bunched at the nape.
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ...HH.HHHH.H..
+                ..HHHhhHHHHHH.
+                .HHHhhHHHHHHHG
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                .iJJJJJJJJJj..
+                iJJJJJJJJJJJj.
+                iJJJJJJJJJJJj.
+                JJJJJJJJJJJJj.
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                JJJTSSTJJj
+                JJJTSSTJJj
+                JJJSTTSJJj
+                JJJS11SJJj
+                JJJS11SJJj
+                JJJSSSSJJj
+                JJJSSSSJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSTj
+                JJJJJSTj
+                JJJJJSSj
+                JJJJJSSj
+                JJJJJSSj
+                JJJJJSSj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Closed laptop tucked under the left arm (viewer's right).
+        's': [('under', (22, 19), rows("""
+            yXXX
+            XXXX
+            zzzz
+            XXXX
+            XXXX
+            xxxx
+            """))],
+        'e': [('under', (13, 21), rows("""
+            yXXXXXX
+            XzzzzzX
+            xxxxxxx
+            """))],
+        'n': [('under', (6, 19), rows("""
+            yXXX
+            XXXX
+            zzzz
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+    cuffs=False,
+)
+
+# --- Lead: Design — patchwork blazer, hair clip, wide terracotta trousers ---
+
+LEAD_DESIGN = Actor(
+    'lead_design',
+    {
+        'k': '#f0c4a8',
+        'K': '#d49a78',
+        'l': '#f8d8c2',
+        'H': '#5a3a24',
+        'h': '#7a5234',
+        'G': '#3e2816',
+        'e': '#2d6a3e',
+        'J': '#3b82f6',
+        'j': '#2563eb',
+        'i': '#60a5fa',
+        'S': '#f7f7f4',
+        's': '#d0d0cc',
+        'T': '#dc2626',
+        't': '#b91c1c',
+        'P': '#c96a3a',
+        'p': '#a04e28',
+        'B': '#4a2c18',
+        'd': '#33200f',
+        'b': '#5e3a22',
+        'X': '#2a2e36',
+        'x': '#1a1d24',
+        'y': '#4a505c',
+        'z': '#cfd6e0',
+        '1': '#f59e0b',
+        '2': '#dc2626',
+        '3': '#facc15',
+        '4': '#a855f7',
+        '5': '#22c55e',
+        '6': '#b45309',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HHhhHHHHHH..
+                .HHhhHHHHHHHG.
+                .HHhHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HTkkkkkkkHGG.
+                .HTkkkkkkkkHG.
+                .HkkkkkkkkkkG.
+                ..kkekkkkekk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..KkkkkkkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HHHhhHHHHH..
+                .HHHhhHHHHHHH.
+                .HHhHHHHHHHHHH
+                .HHHHHHHHHHHH.
+                .GHHHHHHHkkkH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                ..GHHTKkkkekk.
+                ..GHHTKkkkekkk
+                ..GGHKKkkkkkK.
+                ...KKkkkkkkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHH....
+                ..HHhhHHHHHH..
+                .HHhhHHHHHHHG.
+                .HHhHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HHHHGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                1JSSSSSS4j
+                11JSSSSJ44
+                33JJSSJJ55
+                33JJSSJJ55
+                J2JJSSJJ1j
+                22JJSSJ11j
+                JJ44SSJ3Jj
+                J44JSSJ33j
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                1J44JSSj
+                11J4JSSj
+                33J22JSj
+                33J22JSj
+                J55JJJSj
+                J55J1JSj
+                4JJ11JSj
+                44J3JJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                11JJJJ44Jj
+                11J33J44Jj
+                JJJ33JJ55j
+                22JJJJJ55j
+                22JJ11JJJj
+                JJ4J11J3Jj
+                J44JJJ33Jj
+                J44J55JJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Tablet under the right arm (viewer's left); face-on from the side.
+        's': [('under', (6, 18), rows("""
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            xxxx
+            """))],
+        'e': [('under', (13, 20), rows("""
+            XXXXXXX
+            XzzzzzX
+            XzzzzzX
+            xxxxxxx
+            """))],
+        'n': [('under', (22, 18), rows("""
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            xxxx
+            """))],
+    },
+    wide_legs=True,
+)
+
+# --- Lead: PM — black bob, teal blazer, black trousers, tablet + pen --------
+
+LEAD_PM = Actor(
+    'lead_pm',
+    {
+        'k': '#c9956c',
+        'K': '#a87450',
+        'l': '#d9ac86',
+        'H': '#1e1a1e',
+        'h': '#3e3440',
+        'G': '#100c10',
+        'e': '#2a1a12',
+        'J': '#2a8a7a',
+        'j': '#1f6a5e',
+        'i': '#38a494',
+        'S': '#f5f5f5',
+        's': '#cfd2d4',
+        'T': '#c4a574',
+        't': '#a08553',
+        'P': '#2a2a30',
+        'p': '#1e1e24',
+        'B': '#1a1a1e',
+        'd': '#0e0e10',
+        'b': '#2c2c32',
+        'X': '#3a3f48',
+        'x': '#262a30',
+        'y': '#5a606c',
+        'z': '#dfe6ee',
+    },
+    head={
+        's': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHhhhHHHH...
+                ..HHHhhHHHHHHG..
+                ..HHhHHHHHHHHG..
+                ..HHHHHHHHHHGG..
+                ..HHkkkkkkkkHG..
+                ..HHkkkkkkkkHG..
+                ..HHkkkkkkkkHG..
+                ..HHkkekkkkekHG.
+                ..HHkkekkkkekHG.
+                ..HHkkkkkkkkKHG.
+                ..HHKkkkkkkkKHG.
+                ..HH.KkkkkkK.HG.
+                """
+            ),
+        ),
+        'e': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHHhhhHHH...
+                ..HHHHHhhHHHHH..
+                ..HHHHHHHHHHHHH.
+                ..HHHHHHHHHHHHH.
+                ..HHHHHHHHkkkkH.
+                ..GHHHHHHkkkkkk.
+                ..GHHHHHKkkkkkk.
+                ..GHHHHHKkkkekk.
+                ..GGHHHHKkkkekkk
+                ..GGHHHKKkkkkkK.
+                ..GGGHHHKkkkkkK.
+                ..GGGGHH.KkkkK..
+                """
+            ),
+        ),
+        'n': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh.....
+                ...HHHhhhHHHH...
+                ..HHHhhHHHHHHG..
+                ..HHhHHHHHHHHG..
+                ..HHHHHHHHHHGG..
+                ..HHHHHHHHHHGG..
+                ..HHHHHHHHHGGG..
+                ..HHHHHHHHHGGG..
+                ..HHHHHHHHGGGGG.
+                ..HHHHHHHHGGGGG.
+                ..HHHHHHHGGGGGG.
+                ..HHHHHHHGGGGGG.
+                ..HH.GGGGGGG.GG.
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iJSSSSSSJj
+                JJJSSSSJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJJSSJJJj
+                JJJTTTTJJj
+                JJJJjjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJJSSj
+                JJJJJSSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJJSj
+                JJJJJTTj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Tablet under the left arm (viewer's right).
+        's': [('under', (22, 18), rows("""
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            XXXy
+            xxxx
+            """))],
+        'e': [('under', (13, 20), rows("""
+            XXXXXXX
+            XzzzzzX
+            XzzzzzX
+            xxxxxxx
+            """))],
+        'n': [('under', (6, 18), rows("""
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            yXXX
+            xxxx
+            """))],
+    },
+)
+
+CAST: list[Actor] = [LEAD_ENG, LEAD_DESIGN, LEAD_PM, RENATA, GAVIN, PRIYA, HOLLOWAY]
 
 
-def draw_legs(fr: Frame, p: dict[str, tuple[int, int, int, int]], facing: str, step: int, bob: int) -> None:
-    y = 26 + bob
-    if facing in ('e', 'w'):
-        fr.rect(13, y, 6, 8, p['pants'])
-        fr.rect(13, y, 2, 8, p['pants_sh'])
-        return
-    lx = 12 + (-1 if step < 0 and facing == 's' else 1 if step < 0 else 0)
-    rx = 16 + (1 if step > 0 and facing == 's' else -1 if step > 0 else 0)
-    fr.rect(lx, y + (1 if step < 0 else 0), 4, 8, p['pants'])
-    fr.rect(rx, y + (1 if step > 0 else 0), 4, 8, p['pants'])
-    fr.rect(lx, y + 4, 4, 4, p['pants_sh'])
-    fr.rect(rx, y + 4, 4, 4, p['pants_sh'])
+# ---------------------------------------------------------------------------
+# Composition
+# ---------------------------------------------------------------------------
 
 
-def draw_torso(
-    fr: Frame,
-    name: str,
-    p: dict[str, tuple[int, int, int, int]],
-    facing: str,
-    bob: int,
-) -> None:
-    y = 16 + bob
-    if facing in ('e', 'w'):
-        fr.rect(12, y, 8, 10, p['top'])
-        fr.rect(12 if facing == 'w' else 17, y, 3, 10, p['top_hi'])
-        if facing == 'e':
-            fr.rect(14, y + 1, 2, 6, p['shirt'])
-        elif facing == 'w':
-            fr.rect(16, y + 1, 2, 6, p['shirt'])
-        if name == 'lead_design':
-            fr.put(13, y + 2, p['accent'])
-            fr.put(18, y + 4, p['top_hi'])
-            fr.put(14, y + 6, hex_rgba('#3b82f6'))
-        if name == 'gavin':
-            fr.rect(15, y + 1, 2, 7, p['accent'])
-        if name == 'holloway':
-            fr.rect(15, y + 1, 2, 7, p['accent'])
-        if name == 'priya':
-            fr.put(13 if facing == 'w' else 18, y + 2, hex_rgba('#f97316'))
-            fr.put(13 if facing == 'w' else 18, y + 4, hex_rgba('#2563eb'))
-            fr.put(13 if facing == 'w' else 18, y + 6, p['accent'])
-        if name == 'lead_eng':
-            fr.rect(15, y + 1, 2, 8, p['accent'])
-        return
-
-    fr.rect(11, y, 10, 10, p['top'])
-    if facing == 's':
-        fr.rect(14, y + 1, 4, 7, p['shirt'])
-        if name == 'lead_design':
-            fr.put(12, y + 2, p['top_hi'])
-            fr.put(19, y + 2, p['accent'])
-            fr.put(12, y + 5, p['accent'])
-            fr.put(19, y + 6, hex_rgba('#3b82f6'))
-            fr.put(13, y + 7, p['top_hi'])
-        if name == 'lead_eng':
-            fr.rect(15, y + 2, 2, 8, p['accent'])
-            fr.rect(14, y + 8, 4, 2, hex_rgba('#dbeafe'))
-        if name == 'gavin':
-            fr.rect(15, y + 1, 2, 8, p['accent'])
-            fr.put(12, y + 2, hex_rgba('#eab308'))
-            fr.put(12, y + 4, hex_rgba('#cbd5e1'))
-        if name == 'priya':
-            fr.put(12, y + 2, hex_rgba('#f97316'))
-            fr.put(12, y + 4, hex_rgba('#2563eb'))
-            fr.put(12, y + 6, p['accent'])
-            fr.put(12, y + 8, hex_rgba('#22c55e'))
-        if name == 'holloway':
-            fr.rect(15, y + 1, 2, 8, p['accent'])
-        if name == 'renata':
-            fr.put(19, y + 2, p['accent'])
-        if name == 'lead_pm':
-            fr.rect(13, y + 8, 6, 1, p['accent'])
-    else:
-        fr.rect(11, y, 10, 10, p['top'])
-        fr.rect(12, y + 1, 8, 2, p['top_hi'])
-        if name == 'lead_eng':
-            fr.rect(14, y + 2, 4, 3, p['hair'])  # hoodie back
-
-
-def draw_arms(
-    fr: Frame,
-    name: str,
-    p: dict[str, tuple[int, int, int, int]],
-    facing: str,
-    step: int,
-    bob: int,
-) -> None:
-    y = 17 + bob
-    swing = step
-    if facing == 's':
-        fr.rect(9, y + max(0, swing), 2, 8, p['top'])
-        fr.rect(21, y + max(0, -swing), 2, 8, p['top'])
-        fr.put(9, y + 7 + max(0, swing), p['skin'])
-        fr.put(21, y + 7 + max(0, -swing), p['skin'])
-    elif facing == 'n':
-        fr.rect(9, y + max(0, -swing), 2, 8, p['top'])
-        fr.rect(21, y + max(0, swing), 2, 8, p['top'])
-        fr.put(9, y + 7 + max(0, -swing), p['skin'])
-        fr.put(21, y + 7 + max(0, swing), p['skin'])
-    elif facing == 'e':
-        fr.rect(19, y + max(0, swing), 3, 8, p['top'])
-        fr.put(21, y + 7 + max(0, swing), p['skin'])
-    else:
-        fr.rect(10, y + max(0, swing), 3, 8, p['top'])
-        fr.put(10, y + 7 + max(0, swing), p['skin'])
-
-    # Signature props — small, direction-aware.
-    if name == 'lead_eng' and facing in ('e', 's'):
-        fr.rect(19 if facing == 'e' else 20, y + 4, 5, 3, p['prop'])
-    if name == 'lead_design' and facing != 'n':
-        fr.rect(20 if facing != 'w' else 7, y + 5, 4, 3, p['prop'] if False else hex_rgba('#8b95a3'))
-    if name == 'gavin' and facing in ('e', 's', 'w'):
-        bx = 20 if facing != 'w' else 8
-        fr.rect(bx, y + 3, 3, 5, p['prop'])
-    if name == 'holloway' and facing in ('e', 's', 'w'):
-        mx = 21 if facing != 'w' else 8
-        fr.rect(mx, y + 5, 3, 3, p['prop'])
-        fr.put(mx + 1, y + 4, hex_rgba('#d6d3d1'))
-
-
-def draw_head(
-    fr: Frame,
-    name: str,
-    p: dict[str, tuple[int, int, int, int]],
-    facing: str,
-    bob: int,
-) -> None:
-    y = 5 + bob
-    # Neck
-    fr.rect(14, y + 10, 4, 2, p['skin_sh'])
-    # Head
-    fr.rect(12, y + 2, 8, 8, p['skin'])
-    fr.rect(13, y + 1, 6, 1, p['skin'])
-    fr.rect(13, y + 9, 6, 1, p['skin_sh'])
-
-    if facing == 'n':
-        fr.rect(11, y, 10, 7, p['hair'])
-        fr.rect(12, y + 6, 8, 2, p['hair'])
-        if name == 'lead_eng':
-            fr.rect(11, y + 1, 10, 4, p['hair'])  # hoodie
-        if name == 'lead_design':
-            fr.put(11, y + 3, p['prop'])
-        return
-
-    # Hair
-    if name in ('lead_eng', 'gavin'):
-        fr.rect(11, y, 10, 4, p['hair'])
-        fr.put(12, y - 1, p['hair'])
-        fr.put(15, y - 1, p['hair_hi'])
-        fr.put(18, y - 1, p['hair'])
-        fr.rect(11, y + 2, 2, 4, p['hair'])
-        fr.rect(19, y + 2, 2, 4, p['hair'])
-    elif name in ('lead_design', 'priya'):
-        fr.rect(11, y, 10, 4, p['hair'])
-        fr.rect(11, y + 3, 2, 4, p['hair'])
-        fr.rect(19, y + 3, 2, 3, p['hair'])
-        if name == 'lead_design':
-            fr.put(11, y + 4, p['prop'])
-    elif name == 'lead_pm':
-        fr.rect(11, y, 10, 4, p['hair'])
-        fr.rect(11, y + 3, 2, 5, p['hair'])
-        fr.rect(19, y + 3, 2, 5, p['hair'])
-        fr.rect(13, y + 1, 6, 2, p['hair_hi'])
-    elif name == 'renata':
-        fr.rect(11, y, 10, 4, p['hair'])
-        fr.rect(11, y + 3, 2, 5, p['hair'])
-        fr.rect(19, y + 3, 2, 5, p['hair'])
-        fr.put(15, y - 1, p['hair_hi'])
-    else:  # holloway
-        fr.rect(11, y, 10, 4, p['hair'])
-        fr.put(13, y - 1, p['hair'])
-        fr.put(17, y - 1, p['hair'])
-        fr.rect(11, y + 2, 2, 3, p['hair'])
-        fr.rect(19, y + 2, 2, 3, p['hair'])
-
-    if facing == 's':
-        fr.put(14, y + 5, p['eye'])
-        fr.put(17, y + 5, p['eye'])
-        fr.put(14, y + 6, hex_rgba('#fff6ee'))
-        fr.put(17, y + 6, hex_rgba('#fff6ee'))
-        mouth = hex_rgba('#a35a48')
-        if name == 'holloway':
-            fr.put(15, y + 8, mouth)
-            fr.put(16, y + 8, mouth)
-        else:
-            fr.put(15, y + 8, mouth)
-            fr.put(16, y + 7, mouth)
-        if name == 'gavin':
-            fr.rect(13, y + 5, 6, 1, hex_rgba('#2a2a30'))
-    elif facing == 'e':
-        fr.rect(16, y + 2, 5, 7, p['skin'])
-        fr.put(18, y + 5, p['eye'])
-        fr.put(19, y + 7, hex_rgba('#a35a48'))
-        fr.rect(12, y + 1, 5, 4, p['hair'])
-    else:
-        fr.rect(11, y + 2, 5, 7, p['skin'])
-        fr.put(13, y + 5, p['eye'])
-        fr.put(12, y + 7, hex_rgba('#a35a48'))
-        fr.rect(15, y + 1, 5, 4, p['hair'])
-
-
-def draw_actor(name: str, facing: str, frame: str) -> Frame:
-    p = pal(ACTORS[name])
-    pose_n = pose(facing, frame)
+def compose(actor: Actor, facing: str, frame: str) -> Frame:
+    """Draw one cell. `facing` is 's', 'e' or 'n' (w is mirrored from e)."""
     fr = Frame()
-    draw_shadow(fr)
-    draw_shoes(fr, p, facing, pose_n['step'])
-    draw_legs(fr, p, facing, pose_n['step'], pose_n['bob'])
-    draw_torso(fr, name, p, facing, pose_n['bob'])
-    draw_arms(fr, name, p, facing, pose_n['step'], pose_n['bob'])
-    draw_head(fr, name, p, facing, pose_n['bob'])
-    fr.ink_outline()
+    p = actor.pal
+    step = frame != 'idle'
+    bob = 1 if step else 0  # hips drop one pixel in the contact poses
+    slouch = actor.slouch
+
+    if facing == 'e':
+        legs = LEGS_E_WIDE if actor.wide_legs else LEGS_E
+    else:
+        legs = LEGS_S_WIDE if actor.wide_legs else LEGS_S
+    (lx, ly), leg_tpl = legs[frame]
+
+    head_xy, head_tpl = actor.head[facing]
+    head_tpl = hairline_shadow(head_tpl)
+    torso_xy, torso_tpl = actor.torso[facing]
+    props = actor.props.get(facing, [])
+
+    def paste_props(layer: str, dx: int) -> None:
+        for kind, (px, py), tpl in props:
+            if kind == layer:
+                fr.paste(tpl, px + dx, py + bob, p)
+
+    arm_tpl_s = ARM_S_CUFF if actor.cuffs else ARM_S
+    arm_tpl_e = ARM_E_CUFF if actor.cuffs else ARM_E
+
+    # Arm swing: the arm opposite the lifted leg comes forward (up).
+    if frame == 'stepL':
+        swing_l, swing_r = 1, -1
+    elif frame == 'stepR':
+        swing_l, swing_r = -1, 1
+    else:
+        swing_l = swing_r = 0
+
+    if facing in ('s', 'n'):
+        if facing == 'n':
+            swing_l, swing_r = swing_r, swing_l
+        fr.paste(leg_tpl, lx, ly, p)
+        fr.paste(torso_tpl, torso_xy[0], torso_xy[1] + bob, p)
+        paste_props('under', 0)
+        # Arms hang beside the torso; the shirt cuff peeks below the sleeve.
+        fr.paste(arm_tpl_s, 9, 17 + bob + swing_l + slouch, p)
+        fr.paste(arm_tpl_s, 21, 17 + bob + swing_r + slouch, p)
+        paste_props('hand', 0)
+        fr.paste(head_tpl, head_xy[0], head_xy[1] + bob, p)
+        return fr
+
+    # Side view: far arm peeks behind the torso, then legs/torso, then the
+    # near arm over the torso's centre line, prop, head.
+    far_x = 12 - swing_r
+    fr.paste([ln.replace('J', 'j').replace('k', 'K') for ln in arm_tpl_e], far_x, 17 + bob + slouch, p)
+    fr.paste(leg_tpl, lx, ly, p)
+    fr.paste(torso_tpl, torso_xy[0], torso_xy[1] + bob, p)
+    paste_props('under', 0)
+    near_x = 15 + swing_l + actor.arm_shift.get('e', 0)
+    fr.paste(arm_tpl_e, near_x, 17 + bob + slouch, p)
+    paste_props('hand', swing_l)
+    fr.paste(head_tpl, head_xy[0], head_xy[1] + bob, p)
     return fr
 
 
-def build_sheet(name: str) -> Image.Image:
+def build_sheet(actor: Actor) -> Image.Image:
     sheet = Image.new('RGBA', (SHEET_W, SHEET_H), (0, 0, 0, 0))
     for row, facing in enumerate(FACINGS):
         for col, frame in enumerate(FRAMES):
-            im = draw_actor(name, facing, frame).to_image()
+            src = 'e' if facing == 'w' else facing
+            im = compose(actor, src, frame).to_image()
+            if facing == 'w':
+                im = im.transpose(Image.FLIP_LEFT_RIGHT)
             sheet.paste(im, (col * FRAME_W, row * FRAME_H), im)
     return sheet
 
 
-def main() -> None:
+def contact_sheet(sheets: dict[str, Image.Image], scale: int = 4) -> Image.Image:
+    gap = 8
+    w = sum(s.width for s in sheets.values()) + gap * (len(sheets) + 1)
+    h = max(s.height for s in sheets.values()) + gap * 2
+    bg = Image.new('RGBA', (w, h), (26, 34, 46, 255))
+    x = gap
+    for im in sheets.values():
+        bg.paste(im, (x, gap), im)
+        x += im.width + gap
+    return bg.resize((bg.width * scale, bg.height * scale), Image.NEAREST)
+
+
+def main(argv: list[str]) -> None:
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    for name in ACTORS:
-        path = OUT_DIR / f'{name}.png'
-        sheet = build_sheet(name)
+    sheets: dict[str, Image.Image] = {}
+    for actor in CAST:
+        sheet = build_sheet(actor)
         if sheet.size != (SHEET_W, SHEET_H) or sheet.mode != 'RGBA':
-            raise SystemExit(f'{name}: expected {SHEET_W}x{SHEET_H} RGBA, got {sheet.size} {sheet.mode}')
-        sheet.save(path, 'PNG')
+            raise SystemExit(f'{actor.name}: expected {SHEET_W}x{SHEET_H} RGBA, got {sheet.size} {sheet.mode}')
+        path = OUT_DIR / f'{actor.name}.png'
+        sheet.save(path, 'PNG', optimize=True)
+        sheets[actor.name] = sheet
         print(f'{path.relative_to(ROOT)}: {SHEET_W}x{SHEET_H} RGBA')
+    if '--preview' in argv:
+        out = Path('/tmp/office-actors-preview.png')
+        contact_sheet(sheets).save(out)
+        print(f'preview: {out}')
 
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])
