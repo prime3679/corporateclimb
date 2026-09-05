@@ -1028,7 +1028,9 @@ export default function OfficeOverlays({
               : 'The badge is laminated. The elevator still goes up.'}
           </div>
           <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
-            {climb ? 'The elevator still goes down. That is the whole building.' : floorLabel(state.floorId)}
+            {climb
+              ? 'The elevator still goes down. That is the whole building.'
+              : floorLabel(state.floorId)}
           </div>
           <div className={styles.actions} style={{ width: 'min(320px, 100%)' }}>
             <Button

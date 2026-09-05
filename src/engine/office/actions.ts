@@ -216,16 +216,36 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
 
 function maybeFirstStep(state: OfficeState): OfficeState {
   if (state.floorId === 'floor_02') {
-    return maybeFirstStepOnFloor(state, 'trg_first_step_f2:arrival', 'flag_visited_f2', 'dlg_teddy_callout')
+    return maybeFirstStepOnFloor(
+      state,
+      'trg_first_step_f2:arrival',
+      'flag_visited_f2',
+      'dlg_teddy_callout',
+    )
   }
   if (state.floorId === 'floor_03') {
-    return maybeFirstStepOnFloor(state, 'trg_first_step_f3:arrival', 'flag_visited_f3', 'dlg_sloane_callout')
+    return maybeFirstStepOnFloor(
+      state,
+      'trg_first_step_f3:arrival',
+      'flag_visited_f3',
+      'dlg_sloane_callout',
+    )
   }
   if (state.floorId === 'floor_04') {
-    return maybeFirstStepOnFloor(state, 'trg_first_step_f4:arrival', 'flag_visited_f4', 'dlg_harper_callout')
+    return maybeFirstStepOnFloor(
+      state,
+      'trg_first_step_f4:arrival',
+      'flag_visited_f4',
+      'dlg_harper_callout',
+    )
   }
   if (state.floorId === 'floor_05') {
-    return maybeFirstStepOnFloor(state, 'trg_first_step_f5:arrival', 'flag_visited_f5', 'dlg_marlowe_callout')
+    return maybeFirstStepOnFloor(
+      state,
+      'trg_first_step_f5:arrival',
+      'flag_visited_f5',
+      'dlg_marlowe_callout',
+    )
   }
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
@@ -583,13 +603,17 @@ function handleRoadmapWall(state: OfficeState): OfficeState {
       [{ kind: 'toast', text: 'Got: Q4 Roadmap Card' }],
     )
   }
-  if (state.assignments.asg_roadmap === 'not_started') return inspect(state, POI_INSPECT.poi_roadmap_wall)
+  if (state.assignments.asg_roadmap === 'not_started')
+    return inspect(state, POI_INSPECT.poi_roadmap_wall)
   return inspect(state, ROADMAP_WALL_COPY.later)
 }
 
 function handleIntakeBoard(state: OfficeState): OfficeState {
   if (state.assignments.asg_roadmap === 'card_held') return fileRoadmap(state, true)
-  if (state.assignments.asg_roadmap === 'not_started' || state.assignments.asg_roadmap === 'accepted') {
+  if (
+    state.assignments.asg_roadmap === 'not_started' ||
+    state.assignments.asg_roadmap === 'accepted'
+  ) {
     return inspect(state, POI_INSPECT.poi_intake_board)
   }
   return inspect(state, INTAKE_BOARD_COPY.later)
@@ -621,7 +645,10 @@ function fileRoadmap(state: OfficeState, fromBoard: boolean): OfficeState {
 }
 
 function handleLeavebehindPickup(state: OfficeState): OfficeState {
-  if (state.assignments.asg_leavebehind === 'accepted' && keyCount(state, 'key_leavebehind') === 0) {
+  if (
+    state.assignments.asg_leavebehind === 'accepted' &&
+    keyCount(state, 'key_leavebehind') === 0
+  ) {
     return enqueueOverlays(
       withKey(
         { ...state, assignments: { ...state.assignments, asg_leavebehind: 'deck_held' } },
@@ -638,7 +665,10 @@ function handleLeavebehindPickup(state: OfficeState): OfficeState {
 }
 
 function deliverLeavebehind(state: OfficeState): OfficeState {
-  if (state.assignments.asg_leavebehind !== 'deck_held' || rewardClaimed(state, 'rwd_asg_leavebehind')) {
+  if (
+    state.assignments.asg_leavebehind !== 'deck_held' ||
+    rewardClaimed(state, 'rwd_asg_leavebehind')
+  ) {
     return state
   }
   let next: OfficeState = {
@@ -655,7 +685,10 @@ function deliverLeavebehind(state: OfficeState): OfficeState {
 }
 
 function handleSideboard(state: OfficeState): OfficeState {
-  if (state.assignments.asg_board_packet === 'accepted' && keyCount(state, 'key_board_packet') === 0) {
+  if (
+    state.assignments.asg_board_packet === 'accepted' &&
+    keyCount(state, 'key_board_packet') === 0
+  ) {
     return enqueueOverlays(
       withKey(
         { ...state, assignments: { ...state.assignments, asg_board_packet: 'packet_held' } },
@@ -665,7 +698,8 @@ function handleSideboard(state: OfficeState): OfficeState {
       [{ kind: 'toast', text: 'Got: Board Packet' }],
     )
   }
-  if (state.assignments.asg_board_packet === 'not_started') return inspect(state, POI_INSPECT.poi_sideboard)
+  if (state.assignments.asg_board_packet === 'not_started')
+    return inspect(state, POI_INSPECT.poi_sideboard)
   return inspect(state, SIDEBOARD_COPY.later)
 }
 
@@ -1206,8 +1240,15 @@ function beatenDialogue(state: OfficeState): DialogueId {
 }
 
 function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
-  if (to === 'floor_05' && state.floorId === 'floor_05' && state.flags.includes('flag_floor5_complete')) {
-    return pushOverlay(closeOverlay(state), { kind: 'celebration', screen: 'screen_floor5_complete' })
+  if (
+    to === 'floor_05' &&
+    state.floorId === 'floor_05' &&
+    state.flags.includes('flag_floor5_complete')
+  ) {
+    return pushOverlay(closeOverlay(state), {
+      kind: 'celebration',
+      screen: 'screen_floor5_complete',
+    })
   }
   if (to === state.floorId) return state
   if (!canRideTo(to, state.keyItems)) {

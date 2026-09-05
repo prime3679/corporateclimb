@@ -33,12 +33,8 @@ function pinHere(
 function floor5Objective(state: OfficeSave): OfficeObjective | null {
   const asg = state.assignments.asg_board_packet
   const on = state.floorId === 'floor_05'
-  const here = (
-    zone: ZoneId,
-    pin: { x: number; y: number },
-    away: string,
-    local: string,
-  ) => pinHere(state, on, zone, pin, away, local)
+  const here = (zone: ZoneId, pin: { x: number; y: number }, away: string, local: string) =>
+    pinHere(state, on, zone, pin, away, local)
 
   if (state.flags.includes('flag_floor5_complete')) {
     return on
@@ -78,12 +74,8 @@ function floor5Objective(state: OfficeSave): OfficeObjective | null {
 function floor4Objective(state: OfficeSave): OfficeObjective | null {
   const asg = state.assignments.asg_leavebehind
   const on = state.floorId === 'floor_04'
-  const here = (
-    zone: ZoneId,
-    pin: { x: number; y: number },
-    away: string,
-    local: string,
-  ) => pinHere(state, on, zone, pin, away, local)
+  const here = (zone: ZoneId, pin: { x: number; y: number }, away: string, local: string) =>
+    pinHere(state, on, zone, pin, away, local)
 
   if (asg === 'accepted') {
     return here(
@@ -131,12 +123,8 @@ function floor4Objective(state: OfficeSave): OfficeObjective | null {
 function floor3Objective(state: OfficeSave): OfficeObjective | null {
   const asg = state.assignments.asg_roadmap
   const on = state.floorId === 'floor_03'
-  const here = (
-    zone: ZoneId,
-    pin: { x: number; y: number },
-    away: string,
-    local: string,
-  ) => pinHere(state, on, zone, pin, away, local)
+  const here = (zone: ZoneId, pin: { x: number; y: number }, away: string, local: string) =>
+    pinHere(state, on, zone, pin, away, local)
 
   if (asg === 'accepted') {
     return here('zone_war', { x: 13, y: 1 }, 'Pull the Q4 card (Floor 3)', 'Pull the Q4 card')
@@ -160,7 +148,10 @@ function floor3Objective(state: OfficeSave): OfficeObjective | null {
   if (asg === 'complete' && state.encounters.enc_vp_product !== 'won') {
     return here('zone_product', { x: 17, y: 11 }, 'See Quincy (Floor 3)', 'See Quincy')
   }
-  if (keyCount(state, 'key_product_badge') > 0 && state.assignments.asg_leavebehind === 'not_started') {
+  if (
+    keyCount(state, 'key_product_badge') > 0 &&
+    state.assignments.asg_leavebehind === 'not_started'
+  ) {
     return on
       ? { text: 'Take the elevator', zone: 'zone_landing', pin: ELEVATOR_PIN }
       : { text: 'Take the elevator to Floor 4', zone: awayZone(state), pin: ELEVATOR_PIN }
