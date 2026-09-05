@@ -49,7 +49,6 @@ import {
   floor5ZoneAt,
 } from './floor5'
 import { canOpenElevatorPanel, canRideTo, elevatorRowFor } from './elevator'
-import { STUB_BOARDING } from './floorStubs'
 
 type SpawnPoint = { x: number; y: number; facing: Facing }
 type TilePoint = { x: number; y: number }
@@ -136,9 +135,9 @@ const FLOOR_ELEVATOR_BOARDING: Record<
 > = {
   floor_01: SHARED_BOARDING,
   floor_02: SHARED_BOARDING,
-  floor_03: STUB_BOARDING,
-  floor_04: STUB_BOARDING,
-  floor_05: STUB_BOARDING,
+  floor_03: SHARED_BOARDING,
+  floor_04: SHARED_BOARDING,
+  floor_05: SHARED_BOARDING,
 }
 
 // Back-compat exports for Floor 1 tests/callers.

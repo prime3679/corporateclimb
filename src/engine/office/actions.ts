@@ -267,6 +267,16 @@ function maybeFirstStep(state: OfficeState): OfficeState {
   )
 }
 
+function visitFlagFor(
+  floorId: FloorId,
+): 'flag_visited_f2' | 'flag_visited_f3' | 'flag_visited_f4' | 'flag_visited_f5' | null {
+  if (floorId === 'floor_02') return 'flag_visited_f2'
+  if (floorId === 'floor_03') return 'flag_visited_f3'
+  if (floorId === 'floor_04') return 'flag_visited_f4'
+  if (floorId === 'floor_05') return 'flag_visited_f5'
+  return null
+}
+
 function maybeFirstStepOnFloor(
   state: OfficeState,
   trigger: string,
@@ -1365,6 +1375,10 @@ function completeElevatorRide(state: OfficeState): OfficeState {
     rideTo: null,
     stats: { ...state.stats, rides: (state.stats.rides ?? 0) + 1 },
   }
+  // Arrival counts as a visit so a peek-and-bounce (ride 1→5, ride back
+  // without stepping off the shaft) keeps the objective pin on that floor.
+  const visit = visitFlagFor(to)
+  if (visit) next = withFlag(next, visit)
   const firstPreview =
     from === 'floor_01' && to === 'floor_02' && !state.flags.includes('flag_preview_complete')
   const firstFloor2 = to === 'floor_03' && !state.flags.includes('flag_floor2_complete')

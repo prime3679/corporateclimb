@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
-import { DIALOGUE, POI_INSPECT } from '@/content/office'
+import { DIALOGUE, OFFICE_FLOOR_COUNT, POI_INSPECT, officeBattleChrome } from '@/content/office'
+import { headshotFocal } from '@/sprites'
 import { PLAYER_CLASSES } from '@/data'
 import {
   OFFICE_VENDING_STOCK_UPPER,
@@ -161,6 +162,52 @@ describe('Office should-fix fidelity', () => {
       type: 'INTERACT',
     }).state
     expect(s.run.shopStock).toEqual(['espresso', 'espresso', 'side_hustle'])
+  })
+
+  it('marks a floor visited on elevator arrival so a peek-and-bounce keeps the pin', () => {
+    let s: OfficeState = {
+      ...start(),
+      keyItems: { key_access_badge: 1, key_employee_badge: 1 },
+      flags: ['flag_preview_complete', 'flag_visited_f2', 'flag_floor2_complete'],
+    }
+    s = dispatchOfficeAction(s, { type: 'RIDE_ELEVATOR', to: 'floor_05' }).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    expect(s.floorId).toBe('floor_05')
+    expect(s.player).toEqual({ x: 3, y: 2, facing: 's' })
+    expect(s.flags).toContain('flag_visited_f5')
+    expect(s.firedTriggers.some((t) => t.startsWith('trg_first_step_f5'))).toBe(false)
+    expect(currentObjective(s).text).toBe('Talk to Marlowe')
+
+    s = dispatchOfficeAction(
+      { ...s, overlay: null, overlayQueue: [], player: { x: 3, y: 2, facing: 'n' } },
+      { type: 'RIDE_ELEVATOR', to: 'floor_01' },
+    ).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    expect(s.floorId).toBe('floor_01')
+    expect(currentObjective(s)).toMatchObject({
+      text: 'Take the elevator to Floor 5',
+      destFloor: 'floor_05',
+    })
+    expect(destChip(s).label).toBe('▲ → FLOOR 5')
+  })
+
+  it('crops intern / vp / boss and Floor 3–5 stand-ins to a real headshot focal', () => {
+    const missing = headshotFocal('no-such-sprite')
+    expect(headshotFocal('intern')).not.toEqual(missing)
+    expect(headshotFocal('vp')).not.toEqual(missing)
+    expect(headshotFocal('boss')).not.toEqual(missing)
+    expect(headshotFocal('reyes')).toEqual(headshotFocal('intern'))
+    expect(headshotFocal('quincy')).toEqual(headshotFocal('vp'))
+    expect(headshotFocal('caldwell')).toEqual(headshotFocal('boss'))
+    expect(headshotFocal('sloane')).toEqual(headshotFocal('product_manager'))
+    expect(headshotFocal('harper')).toEqual(headshotFocal('recruiter'))
+  })
+
+  it('shows Office combat chrome as FLOOR n/5, never Classic rank / 30', () => {
+    expect(OFFICE_FLOOR_COUNT).toBe(5)
+    expect(officeBattleChrome('floor_01')).toEqual({ floor: 1, floorTotal: 5 })
+    expect(officeBattleChrome('floor_03')).toEqual({ floor: 3, floorTotal: 5 })
+    expect(officeBattleChrome('floor_05')).toEqual({ floor: 5, floorTotal: 5 })
   })
 
   it('shows distinct HUD chips for visitor / employee / product / client badges', () => {

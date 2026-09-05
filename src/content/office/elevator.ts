@@ -12,6 +12,9 @@ export interface ElevatorFloorRow {
  * Cab panel rows (design §8.2, extended to Adrian's 5-floor lock).
  * Highest floor first so the panel reads like a real elevator.
  */
+/** The Office campaign is five floors. Combat chrome must not show Classic's 30. */
+export const OFFICE_FLOOR_COUNT = 5
+
 export const ELEVATOR_FLOORS: readonly ElevatorFloorRow[] = [
   { id: 'floor_05', number: 5, name: 'EXEC', requires: 'key_employee_badge' },
   { id: 'floor_04', number: 4, name: 'SALES', requires: 'key_employee_badge' },
@@ -70,6 +73,11 @@ export function canOpenElevatorPanel(floorId: FloorId, keyItems: Record<string, 
 
 export function floorNumber(floorId: FloorId): 1 | 2 | 3 | 4 | 5 {
   return elevatorRowFor(floorId).number
+}
+
+/** Battle HUD: `FLOOR 3/5`, never Classic `FLOOR 7/30` from encounter rank. */
+export function officeBattleChrome(floorId: FloorId): { floor: 1 | 2 | 3 | 4 | 5; floorTotal: 5 } {
+  return { floor: floorNumber(floorId), floorTotal: OFFICE_FLOOR_COUNT }
 }
 
 export function deskRosterLine(
