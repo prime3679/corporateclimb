@@ -48,5 +48,11 @@ export type BattleEventKind =
   | { kind: 'log'; text: string }
   /** An explicit dramatic beat with no other presentation. */
   | { kind: 'pause'; ms: number }
+  /** Office party: outgoing member leaves; statuses clear. */
+  | { kind: 'switch_out'; slot: string }
+  /** Office party: incoming member steps up. */
+  | { kind: 'switch_in'; slot: string }
+  /** Office party: active member fainted; bench may still stand. */
+  | { kind: 'member_faint'; slot: string }
 
 export type BattleEvent = BattleEventKind & { patch?: ViewPatch }

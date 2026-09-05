@@ -28,3 +28,28 @@ const SPRITES: Record<string, string> = {
 export function buildSpriteUrls(): Record<string, string> {
   return { ...SPRITES }
 }
+
+/** Where each portrait's face sits (fractions of the 512px frame) and how far
+ *  to zoom so a square crop reads as a headshot. The office renders people
+ *  as their badge photo, so the same crop recurs on every party surface. */
+export interface HeadshotFocal {
+  x: number
+  y: number
+  zoom: number
+}
+
+const DEFAULT_FOCAL: HeadshotFocal = { x: 0.5, y: 0.12, zoom: 3.2 }
+
+const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
+  product_manager: { x: 0.49, y: 0.115, zoom: 3.2 },
+  overachiever: { x: 0.49, y: 0.1, zoom: 3.2 },
+  recruiter: { x: 0.45, y: 0.12, zoom: 3.2 },
+  scrum: { x: 0.585, y: 0.13, zoom: 3.1 },
+  manager: { x: 0.415, y: 0.13, zoom: 3.1 },
+  eng: { x: 0.435, y: 0.12, zoom: 3.2 },
+  design: { x: 0.49, y: 0.11, zoom: 3.2 },
+}
+
+export function headshotFocal(spriteId: string): HeadshotFocal {
+  return HEADSHOT_FOCALS[spriteId] ?? DEFAULT_FOCAL
+}

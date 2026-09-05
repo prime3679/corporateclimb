@@ -36,6 +36,7 @@ import {
   SupplyClosetScreen,
   ElevatorScreen,
   CodexScreen,
+  OfficeScreen,
 } from './screens'
 import PromotionScreen from './screens/PromotionScreen'
 import ActTransitionScreen from './screens/ActTransitionScreen'
@@ -84,6 +85,17 @@ import {
   type RunState,
   type TurnResult,
 } from './engine'
+import {
+  clearOfficeSave,
+  hasOfficeSave,
+  loadOffice,
+  loadOfficeSave,
+  newOfficeCampaign,
+  saveOffice,
+  type OfficeState,
+} from './engine/office'
+import OfficeStartScreen from './screens/office/OfficeStartScreen'
+import { campaignSummary } from './screens/office/cast'
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
@@ -154,6 +166,7 @@ export default function CorporateClimb() {
   const [lastRecord, setLastRecord] = useState<RunRecord | null>(null)
   /** First-run coach-mark: evaluated once, dismissed forever. */
   const [showBattleHint, setShowBattleHint] = useState(shouldShowBattleHint)
+  const [office, setOffice] = useState<OfficeState | null>(null)
   const dismissBattleHint = useCallback(() => {
     markBattleHintSeen()
     setShowBattleHint(false)
@@ -233,9 +246,10 @@ export default function CorporateClimb() {
 
   // Keep the screen awake while a battle is on.
   useEffect(() => {
-    if (screen === 'battle') void WakeLock.acquire()
-    else void WakeLock.release()
-  }, [screen])
+    if (screen === 'battle' || (screen === 'office' && office?.screen === 'battle')) {
+      void WakeLock.acquire()
+    } else void WakeLock.release()
+  }, [screen, office?.screen])
 
   // Escape closes whichever overlay panel is open.
   useEffect(() => {
@@ -255,6 +269,9 @@ export default function CorporateClimb() {
     switch (screen) {
       case 'title':
       case 'classSelect':
+      case 'officeStart':
+      case 'officeClassSelect':
+      case 'office':
         Music.playTitle()
         break
       case 'battle':
@@ -802,6 +819,58 @@ export default function CorporateClimb() {
             onContinue={loadRun() ? continueGame : undefined}
             onDaily={() => setScreen('dailyPre')}
             onCodex={() => setScreen('codex')}
+            onOffice={() => {
+              SFX.menuSelect()
+              setScreen(hasOfficeSave() ? 'officeStart' : 'officeClassSelect')
+            }}
+            officeStatus={(() => {
+              const save = loadOfficeSave()
+              return save ? campaignSummary(save) : undefined
+            })()}
+          />
+        )}
+        {screen === 'officeStart' && (
+          <OfficeStartScreen
+            hasSave={hasOfficeSave()}
+            onContinue={() => {
+              const saved = loadOffice()
+              if (!saved) return
+              SFX.menuConfirm()
+              setOffice(saved)
+              setScreen('office')
+            }}
+            onNew={() => {
+              clearOfficeSave()
+              SFX.menuSelect()
+              setOffice(null)
+              setScreen('officeClassSelect')
+            }}
+            onBack={() => setScreen('title')}
+          />
+        )}
+        {screen === 'officeClassSelect' && (
+          <ClassSelect
+            onSelect={(cls) => {
+              SFX.menuConfirm()
+              const campaign = newOfficeCampaign(cls)
+              setOffice(campaign)
+              saveOffice(campaign)
+              setScreen('office')
+            }}
+          />
+        )}
+        {screen === 'office' && office && (
+          <OfficeScreen
+            state={office}
+            onChange={(next) => {
+              setOffice(next)
+              if (next.screen !== 'battle') saveOffice(next)
+            }}
+            onExit={() => {
+              setScreen('title')
+            }}
+            textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
+            reduceMotion={settings.reduceMotion}
           />
         )}
         {screen === 'codex' && <CodexScreen onBack={() => setScreen('title')} />}

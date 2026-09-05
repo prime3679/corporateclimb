@@ -54,6 +54,7 @@ export default function BattleScreen({
   textMsPerChar,
   showHint,
   onHintDismiss,
+  onSwitch,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -90,6 +91,7 @@ export default function BattleScreen({
   /** First-run coach-mark for type matchups. */
   showHint?: boolean
   onHintDismiss?: () => void
+  onSwitch?: () => void
 }) {
   const act = getAct(floor)
   const sc = getScene(act, Math.min(floor % 10, 4))
@@ -113,6 +115,11 @@ export default function BattleScreen({
         return
       }
       if (turn !== 'player' || battleMode !== 'fight') return
+      if (onSwitch && (e.key === '5' || e.key === 'Tab')) {
+        e.preventDefault()
+        onSwitch()
+        return
+      }
       const idx = ['1', '2', '3', '4'].indexOf(e.key)
       if (idx < 0 || idx >= activeMoves.length) return
       if (idx < playerPp.length && playerPp[idx] <= 0 && activeMoves.length > 1) return
@@ -120,7 +127,7 @@ export default function BattleScreen({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [turn, battleMode, activeMoves, playerPp, onMove])
+  }, [turn, battleMode, activeMoves, playerPp, onMove, onSwitch])
 
   return (
     <div
@@ -374,6 +381,11 @@ export default function BattleScreen({
                   <span className={styles.tabBadge}>{inventory.length}</span>
                 )}
               </button>
+              {onSwitch && (
+                <button onClick={onSwitch} className={styles.tab} aria-label="Switch party member">
+                  SWITCH
+                </button>
+              )}
               <button
                 onClick={() => setShowLog(true)}
                 className={styles.tab}

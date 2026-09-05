@@ -16,6 +16,8 @@ export default function ShopScreen({
   onBuyItem,
   onBuyWellness,
   onLeave,
+  hideWellness = false,
+  title,
 }: {
   run: RunState
   maxHp: number
@@ -23,6 +25,8 @@ export default function ShopScreen({
   onBuyItem: (stockIdx: number) => void
   onBuyWellness: () => void
   onLeave: () => void
+  hideWellness?: boolean
+  title?: string
 }) {
   const stock = run.shopStock ?? []
   // The engine helper folds in the Re-Org surcharge (Budget Scrutiny).
@@ -111,13 +115,15 @@ export default function ShopScreen({
           letterSpacing: 2,
         }}
       >
-        THE COMPANY STORE
+        {title ?? 'THE COMPANY STORE'}
       </div>
       <div
         className="t-body"
         style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
       >
-        Payroll-approved supplies. Exit through the gift shop.
+        {title === 'VENDING'
+          ? 'Accepts Stock Options. Nobody asked how.'
+          : 'Payroll-approved supplies. Exit through the gift shop.'}
       </div>
 
       <Panel variant="glass" style={{ padding: '8px 16px', borderColor: 'rgba(255,211,77,.24)' }}>
@@ -151,20 +157,21 @@ export default function ShopScreen({
             onBuy: () => onBuyItem(i),
           })
         })}
-        {row({
-          key: 'wellness',
-          emoji: WELLNESS_DAY.emoji,
-          name: WELLNESS_DAY.name,
-          desc: WELLNESS_DAY.desc,
-          price: wellnessPrice,
-          disabled: run.stockOptions < wellnessPrice || atFullHp,
-          disabledReason: atFullHp
-            ? 'Already at full HP.'
-            : run.stockOptions < wellnessPrice
-              ? 'Not enough options.'
-              : null,
-          onBuy: onBuyWellness,
-        })}
+        {!hideWellness &&
+          row({
+            key: 'wellness',
+            emoji: WELLNESS_DAY.emoji,
+            name: WELLNESS_DAY.name,
+            desc: WELLNESS_DAY.desc,
+            price: wellnessPrice,
+            disabled: run.stockOptions < wellnessPrice || atFullHp,
+            disabledReason: atFullHp
+              ? 'Already at full HP.'
+              : run.stockOptions < wellnessPrice
+                ? 'Not enough options.'
+                : null,
+            onBuy: onBuyWellness,
+          })}
       </div>
 
       <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)' }}>
