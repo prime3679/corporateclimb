@@ -6,8 +6,8 @@ ids and maps stay put.
 
 **Status:** Floors 3–5 maps now live in `floor3.ts` / `floor4.ts` / `floor5.ts`
 and are keyed under `floor_0N` in `map.ts`. `floorStubs.ts` stays for
-`STUB_BOARDING`, `STUB_DIRECTORY_TEXT`, and engine tests. `isStubFloor` is still
-true for 03/04/05 (assignment reducers have not landed).
+`STUB_BOARDING`, `STUB_DIRECTORY_TEXT`, and engine tests. `isStubFloor` is false
+now that the Floor 3–5 assignment / encounter reducers have landed.
 
 ## File layout
 

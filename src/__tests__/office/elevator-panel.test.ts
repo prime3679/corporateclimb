@@ -65,7 +65,7 @@ describe('elevator panel (floors 1–5)', () => {
     expect(s.overlay).toMatchObject({ kind: 'elevator_panel' })
   })
 
-  it('rides 1 → 2 → 3 stubs and arrives on the shared shaft tile', () => {
+  it('rides 1 → 2 → 3 and arrives on the shared shaft tile', () => {
     let s: OfficeState = { ...start(), keyItems: { key_access_badge: 1, key_employee_badge: 1 } }
     s = ride(s, 'floor_02')
     expect(s.floorId).toBe('floor_02')
@@ -83,7 +83,8 @@ describe('elevator panel (floors 1–5)', () => {
       { type: 'MOVE', dir: 's' },
     ).state
     expect(s.player).toEqual({ x: 3, y: 3, facing: 's' })
-    expect(s.overlay).toBeNull()
+    expect(s.overlay).toMatchObject({ kind: 'dialogue', nodeId: 'dlg_sloane_callout' })
+    expect(s.flags).toContain('flag_visited_f3')
 
     s = ride(s, 'floor_01')
     expect(s.floorId).toBe('floor_01')

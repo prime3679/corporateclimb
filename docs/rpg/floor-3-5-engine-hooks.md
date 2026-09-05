@@ -18,8 +18,9 @@ are in the design doc §8 and in `src/content/office/floor3.ts` /
   `OFFICE_ENCOUNTERS` + `RECEIPTS` + `REWARD_*` rows (Caldwell's `phase2` is
   declared); `floor3.ts` / `floor4.ts` / `floor5.ts` keyed under those ids in
   `map.ts`, replacing the walkable stubs. Shaft / arrival / boarding stay put.
-  `isStubFloor` remains true for 3–5 so first-step / Renata skip / "Look around"
-  stay until assignment reducers land. `poi_directory_sign_stub` is kept.
+  `isStubFloor` is now false — assignment reducers, first-step callouts, badge
+  grants and boss stakes are live. `poi_directory_sign_stub` is kept as a leftover
+  inspect id and is not placed on the Floor 3–5 maps.
 - **Renderer**: `tiles.tsx` draws the three maps (floors, rugs, decor, the four
   new props, reused take-five / desks / meeting table). Actor sheets and
   `NPC_ACTOR` entries exist. Dialogue / party cards reuse house portraits via
@@ -28,9 +29,11 @@ are in the design doc §8 and in `src/content/office/floor3.ts` /
   `RIDE_ELEVATOR { to }` / `COMPLETE_ELEVATOR_RIDE`, and office save v2
   (`hired`, `bench`, `stats.rides`). `elevatorDestination` is the deprecated
   1⇄2 toggle — do not restore a 3→2 / 4→3 chain.
-- **Reducer**: first-state talk lines resolve so a ridden `floorId` can walk
-  and talk. Assignment state machines, sightline first-steps, badge grants on
-  receipts, and celebrations are **not** wired.
+- **Reducer**: first-step callouts, assignment machines (`asg_roadmap` /
+  `asg_leavebehind` / `asg_board_packet`), boss review → stakes, badge grants on
+  the boss receipts, and Floor 5's `screen_floor5_complete` celebration are wired
+  on `cursor/office-floors-3-5-hooks-b301`. Elevator `requires` for 3–5 stay
+  `key_employee_badge` (do not tighten to product / client).
 
 ## 1. Elevator panel (shipped on `#73`)
 

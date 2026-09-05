@@ -23,11 +23,14 @@ import {
   HANDOUT_CHOICES,
   HANDOUT_PICK_LINE,
   isKnownFloorId,
-  isStubFloor,
+  INTAKE_BOARD_COPY,
+  LEAVEBEHIND_COPY,
   PEOPLE_TRAY_COPY,
   PHOTO_BOOTH_COPY,
   POI_INSPECT,
   PRINTER_COPY,
+  ROADMAP_WALL_COPY,
+  SIDEBOARD_COPY,
   BADGE_PRINTER_COPY,
   SHREDDER_COPY,
   type CoworkerId,
@@ -212,8 +215,18 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
 }
 
 function maybeFirstStep(state: OfficeState): OfficeState {
-  if (state.floorId === 'floor_02') return maybeFirstStepFloor2(state)
-  if (isStubFloor(state.floorId)) return state
+  if (state.floorId === 'floor_02') {
+    return maybeFirstStepOnFloor(state, 'trg_first_step_f2:arrival', 'flag_visited_f2', 'dlg_teddy_callout')
+  }
+  if (state.floorId === 'floor_03') {
+    return maybeFirstStepOnFloor(state, 'trg_first_step_f3:arrival', 'flag_visited_f3', 'dlg_sloane_callout')
+  }
+  if (state.floorId === 'floor_04') {
+    return maybeFirstStepOnFloor(state, 'trg_first_step_f4:arrival', 'flag_visited_f4', 'dlg_harper_callout')
+  }
+  if (state.floorId === 'floor_05') {
+    return maybeFirstStepOnFloor(state, 'trg_first_step_f5:arrival', 'flag_visited_f5', 'dlg_marlowe_callout')
+  }
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
   }
@@ -229,14 +242,16 @@ function maybeFirstStep(state: OfficeState): OfficeState {
   )
 }
 
-function maybeFirstStepFloor2(state: OfficeState): OfficeState {
-  if (state.firedTriggers.includes('trg_first_step_f2:arrival')) return state
+function maybeFirstStepOnFloor(
+  state: OfficeState,
+  trigger: string,
+  flag: 'flag_visited_f2' | 'flag_visited_f3' | 'flag_visited_f4' | 'flag_visited_f5',
+  nodeId: DialogueId,
+): OfficeState {
+  if (state.firedTriggers.includes(trigger)) return state
   return enqueueOverlays(
-    withFlag(
-      { ...state, firedTriggers: [...state.firedTriggers, 'trg_first_step_f2:arrival'] },
-      'flag_visited_f2',
-    ),
-    [{ kind: 'dialogue', nodeId: 'dlg_teddy_callout', line: 0 }],
+    withFlag({ ...state, firedTriggers: [...state.firedTriggers, trigger] }, flag),
+    [{ kind: 'dialogue', nodeId, line: 0 }],
   )
 }
 
@@ -276,7 +291,7 @@ function afterMove(state: OfficeState): OfficeState {
     const node = sightDialogue(next, npc)
     if (node) {
       const a = next.assignments
-      const key = `trg_sight_${npc}:${a.asg_printer}:${a.asg_meeting_prep}:${next.encounters.enc_desk_challenger}:${a.asg_transfer}:${a.asg_audit}`
+      const key = `trg_sight_${npc}:${a.asg_printer}:${a.asg_meeting_prep}:${next.encounters.enc_desk_challenger}:${a.asg_transfer}:${a.asg_audit}:${a.asg_roadmap}:${a.asg_leavebehind}:${a.asg_board_packet}`
       if (!next.firedTriggers.includes(key)) {
         next = { ...next, firedTriggers: [...next.firedTriggers, key] }
         if (node === 'dlg_gavin_callout') {
@@ -379,7 +394,7 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
       state.assignments.asg_audit === 'complete' ? SHREDDER_COPY.after : SHREDDER_COPY.idle,
     )
   }
-  // Floors 3–5 — shared take-five / vending / directory / elevator (assignments are Astra's)
+  // Floors 3–5 — shared take-five / vending / directory / elevator + assignment POIs
   if (
     id === 'poi_elevator_door_f3' ||
     id === 'poi_elevator_door_f4' ||
@@ -404,6 +419,10 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
     id === 'poi_directory_sign_f5'
   )
     return pushOverlay(state, { kind: 'document', docId: 'directory' })
+  if (id === 'poi_roadmap_wall') return handleRoadmapWall(state)
+  if (id === 'poi_intake_board') return handleIntakeBoard(state)
+  if (id === 'poi_pipeline_board' || id === 'poi_leavebehind') return handleLeavebehindPickup(state)
+  if (id === 'poi_sideboard') return handleSideboard(state)
   return inspect(state, POI_INSPECT[id])
 }
 
@@ -553,6 +572,120 @@ function handleFloor1Vending(state: OfficeState): OfficeState {
   return { ...state, screen: 'vending' }
 }
 
+function handleRoadmapWall(state: OfficeState): OfficeState {
+  if (state.assignments.asg_roadmap === 'accepted' && keyCount(state, 'key_roadmap_card') === 0) {
+    return enqueueOverlays(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_roadmap: 'card_held' } },
+        'key_roadmap_card',
+        1,
+      ),
+      [{ kind: 'toast', text: 'Got: Q4 Roadmap Card' }],
+    )
+  }
+  if (state.assignments.asg_roadmap === 'not_started') return inspect(state, POI_INSPECT.poi_roadmap_wall)
+  return inspect(state, ROADMAP_WALL_COPY.later)
+}
+
+function handleIntakeBoard(state: OfficeState): OfficeState {
+  if (state.assignments.asg_roadmap === 'card_held') return fileRoadmap(state, true)
+  if (state.assignments.asg_roadmap === 'not_started' || state.assignments.asg_roadmap === 'accepted') {
+    return inspect(state, POI_INSPECT.poi_intake_board)
+  }
+  return inspect(state, INTAKE_BOARD_COPY.later)
+}
+
+function fileRoadmap(state: OfficeState, fromBoard: boolean): OfficeState {
+  if (state.assignments.asg_roadmap !== 'card_held' || rewardClaimed(state, 'rwd_asg_roadmap')) {
+    return fromBoard ? inspect(state, INTAKE_BOARD_COPY.later) : state
+  }
+  let next: OfficeState = {
+    ...state,
+    assignments: { ...state.assignments, asg_roadmap: 'initialled' },
+    run: { ...state.run, stockOptions: state.run.stockOptions + 14 },
+    rewardsClaimed: [...state.rewardsClaimed, 'rwd_asg_roadmap'],
+  }
+  next = withKey(next, 'key_roadmap_card', -keyCount(next, 'key_roadmap_card'))
+  next = withKey(next, 'key_research_sticky', 1)
+  const follow: Overlay[] = [{ kind: 'receipt', receiptId: 'rcpt_roadmap_initialled' }]
+  if (fromBoard) {
+    return enqueueOverlays(next, [
+      { kind: 'dialogue', nodeId: `inspect:${INTAKE_BOARD_COPY.filing}`, line: 0 },
+      ...follow,
+    ])
+  }
+  return enqueueOverlays(next, [
+    { kind: 'dialogue', nodeId: 'dlg_nico_initialled', line: 0 },
+    ...follow,
+  ])
+}
+
+function handleLeavebehindPickup(state: OfficeState): OfficeState {
+  if (state.assignments.asg_leavebehind === 'accepted' && keyCount(state, 'key_leavebehind') === 0) {
+    return enqueueOverlays(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_leavebehind: 'deck_held' } },
+        'key_leavebehind',
+        1,
+      ),
+      [{ kind: 'toast', text: 'Got: Leave-behind' }],
+    )
+  }
+  if (state.assignments.asg_leavebehind === 'not_started') {
+    return inspect(state, POI_INSPECT.poi_leavebehind)
+  }
+  return inspect(state, LEAVEBEHIND_COPY.later)
+}
+
+function deliverLeavebehind(state: OfficeState): OfficeState {
+  if (state.assignments.asg_leavebehind !== 'deck_held' || rewardClaimed(state, 'rwd_asg_leavebehind')) {
+    return state
+  }
+  let next: OfficeState = {
+    ...state,
+    assignments: { ...state.assignments, asg_leavebehind: 'delivered' },
+    run: { ...state.run, stockOptions: state.run.stockOptions + 16 },
+    rewardsClaimed: [...state.rewardsClaimed, 'rwd_asg_leavebehind'],
+  }
+  next = withKey(next, 'key_leavebehind', -keyCount(next, 'key_leavebehind'))
+  return enqueueOverlays(next, [
+    { kind: 'dialogue', nodeId: 'dlg_reyes_delivered', line: 0 },
+    { kind: 'receipt', receiptId: 'rcpt_leavebehind_delivered' },
+  ])
+}
+
+function handleSideboard(state: OfficeState): OfficeState {
+  if (state.assignments.asg_board_packet === 'accepted' && keyCount(state, 'key_board_packet') === 0) {
+    return enqueueOverlays(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_board_packet: 'packet_held' } },
+        'key_board_packet',
+        1,
+      ),
+      [{ kind: 'toast', text: 'Got: Board Packet' }],
+    )
+  }
+  if (state.assignments.asg_board_packet === 'not_started') return inspect(state, POI_INSPECT.poi_sideboard)
+  return inspect(state, SIDEBOARD_COPY.later)
+}
+
+function fileBoardPacket(state: OfficeState): OfficeState {
+  if (
+    state.assignments.asg_board_packet !== 'packet_held' ||
+    rewardClaimed(state, 'rwd_asg_board_packet')
+  ) {
+    return state
+  }
+  let next: OfficeState = {
+    ...state,
+    assignments: { ...state.assignments, asg_board_packet: 'complete' },
+    run: { ...state.run, stockOptions: state.run.stockOptions + 18 },
+    rewardsClaimed: [...state.rewardsClaimed, 'rwd_asg_board_packet'],
+  }
+  next = withKey(next, 'key_board_packet', -keyCount(next, 'key_board_packet'))
+  return pushOverlay(next, { kind: 'receipt', receiptId: 'rcpt_board_packet_filed' })
+}
+
 function handleAdvance(state: OfficeState): OfficeState {
   const ov = state.overlay
   if (!ov) return state
@@ -688,11 +821,42 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
   if (id === 'dlg_gavin_you_lost' || id === 'dlg_priya_you_lost') {
     return { ...state, lastLossEncounter: null }
   }
+  if (id === 'dlg_sloane_brief') {
+    return { ...state, assignments: { ...state.assignments, asg_roadmap: 'accepted' } }
+  }
+  if (id === 'dlg_sloane_filed') {
+    return { ...state, assignments: { ...state.assignments, asg_roadmap: 'complete' } }
+  }
+  if (id === 'dlg_nico_waiting') return fileRoadmap(state, false)
+  if (id === 'dlg_harper_brief') {
+    return { ...state, assignments: { ...state.assignments, asg_leavebehind: 'accepted' } }
+  }
+  if (id === 'dlg_harper_filed') {
+    return { ...state, assignments: { ...state.assignments, asg_leavebehind: 'complete' } }
+  }
+  if (id === 'dlg_reyes_waiting') return deliverLeavebehind(state)
+  if (id === 'dlg_marlowe_brief') {
+    return { ...state, assignments: { ...state.assignments, asg_board_packet: 'accepted' } }
+  }
+  if (id === 'dlg_marlowe_filed') return fileBoardPacket(state)
+  if (
+    id === 'dlg_quincy_you_lost' ||
+    id === 'dlg_ashford_you_lost' ||
+    id === 'dlg_caldwell_you_lost'
+  ) {
+    return { ...state, lastLossEncounter: null }
+  }
+  if (id === 'dlg_caldwell_beaten') {
+    return pushOverlay(state, { kind: 'celebration', screen: 'screen_floor5_complete' })
+  }
   return state
 }
 
 function handleChoose(state: OfficeState, choice: string): OfficeState {
   const ov = state.overlay
+  if (ov?.kind === 'celebration' && (choice === 'continue' || choice === 'stay')) {
+    return closeOverlay(state)
+  }
   if (ov?.kind === 'elevator_panel') {
     if (choice === 'stay') return closeOverlay(state)
     if (isKnownFloorId(choice)) return selectElevatorFloor(state, choice)
@@ -787,6 +951,15 @@ function handleChoose(state: OfficeState, choice: string): OfficeState {
   if (node.id === 'dlg_kessler_review') {
     return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_director_review' })
   }
+  if (node.id === 'dlg_quincy_review') {
+    return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_vp_product' })
+  }
+  if (node.id === 'dlg_ashford_close') {
+    return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_vp_sales' })
+  }
+  if (node.id === 'dlg_caldwell_review') {
+    return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_ceo_review' })
+  }
   if (node.id === 'dlg_whitlock_request') {
     if (choice === 'take_it' || choice === 'take_it_on') {
       return { ...closed, assignments: { ...closed.assignments, asg_audit: 'accepted' } }
@@ -810,7 +983,7 @@ function handleClose(state: OfficeState, rng: Rng): OfficeState {
     const closed = closeOverlay(state)
     return afterReceipt(closed, ov.receiptId, rng)
   }
-  if (ov.kind === 'celebration') return state
+  if (ov.kind === 'celebration') return closeOverlay(state)
   return handleAdvance(state)
 }
 
@@ -836,9 +1009,7 @@ function afterReceipt(state: OfficeState, receiptId: string, rng: Rng): OfficeSt
     return { ...next, screen: 'promotion' }
   }
   if (receiptId === 'rcpt_promotion_signing_bonus') {
-    const beaten =
-      state.encounters.enc_director_review === 'won' ? 'dlg_kessler_beaten' : 'dlg_holloway_beaten'
-    return pushOverlay(state, { kind: 'dialogue', nodeId: beaten, line: 0 })
+    return pushOverlay(state, { kind: 'dialogue', nodeId: beatenDialogue(state), line: 0 })
   }
   if (receiptId === 'rcpt_printer_online') {
     return withKey(
@@ -870,7 +1041,51 @@ function afterReceipt(state: OfficeState, receiptId: string, rng: Rng): OfficeSt
   if (receiptId === 'rcpt_employee_badge') {
     return withKey(state, 'key_employee_badge', 1)
   }
+  if (receiptId === 'rcpt_prioritization') {
+    let next = withFlag(state, 'flag_floor3_complete')
+    if (keyCount(next, 'key_product_badge') === 0) next = withKey(next, 'key_product_badge', 1)
+    return pushOverlay(next, { kind: 'receipt', receiptId: 'rcpt_product_badge' })
+  }
+  if (receiptId === 'rcpt_product_badge') {
+    return offerFloorPromotion(state, 'rwd_promotion_f3', rng)
+  }
+  if (receiptId === 'rcpt_the_close') {
+    let next = withFlag(state, 'flag_floor4_complete')
+    if (keyCount(next, 'key_client_badge') === 0) next = withKey(next, 'key_client_badge', 1)
+    return pushOverlay(next, { kind: 'receipt', receiptId: 'rcpt_client_badge' })
+  }
+  if (receiptId === 'rcpt_client_badge') {
+    return offerFloorPromotion(state, 'rwd_promotion_f4', rng)
+  }
+  if (receiptId === 'rcpt_the_review') {
+    return pushOverlay(withFlag(state, 'flag_floor5_complete'), {
+      kind: 'receipt',
+      receiptId: 'rcpt_the_climb',
+    })
+  }
+  if (receiptId === 'rcpt_the_climb') {
+    return offerFloorPromotion(state, 'rwd_promotion_f5', rng)
+  }
   return state
+}
+
+function offerFloorPromotion(
+  state: OfficeState,
+  rewardId: 'rwd_promotion_f3' | 'rwd_promotion_f4' | 'rwd_promotion_f5',
+  rng: Rng,
+): OfficeState {
+  let next = state
+  if (!next.run.pendingPerkOffer) {
+    const offer = rollPerkOffer(next.run.perks, rng, BASE_PERK_POOL)
+    next = {
+      ...next,
+      run: { ...next.run, pendingPerkOffer: offer },
+      rewardsClaimed: next.rewardsClaimed.includes(rewardId)
+        ? next.rewardsClaimed
+        : [...next.rewardsClaimed, rewardId],
+    }
+  }
+  return { ...next, screen: 'promotion' }
 }
 
 function confirmStakes(state: OfficeState): OfficeState {
@@ -979,12 +1194,21 @@ function pickPerk(state: OfficeState, perkId: PerkId): OfficeState {
   if (perkId === 'signing_bonus') {
     return pushOverlay(next, { kind: 'receipt', receiptId: 'rcpt_promotion_signing_bonus' })
   }
-  const beaten =
-    state.encounters.enc_director_review === 'won' ? 'dlg_kessler_beaten' : 'dlg_holloway_beaten'
-  return pushOverlay(next, { kind: 'dialogue', nodeId: beaten, line: 0 })
+  return pushOverlay(next, { kind: 'dialogue', nodeId: beatenDialogue(state), line: 0 })
+}
+
+function beatenDialogue(state: OfficeState): DialogueId {
+  if (state.encounters.enc_ceo_review === 'won') return 'dlg_caldwell_beaten'
+  if (state.encounters.enc_vp_sales === 'won') return 'dlg_ashford_beaten'
+  if (state.encounters.enc_vp_product === 'won') return 'dlg_quincy_beaten'
+  if (state.encounters.enc_director_review === 'won') return 'dlg_kessler_beaten'
+  return 'dlg_holloway_beaten'
 }
 
 function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
+  if (to === 'floor_05' && state.floorId === 'floor_05' && state.flags.includes('flag_floor5_complete')) {
+    return pushOverlay(closeOverlay(state), { kind: 'celebration', screen: 'screen_floor5_complete' })
+  }
   if (to === state.floorId) return state
   if (!canRideTo(to, state.keyItems)) {
     if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
@@ -1038,7 +1262,9 @@ function completeElevatorRide(state: OfficeState): OfficeState {
     stats: { ...state.stats, rides: (state.stats.rides ?? 0) + 1 },
   }
   if (from === 'floor_01') next = withFlag(next, 'flag_preview_complete')
-  if (isStubFloor(to)) next = withFlag(next, 'flag_floor2_complete')
+  if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
+    next = withFlag(next, 'flag_floor2_complete')
+  }
   const zone = to === 'floor_01' ? 'Elevator lobby' : 'Landing'
   return pushOverlay(next, { kind: 'toast', text: `Arrived: ${floorLabel(to)} · ${zone}` })
 }

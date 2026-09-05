@@ -46,8 +46,8 @@ describe('floors 3–5 stub drop-in', () => {
     }
   })
 
-  it('is walkable from arrival to a boarding tile on every stub', () => {
-    for (const id of FLOOR_IDS.filter(isStubFloor)) {
+  it('is walkable from arrival to a boarding tile on floors 3–5', () => {
+    for (const id of ['floor_03', 'floor_04', 'floor_05'] as const) {
       const art = mapArtForFloor(id)
       expect(art).toHaveLength(18)
       expect(art[0]).toHaveLength(24)
@@ -56,10 +56,11 @@ describe('floors 3–5 stub drop-in', () => {
       expect(reach.size).toBeGreaterThan(40)
       const board = elevatorBoardingSpotsForFloor(id)[0]
       expect(reach.has(`${board.x},${board.y}`)).toBe(true)
+      expect(isStubFloor(id)).toBe(false)
     }
   })
 
-  it('lets a badged run ride 1 → 2 → 3 and walk the stub', () => {
+  it('lets a badged run ride 1 → 2 → 3 and walk Product', () => {
     let s: OfficeState = dispatchOfficeAction(newOfficeCampaign(PM), { type: 'ACK_RECEIPT' }).state
     s = {
       ...s,
@@ -76,6 +77,7 @@ describe('floors 3–5 stub drop-in', () => {
     expect(s.floorId).toBe('floor_03')
     s = dispatchOfficeAction(s, { type: 'MOVE', dir: 'e' }).state
     expect(s.player.x).toBeGreaterThan(3)
-    expect(isStubFloor(s.floorId)).toBe(true)
+    expect(s.overlay).toMatchObject({ kind: 'dialogue', nodeId: 'dlg_sloane_callout' })
+    expect(isStubFloor(s.floorId)).toBe(false)
   })
 })

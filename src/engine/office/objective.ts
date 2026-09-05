@@ -10,19 +10,185 @@ export interface OfficeObjective {
 /** Elevator doors are the same tiles on every floor; the pin for a cross-floor target sits on them. */
 const ELEVATOR_PIN = { x: 3, y: 1 }
 
+function awayZone(state: OfficeSave): ZoneId {
+  return state.floorId === 'floor_01' ? 'zone_elevator' : 'zone_landing'
+}
+
+function pinHere(
+  state: OfficeSave,
+  onFloor: boolean,
+  zone: ZoneId,
+  pin: { x: number; y: number },
+  away: string,
+  here: string,
+): OfficeObjective {
+  return onFloor
+    ? { text: here, zone, pin }
+    : { text: away, zone: awayZone(state), pin: ELEVATOR_PIN }
+}
+
+/**
+ * Floor 5 → 4 → 3 → 2 → 1 (docs/rpg/floor-3-5-engine-hooks.md §5). First match wins.
+ */
+function floor5Objective(state: OfficeSave): OfficeObjective | null {
+  const asg = state.assignments.asg_board_packet
+  const on = state.floorId === 'floor_05'
+  const here = (
+    zone: ZoneId,
+    pin: { x: number; y: number },
+    away: string,
+    local: string,
+  ) => pinHere(state, on, zone, pin, away, local)
+
+  if (state.flags.includes('flag_floor5_complete')) {
+    return on
+      ? { text: 'The elevator still goes down', zone: 'zone_landing', pin: ELEVATOR_PIN }
+      : null
+  }
+  if (asg === 'accepted') {
+    return here(
+      'zone_ante',
+      { x: 17, y: 4 },
+      'Take the board packet (Floor 5)',
+      'Take the board packet',
+    )
+  }
+  if (asg === 'packet_held') {
+    return here(
+      'zone_ante',
+      { x: 10, y: 3 },
+      'File the packet with Marlowe (Floor 5)',
+      'File the packet with Marlowe',
+    )
+  }
+  if (asg === 'complete' && state.encounters.enc_ceo_review !== 'won') {
+    return here('zone_board', { x: 18, y: 11 }, 'See Caldwell (Floor 5)', 'See Caldwell')
+  }
+  if (asg === 'not_started' && on) {
+    return { text: 'Talk to Marlowe', zone: 'zone_ante', pin: { x: 10, y: 3 } }
+  }
+  if (keyCount(state, 'key_client_badge') > 0) {
+    return on
+      ? { text: 'Talk to Marlowe', zone: 'zone_ante', pin: { x: 10, y: 3 } }
+      : { text: 'Take the elevator to Floor 5', zone: awayZone(state), pin: ELEVATOR_PIN }
+  }
+  return null
+}
+
+function floor4Objective(state: OfficeSave): OfficeObjective | null {
+  const asg = state.assignments.asg_leavebehind
+  const on = state.floorId === 'floor_04'
+  const here = (
+    zone: ZoneId,
+    pin: { x: number; y: number },
+    away: string,
+    local: string,
+  ) => pinHere(state, on, zone, pin, away, local)
+
+  if (asg === 'accepted') {
+    return here(
+      'zone_pipeline',
+      { x: 13, y: 1 },
+      'Pull the leave-behind (Floor 4)',
+      'Pull the leave-behind',
+    )
+  }
+  if (asg === 'deck_held') {
+    return here(
+      'zone_client',
+      { x: 19, y: 3 },
+      'Walk it over to Reyes (Floor 4)',
+      'Walk it over to Reyes',
+    )
+  }
+  if (asg === 'delivered') {
+    return here(
+      'zone_pipeline',
+      { x: 10, y: 3 },
+      'Report back to Harper (Floor 4)',
+      'Report back to Harper',
+    )
+  }
+  if (asg === 'complete' && state.encounters.enc_vp_sales !== 'won') {
+    return here('zone_sales', { x: 17, y: 11 }, 'See Ashford (Floor 4)', 'See Ashford')
+  }
+  if (keyCount(state, 'key_client_badge') > 0 && !state.flags.includes('flag_floor5_complete')) {
+    return on
+      ? { text: 'Take the elevator', zone: 'zone_landing', pin: ELEVATOR_PIN }
+      : { text: 'Take the elevator to Floor 5', zone: awayZone(state), pin: ELEVATOR_PIN }
+  }
+  if (asg === 'not_started' && on) {
+    return { text: 'Talk to Harper', zone: 'zone_pipeline', pin: { x: 10, y: 3 } }
+  }
+  if (keyCount(state, 'key_product_badge') > 0 && asg === 'not_started') {
+    return on
+      ? { text: 'Talk to Harper', zone: 'zone_pipeline', pin: { x: 10, y: 3 } }
+      : { text: 'Take the elevator to Floor 4', zone: awayZone(state), pin: ELEVATOR_PIN }
+  }
+  return null
+}
+
+function floor3Objective(state: OfficeSave): OfficeObjective | null {
+  const asg = state.assignments.asg_roadmap
+  const on = state.floorId === 'floor_03'
+  const here = (
+    zone: ZoneId,
+    pin: { x: number; y: number },
+    away: string,
+    local: string,
+  ) => pinHere(state, on, zone, pin, away, local)
+
+  if (asg === 'accepted') {
+    return here('zone_war', { x: 13, y: 1 }, 'Pull the Q4 card (Floor 3)', 'Pull the Q4 card')
+  }
+  if (asg === 'card_held') {
+    return here(
+      'zone_intake',
+      { x: 19, y: 4 },
+      "Get Nico's initials (Floor 3)",
+      "Get Nico's initials",
+    )
+  }
+  if (asg === 'initialled') {
+    return here(
+      'zone_war',
+      { x: 10, y: 3 },
+      'Report back to Sloane (Floor 3)',
+      'Report back to Sloane',
+    )
+  }
+  if (asg === 'complete' && state.encounters.enc_vp_product !== 'won') {
+    return here('zone_product', { x: 17, y: 11 }, 'See Quincy (Floor 3)', 'See Quincy')
+  }
+  if (keyCount(state, 'key_product_badge') > 0 && state.assignments.asg_leavebehind === 'not_started') {
+    return on
+      ? { text: 'Take the elevator', zone: 'zone_landing', pin: ELEVATOR_PIN }
+      : { text: 'Take the elevator to Floor 4', zone: awayZone(state), pin: ELEVATOR_PIN }
+  }
+  if (asg === 'not_started' && on) {
+    return { text: 'Talk to Sloane', zone: 'zone_war', pin: { x: 10, y: 3 } }
+  }
+  if (keyCount(state, 'key_employee_badge') > 0 && asg === 'not_started') {
+    return on
+      ? { text: 'Talk to Sloane', zone: 'zone_war', pin: { x: 10, y: 3 } }
+      : { text: 'Take the elevator to Floor 3', zone: awayZone(state), pin: ELEVATOR_PIN }
+  }
+  return null
+}
+
 /**
  * Floor 2 objectives (docs/rpg/floor-2-design.md §4). First match wins.
  */
 function floor2Objective(state: OfficeSave): OfficeObjective | null {
   const transfer = state.assignments.asg_transfer
   const onFloor2 = state.floorId === 'floor_02'
-  const pinHere = (zone: ZoneId, pin: { x: number; y: number }, away: string, here: string) =>
+  const pinOn2 = (zone: ZoneId, pin: { x: number; y: number }, away: string, here: string) =>
     onFloor2
       ? { text: here, zone, pin }
       : { text: away, zone: 'zone_elevator' as ZoneId, pin: ELEVATOR_PIN }
 
   if (transfer === 'accepted') {
-    return pinHere('zone_it', { x: 12, y: 1 }, 'Take a badge photo (Floor 2)', 'Take a badge photo')
+    return pinOn2('zone_it', { x: 12, y: 1 }, 'Take a badge photo (Floor 2)', 'Take a badge photo')
   }
   if (transfer === 'photo_taken') {
     return onFloor2
@@ -30,7 +196,7 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
       : { text: "Get Holloway's signature", zone: 'zone_elevator', pin: { x: 6, y: 3 } }
   }
   if (transfer === 'signed') {
-    return pinHere(
+    return pinOn2(
       'zone_people',
       { x: 18, y: 3 },
       'File the packet at People Ops (Floor 2)',
@@ -38,7 +204,7 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
     )
   }
   if (transfer === 'filed') {
-    return pinHere(
+    return pinOn2(
       'zone_it',
       { x: 9, y: 3 },
       'Report back to Teddy (Floor 2)',
@@ -46,7 +212,7 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
     )
   }
   if (transfer === 'complete' && state.encounters.enc_help_desk_intern !== 'won') {
-    return pinHere(
+    return pinOn2(
       'zone_it',
       { x: 9, y: 3 },
       'Report back to Teddy (Floor 2)',
@@ -54,13 +220,13 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
     )
   }
   if (directorGateOpen(state)) {
-    return pinHere('zone_director', { x: 3, y: 9 }, 'See Kessler (Floor 2)', 'See Kessler')
+    return pinOn2('zone_director', { x: 3, y: 9 }, 'See Kessler (Floor 2)', 'See Kessler')
   }
   if (
     state.encounters.enc_director_review === 'won' &&
     keyCount(state, 'key_employee_badge') === 0
   ) {
-    return pinHere('zone_it', { x: 11, y: 2 }, 'Print your badge (Floor 2)', 'Print your badge')
+    return pinOn2('zone_it', { x: 11, y: 2 }, 'Print your badge (Floor 2)', 'Print your badge')
   }
   if (keyCount(state, 'key_employee_badge') > 0 && !state.flags.includes('flag_floor2_complete')) {
     return onFloor2
@@ -80,6 +246,12 @@ export function currentObjective(state: OfficeSave): OfficeObjective {
   if (isStubFloor(state.floorId)) {
     return { text: 'Look around', zone: 'zone_landing', pin: ELEVATOR_PIN }
   }
+  const floor5 = floor5Objective(state)
+  if (floor5) return floor5
+  const floor4 = floor4Objective(state)
+  if (floor4) return floor4
+  const floor3 = floor3Objective(state)
+  if (floor3) return floor3
   const floor2 = floor2Objective(state)
   if (floor2) return floor2
   if (state.flags.includes('flag_preview_complete')) {
