@@ -391,7 +391,7 @@ export default function TitleScreen({
               color: 'var(--cc-text-dim)',
             }}
           >
-            PREVIEW · FLOOR 1
+            CAMPAIGN · FLOORS 1–5
           </span>
           <Button variant="accent" size="md" onClick={onOffice} style={{ minWidth: 210 }}>
             THE OFFICE
