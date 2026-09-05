@@ -8,32 +8,43 @@ import type { ItemId, PerkId } from '@/types'
 import {
   CABINET_COPY,
   CABINET_F2_COPY,
-  canUseElevator,
+  COWORKER_DESK,
+  COWORKER_NAME,
+  canOpenElevatorPanel,
+  canRideTo,
   DIALOGUE,
   elevatorArrivalForFloor,
   elevatorBoardingSpotsForFloor,
-  elevatorDestination,
+  FLOOR_2_DIRECTOR_DOOR,
+  FLOOR_2_DOOR_STEP_BACK,
+  FLOOR_2_DOOR_STEP_IN,
   floorLabel,
+  floorNumber,
   HANDOUT_CHOICES,
   HANDOUT_PICK_LINE,
+  isKnownFloorId,
+  isStubFloor,
   PEOPLE_TRAY_COPY,
   PHOTO_BOOTH_COPY,
   POI_INSPECT,
   PRINTER_COPY,
   BADGE_PRINTER_COPY,
   SHREDDER_COPY,
+  type CoworkerId,
   type DialogueId,
   type EncounterId,
   type Facing,
+  type FloorId,
   type KeyItemId,
   type NpcId,
   type PoiId,
 } from '@/content/office'
 import { applyOfficeSwitch, applyOfficeTurn, shouldCoachSwitch, startEncounter } from './combat'
 import { interactTarget, sightlineNpc, tryStep } from './movement'
-import { recruitCoworker, restoreParty } from './party'
+import { dismissCoworker, recruitCoworker, rejoinCoworker, restoreParty } from './party'
 import {
   closeOverlay,
+  directorGateOpen,
   enqueueOverlays,
   heldHandout,
   inParty,
@@ -66,13 +77,16 @@ export type OfficeAction =
   | { type: 'PICK_HANDOUT'; itemId: KeyItemId }
   | { type: 'OPEN_TEAM' }
   | { type: 'CLOSE_TEAM' }
+  | { type: 'MAKE_ROOM' }
+  | { type: 'DISMISS_MEMBER'; slot: number }
+  | { type: 'REJOIN'; coworkerId: CoworkerId }
   | { type: 'OPEN_SWITCH' }
   | { type: 'CANCEL_SWITCH' }
   | { type: 'BATTLE_MOVE'; moveIdx: number }
   | { type: 'BATTLE_ITEM'; itemIdx: number }
   | { type: 'BATTLE_SWITCH'; to: number }
   | { type: 'PICK_PERK'; perkId: PerkId }
-  | { type: 'RIDE_ELEVATOR' }
+  | { type: 'RIDE_ELEVATOR'; to: FloorId }
   | { type: 'COMPLETE_ELEVATOR_RIDE' }
   | { type: 'DOOR_STEP_IN' }
   | { type: 'DOOR_STEP_BACK' }
@@ -127,7 +141,13 @@ function apply(state: OfficeState, action: OfficeAction, rng: Rng): OfficeDispat
     case 'OPEN_TEAM':
       return done(state.overlay ? state : { ...state, overlay: { kind: 'team' } })
     case 'CLOSE_TEAM':
-      return done(state.overlay?.kind === 'team' ? closeOverlay(state) : state)
+      return done(closeTeam(state))
+    case 'MAKE_ROOM':
+      return done(makeRoom(state))
+    case 'DISMISS_MEMBER':
+      return done(dismissMember(state, action.slot))
+    case 'REJOIN':
+      return done(finishRejoin(state, action.coworkerId))
     case 'OPEN_SWITCH':
       return done(canSwitch(state) ? { ...state, benchOpen: true } : state)
     case 'CANCEL_SWITCH':
@@ -145,16 +165,24 @@ function apply(state: OfficeState, action: OfficeAction, rng: Rng): OfficeDispat
     case 'PICK_PERK':
       return done(pickPerk(state, action.perkId))
     case 'RIDE_ELEVATOR':
-      return done(rideElevator(state))
+      return done(rideElevator(state, action.to))
     case 'COMPLETE_ELEVATOR_RIDE':
       return done(completeElevatorRide(state))
     case 'DOOR_STEP_IN':
-      return done(doorStepIn(state))
+      return done(
+        state.overlay?.kind === 'confirm' && state.overlay.prompt === 'kessler_door'
+          ? kesslerDoorStepIn(state)
+          : doorStepIn(state),
+      )
     case 'DOOR_STEP_BACK':
-      return done({
-        ...closeOverlay(state),
-        player: { x: 11, y: 3, facing: 'e' },
-      })
+      return done(
+        state.overlay?.kind === 'confirm' && state.overlay.prompt === 'kessler_door'
+          ? { ...closeOverlay(state), player: { ...FLOOR_2_DOOR_STEP_BACK } }
+          : {
+              ...closeOverlay(state),
+              player: { x: 11, y: 3, facing: 'e' },
+            },
+      )
     default:
       return done(state)
   }
@@ -185,6 +213,7 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
 
 function maybeFirstStep(state: OfficeState): OfficeState {
   if (state.floorId === 'floor_02') return maybeFirstStepFloor2(state)
+  if (isStubFloor(state.floorId)) return state
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
   }
@@ -225,8 +254,21 @@ function afterMove(state: OfficeState): OfficeState {
     }
   }
 
+  if (
+    next.floorId === 'floor_02' &&
+    next.player.x === FLOOR_2_DIRECTOR_DOOR.x &&
+    next.player.y === FLOOR_2_DIRECTOR_DOOR.y &&
+    directorGateOpen(next)
+  ) {
+    const key = 'trg_director_door:ready'
+    if (!next.firedTriggers.includes(key)) {
+      next = { ...next, firedTriggers: [...next.firedTriggers, key] }
+    }
+    return pushOverlay(next, { kind: 'confirm', prompt: 'kessler_door' })
+  }
+
   if (shouldPromptElevator(next)) {
-    return pushOverlay(next, { kind: 'confirm', prompt: 'elevator' })
+    return pushOverlay(next, { kind: 'elevator_panel' })
   }
 
   const npc = sightlineNpc(next)
@@ -257,7 +299,7 @@ function afterMove(state: OfficeState): OfficeState {
 }
 
 function shouldPromptElevator(state: OfficeState): boolean {
-  if (!canUseElevator(state.floorId, state.keyItems)) return false
+  if (!canOpenElevatorPanel(state.floorId, state.keyItems)) return false
   return elevatorBoardingSpotsForFloor(state.floorId).some(
     (spot) =>
       spot.x === state.player.x && spot.y === state.player.y && spot.facing === state.player.facing,
@@ -298,7 +340,7 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
   if (id === 'poi_supply_cabinet') return handleCabinet(state)
   if (id === 'poi_break_counter')
     return pushOverlay(state, { kind: 'confirm', prompt: 'take_five' })
-  if (id === 'poi_vending_machine') return { ...state, screen: 'vending' }
+  if (id === 'poi_vending_machine') return handleFloor1Vending(state)
   if (id === 'poi_agenda') return pushOverlay(state, { kind: 'document', docId: 'agenda' })
   if (id === 'poi_handout_rack') return handleRack(state)
   if (id === 'poi_directory_sign')
@@ -322,7 +364,14 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
     return pushOverlay(state, { kind: 'document', docId: 'directory' })
   if (id === 'poi_photo_booth') return handlePhotoBooth(state)
   if (id === 'poi_people_tray') return handlePeopleTray(state)
-  if (id === 'poi_badge_printer') return inspect(state, BADGE_PRINTER_COPY.locked)
+  if (id === 'poi_badge_printer') return handleBadgePrinter(state)
+  if (id === 'poi_director_door') {
+    if (directorGateOpen(state)) {
+      return pushOverlay(state, { kind: 'confirm', prompt: 'kessler_door' })
+    }
+    return inspect(state, POI_INSPECT.poi_director_door)
+  }
+  if (id === 'poi_directory_sign_stub') return inspect(state, POI_INSPECT.poi_directory_sign_stub)
   if (id === 'poi_supply_cabinet_f2') return handleCabinetF2(state)
   if (id === 'poi_shredder') {
     return inspect(
@@ -446,10 +495,37 @@ function handleRack(state: OfficeState): OfficeState {
 }
 
 function handleElevatorPoi(state: OfficeState): OfficeState {
-  if (canUseElevator(state.floorId, state.keyItems)) {
-    return pushOverlay(state, { kind: 'confirm', prompt: 'elevator' })
+  if (canOpenElevatorPanel(state.floorId, state.keyItems)) {
+    return pushOverlay(state, { kind: 'elevator_panel' })
   }
   return inspect(withFlag(state, 'flag_badge_reader_denied'), POI_INSPECT.poi_elevator_door)
+}
+
+function handleBadgePrinter(state: OfficeState): OfficeState {
+  if (state.encounters.enc_director_review !== 'won') {
+    return inspect(state, BADGE_PRINTER_COPY.locked)
+  }
+  if (keyCount(state, 'key_employee_badge') > 0) {
+    return inspect(state, BADGE_PRINTER_COPY.done)
+  }
+  return enqueueOverlays(state, [
+    { kind: 'dialogue', nodeId: `inspect:${BADGE_PRINTER_COPY.printing}`, line: 0 },
+    { kind: 'receipt', receiptId: 'rcpt_employee_badge' },
+  ])
+}
+
+function handleFloor1Vending(state: OfficeState): OfficeState {
+  if (state.assignments.asg_audit === 'accepted' && keyCount(state, 'key_receipt_roll') === 0) {
+    return enqueueOverlays(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_audit: 'receipts_held' } },
+        'key_receipt_roll',
+        1,
+      ),
+      [{ kind: 'toast', text: 'Got: Receipt Roll (2.3 m)' }],
+    )
+  }
+  return { ...state, screen: 'vending' }
 }
 
 function handleAdvance(state: OfficeState): OfficeState {
@@ -479,6 +555,7 @@ function maybeCoachMove(state: OfficeState, ov: Overlay): OfficeState {
   if (ov.kind === 'coach' && ov.id === 'coach_interact')
     return withFlag(state, 'flag_interact_coached')
   if (ov.kind === 'coach' && ov.id === 'coach_switch') return withFlag(state, 'flag_switch_coached')
+  if (ov.kind === 'coach' && ov.id === 'coach_roster') return withFlag(state, 'flag_roster_coached')
   return state
 }
 
@@ -499,8 +576,43 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
     )
   }
   if (id === 'dlg_teddy_filed') {
-    if (state.assignments.asg_transfer !== 'filed') return state
-    return { ...state, assignments: { ...state.assignments, asg_transfer: 'complete' } }
+    const next: OfficeState = {
+      ...state,
+      assignments: { ...state.assignments, asg_transfer: 'complete' },
+    }
+    if (next.encounters.enc_help_desk_intern === 'open') {
+      return pushOverlay(next, { kind: 'stakes', encounterId: 'enc_help_desk_intern' })
+    }
+    return next
+  }
+  if (id === 'dlg_teddy_beaten') return teddyOfferFollowup(state)
+  if (id === 'dlg_whitlock_delivered') {
+    if (state.assignments.asg_audit !== 'receipts_held' || rewardClaimed(state, 'rwd_asg_audit')) {
+      return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_whitlock_challenge', line: 0 })
+    }
+    const paid: OfficeState = withKey(
+      {
+        ...state,
+        assignments: { ...state.assignments, asg_audit: 'complete' },
+        run: { ...state.run, stockOptions: state.run.stockOptions + 10 },
+        rewardsClaimed: [...state.rewardsClaimed, 'rwd_asg_audit'],
+      },
+      'key_receipt_roll',
+      -keyCount(state, 'key_receipt_roll'),
+    )
+    return enqueueOverlays(paid, [
+      { kind: 'receipt', receiptId: 'rcpt_audit_reconciled' },
+      { kind: 'dialogue', nodeId: 'dlg_whitlock_challenge', line: 0 },
+    ])
+  }
+  if (id === 'dlg_teddy_rejoin' || id === 'dlg_gavin_rejoin' || id === 'dlg_priya_rejoin') {
+    const coworker: CoworkerId =
+      id === 'dlg_teddy_rejoin'
+        ? 'cw_help_desk_intern'
+        : id === 'dlg_gavin_rejoin'
+          ? 'cw_desk_challenger'
+          : 'cw_meeting_prepper'
+    return finishRejoin(state, coworker)
   }
   if (id === 'dlg_renata_ticket') {
     return { ...state, assignments: { ...state.assignments, asg_printer: 'accepted' } }
@@ -556,14 +668,22 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
 
 function handleChoose(state: OfficeState, choice: string): OfficeState {
   const ov = state.overlay
+  if (ov?.kind === 'elevator_panel') {
+    if (choice === 'stay') return closeOverlay(state)
+    if (isKnownFloorId(choice)) return selectElevatorFloor(state, choice)
+    return state
+  }
   if (ov?.kind === 'confirm') {
     if (choice === 'yes' || choice === 'take_five' || choice === 'step_in' || choice === 'ride') {
       if (ov.prompt === 'take_five') return takeFive(closeOverlay(state))
       if (ov.prompt === 'door') return doorStepIn(state)
-      if (ov.prompt === 'elevator') return rideElevator(closeOverlay(state))
+      if (ov.prompt === 'kessler_door') return kesslerDoorStepIn(state)
     }
     if (ov.prompt === 'door') {
       return { ...closeOverlay(state), player: { x: 11, y: 3, facing: 'e' } }
+    }
+    if (ov.prompt === 'kessler_door') {
+      return { ...closeOverlay(state), player: { ...FLOOR_2_DOOR_STEP_BACK } }
     }
     return closeOverlay(state)
   }
@@ -574,6 +694,7 @@ function handleChoose(state: OfficeState, choice: string): OfficeState {
     return declineStakes(state)
   }
   if (ov?.kind === 'recruit') {
+    if (choice === 'make_room') return makeRoom(state)
     return choice === 'extend' ? extendOffer(state) : declineOffer(state)
   }
   if (ov?.kind === 'handout') {
@@ -620,6 +741,39 @@ function handleChoose(state: OfficeState, choice: string): OfficeState {
   if (node.id === 'dlg_holloway_1on1') {
     return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_supervisor_1on1' })
   }
+  if (node.id === 'dlg_teddy_offer') {
+    if (choice === 'extend') {
+      return extendOffer({
+        ...closed,
+        overlay: { kind: 'recruit', coworkerId: 'cw_help_desk_intern' },
+      })
+    }
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_teddy_offer_declined', line: 0 })
+  }
+  if (node.id === 'dlg_teddy_offer_full') {
+    if (choice === 'make_room') {
+      return makeRoom({
+        ...closed,
+        overlay: { kind: 'recruit', coworkerId: 'cw_help_desk_intern' },
+      })
+    }
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_teddy_offer_declined', line: 0 })
+  }
+  if (node.id === 'dlg_kessler_review') {
+    return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_director_review' })
+  }
+  if (node.id === 'dlg_whitlock_request') {
+    if (choice === 'take_it' || choice === 'take_it_on') {
+      return { ...closed, assignments: { ...closed.assignments, asg_audit: 'accepted' } }
+    }
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_whitlock_pass', line: 0 })
+  }
+  if (node.id === 'dlg_whitlock_challenge') {
+    if (choice === 'open_books' || choice === 'open_the_books' || choice === 'begin') {
+      return pushOverlay(closed, { kind: 'stakes', encounterId: 'enc_auditor' })
+    }
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_whitlock_declined', line: 0 })
+  }
   return closed
 }
 
@@ -657,7 +811,9 @@ function afterReceipt(state: OfficeState, receiptId: string, rng: Rng): OfficeSt
     return { ...next, screen: 'promotion' }
   }
   if (receiptId === 'rcpt_promotion_signing_bonus') {
-    return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_holloway_beaten', line: 0 })
+    const beaten =
+      state.encounters.enc_director_review === 'won' ? 'dlg_kessler_beaten' : 'dlg_holloway_beaten'
+    return pushOverlay(state, { kind: 'dialogue', nodeId: beaten, line: 0 })
   }
   if (receiptId === 'rcpt_printer_online') {
     return withKey(
@@ -665,6 +821,29 @@ function afterReceipt(state: OfficeState, receiptId: string, rng: Rng): OfficeSt
       'key_toner',
       -keyCount(state, 'key_toner'),
     )
+  }
+  if (receiptId === 'rcpt_compliance') {
+    return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_teddy_beaten', line: 0 })
+  }
+  if (receiptId === 'rcpt_the_audit') {
+    return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_whitlock_beaten', line: 0 })
+  }
+  if (receiptId === 'rcpt_operations_review') {
+    let next = state
+    if (!next.run.pendingPerkOffer) {
+      const offer = rollPerkOffer(next.run.perks, rng, BASE_PERK_POOL)
+      next = {
+        ...next,
+        run: { ...next.run, pendingPerkOffer: offer },
+        rewardsClaimed: next.rewardsClaimed.includes('rwd_promotion_f2')
+          ? next.rewardsClaimed
+          : [...next.rewardsClaimed, 'rwd_promotion_f2'],
+      }
+    }
+    return { ...next, screen: 'promotion' }
+  }
+  if (receiptId === 'rcpt_employee_badge') {
+    return withKey(state, 'key_employee_badge', 1)
   }
   return state
 }
@@ -685,7 +864,25 @@ function declineStakes(state: OfficeState): OfficeState {
   if (ov.encounterId === 'enc_meeting_prepper') {
     return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_priya_raincheck', line: 0 })
   }
+  if (ov.encounterId === 'enc_help_desk_intern') {
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_teddy_declined', line: 0 })
+  }
+  if (ov.encounterId === 'enc_auditor') {
+    return pushOverlay(closed, { kind: 'dialogue', nodeId: 'dlg_whitlock_declined', line: 0 })
+  }
   return closed
+}
+
+function joinedNode(coworker: CoworkerId): DialogueId {
+  if (coworker === 'cw_desk_challenger') return 'dlg_gavin_joined'
+  if (coworker === 'cw_meeting_prepper') return 'dlg_priya_joined'
+  return 'dlg_teddy_joined'
+}
+
+function declinedNode(coworker: CoworkerId): DialogueId {
+  if (coworker === 'cw_meeting_prepper') return 'dlg_priya_offer_declined'
+  if (coworker === 'cw_help_desk_intern') return 'dlg_teddy_offer_declined'
+  return 'dlg_gavin_offer_declined'
 }
 
 function extendOffer(state: OfficeState): OfficeState {
@@ -696,19 +893,22 @@ function extendOffer(state: OfficeState): OfficeState {
         ? 'cw_desk_challenger'
         : state.overlay?.kind === 'dialogue' && state.overlay.nodeId === 'dlg_priya_offer'
           ? 'cw_meeting_prepper'
-          : null
+          : state.overlay?.kind === 'dialogue' && state.overlay.nodeId === 'dlg_teddy_offer'
+            ? 'cw_help_desk_intern'
+            : null
   if (!coworker) return state
   const joined = recruitCoworker({ ...state, overlay: null, overlayQueue: [] }, coworker)
-  const node = coworker === 'cw_desk_challenger' ? 'dlg_gavin_joined' : 'dlg_priya_joined'
-  return pushOverlay(joined, { kind: 'dialogue', nodeId: node, line: 0 })
+  return pushOverlay(joined, { kind: 'dialogue', nodeId: joinedNode(coworker), line: 0 })
 }
 
 function declineOffer(state: OfficeState): OfficeState {
-  const node =
-    state.overlay?.kind === 'recruit' && state.overlay.coworkerId === 'cw_meeting_prepper'
-      ? 'dlg_priya_offer_declined'
-      : 'dlg_gavin_offer_declined'
-  return pushOverlay(closeOverlay(state), { kind: 'dialogue', nodeId: node, line: 0 })
+  const coworker =
+    state.overlay?.kind === 'recruit' ? state.overlay.coworkerId : 'cw_desk_challenger'
+  return pushOverlay(closeOverlay(state), {
+    kind: 'dialogue',
+    nodeId: declinedNode(coworker),
+    line: 0,
+  })
 }
 
 function takeFive(state: OfficeState): OfficeState {
@@ -754,19 +954,42 @@ function pickPerk(state: OfficeState, perkId: PerkId): OfficeState {
   if (perkId === 'signing_bonus') {
     return pushOverlay(next, { kind: 'receipt', receiptId: 'rcpt_promotion_signing_bonus' })
   }
-  return pushOverlay(next, { kind: 'dialogue', nodeId: 'dlg_holloway_beaten', line: 0 })
+  const beaten =
+    state.encounters.enc_director_review === 'won' ? 'dlg_kessler_beaten' : 'dlg_holloway_beaten'
+  return pushOverlay(next, { kind: 'dialogue', nodeId: beaten, line: 0 })
 }
 
-function rideElevator(state: OfficeState): OfficeState {
-  if (!canUseElevator(state.floorId, state.keyItems)) return state
-  const destination = elevatorDestination(state.floorId)
-  const rideKey = `trg_elevator_ride:${state.floorId}->${destination}`
+function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
+  if (to === state.floorId) return state
+  if (!canRideTo(to, state.keyItems)) {
+    if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
+      const first = !state.flags.includes('flag_reader_denied_f2')
+      const flagged = withFlag(state, 'flag_reader_denied_f2')
+      if (!first) return flagged
+      return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
+        { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT.poi_elevator_door_f2}`, line: 0 },
+        { kind: 'elevator_panel' },
+      ])
+    }
+    return state
+  }
+  return rideElevator(state, to)
+}
+
+function rideElevator(state: OfficeState, to: FloorId): OfficeState {
+  if (to === state.floorId) return state
+  if (!canRideTo(to, state.keyItems)) return state
+  if (state.floorId === 'floor_01' && !canOpenElevatorPanel(state.floorId, state.keyItems)) {
+    return state
+  }
+  const rideKey = `trg_elevator_ride:${state.floorId}->${to}`
   return {
     ...state,
     firedTriggers: state.firedTriggers.includes(rideKey)
       ? state.firedTriggers
       : [...state.firedTriggers, rideKey],
     screen: 'elevator_ride',
+    rideTo: to,
     overlay: null,
     overlayQueue: [],
   }
@@ -775,7 +998,10 @@ function rideElevator(state: OfficeState): OfficeState {
 function completeElevatorRide(state: OfficeState): OfficeState {
   if (state.screen !== 'elevator_ride') return state
   const from = state.floorId
-  const to = elevatorDestination(from)
+  const to = state.rideTo
+  if (!to || to === from) {
+    return { ...state, screen: 'overworld', rideTo: null }
+  }
   let next: OfficeState = {
     ...state,
     floorId: to,
@@ -783,11 +1009,13 @@ function completeElevatorRide(state: OfficeState): OfficeState {
     player: elevatorArrivalForFloor(to),
     overlay: null,
     overlayQueue: [],
+    rideTo: null,
+    stats: { ...state.stats, rides: (state.stats.rides ?? 0) + 1 },
   }
-  if (from === 'floor_01') {
-    next = withFlag(next, 'flag_preview_complete')
-  }
-  return pushOverlay(next, { kind: 'toast', text: `Arrived: ${floorLabel(to)} · Elevator lobby` })
+  if (from === 'floor_01') next = withFlag(next, 'flag_preview_complete')
+  if (isStubFloor(to)) next = withFlag(next, 'flag_floor2_complete')
+  const zone = to === 'floor_01' ? 'Elevator lobby' : 'Landing'
+  return pushOverlay(next, { kind: 'toast', text: `Arrived: ${floorLabel(to)} · ${zone}` })
 }
 
 function doorStepIn(state: OfficeState): OfficeState {
@@ -798,6 +1026,90 @@ function doorStepIn(state: OfficeState): OfficeState {
     { ...closeOverlay(state), player: { x: 9, y: 3, facing: 'w' } },
     { kind: 'dialogue', nodeId: 'dlg_holloway_1on1', line: 0 },
   )
+}
+
+function kesslerDoorStepIn(state: OfficeState): OfficeState {
+  if (state.party.every((m) => m.hp <= 0)) {
+    return pushOverlay(closeOverlay(state), { kind: 'confirm', prompt: 'take_five' })
+  }
+  return pushOverlay(
+    { ...closeOverlay(state), player: { ...FLOOR_2_DOOR_STEP_IN } },
+    { kind: 'dialogue', nodeId: 'dlg_kessler_review', line: 0 },
+  )
+}
+
+function teddyOfferFollowup(state: OfficeState): OfficeState {
+  if (
+    inParty(state, 'cw_help_desk_intern') ||
+    (state.hired ?? []).includes('cw_help_desk_intern')
+  ) {
+    return state
+  }
+  if (lettersHeld(state) <= 0) return state
+  if (partyHasRoom(state)) {
+    return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_teddy_offer', line: 0 })
+  }
+  let next = state
+  if (!next.flags.includes('flag_roster_coached')) {
+    next = withFlag(pushOverlay(next, { kind: 'coach', id: 'coach_roster' }), 'flag_roster_coached')
+  }
+  return pushOverlay(next, { kind: 'dialogue', nodeId: 'dlg_teddy_offer_full', line: 0 })
+}
+
+function makeRoom(state: OfficeState): OfficeState {
+  const coworker =
+    state.overlay?.kind === 'recruit'
+      ? state.overlay.coworkerId
+      : state.overlay?.kind === 'dialogue' && state.overlay.nodeId.startsWith('dlg_teddy_offer')
+        ? 'cw_help_desk_intern'
+        : null
+  if (!coworker) return state
+  let next: OfficeState = { ...state, overlay: null, overlayQueue: [] }
+  if (!next.flags.includes('flag_roster_coached')) {
+    next = withFlag(
+      enqueueOverlays(next, [{ kind: 'coach', id: 'coach_roster' }]),
+      'flag_roster_coached',
+    )
+  }
+  return pushOverlay(next, { kind: 'team', mode: 'roster', returnRecruit: coworker })
+}
+
+function closeTeam(state: OfficeState): OfficeState {
+  if (state.overlay?.kind !== 'team') return state
+  const recruit = state.overlay.returnRecruit
+  const closed = closeOverlay(state)
+  if (recruit) return pushOverlay(closed, { kind: 'recruit', coworkerId: recruit })
+  return closed
+}
+
+function deskToast(id: CoworkerId): string {
+  const desk = COWORKER_DESK[id]
+  return `${COWORKER_NAME[id]}'s at ${desk.pronoun} desk. Floor ${floorNumber(desk.floorId)}.`
+}
+
+function dismissMember(state: OfficeState, slot: number): OfficeState {
+  const member = state.party[slot]
+  if (!member || member.def.kind !== 'coworker') return state
+  const id = member.def.id
+  const next = dismissCoworker(state, slot)
+  const toast = { kind: 'toast' as const, text: deskToast(id) }
+  if (state.overlay?.kind === 'team' && state.overlay.returnRecruit) {
+    return enqueueOverlays({ ...next, overlay: null, overlayQueue: [] }, [
+      toast,
+      { kind: 'recruit', coworkerId: state.overlay.returnRecruit },
+    ])
+  }
+  if (state.overlay?.kind === 'team') {
+    return enqueueOverlays({ ...next, overlay: null, overlayQueue: [] }, [
+      toast,
+      { kind: 'team', mode: state.overlay.mode },
+    ])
+  }
+  return enqueueOverlays({ ...next, overlay: null, overlayQueue: next.overlayQueue }, [toast])
+}
+
+function finishRejoin(state: OfficeState, id: CoworkerId): OfficeState {
+  return rejoinCoworker(closeOverlay(state), id)
 }
 
 function canSwitch(state: OfficeState): boolean {

@@ -33,11 +33,12 @@ export default function OfficeStartScreen({
         ‹ Title
       </button>
 
-      <div className={styles.eyebrow}>Campaign · Floors 1–2</div>
+      <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
       <h1 className={styles.title}>THE OFFICE</h1>
       <p className={styles.blurb}>
         Reception, desks, a printer, a one-on-one that does not end early — and upstairs,
-        Operations, where the badge you were given turns out to be a visitor badge.
+        Operations, where the badge you were given turns out to be a visitor badge. Floors 3–5 wait
+        on an employee badge.
       </p>
 
       {save && (

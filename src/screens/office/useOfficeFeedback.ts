@@ -5,7 +5,6 @@ import {
   RECEIPTS,
   REWARD_OPTIONS,
   ZONE_LABEL,
-  elevatorDestination,
   floorLabel,
   zoneAt,
 } from '@/content/office'
@@ -87,7 +86,7 @@ export function useOfficeFeedback(state: OfficeState): string {
       } else if (state.screen === 'elevator_ride') {
         SFX.elevatorUp()
         Haptics.selection()
-        say(`Elevator. Next stop: ${floorLabel(elevatorDestination(prev.floorId))}.`)
+        say(`Elevator. Next stop: ${floorLabel(state.rideTo ?? prev.floorId)}.`)
       } else if (state.screen === 'promotion') {
         SFX.fanfare()
         say('Cleared probation. Pick a perk.')
@@ -145,11 +144,10 @@ export function useOfficeFeedback(state: OfficeState): string {
         SFX.glassDoor()
         Haptics.impact('medium')
         say("Elevator lobby. Holloway's one-on-one starts when you step in.")
-      } else if (ov.prompt === 'elevator') {
-        SFX.badgeSwipe()
-        Haptics.selection()
-        const destination = elevatorDestination(state.floorId)
-        say(`Elevator. The reader blinks green. Ride to ${floorLabel(destination)}?`)
+      } else if (ov.prompt === 'kessler_door') {
+        SFX.glassDoor()
+        Haptics.impact('medium')
+        say("Director's office. Kessler's review starts when you step in.")
       } else {
         SFX.menuSelect()
         Haptics.selection()
@@ -165,6 +163,13 @@ export function useOfficeFeedback(state: OfficeState): string {
       say(
         `${enc.titleCard}. Win: ${enc.xp} XP, ${enc.options} Options. Lose: break room, walk back.`,
       )
+      return
+    }
+
+    if (ov.kind === 'elevator_panel') {
+      SFX.badgeSwipe()
+      Haptics.selection()
+      say('Elevator. Pick a floor.')
       return
     }
 
@@ -185,7 +190,10 @@ export function useOfficeFeedback(state: OfficeState): string {
         return // line advance: the typewriter ticks
       }
       const inspect = inspectText(ov.nodeId)
-      if (inspect === POI_INSPECT.poi_elevator_door) {
+      if (
+        inspect === POI_INSPECT.poi_elevator_door ||
+        inspect === POI_INSPECT.poi_elevator_door_f2
+      ) {
         SFX.eventBad()
         Haptics.warning()
         say('Badge required. The reader blinks red.')

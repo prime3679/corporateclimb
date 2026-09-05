@@ -2,12 +2,18 @@ import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { CURRENCY_ICON, ITEMS, PERKS } from '@/data'
 import {
   AGENDA_TEXT,
+  COWORKER_DESK,
   COWORKER_KITS,
+  COWORKER_NAME,
   DIALOGUE,
   DIRECTORY_TEXT,
+  ELEVATOR_FLOORS,
   FLOOR_2_DIRECTORY_TEXT,
-  elevatorDestination,
+  STUB_DIRECTORY_TEXT,
+  canRideTo,
+  deskRosterLine,
   floorLabel,
+  floorNumber,
   HANDOUT_CHOICES,
   OFFICE_ENCOUNTERS,
   RECEIPTS,
@@ -22,8 +28,10 @@ import {
   inspectText,
   kitFor,
   lettersHeld,
+  lossDialogue,
   maxHpFor,
   memberName,
+  partyHasRoom,
   type OfficeState,
   type PartyMember,
 } from '@/engine/office'
@@ -351,16 +359,38 @@ function Stakes({
       ? NPC_CAST.npc_desk_challenger
       : encounterId === 'enc_meeting_prepper'
         ? NPC_CAST.npc_meeting_prepper
-        : NPC_CAST.npc_supervisor
+        : encounterId === 'enc_help_desk_intern'
+          ? NPC_CAST.npc_help_desk_intern
+          : encounterId === 'enc_auditor'
+            ? NPC_CAST.npc_auditor
+            : encounterId === 'enc_director_review'
+              ? NPC_CAST.npc_director
+              : NPC_CAST.npc_supervisor
   const eyebrow = enc.boss
-    ? 'One-on-one · Rank 2 · Boss'
-    : encounterId === 'enc_meeting_prepper'
-      ? `Spar · Rank ${enc.rank}`
-      : `Challenge · Rank ${enc.rank}`
+    ? encounterId === 'enc_director_review'
+      ? 'Operations review · Rank 5 · Boss'
+      : 'One-on-one · Rank 2 · Boss'
+    : encounterId === 'enc_help_desk_intern'
+      ? `Compliance · Rank ${enc.rank}`
+      : encounterId === 'enc_auditor'
+        ? `Audit · Rank ${enc.rank}`
+        : encounterId === 'enc_meeting_prepper'
+          ? `Spar · Rank ${enc.rank}`
+          : `Challenge · Rank ${enc.rank}`
   const win: string[] = [`+${enc.xp} XP`, `+${enc.options} ${CURRENCY_ICON}`]
-  if (enc.boss) win.push('Access Badge', 'Promotion')
+  if (encounterId === 'enc_supervisor_1on1') win.push('Access Badge', 'Promotion')
+  if (encounterId === 'enc_director_review') win.push('Transfer approved', 'Promotion')
   const offer = enc.recruit ? (letters > 0 ? 'Offer eligible' : null) : null
-  const yes = enc.boss ? 'Begin' : encounterId === 'enc_meeting_prepper' ? 'Spar' : 'Bring it'
+  const yes =
+    encounterId === 'enc_help_desk_intern'
+      ? 'Begin training'
+      : encounterId === 'enc_auditor'
+        ? 'Open the books'
+        : enc.boss
+          ? 'Begin'
+          : encounterId === 'enc_meeting_prepper'
+            ? 'Spar'
+            : 'Bring it'
   const no = encounterId === 'enc_meeting_prepper' ? 'Rain check' : 'Not now'
   return (
     <Scrim>
@@ -464,7 +494,17 @@ function Confirm({
 
 /* ─── team panel ────────────────────────────────────────── */
 
-function MemberRow({ state, member }: { state: OfficeState; member: PartyMember }) {
+function MemberRow({
+  state,
+  member,
+  roster,
+  act,
+}: {
+  state: OfficeState
+  member: PartyMember
+  roster?: boolean
+  act?: Act
+}) {
   const kit = kitFor(member)
   const eff = effectiveKit(state, member)
   const max = maxHpFor(state, member)
@@ -516,15 +556,35 @@ function MemberRow({ state, member }: { state: OfficeState; member: PartyMember 
           ))}
         </div>
         {out && <div className={styles.statusLine}>Out. Take five in the break room.</div>}
+        {roster && !lead && member.def.kind === 'coworker' && act && (
+          <Button
+            variant="secondary"
+            onClick={() => {
+              SFX.menuBack()
+              act({ type: 'DISMISS_MEMBER', slot: state.party.indexOf(member) })
+            }}
+          >
+            Send to desk
+          </Button>
+        )}
       </div>
     </div>
   )
 }
 
 function openSeatLine(state: OfficeState): string {
-  const recruitables = (['cw_desk_challenger', 'cw_meeting_prepper'] as CoworkerId[]).filter(
+  const hired = state.hired ?? []
+  const benched = hired.filter(
     (id) => !state.party.some((m) => m.def.kind === 'coworker' && m.def.id === id),
   )
+  if (benched.length > 0) {
+    const id = benched[0]
+    const desk = COWORKER_DESK[id]
+    return `Open seat · ${COWORKER_NAME[id]} is at ${desk.pronoun} desk (Floor ${floorNumber(desk.floorId)})`
+  }
+  const recruitables = (
+    ['cw_desk_challenger', 'cw_meeting_prepper', 'cw_help_desk_intern'] as CoworkerId[]
+  ).filter((id) => !hired.includes(id))
   if (recruitables.length === 0) return 'Team is fully staffed.'
   if (lettersHeld(state) > 0) return 'Beat a coworker, hand them an Offer Letter.'
   return 'Out of letters. HR prints two per quarter.'
@@ -550,7 +610,13 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
       </div>
       <div className={styles.teamBody}>
         {state.party.map((m) => (
-          <MemberRow key={m.slot} state={state} member={m} />
+          <MemberRow
+            key={m.slot}
+            state={state}
+            member={m}
+            roster={state.overlay?.kind === 'team'}
+            act={act}
+          />
         ))}
         {Array.from({ length: Math.max(0, 3 - state.party.length) }, (_, i) => (
           <div key={`seat-${i}`} className={`${styles.memberRow} ${styles.memberRowEmpty}`}>
@@ -589,6 +655,67 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
         </div>
       </div>
     </div>
+  )
+}
+
+function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
+  const here = state.floorId
+  return (
+    <Scrim tight>
+      <div className={styles.eyebrow}>Elevator</div>
+      <div className={styles.elevList} role="listbox" aria-label="Elevator floors">
+        {ELEVATOR_FLOORS.map((row) => {
+          const current = row.id === here
+          const open = !current && canRideTo(row.id, state.keyItems)
+          const sub = current
+            ? 'You are here'
+            : !open
+              ? row.requires === 'key_employee_badge'
+                ? 'Badge required'
+                : 'Access badge required'
+              : row.id === 'floor_01'
+                ? deskRosterLine(state.hired ?? [], state.party, 'floor_01')
+                : row.id === 'floor_03' || row.id === 'floor_04' || row.id === 'floor_05'
+                  ? 'Under construction'
+                  : ''
+          return (
+            <button
+              key={row.id}
+              type="button"
+              role="option"
+              aria-selected={current}
+              disabled={current}
+              className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${!open && !current ? styles.elevLocked : ''}`}
+              onClick={() => {
+                if (current) return
+                if (!open) SFX.menuBack()
+                else SFX.menuConfirm()
+                act({ type: 'CHOOSE', choice: row.id })
+              }}
+            >
+              <span className={styles.elevNum}>{row.number}</span>
+              <span className={styles.elevName}>{row.name}</span>
+              <span className={styles.elevSub}>{sub}</span>
+              <span
+                className={`${styles.elevLed} ${open || current ? styles.elevLedOn : styles.elevLedOff}`}
+                aria-hidden
+              />
+            </button>
+          )
+        })}
+      </div>
+      <div className={`${styles.actions} ${styles.actionsEnd}`}>
+        <Button
+          variant="secondary"
+          onClick={() => {
+            SFX.menuBack()
+            act({ type: 'CHOOSE', choice: 'stay' })
+          }}
+        >
+          Stay
+        </Button>
+      </div>
+    </Scrim>
   )
 }
 
@@ -677,16 +804,29 @@ export default function OfficeOverlays({
           <div className={styles.eyebrow}>Extend an offer</div>
           <RecruitSummary state={state} coworkerId={ov.coworkerId} />
           <div className={styles.actions}>
-            <Button
-              variant="primary"
-              autoFocus
-              onClick={() => {
-                SFX.menuConfirm()
-                act({ type: 'EXTEND_OFFER' })
-              }}
-            >
-              Extend the offer
-            </Button>
+            {partyHasRoom(state) ? (
+              <Button
+                variant="primary"
+                autoFocus
+                onClick={() => {
+                  SFX.menuConfirm()
+                  act({ type: 'EXTEND_OFFER' })
+                }}
+              >
+                Extend the offer
+              </Button>
+            ) : (
+              <Button
+                variant="primary"
+                autoFocus
+                onClick={() => {
+                  SFX.menuConfirm()
+                  act({ type: 'MAKE_ROOM' })
+                }}
+              >
+                Make room
+              </Button>
+            )}
             <Button
               variant="secondary"
               onClick={() => {
@@ -708,7 +848,9 @@ export default function OfficeOverlays({
       ? AGENDA_TEXT
       : state.floorId === 'floor_02'
         ? FLOOR_2_DIRECTORY_TEXT
-        : DIRECTORY_TEXT
+        : state.floorId === 'floor_01'
+          ? DIRECTORY_TEXT
+          : STUB_DIRECTORY_TEXT
     return (
       <div className={styles.layer}>
         <div className={styles.scrim} role="dialog" aria-modal="true">
@@ -717,9 +859,11 @@ export default function OfficeOverlays({
             <div className={`${styles.eyebrow} ${styles.paperTitle}`}>
               {agenda
                 ? 'Meeting room · Agenda'
-                : state.floorId === 'floor_02'
-                  ? 'Landing · Directory'
-                  : 'Hall · Directory'}
+                : state.floorId === 'floor_01'
+                  ? 'Reception · Directory'
+                  : state.floorId === 'floor_02'
+                    ? 'Landing · Directory'
+                    : `${floorLabel(state.floorId)} · Directory`}
             </div>
             <div className={`${styles.title} ${styles.paperTitle}`}>
               {agenda ? 'Agenda' : 'Directory'}
@@ -763,6 +907,55 @@ export default function OfficeOverlays({
               act({ type: 'CLOSE_OVERLAY' })
             }}
           />
+        </div>
+      )
+    }
+    if (ov.prompt === 'kessler_door') {
+      if (state.party.every((m) => m.hp <= 0)) {
+        return (
+          <div className={styles.layer}>
+            <Confirm
+              eyebrow="Director's office"
+              title="Operations review"
+              body="Your team needs a minute. Facilities first."
+              yes="Back"
+              onYes={() => {
+                SFX.menuBack()
+                act({ type: 'DOOR_STEP_BACK' })
+              }}
+            />
+          </div>
+        )
+      }
+      return (
+        <div className={styles.layer}>
+          <Confirm
+            eyebrow="Director's office"
+            title="Operations review"
+            body={
+              state.party.length >= 2
+                ? "Kessler's review starts when you step in. He doesn't do one-on-ones — bring everyone."
+                : "He doesn't do one-on-ones. Your coworkers are at their desks; they'll come."
+            }
+            yes="Step in"
+            no="Not yet"
+            onYes={() => {
+              SFX.menuConfirm()
+              act({ type: 'DOOR_STEP_IN' })
+            }}
+            onNo={() => {
+              SFX.menuBack()
+              act({ type: 'DOOR_STEP_BACK' })
+            }}
+          >
+            <div className={styles.teamRow}>
+              <span className={styles.kvKey}>Team</span>
+              <PartyChips state={state} size={44} />
+              <span className={styles.wallet}>
+                {CURRENCY_ICON} {state.run.stockOptions}
+              </span>
+            </div>
+          </Confirm>
         </div>
       )
     }
@@ -811,27 +1004,13 @@ export default function OfficeOverlays({
         </div>
       )
     }
-    const destination = elevatorDestination(state.floorId)
-    const heading = floorLabel(destination)
-    const ridingUp = destination === 'floor_02'
+    return null
+  }
+
+  if (ov.kind === 'elevator_panel') {
     return (
       <div className={styles.layer}>
-        <Confirm
-          eyebrow={`Elevator · ${ridingUp ? 'Ride up' : 'Ride down'}`}
-          title={heading}
-          body={
-            ridingUp
-              ? 'The reader blinks green. The doors close with a polite delay.'
-              : 'The car dings for reception before the doors have fully opened.'
-          }
-          yes={ridingUp ? 'Ride up' : 'Ride down'}
-          no="Not yet"
-          onYes={() => act({ type: 'RIDE_ELEVATOR' })}
-          onNo={() => {
-            SFX.menuBack()
-            act({ type: 'CLOSE_OVERLAY' })
-          }}
-        />
+        <ElevatorPanel state={state} act={act} />
       </div>
     )
   }
@@ -926,12 +1105,7 @@ export function Interstitial({ state, onChange }: OverlayProps) {
   }, [])
   if (ov?.kind !== 'interstitial') return null
   const enc = OFFICE_ENCOUNTERS[ov.encounterId]
-  const lostNode =
-    ov.encounterId === 'enc_desk_challenger'
-      ? DIALOGUE.dlg_gavin_you_lost
-      : ov.encounterId === 'enc_meeting_prepper'
-        ? DIALOGUE.dlg_priya_you_lost
-        : DIALOGUE.dlg_holloway_you_lost
+  const lostNode = DIALOGUE[lossDialogue(ov.encounterId)]
   return (
     <div
       className={styles.interstitial}
@@ -954,8 +1128,8 @@ export function Interstitial({ state, onChange }: OverlayProps) {
 /** Full-screen elevator transfer between campaign floors. */
 export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayProps) {
   const act = useAct(state, onChange)
-  const destination = elevatorDestination(state.floorId)
-  const goingUp = destination === 'floor_02'
+  const destination = state.rideTo ?? state.floorId
+  const goingUp = floorNumber(destination) > floorNumber(state.floorId)
   const heading = floorLabel(destination)
   useEffect(() => {
     const t = window.setTimeout(
@@ -969,8 +1143,8 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
       <div className={styles.celebTitle}>ELEVATOR</div>
       <div className={styles.celebLine}>
         {goingUp
-          ? 'Doors close, the old fluorescent hum shifts pitch, and Floor 2 lights up.'
-          : 'Doors close, one floor clicks by, and reception comes back into view.'}
+          ? `Doors close, the old fluorescent hum shifts pitch, and ${heading} lights up.`
+          : `Doors close, one floor clicks by, and ${heading} comes back into view.`}
       </div>
       <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
         Arriving at <b>{heading}</b>.
@@ -998,7 +1172,7 @@ export function CoachMark({
   className,
   pointer = 'down',
 }: {
-  id: 'coach_move' | 'coach_interact' | 'coach_switch'
+  id: 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster'
   onDismiss: () => void
   className?: string
   pointer?: 'up' | 'down'
@@ -1013,6 +1187,11 @@ export function CoachMark({
       <>
         <span className={styles.coachKey}>TALK</span> — press E or tap ACT when someone's in front
         of you.
+      </>
+    ) : id === 'coach_roster' ? (
+      <>
+        <span className={styles.coachKey}>TEAM</span> — three seats. Sending someone to their desk
+        is free. So is bringing them back.
       </>
     ) : (
       <>

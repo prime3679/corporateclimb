@@ -690,6 +690,13 @@ function Overworld({
           onDismiss={() => act({ type: 'ADVANCE' })}
         />
       )}
+      {state.overlay?.kind === 'coach' && state.overlay.id === 'coach_roster' && (
+        <CoachMark
+          id="coach_roster"
+          className={styles.coachInteract}
+          onDismiss={() => act({ type: 'ADVANCE' })}
+        />
+      )}
       {state.overlay?.kind === 'interstitial' && <Interstitial state={state} onChange={onChange} />}
       <div className={styles.srOnly} aria-live="polite">
         {announce}

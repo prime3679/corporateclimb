@@ -1,5 +1,5 @@
-import { ZONE_LABEL, type ZoneId } from '@/content/office'
-import { keyCount, supervisorGateOpen, type OfficeSave } from './state'
+import { isStubFloor, ZONE_LABEL, type ZoneId } from '@/content/office'
+import { directorGateOpen, keyCount, supervisorGateOpen, type OfficeSave } from './state'
 
 export interface OfficeObjective {
   text: string
@@ -11,16 +11,18 @@ export interface OfficeObjective {
 const ELEVATOR_PIN = { x: 3, y: 1 }
 
 /**
- * Floor 2 objectives (docs/rpg/floor-2-design.md §4.1). The transfer packet
- * runs to `filed`; from there Teddy's compliance training is the next beat.
+ * Floor 2 objectives (docs/rpg/floor-2-design.md §4). First match wins.
  */
 function floor2Objective(state: OfficeSave): OfficeObjective | null {
   const transfer = state.assignments.asg_transfer
   const onFloor2 = state.floorId === 'floor_02'
+  const pinHere = (zone: ZoneId, pin: { x: number; y: number }, away: string, here: string) =>
+    onFloor2
+      ? { text: here, zone, pin }
+      : { text: away, zone: 'zone_elevator' as ZoneId, pin: ELEVATOR_PIN }
+
   if (transfer === 'accepted') {
-    return onFloor2
-      ? { text: 'Take a badge photo', zone: 'zone_it', pin: { x: 12, y: 1 } }
-      : { text: 'Take a badge photo (Floor 2)', zone: 'zone_elevator', pin: ELEVATOR_PIN }
+    return pinHere('zone_it', { x: 12, y: 1 }, 'Take a badge photo (Floor 2)', 'Take a badge photo')
   }
   if (transfer === 'photo_taken') {
     return onFloor2
@@ -28,24 +30,56 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
       : { text: "Get Holloway's signature", zone: 'zone_elevator', pin: { x: 6, y: 3 } }
   }
   if (transfer === 'signed') {
-    return onFloor2
-      ? { text: 'File the packet at People Ops', zone: 'zone_people', pin: { x: 18, y: 3 } }
-      : {
-          text: 'File the packet at People Ops (Floor 2)',
-          zone: 'zone_elevator',
-          pin: ELEVATOR_PIN,
-        }
+    return pinHere(
+      'zone_people',
+      { x: 18, y: 3 },
+      'File the packet at People Ops (Floor 2)',
+      'File the packet at People Ops',
+    )
   }
-  if (transfer === 'filed' || transfer === 'complete') {
-    return onFloor2
-      ? { text: 'Report back to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
-      : { text: 'Report back to Teddy (Floor 2)', zone: 'zone_elevator', pin: ELEVATOR_PIN }
+  if (transfer === 'filed') {
+    return pinHere(
+      'zone_it',
+      { x: 9, y: 3 },
+      'Report back to Teddy (Floor 2)',
+      'Report back to Teddy',
+    )
   }
-  if (onFloor2) return { text: 'Talk to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
+  if (transfer === 'complete' && state.encounters.enc_help_desk_intern !== 'won') {
+    return pinHere(
+      'zone_it',
+      { x: 9, y: 3 },
+      'Report back to Teddy (Floor 2)',
+      'Report back to Teddy',
+    )
+  }
+  if (directorGateOpen(state)) {
+    return pinHere('zone_director', { x: 3, y: 9 }, 'See Kessler (Floor 2)', 'See Kessler')
+  }
+  if (
+    state.encounters.enc_director_review === 'won' &&
+    keyCount(state, 'key_employee_badge') === 0
+  ) {
+    return pinHere('zone_it', { x: 11, y: 2 }, 'Print your badge (Floor 2)', 'Print your badge')
+  }
+  if (keyCount(state, 'key_employee_badge') > 0 && !state.flags.includes('flag_floor2_complete')) {
+    return onFloor2
+      ? { text: 'Take the elevator', zone: 'zone_landing', pin: ELEVATOR_PIN }
+      : { text: 'Take the elevator to Floor 3', zone: 'zone_elevator', pin: ELEVATOR_PIN }
+  }
+  if (transfer === 'not_started' && onFloor2) {
+    return { text: 'Talk to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
+  }
+  if (onFloor2 && state.flags.includes('flag_visited_f2') && transfer === 'not_started') {
+    return { text: 'Talk to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
+  }
   return null
 }
 
 export function currentObjective(state: OfficeSave): OfficeObjective {
+  if (isStubFloor(state.floorId)) {
+    return { text: 'Look around', zone: 'zone_landing', pin: ELEVATOR_PIN }
+  }
   const floor2 = floor2Objective(state)
   if (floor2) return floor2
   if (state.flags.includes('flag_preview_complete')) {

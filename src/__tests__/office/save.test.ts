@@ -65,7 +65,7 @@ describe('office save isolation', () => {
       keyItems: { ...s.keyItems, key_access_badge: 1 },
       player: { x: 3, y: 2, facing: 'n' },
     }
-    s = dispatchOfficeAction(s, { type: 'RIDE_ELEVATOR' }).state
+    s = dispatchOfficeAction(s, { type: 'RIDE_ELEVATOR', to: 'floor_02' }).state
     s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
     s = {
       ...s,
@@ -77,6 +77,23 @@ describe('office save isolation', () => {
     const loaded = loadOffice()
     expect(loaded?.floorId).toBe('floor_02')
     expect(loaded?.player).toEqual({ x: 8, y: 5, facing: 'w' })
+  })
+
+  it('migrates a v1 office save to v2 hired/bench/rides defaults', () => {
+    const s = newOfficeCampaign(PM)
+    const v1 = {
+      ...toOfficeSave(s),
+      version: 1 as const,
+      hired: undefined,
+      bench: undefined,
+      stats: { battlesWon: 0, losses: 0, switches: 0, msOnFloor: 12 },
+    }
+    localStorage.setItem(OFFICE_SAVE_KEY, JSON.stringify(v1))
+    const loaded = loadOffice()
+    expect(loaded?.version).toBe(2)
+    expect(loaded?.hired).toEqual([])
+    expect(loaded?.bench).toEqual({})
+    expect(loaded?.stats.rides).toBe(0)
   })
 
   it('dispatchOfficeAction is a pure reducer and never writes either save key', () => {

@@ -35,6 +35,11 @@ export function restoreParty(state: OfficeState): OfficeState {
   }
 }
 
+export function markHired(state: OfficeState, id: CoworkerId): OfficeState {
+  if ((state.hired ?? []).includes(id)) return state
+  return { ...state, hired: [...(state.hired ?? []), id] }
+}
+
 export function recruitCoworker(state: OfficeState, id: CoworkerId): OfficeState {
   if (state.party.length >= PARTY_MAX) return state
   if (state.party.some((m) => m.def.kind === 'coworker' && m.def.id === id)) return state
@@ -47,7 +52,38 @@ export function recruitCoworker(state: OfficeState, id: CoworkerId): OfficeState
     hp: kit.maxHp,
     pp: kit.moves.map((m) => m.pp),
   }
-  return withKey({ ...state, party: [...state.party, member] }, 'key_offer_letter', -1)
+  const hired = markHired(state, id)
+  return withKey({ ...hired, party: [...hired.party, member] }, 'key_offer_letter', -1)
+}
+
+export function dismissCoworker(state: OfficeState, slot: number): OfficeState {
+  if (slot <= 0 || slot >= state.party.length) return state
+  const member = state.party[slot]
+  if (member.def.kind !== 'coworker') return state
+  const id = member.def.id
+  const bench = { ...state.bench, [id]: { hp: member.hp, pp: [...member.pp] } }
+  const party = state.party
+    .filter((_, i) => i !== slot)
+    .map((m, i) => ({ ...m, slot: `party_slot_${i}` as PartyMember['slot'] }))
+  return markHired({ ...state, party, bench }, id)
+}
+
+export function rejoinCoworker(state: OfficeState, id: CoworkerId): OfficeState {
+  if (state.party.length >= PARTY_MAX) return state
+  if (state.party.some((m) => m.def.kind === 'coworker' && m.def.id === id)) return state
+  if (!(state.hired ?? []).includes(id)) return state
+  const kit = COWORKER_KITS[id]
+  const stored = state.bench[id]
+  const slot = `party_slot_${state.party.length}` as PartyMember['slot']
+  const member: PartyMember = {
+    slot,
+    def: { kind: 'coworker', id },
+    hp: stored?.hp ?? kit.maxHp,
+    pp: stored?.pp ? [...stored.pp] : kit.moves.map((m) => m.pp),
+  }
+  const bench = { ...state.bench }
+  delete bench[id]
+  return { ...state, party: [...state.party, member], bench }
 }
 
 export function applyOfficeXp(state: OfficeState, xp: number): OfficeState {

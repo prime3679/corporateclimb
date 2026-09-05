@@ -1,5 +1,5 @@
 import type { Facing, FloorId, NpcId, PoiId, ZoneId } from './ids'
-import { MAP_HEIGHT, MAP_WIDTH } from './ids'
+import { FLOOR_IDS, MAP_HEIGHT, MAP_WIDTH } from './ids'
 import {
   FLOOR_2_ARRIVAL,
   FLOOR_2_ART,
@@ -11,6 +11,15 @@ import {
   FLOOR_2_ZONE_LABEL,
   floor2ZoneAt,
 } from './floor2'
+import { canOpenElevatorPanel, canRideTo, elevatorRowFor } from './elevator'
+import {
+  STUB_ARRIVAL,
+  STUB_ART,
+  STUB_BOARDING,
+  STUB_DEFEAT_RESPAWN,
+  STUB_SOLID_GLYPHS,
+  stubZoneAt,
+} from './floorStubs'
 
 type SpawnPoint = { x: number; y: number; facing: Facing }
 type TilePoint = { x: number; y: number }
@@ -41,6 +50,9 @@ const FLOOR_02_ART = FLOOR_2_ART
 export const FLOOR_ART_BY_ID: Record<FloorId, readonly string[]> = {
   floor_01: FLOOR_01_ART,
   floor_02: FLOOR_02_ART,
+  floor_03: STUB_ART,
+  floor_04: STUB_ART,
+  floor_05: STUB_ART,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -51,6 +63,9 @@ const FLOOR_01_SOLID_GLYPHS = new Set('#XERTAHc=PSKVtwip1234'.split(''))
 const SOLID_GLYPHS_BY_FLOOR: Record<FloorId, Set<string>> = {
   floor_01: FLOOR_01_SOLID_GLYPHS,
   floor_02: FLOOR_2_SOLID_GLYPHS,
+  floor_03: STUB_SOLID_GLYPHS,
+  floor_04: STUB_SOLID_GLYPHS,
+  floor_05: STUB_SOLID_GLYPHS,
 }
 
 export type TileGlyph = string
@@ -58,31 +73,42 @@ export type TileGlyph = string
 const FLOOR_SPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 12, y: 15, facing: 'n' },
   floor_02: FLOOR_2_ARRIVAL,
+  floor_03: STUB_ARRIVAL,
+  floor_04: STUB_ARRIVAL,
+  floor_05: STUB_ARRIVAL,
 }
 
 const FLOOR_DEFEAT_RESPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 19, y: 8, facing: 'n' },
   floor_02: FLOOR_2_DEFEAT_RESPAWN,
+  floor_03: STUB_DEFEAT_RESPAWN,
+  floor_04: STUB_DEFEAT_RESPAWN,
+  floor_05: STUB_DEFEAT_RESPAWN,
 }
 
 // One shaft: the elevator is the same three tiles on every floor.
 const FLOOR_ELEVATOR_ARRIVAL: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 3, y: 2, facing: 's' },
   floor_02: FLOOR_2_ARRIVAL,
+  floor_03: STUB_ARRIVAL,
+  floor_04: STUB_ARRIVAL,
+  floor_05: STUB_ARRIVAL,
 }
+
+const SHARED_BOARDING: ReadonlyArray<{ x: number; y: number; facing: Facing }> = [
+  { x: 2, y: 2, facing: 'n' },
+  { x: 3, y: 2, facing: 'n' },
+]
 
 const FLOOR_ELEVATOR_BOARDING: Record<
   FloorId,
   ReadonlyArray<{ x: number; y: number; facing: Facing }>
 > = {
-  floor_01: [
-    { x: 2, y: 2, facing: 'n' },
-    { x: 3, y: 2, facing: 'n' },
-  ],
-  floor_02: [
-    { x: 2, y: 2, facing: 'n' },
-    { x: 3, y: 2, facing: 'n' },
-  ],
+  floor_01: SHARED_BOARDING,
+  floor_02: SHARED_BOARDING,
+  floor_03: STUB_BOARDING,
+  floor_04: STUB_BOARDING,
+  floor_05: STUB_BOARDING,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -100,12 +126,20 @@ export const ZONE_LABEL: Record<ZoneId, string> = {
   ...FLOOR_2_ZONE_LABEL,
 }
 
+const FLOOR_LABEL: Record<FloorId, string> = {
+  floor_01: 'Floor 1',
+  floor_02: 'Floor 2',
+  floor_03: 'Floor 3',
+  floor_04: 'Floor 4',
+  floor_05: 'Floor 5',
+}
+
 export function floorLabel(floorId: FloorId): string {
-  return floorId === 'floor_02' ? 'Floor 2' : 'Floor 1'
+  return FLOOR_LABEL[floorId]
 }
 
 export function isKnownFloorId(value: unknown): value is FloorId {
-  return value === 'floor_01' || value === 'floor_02'
+  return typeof value === 'string' && (FLOOR_IDS as readonly string[]).includes(value)
 }
 
 export function mapArtForFloor(floorId: FloorId): readonly string[] {
@@ -124,9 +158,12 @@ export function elevatorArrivalForFloor(floorId: FloorId): SpawnPoint {
   return { ...FLOOR_ELEVATOR_ARRIVAL[floorId] }
 }
 
+/** @deprecated Toggle 1⇄2 only. Prefer `canRideTo` + an explicit destination. */
 export function elevatorDestination(floorId: FloorId): FloorId {
   return floorId === 'floor_01' ? 'floor_02' : 'floor_01'
 }
+
+export { canOpenElevatorPanel, canRideTo, elevatorRowFor }
 
 export function elevatorBoardingSpotsForFloor(
   floorId: FloorId,
@@ -135,8 +172,7 @@ export function elevatorBoardingSpotsForFloor(
 }
 
 export function canUseElevator(floorId: FloorId, keyItems: Record<string, number>): boolean {
-  if (floorId === 'floor_02') return true
-  return (keyItems.key_access_badge ?? 0) > 0
+  return canOpenElevatorPanel(floorId, keyItems)
 }
 
 export function glyphAt(x: number, y: number, floorId: FloorId = 'floor_01'): TileGlyph {
@@ -163,7 +199,9 @@ function zoneAtFloor1(x: number, y: number): ZoneId {
 }
 
 export function zoneAt(x: number, y: number, floorId: FloorId = 'floor_01'): ZoneId {
-  return floorId === 'floor_01' ? zoneAtFloor1(x, y) : floor2ZoneAt(x, y)
+  if (floorId === 'floor_01') return zoneAtFloor1(x, y)
+  if (floorId === 'floor_02') return floor2ZoneAt(x, y)
+  return stubZoneAt(x, y)
 }
 
 export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>> = {
@@ -174,6 +212,9 @@ export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>>
     npc_supervisor: { x: 6, y: 3, facing: 'e' },
   },
   floor_02: FLOOR_2_NPC_TILE,
+  floor_03: {},
+  floor_04: {},
+  floor_05: {},
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -202,6 +243,9 @@ export const FLOOR_NPC_SIGHT: Record<FloorId, Partial<Record<NpcId, TilePoint[]>
     ],
   },
   floor_02: FLOOR_2_NPC_SIGHT,
+  floor_03: {},
+  floor_04: {},
+  floor_05: {},
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -286,9 +330,21 @@ const FLOOR_01_INTERACT_SPOTS: InteractSpot[] = [
 
 const FLOOR_02_INTERACT_SPOTS: InteractSpot[] = FLOOR_2_INTERACT_SPOTS
 
+const stubDirectorySpots = (): InteractSpot[] => [
+  poiSpot(2, 2, 'n', 'poi_elevator_door', 'Elevator'),
+  poiSpot(3, 2, 'n', 'poi_elevator_door', 'Elevator'),
+  poiSpot(4, 2, 'n', 'poi_elevator_door', 'Elevator'),
+  poiSpot(4, 1, 'w', 'poi_elevator_door', 'Elevator'),
+  poiSpot(4, 4, 'e', 'poi_directory_sign_stub', 'Read · Directory'),
+  poiSpot(5, 5, 'n', 'poi_directory_sign_stub', 'Read · Directory'),
+]
+
 export const FLOOR_INTERACT_SPOTS: Record<FloorId, InteractSpot[]> = {
   floor_01: FLOOR_01_INTERACT_SPOTS,
   floor_02: FLOOR_02_INTERACT_SPOTS,
+  floor_03: stubDirectorySpots(),
+  floor_04: stubDirectorySpots(),
+  floor_05: stubDirectorySpots(),
 }
 
 // Back-compat exports for Floor 1 tests/callers.

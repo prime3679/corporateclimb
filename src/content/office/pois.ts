@@ -40,6 +40,8 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_janitor_cart: 'WET FLOOR. The floor is dry. The sign is aspirational.',
   poi_safe: 'A safe. The combination is on a sticky note. On the safe.',
   poi_shredder: 'A cross-cut shredder. It has eaten better receipts than yours.',
+  poi_directory_sign_stub:
+    'Unmapped floor. Elevator: you are standing at it. Fable fills the rest.',
 }
 
 export const PRINTER_COPY = {

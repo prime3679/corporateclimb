@@ -49,7 +49,10 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
   const zone = zoneAt(state.player.x, state.player.y, state.floorId)
   const ov = state.overlay
   const onFloor2 = state.floorId === 'floor_02'
-  const badge = onFloor2 ? state.keyItems.key_employee_badge : state.keyItems.key_access_badge
+  const badge =
+    state.floorId === 'floor_01'
+      ? state.keyItems.key_access_badge
+      : state.keyItems.key_employee_badge
   return {
     printer: printer === 'installed' ? 'printing' : printer === 'complete' ? 'working' : 'error',
     cabinetOpen: onFloor2
@@ -63,7 +66,8 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
       nearby?.kind === 'poi' &&
       (nearby.id === 'poi_vending_machine' || nearby.id === 'poi_vending_machine_f2'),
     readerGreen: (badge ?? 0) > 0,
-    elevatorOpen: ov?.kind === 'confirm' && ov.prompt === 'elevator',
+    elevatorOpen:
+      ov?.kind === 'elevator_panel' || (ov?.kind === 'confirm' && ov.prompt === 'elevator'),
     boothFlash: ov?.kind === 'dialogue' && ov.nodeId === `inspect:${PHOTO_BOOTH_COPY.countdown}`,
     badgePrinter:
       (state.keyItems.key_employee_badge ?? 0) > 0
@@ -92,6 +96,9 @@ const LIGHT_POOLS: Record<OfficeState['floorId'], { className: string; style: CS
     { className: styles.poolBreak, style: { left: 270, top: 330 } },
     { className: styles.poolBreak, style: { left: 520, top: 330, width: 220 } },
   ],
+  floor_03: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
+  floor_04: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
+  floor_05: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
 }
 
 /* ── sprite-sheet layers ────────────────────────────────────

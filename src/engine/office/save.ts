@@ -1,13 +1,45 @@
 import { inBounds, isKnownFloorId } from '@/content/office'
-import { fromOfficeSave, toOfficeSave, type OfficeSave, type OfficeState } from './state'
+import {
+  coworkersInParty,
+  fromOfficeSave,
+  toOfficeSave,
+  type OfficeSave,
+  type OfficeState,
+} from './state'
 
 export const OFFICE_SAVE_KEY = 'corporate-climb-office-save'
-export const OFFICE_SAVE_VERSION = 1
+export const OFFICE_SAVE_VERSION = 2
+
+function coworkersFromUnknown(party: OfficeSave['party']): OfficeSave['hired'] {
+  return coworkersInParty(party)
+}
+
+export function migrateOfficeSave(
+  raw: Partial<OfficeSave> & { version?: number },
+): OfficeSave | null {
+  if (!raw.run || !Array.isArray(raw.party) || raw.party.length < 1) return null
+  if (!isKnownFloorId(raw.floorId)) return null
+  if (
+    !raw.player ||
+    !inBounds(raw.player.x, raw.player.y) ||
+    !['n', 'e', 's', 'w'].includes(raw.player.facing)
+  )
+    return null
+  if (raw.version !== 1 && raw.version !== 2) return null
+  const hired = raw.hired ?? coworkersFromUnknown(raw.party)
+  return {
+    ...(raw as OfficeSave),
+    version: 2,
+    hired,
+    bench: raw.bench ?? {},
+    stats: { rides: 0, battlesWon: 0, losses: 0, switches: 0, msOnFloor: 0, ...raw.stats },
+  }
+}
 
 export function saveOffice(state: OfficeState | OfficeSave) {
   try {
     const save = 'overlay' in state ? toOfficeSave(state) : state
-    localStorage.setItem(OFFICE_SAVE_KEY, JSON.stringify(save))
+    localStorage.setItem(OFFICE_SAVE_KEY, JSON.stringify({ ...save, version: OFFICE_SAVE_VERSION }))
   } catch {
     /* storage unavailable */
   }
@@ -17,17 +49,8 @@ export function loadOfficeSave(): OfficeSave | null {
   try {
     const raw = localStorage.getItem(OFFICE_SAVE_KEY)
     if (!raw) return null
-    const parsed = JSON.parse(raw) as OfficeSave
-    if (parsed?.version !== OFFICE_SAVE_VERSION) return null
-    if (!parsed.run || !Array.isArray(parsed.party) || parsed.party.length < 1) return null
-    if (!isKnownFloorId(parsed.floorId)) return null
-    if (
-      !parsed.player ||
-      !inBounds(parsed.player.x, parsed.player.y) ||
-      !['n', 'e', 's', 'w'].includes(parsed.player.facing)
-    )
-      return null
-    return parsed
+    const parsed = JSON.parse(raw) as Partial<OfficeSave> & { version?: number }
+    return migrateOfficeSave(parsed)
   } catch {
     return null
   }

@@ -67,6 +67,8 @@ const FLOOR_FOR_ZONE: Record<ZoneId, TileName> = {
 
 /** Rugs are presentation only: rectangles of floor that get a 9-patch. */
 type Rug = { x0: number; y0: number; x1: number; y1: number; kind: 'red' | 'gold' | 'navy' }
+const STUB_RUGS: Rug[] = [{ x0: 2, y0: 2, x1: 4, y1: 3, kind: 'red' }]
+
 const RUGS: Record<FloorId, Rug[]> = {
   floor_01: [
     { x0: 2, y0: 2, x1: 4, y1: 3, kind: 'red' }, // in front of the elevator
@@ -74,6 +76,9 @@ const RUGS: Record<FloorId, Rug[]> = {
     { x0: 12, y0: 1, x1: 12, y1: 12, kind: 'navy' }, // hall runner down the spine
   ],
   floor_02: FLOOR_2_RUGS,
+  floor_03: STUB_RUGS,
+  floor_04: STUB_RUGS,
+  floor_05: STUB_RUGS,
 }
 
 /** Wall-face decor keyed by `x,y` of the wall tile it hangs on. */
@@ -116,6 +121,9 @@ const WALL_DECOR_F1: Record<string, TileName> = {
 const WALL_DECOR: Record<FloorId, Record<string, TileName>> = {
   floor_01: WALL_DECOR_F1,
   floor_02: FLOOR_2_WALL_DECOR as Record<string, TileName>,
+  floor_03: {},
+  floor_04: {},
+  floor_05: {},
 }
 
 function isWall(g: string) {
