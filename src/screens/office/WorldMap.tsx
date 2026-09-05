@@ -161,8 +161,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   )
   const camYMax = Math.max(0, MAP_HEIGHT - viewRows)
   const camY = Math.max(0, Math.min(state.player.y + lookAheadY - viewRows / 2 + 0.5, camYMax))
-  // Whole pixels only: a fractional look-ahead offset puts every sprite edge on
-  // a sub-pixel boundary and the sheet cells grow hairline seams.
+  // Whole pixels only: the fractional look-ahead would otherwise put every
+  // sprite on a sub-pixel boundary and soften the 1px art.
   const camPx = { x: Math.round(camX * T), y: Math.round(camY * T) }
 
   const ov = state.overlay
