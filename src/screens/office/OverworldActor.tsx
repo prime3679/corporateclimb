@@ -10,6 +10,10 @@ export const ACTOR_IDS = [
   'gavin',
   'priya',
   'holloway',
+  // Floor 2 cast (docs/rpg/floor-2-design.md §2)
+  'teddy',
+  'kessler',
+  'whitlock',
 ] as const
 
 export type OfficeActorId = (typeof ACTOR_IDS)[number]
@@ -22,6 +26,9 @@ const SPRITE_TO_ACTOR: Record<string, OfficeActorId> = {
   overachiever: 'gavin',
   scrum: 'priya',
   manager: 'holloway',
+  intern: 'teddy',
+  vp: 'kessler',
+  boss: 'whitlock',
 }
 
 export const NPC_ACTOR: Record<NpcId, OfficeActorId> = {
@@ -29,7 +36,9 @@ export const NPC_ACTOR: Record<NpcId, OfficeActorId> = {
   npc_desk_challenger: 'gavin',
   npc_meeting_prepper: 'priya',
   npc_supervisor: 'holloway',
-  npc_floor2_contractor: 'renata',
+  npc_help_desk_intern: 'teddy',
+  npc_auditor: 'whitlock',
+  npc_director: 'kessler',
 }
 
 export function actorIdForSprite(spriteId: string): OfficeActorId {

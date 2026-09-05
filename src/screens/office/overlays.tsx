@@ -5,11 +5,13 @@ import {
   COWORKER_KITS,
   DIALOGUE,
   DIRECTORY_TEXT,
+  FLOOR_2_DIRECTORY_TEXT,
   elevatorDestination,
   floorLabel,
   HANDOUT_CHOICES,
   OFFICE_ENCOUNTERS,
   RECEIPTS,
+  ledgerOptionsEarned,
   type CoworkerId,
   type DialogueId,
   type ReceiptId,
@@ -244,7 +246,11 @@ function Dialogue({
     nodeId === 'dlg_holloway_1on1' && state.party.length >= 2 && lineIdx === 1
       ? ' You brought people. Good. I talk for a living; take turns.'
       : ''
-  const line = (inspect ?? node?.lines[lineIdx] ?? '') + extras
+  // `{n}` is the Floor 1 ledger total Whitlock quotes back (design §2.2).
+  const raw = (inspect ?? node?.lines[lineIdx] ?? '') + extras
+  const line = raw.includes('{n}')
+    ? raw.split('{n}').join(String(ledgerOptionsEarned(state.rewardsClaimed, 'floor_01')))
+    : raw
   const cast = node ? castForSpeaker(node.speaker, nodeId) : null
   const tw = useTypewriter(line, msPerChar)
   const isLast = !!node && lineIdx >= node.lines.length - 1
@@ -698,14 +704,22 @@ export default function OfficeOverlays({
 
   if (ov.kind === 'document') {
     const agenda = ov.docId === 'agenda'
-    const lines = agenda ? AGENDA_TEXT : DIRECTORY_TEXT
+    const lines = agenda
+      ? AGENDA_TEXT
+      : state.floorId === 'floor_02'
+        ? FLOOR_2_DIRECTORY_TEXT
+        : DIRECTORY_TEXT
     return (
       <div className={styles.layer}>
         <div className={styles.scrim} role="dialog" aria-modal="true">
           <div className={`${styles.card} ${styles.cardTight} ${styles.paper}`}>
             <span className={styles.clip} aria-hidden />
             <div className={`${styles.eyebrow} ${styles.paperTitle}`}>
-              {agenda ? 'Meeting room · Agenda' : 'Hall · Directory'}
+              {agenda
+                ? 'Meeting room · Agenda'
+                : state.floorId === 'floor_02'
+                  ? 'Landing · Directory'
+                  : 'Hall · Directory'}
             </div>
             <div className={`${styles.title} ${styles.paperTitle}`}>
               {agenda ? 'Agenda' : 'Directory'}

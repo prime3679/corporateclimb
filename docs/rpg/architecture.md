@@ -7,7 +7,10 @@ second combat engine or a second perk pool._
 
 Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.md`
 (ledger and combat numbers), `docs/rpg/fidelity-bar.md` (walk-cycle follow-up to
-the #67 presentation rebuild), `CLAUDE.md` (Classic tower).
+the #67 presentation rebuild), `CLAUDE.md` (Classic tower). Floor 2 is designed in
+`docs/rpg/floor-2-design.md`; the engine work it asks for (multi-floor state, elevator
+destinations, badges, roster, encounter phase 2) is listed in
+`docs/rpg/floor-2-engine-hooks.md`.
 
 ## Ownership — Astra vs Fable
 

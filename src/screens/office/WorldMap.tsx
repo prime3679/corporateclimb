@@ -1,8 +1,10 @@
 import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import {
+  BADGE_PRINTER_COPY,
   DIALOGUE,
   MAP_HEIGHT,
   MAP_WIDTH,
+  PHOTO_BOOTH_COPY,
   TILE_SIZE,
   VIEWPORT_TILES_X,
   ZONE_LABEL,
@@ -45,16 +47,51 @@ function facingToward(from: { x: number; y: number }, to: { x: number; y: number
 function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget>): TileStates {
   const printer = state.assignments.asg_printer
   const zone = zoneAt(state.player.x, state.player.y, state.floorId)
+  const ov = state.overlay
+  const onFloor2 = state.floorId === 'floor_02'
+  const badge = onFloor2 ? state.keyItems.key_employee_badge : state.keyItems.key_access_badge
   return {
     printer: printer === 'installed' ? 'printing' : printer === 'complete' ? 'working' : 'error',
-    cabinetOpen: printer !== 'not_started' && printer !== 'accepted',
+    cabinetOpen: onFloor2
+      ? state.firedTriggers.includes('poi_supply_cabinet_f2:opened')
+      : printer !== 'not_started' && printer !== 'accepted',
     counterSteaming:
       zone === 'zone_break' ||
-      (state.overlay?.kind === 'toast' && state.overlay.text.startsWith('You take five')),
-    vendingLit: nearby?.kind === 'poi' && nearby.id === 'poi_vending_machine',
-    readerGreen: (state.keyItems.key_access_badge ?? 0) > 0,
-    elevatorOpen: state.overlay?.kind === 'confirm' && state.overlay.prompt === 'elevator',
+      zone === 'zone_facilities' ||
+      (ov?.kind === 'toast' && ov.text.startsWith('You take five')),
+    vendingLit:
+      nearby?.kind === 'poi' &&
+      (nearby.id === 'poi_vending_machine' || nearby.id === 'poi_vending_machine_f2'),
+    readerGreen: (badge ?? 0) > 0,
+    elevatorOpen: ov?.kind === 'confirm' && ov.prompt === 'elevator',
+    boothFlash: ov?.kind === 'dialogue' && ov.nodeId === `inspect:${PHOTO_BOOTH_COPY.countdown}`,
+    badgePrinter:
+      (state.keyItems.key_employee_badge ?? 0) > 0
+        ? 'done'
+        : ov?.kind === 'dialogue' && ov.nodeId === `inspect:${BADGE_PRINTER_COPY.printing}`
+          ? 'printing'
+          : 'idle',
+    shredding: ov?.kind === 'dialogue' && ov.nodeId === 'dlg_whitlock_after',
   }
+}
+
+/** One warm ceiling fixture per room, positioned in map pixels per floor. */
+const LIGHT_POOLS: Record<OfficeState['floorId'], { className: string; style: CSSProperties }[]> = {
+  floor_01: [
+    { className: styles.poolElevator, style: {} },
+    { className: styles.poolDesks, style: {} },
+    { className: styles.poolBreak, style: {} },
+    { className: styles.poolMeeting, style: {} },
+    { className: styles.poolReception, style: {} },
+  ],
+  floor_02: [
+    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
+    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
+    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
+    { className: styles.poolReception, style: { left: 20, top: 330, width: 200, height: 170 } },
+    { className: styles.poolBreak, style: { left: 270, top: 330 } },
+    { className: styles.poolBreak, style: { left: 520, top: 330, width: 220 } },
+  ],
 }
 
 /* ── sprite-sheet layers ────────────────────────────────────
@@ -190,7 +227,8 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const nearbyTop = nearby ? Math.max(30, (outlineTile?.y ?? ahead.y) * T - camPx.y - 6) : 0
   const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
   const elevatorDot =
-    nearby?.kind === 'poi' && nearby.id === 'poi_elevator_door'
+    nearby?.kind === 'poi' &&
+    (nearby.id === 'poi_elevator_door' || nearby.id === 'poi_elevator_door_f2')
       ? states.readerGreen
         ? 'var(--cc-heal)'
         : 'var(--cc-danger)'
@@ -206,9 +244,14 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const poiFxTile =
     nearby?.kind === 'poi' &&
     (nearby.id === 'poi_elevator_door' ||
+      nearby.id === 'poi_elevator_door_f2' ||
       nearby.id === 'poi_supervisor_door' ||
+      nearby.id === 'poi_director_door' ||
       nearby.id === 'poi_printer' ||
-      nearby.id === 'poi_vending_machine')
+      nearby.id === 'poi_badge_printer' ||
+      nearby.id === 'poi_photo_booth' ||
+      nearby.id === 'poi_vending_machine' ||
+      nearby.id === 'poi_vending_machine_f2')
       ? { x: (outlineTile?.x ?? ahead.x) * T, y: (outlineTile?.y ?? ahead.y) * T }
       : null
 
@@ -235,11 +278,9 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         <FloorLayer floorId={state.floorId} />
         <PropLayers floorId={state.floorId} {...states} />
         <div className={styles.lightPools} aria-hidden>
-          <span className={`${styles.pool} ${styles.poolElevator}`} />
-          <span className={`${styles.pool} ${styles.poolDesks}`} />
-          <span className={`${styles.pool} ${styles.poolBreak}`} />
-          <span className={`${styles.pool} ${styles.poolMeeting}`} />
-          <span className={`${styles.pool} ${styles.poolReception}`} />
+          {LIGHT_POOLS[state.floorId].map((pool, i) => (
+            <span key={i} className={`${styles.pool} ${pool.className}`} style={pool.style} />
+          ))}
         </div>
 
         {outlineTile && (

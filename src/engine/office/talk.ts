@@ -2,17 +2,35 @@ import type { DialogueId, EncounterId, NpcId } from '@/content/office'
 import { hasFlag, heldHandout, inParty, lettersHeld, partyHasRoom, type OfficeState } from './state'
 
 export function resolveNpcTalk(state: OfficeState, npc: NpcId): DialogueId {
-  if (npc === 'npc_floor2_contractor') return resolveCallie(state)
+  if (npc === 'npc_help_desk_intern') return resolveTeddy(state)
+  if (npc === 'npc_auditor') return resolveWhitlock(state)
+  if (npc === 'npc_director') return resolveKessler(state)
   if (npc === 'npc_receptionist') return resolveRenata(state)
   if (npc === 'npc_desk_challenger') return resolveGavin(state)
   if (npc === 'npc_meeting_prepper') return resolvePriya(state)
   return resolveHolloway(state)
 }
 
-function resolveCallie(state: OfficeState): DialogueId {
-  return hasFlag(state, 'flag_floor2_briefed')
-    ? 'dlg_callie_floor2_repeat'
-    : 'dlg_callie_floor2_intro'
+/* Floor 2 (docs/rpg/floor-2-design.md §2). The transfer packet is wired
+   through `filed`; compliance training, the recruit, the audit and Kessler's
+   review are Astra's (docs/rpg/floor-2-engine-hooks.md). */
+
+export function resolveTeddy(state: OfficeState): DialogueId {
+  const transfer = state.assignments.asg_transfer
+  if (transfer === 'not_started') return 'dlg_teddy_packet'
+  if (transfer === 'accepted') return 'dlg_teddy_hint_photo'
+  if (transfer === 'photo_taken') return 'dlg_teddy_hint_signature'
+  if (transfer === 'signed') return 'dlg_teddy_hint_file'
+  return 'dlg_teddy_filed'
+}
+
+export function resolveWhitlock(_state: OfficeState): DialogueId {
+  return 'dlg_whitlock_hook'
+}
+
+export function resolveKessler(state: OfficeState): DialogueId {
+  if (state.assignments.asg_transfer !== 'complete') return 'dlg_kessler_early'
+  return 'dlg_kessler_teddy_pending'
 }
 
 function resolveRenata(state: OfficeState): DialogueId {
@@ -30,6 +48,8 @@ function resolveRenata(state: OfficeState): DialogueId {
 }
 
 function resolveRenataProgress(state: OfficeState): DialogueId {
+  if (state.assignments.asg_transfer === 'photo_taken') return 'dlg_renata_transfer'
+  if (hasFlag(state, 'flag_visited_f2')) return 'dlg_renata_upstairs'
   if (hasFlag(state, 'flag_preview_complete')) return 'dlg_renata_after'
   if ((state.keyItems.key_access_badge ?? 0) > 0) return 'dlg_renata_badged'
   const printer = state.assignments.asg_printer
@@ -82,6 +102,9 @@ function resolvePriya(state: OfficeState): DialogueId {
 }
 
 export function resolveHolloway(state: OfficeState): DialogueId {
+  if (state.assignments.asg_transfer === 'photo_taken') return 'dlg_holloway_sign_transfer'
+  if (state.assignments.asg_transfer === 'signed' || state.assignments.asg_transfer === 'filed')
+    return 'dlg_holloway_upstairs'
   if (state.encounters.enc_supervisor_1on1 === 'won') return 'dlg_holloway_after'
   if (state.assignments.asg_printer !== 'complete') return 'dlg_holloway_early'
   if (state.encounters.enc_desk_challenger !== 'won') return 'dlg_holloway_gavin_pending'
@@ -91,6 +114,9 @@ export function resolveHolloway(state: OfficeState): DialogueId {
 export function lossDialogue(encounterId: EncounterId): DialogueId {
   if (encounterId === 'enc_desk_challenger') return 'dlg_gavin_you_lost'
   if (encounterId === 'enc_meeting_prepper') return 'dlg_priya_you_lost'
+  if (encounterId === 'enc_help_desk_intern') return 'dlg_teddy_you_lost'
+  if (encounterId === 'enc_auditor') return 'dlg_whitlock_you_lost'
+  if (encounterId === 'enc_director_review') return 'dlg_kessler_you_lost'
   return 'dlg_holloway_you_lost'
 }
 
@@ -107,6 +133,19 @@ export function sightDialogue(state: OfficeState, npc: NpcId): DialogueId | null
   if (npc === 'npc_supervisor') {
     if (state.encounters.enc_supervisor_1on1 === 'won') return null
     return resolveHolloway(state)
+  }
+  if (npc === 'npc_help_desk_intern') {
+    if (state.assignments.asg_transfer !== 'filed') return null
+    if (state.encounters.enc_help_desk_intern !== 'open') return null
+    return 'dlg_teddy_filed'
+  }
+  if (npc === 'npc_auditor') {
+    if (state.assignments.asg_audit !== 'not_started') return null
+    return 'dlg_whitlock_hook'
+  }
+  if (npc === 'npc_director') {
+    if (state.encounters.enc_director_review === 'won') return null
+    return resolveKessler(state)
   }
   return null
 }

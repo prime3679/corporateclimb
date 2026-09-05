@@ -1,9 +1,11 @@
 import type { MoveType } from '@/types'
 import {
+  FLOOR_2_ZONE_ACCENT,
   OFFICE_ENCOUNTERS,
   SPEAKER_SPRITE,
   floorLabel,
   ZONE_LABEL,
+  type CoworkerId,
   type DialogueId,
   type InteractTarget,
   type NpcId,
@@ -64,11 +66,23 @@ export const NPC_CAST: Record<NpcId, CastEntry> = {
     spriteId: SPEAKER_SPRITE.holloway,
     types: OFFICE_ENCOUNTERS.enc_supervisor_1on1.types,
   },
-  npc_floor2_contractor: {
-    name: 'Callie',
-    role: 'Facilities Pilot',
-    spriteId: SPEAKER_SPRITE.callie,
-    types: ['strategy'],
+  npc_help_desk_intern: {
+    name: 'Teddy',
+    role: 'IT Help Desk (Rotational)',
+    spriteId: SPEAKER_SPRITE.teddy,
+    types: OFFICE_ENCOUNTERS.enc_help_desk_intern.types,
+  },
+  npc_auditor: {
+    name: 'Whitlock',
+    role: 'External Auditor',
+    spriteId: SPEAKER_SPRITE.whitlock,
+    types: OFFICE_ENCOUNTERS.enc_auditor.types,
+  },
+  npc_director: {
+    name: 'Kessler',
+    role: 'Director of Operations',
+    spriteId: SPEAKER_SPRITE.kessler,
+    types: OFFICE_ENCOUNTERS.enc_director_review.types,
   },
 }
 
@@ -77,12 +91,15 @@ const SPEAKER_NPC: Record<Exclude<SpeakerId, null>, NpcId> = {
   gavin: 'npc_desk_challenger',
   priya: 'npc_meeting_prepper',
   holloway: 'npc_supervisor',
-  callie: 'npc_floor2_contractor',
+  teddy: 'npc_help_desk_intern',
+  whitlock: 'npc_auditor',
+  kessler: 'npc_director',
 }
 
 /** Lines shouted across the room carry no headshot but still name the speaker. */
 const ACROSS_THE_ROOM: Partial<Record<DialogueId, SpeakerId>> = {
   dlg_renata_callout: 'renata',
+  dlg_teddy_callout: 'teddy',
 }
 
 export function castForSpeaker(
@@ -106,7 +123,13 @@ export function memberRing(member: PartyMember): string {
 
 export function memberRole(member: PartyMember): string {
   if (member.def.kind === 'lead') return kitFor(member).name
-  return member.def.id === 'cw_desk_challenger' ? 'Senior Associate' : 'Ops'
+  return COWORKER_ROLE[member.def.id]
+}
+
+const COWORKER_ROLE: Record<CoworkerId, string> = {
+  cw_desk_challenger: 'Senior Associate',
+  cw_meeting_prepper: 'Ops',
+  cw_help_desk_intern: 'IT Help Desk (Rotational)',
 }
 
 /** `hud_nearby` copy per design §10.4: "Verb · Object", state-aware. */
@@ -114,6 +137,7 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
   if (target.kind === 'npc') return `Talk · ${NPC_CAST[target.id].name}`
   const badge = (state.keyItems.key_access_badge ?? 0) > 0
   const prep = state.assignments.asg_meeting_prep
+  const transfer = state.assignments.asg_transfer
   switch (target.id) {
     case 'poi_reception_desk':
       return 'Talk · Renata'
@@ -134,8 +158,9 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
         ? 'Pick · Handout'
         : 'Inspect · Handout rack'
     case 'poi_elevator_door':
-      if (state.floorId === 'floor_02') return 'Ride down · Elevator'
       return badge ? 'Ride up · Elevator' : 'Badge in · Elevator'
+    case 'poi_elevator_door_f2':
+      return 'Ride down · Elevator'
     case 'poi_directory_sign':
       return 'Read · Directory'
     case 'poi_exit_door':
@@ -146,6 +171,46 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
       return 'Inspect · Break table'
     case 'poi_supervisor_door':
       return 'Inspect · Glass door'
+    // Floor 2 (design §1.2)
+    case 'poi_directory_sign_f2':
+      return 'Read · Directory'
+    case 'poi_photo_booth':
+      return transfer === 'accepted' ? 'Take photo · Booth' : 'Inspect · Booth'
+    case 'poi_badge_printer':
+      return state.encounters.enc_director_review === 'won' &&
+        (state.keyItems.key_employee_badge ?? 0) === 0
+        ? 'Print badge · Badge printer'
+        : 'Inspect · Badge printer'
+    case 'poi_server_rack':
+      return 'Inspect · Server rack'
+    case 'poi_help_desk':
+      return 'Inspect · Help desk'
+    case 'poi_people_tray':
+      return transfer === 'signed' ? 'File · People Ops tray' : 'Inspect · People Ops tray'
+    case 'poi_filing_cabinets':
+      return 'Inspect · Filing cabinets'
+    case 'poi_water_cooler_f2':
+      return 'Inspect · Water cooler'
+    case 'poi_director_door':
+      return 'Inspect · Glass door'
+    case 'poi_director_desk':
+      return 'Inspect · Desk'
+    case 'poi_supply_cabinet_f2':
+      return 'Open · Supply cabinet'
+    case 'poi_break_counter_f2':
+      return 'Take five · Coffee counter'
+    case 'poi_vending_machine_f2':
+      return 'Buy · Vending'
+    case 'poi_break_table_f2':
+      return 'Inspect · Break table'
+    case 'poi_lockers':
+      return 'Inspect · Lockers'
+    case 'poi_janitor_cart':
+      return 'Inspect · Janitor cart'
+    case 'poi_safe':
+      return 'Inspect · Safe'
+    case 'poi_shredder':
+      return 'Inspect · Shredder'
   }
 }
 
@@ -161,6 +226,7 @@ export const ZONE_ACCENT: Record<ZoneId, string> = {
   zone_meeting: '#a86ee8',
   zone_elevator: '#e0844d',
   zone_hall: '#8b98a8',
+  ...FLOOR_2_ZONE_ACCENT,
 }
 
 export { ZONE_LABEL }

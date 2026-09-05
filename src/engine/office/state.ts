@@ -92,6 +92,22 @@ export function makeLead(cls: PlayerClass): PartyMember {
   }
 }
 
+export const FRESH_ASSIGNMENTS: Record<AssignmentId, string> = {
+  asg_printer: 'not_started',
+  asg_meeting_prep: 'not_started',
+  asg_transfer: 'not_started',
+  asg_audit: 'not_started',
+}
+
+export const FRESH_ENCOUNTERS: Record<EncounterId, 'open' | 'won'> = {
+  enc_desk_challenger: 'open',
+  enc_meeting_prepper: 'open',
+  enc_supervisor_1on1: 'open',
+  enc_help_desk_intern: 'open',
+  enc_auditor: 'open',
+  enc_director_review: 'open',
+}
+
 export function newOfficeCampaign(cls: PlayerClass): OfficeState {
   const run = {
     ...newRun(cls, { perkPool: BASE_PERK_POOL, relicPool: [] }, 0),
@@ -104,12 +120,8 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     party: [makeLead(cls)],
     floorId: 'floor_01',
     player: spawnForFloor('floor_01'),
-    assignments: { asg_printer: 'not_started', asg_meeting_prep: 'not_started' },
-    encounters: {
-      enc_desk_challenger: 'open',
-      enc_meeting_prepper: 'open',
-      enc_supervisor_1on1: 'open',
-    },
+    assignments: { ...FRESH_ASSIGNMENTS },
+    encounters: { ...FRESH_ENCOUNTERS },
     keyItems: {},
     rewardsClaimed: ['rwd_start_options'],
     flags: [],
@@ -150,6 +162,9 @@ export function fromOfficeSave(save: OfficeSave): OfficeState {
   const lead = save.party[0]
   return {
     ...save,
+    // Saves written before Floor 2 existed lack its keys; they start fresh.
+    assignments: { ...FRESH_ASSIGNMENTS, ...save.assignments },
+    encounters: { ...FRESH_ENCOUNTERS, ...save.encounters },
     run: {
       ...save.run,
       hp: lead?.hp ?? save.run.hp,
@@ -182,7 +197,7 @@ export function withKey(state: OfficeState, id: string, delta: number): OfficeSt
   const next = Math.max(0, keyCount(state, id) + delta)
   const keyItems = { ...state.keyItems }
   if (next === 0) delete keyItems[id]
-  else keyItems[id] = id === 'key_offer_letter' ? Math.min(2, next) : next
+  else keyItems[id] = id === 'key_offer_letter' ? Math.min(3, next) : next
   return { ...state, keyItems }
 }
 

@@ -42,12 +42,8 @@ describe('office save isolation', () => {
     s = {
       ...s,
       player: { x: 9, y: 3, facing: 'w' },
-      assignments: { asg_printer: 'complete', asg_meeting_prep: 'accepted' },
-      encounters: {
-        enc_desk_challenger: 'won',
-        enc_meeting_prepper: 'open',
-        enc_supervisor_1on1: 'open',
-      },
+      assignments: { ...s.assignments, asg_printer: 'complete', asg_meeting_prep: 'accepted' },
+      encounters: { ...s.encounters, enc_desk_challenger: 'won' },
       keyItems: { key_offer_letter: 1 },
       run: { ...s.run, pendingPerkOffer: ['signing_bonus', 'gym_membership', 'negotiator'] },
     }

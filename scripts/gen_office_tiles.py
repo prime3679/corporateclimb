@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
-"""Floor 1 office tileset — hand-authored pixel art, one sheet.
+"""Office tileset (Floor 1 + Floor 2) — hand-authored pixel art, one sheet.
 
 Output: public/office/tiles.png (RGBA) plus src/screens/office/tileAtlas.ts,
-the name → cell index the WorldMap sprite layer reads.
+the name → cell index the WorldMap sprite layer reads. Floor 2 cells
+(docs/rpg/floor-2-design.md) are appended after every Floor 1 cell so the
+Floor 1 indices never move.
 
 Every atlas cell is 32×48. The tile footprint is the bottom 32×32 (a floor
 tile lives entirely there); props may overflow up to 16px upward so tall
@@ -319,6 +321,23 @@ FONT = {
     '1': ['.#.', '##.', '.#.', '.#.', '###'],
     '2': ['##.', '..#', '.#.', '#..', '###'],
     ' ': ['...', '...', '...', '...', '...'],
+    # Floor 2 signage additions
+    'J': ['###', '..#', '..#', '#.#', '.#.'],
+    'Q': ['.#.', '#.#', '#.#', '##.', '..#'],
+    'V': ['#.#', '#.#', '#.#', '#.#', '.#.'],
+    'W': ['#.#', '#.#', '###', '###', '#.#'],
+    'Y': ['#.#', '#.#', '.#.', '.#.', '.#.'],
+    'Z': ['###', '..#', '.#.', '#..', '###'],
+    '0': ['###', '#.#', '#.#', '#.#', '###'],
+    '3': ['###', '..#', '.##', '..#', '###'],
+    '4': ['#.#', '#.#', '###', '..#', '..#'],
+    '5': ['###', '#..', '###', '..#', '###'],
+    '6': ['###', '#..', '###', '#.#', '###'],
+    '7': ['###', '..#', '.#.', '.#.', '.#.'],
+    '8': ['###', '#.#', '###', '#.#', '###'],
+    '9': ['###', '#.#', '###', '..#', '###'],
+    '-': ['...', '...', '###', '...', '...'],
+    ':': ['...', '.#.', '...', '.#.', '...'],
 }
 
 
@@ -1917,6 +1936,953 @@ def street_exit() -> Cell:
     return c
 
 
+# ===========================================================================
+# Floor 2 — OPERATIONS. Same art language, appended after every Floor 1 cell
+# so the Floor 1 atlas indices never move (docs/rpg/floor-2-design.md §1).
+# ===========================================================================
+
+FLOORS_F2 = {
+    'it': (hexc('#4a5668'), hexc('#56637a'), hexc('#3e485a')),
+    'people': (hexc('#6e4a5a'), hexc('#7d5868'), hexc('#5c3c4a')),
+    'director': (hexc('#3c3a48'), hexc('#464455'), hexc('#302e3a')),
+    'facilities': (hexc('#4d6a6e'), hexc('#59797d'), hexc('#3f585c')),
+    'finance': (hexc('#3f5e4a'), hexc('#4a6d56'), hexc('#34503e')),
+}
+
+WALNUT = hexc('#5e3f2a')
+WALNUT_LIT = hexc('#7a553a')
+WALNUT_DARK = hexc('#3d2818')
+LEATHER = hexc('#2f4a3a')
+LEATHER_LIT = hexc('#3c5c49')
+BRASS = hexc('#c9a24a')
+BRASS_LIT = hexc('#e6c56a')
+BRASS_DARK = hexc('#8f6f2a')
+OAK = hexc('#c99a5f')
+OAK_LIT = hexc('#e0b87a')
+OAK_DARK = hexc('#9c7444')
+MUSTARD = hexc('#c29a3a')
+MUSTARD_LIT = hexc('#dbb556')
+MUSTARD_DARK = hexc('#8f6e24')
+SAFETY = hexc('#f2c230')
+SAFETY_DARK = hexc('#b98c14')
+AMBER = hexc('#ffb020')
+CURTAIN = hexc('#7a2f33')
+CURTAIN_LIT = hexc('#9a4448')
+CURTAIN_DARK = hexc('#521e22')
+PINK_BOX = hexc('#f2a7c3')
+PINK_BOX_LIT = hexc('#ffd0e0')
+PINK_BOX_DARK = hexc('#c47a98')
+DONUT = hexc('#d9a066')
+DONUT_ICING = hexc('#f4d35e')
+BLUE_FLECK = hexc('#5b7fb0')
+
+
+# --- Floor 2 floors ---------------------------------------------------------
+
+
+def floor_it() -> Cell:
+    """Anti-static tile: 16px squares, lit grout, a blue conductive fleck."""
+    base, lit, dark = FLOORS_F2['it']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(2):
+        for qx in range(2):
+            ox, oy = qx * 16, qy * 16
+            c.hline(ox, oy, 16, dark)
+            c.vline(ox, oy, 16, dark)
+            c.hline(ox + 1, oy + 1, 15, lit)
+            c.vline(ox + 1, oy + 1, 15, lit)
+            for k, (sx, sy) in enumerate(((5, 9), (11, 4), (9, 12), (13, 8))):
+                c.put(ox + sx, oy + sy, BLUE_FLECK if k % 2 == 0 else dark)
+    return c
+
+
+def floor_people() -> Cell:
+    """Rose carpet, 8px herringbone."""
+    base, lit, dark = FLOORS_F2['people']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            band = (x // 8 + y // 8) % 2
+            if band == 0 and (x + y) % 4 == 0:
+                c.put(x, y, lit)
+            elif band == 1 and (x - y) % 4 == 0:
+                c.put(x, y, lit)
+            elif (x * 5 + y * 3) % 17 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_director() -> Cell:
+    """Charcoal plush with a diagonal weave — the expensive carpet."""
+    base, lit, dark = FLOORS_F2['director']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            if (x + y) % 6 == 0:
+                c.put(x, y, lit)
+            elif (x + y) % 6 == 3 and x % 2 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_facilities() -> Cell:
+    """Sealed concrete: 16px pour joints and a speckle."""
+    base, lit, dark = FLOORS_F2['facilities']
+    joint = hexc('#37494d')
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(2):
+        for qx in range(2):
+            ox, oy = qx * 16, qy * 16
+            c.hline(ox, oy, 16, joint)
+            c.vline(ox, oy, 16, joint)
+            c.hline(ox + 1, oy + 1, 15, lit)
+            for k, (sx, sy) in enumerate(((3, 5), (8, 3), (13, 9), (6, 12), (11, 14), (14, 4))):
+                c.put(ox + sx, oy + sy, dark if k % 2 else lit)
+    return c
+
+
+def floor_finance() -> Cell:
+    """Green carpet tiles, 8px, alternating pile direction."""
+    base, lit, dark = FLOORS_F2['finance']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(4):
+        for qx in range(4):
+            ox, oy = qx * 8, qy * 8
+            horizontal = (qx + qy) % 2 == 0
+            for i in range(8):
+                for j in range(8):
+                    x, y = ox + i, oy + j
+                    if horizontal and j % 4 == 1 and i % 2 == 0:
+                        c.put(x, y, lit)
+                    elif not horizontal and i % 4 == 1 and j % 2 == 0:
+                        c.put(x, y, lit)
+            c.hline(ox, oy, 8, dark)
+            c.vline(ox, oy, 8, dark)
+    return c
+
+
+# --- Floor 2 doorway ---------------------------------------------------------
+
+
+def door_v_single() -> Cell:
+    """A one-tile opening in a vertical wall: both jamb posts, leaves folded."""
+    c = Cell()
+    c.vline(14, 0, 32, TRACK_DARK)
+    c.rect(15, 0, 3, 32, TRACK)
+    c.vline(15, 0, 32, STEEL_LIT)
+    c.vline(18, 0, 32, TRACK_DARK)
+    for y in range(2, 32, 6):
+        c.put(16, y, TRACK_DARK)
+    for y0 in (0, 24):
+        c.rect(13, y0, 7, 8, STEEL_DARK)
+        c.rect(14, y0, 5, 8, STEEL)
+        c.vline(14, y0, 8, STEEL_LIT)
+        c.frame(12, y0 - 1, 9, 10, INK)
+        c.blend_rect(20, y0 + 1, 7, 6, GLASS)
+        c.hline(20, y0 + 1, 7, GLASS_EDGE)
+        c.hline(20, y0 + 6, 7, GLASS_EDGE)
+        c.vline(26, y0 + 1, 6, GLASS_EDGE)
+        c.frame(20, y0, 8, 8, INK)
+        c.put(21, y0 + 2, GLASS_LIT)
+        c.put(22, y0 + 2, GLASS_LIT)
+    return c
+
+
+# --- Floor 2 wall decor -----------------------------------------------------
+
+
+def plaque_ops(part: str) -> Cell:
+    """Landing/hall plaque, 3 tiles wide: rising-bars mark + OPERATIONS / FLOOR 2."""
+    c = Cell()
+    off = {'l': 0, 'm': -32, 'r': -64}[part]
+    c.rect(0, 11, 32, 15, NAVY)
+    c.hline(0, 11, 32, NAVY_LIT)
+    c.hline(0, 10, 32, INK)
+    c.hline(0, 26, 32, INK)
+    c.hline(0, 27, 32, FACE_DARK)
+    if part == 'l':
+        c.vline(0, 10, 17, INK)
+        c.vline(1, 11, 15, NAVY_LIT)
+    if part == 'r':
+        c.vline(31, 10, 17, INK)
+        c.vline(30, 11, 15, hexc('#141c33'))
+    for i, h in enumerate((3, 5, 8, 11)):
+        c.rect(off + 5 + i * 4, 23 - h, 3, h, GOLD if i < 3 else GOLD_LIT)
+    c.hline(off + 4, 23, 17, GOLD_DARK)
+    c.put(off + 21, 12, GOLD_LIT)
+    c.put(off + 22, 13, GOLD_LIT)
+    text(c, 'OPERATIONS', off + 26, 13, GOLD)
+    c.hline(off + 26, 19, 59, GOLD_DARK)
+    text(c, 'FLOOR 2', off + 62, 20, PAPER)
+    return c
+
+
+def ticket_board(part: str) -> Cell:
+    """Help-desk kanban: three columns of coloured tickets, mostly in TODO."""
+    c = Cell()
+    x0 = 2 if part == 'l' else 0
+    x1 = 32 if part == 'l' else 30
+    c.rect(x0, 10, x1 - x0, 17, DARKPL)
+    c.hline(x0, 10, x1 - x0, DARKPL_LIT)
+    c.hline(x0, 9, x1 - x0, INK)
+    c.hline(x0, 27, x1 - x0, INK)
+    if part == 'l':
+        c.vline(x0, 9, 19, INK)
+        text(c, 'OPEN', 3, 12, PAPER)
+        tickets = ((5, 18, hexc('#f4d35e')), (9, 18, hexc('#ff9f9f')), (13, 18, hexc('#f4d35e')),
+                   (5, 22, hexc('#a8d8ff')), (9, 22, hexc('#f4d35e')), (13, 22, hexc('#ff9f9f')),
+                   (21, 18, hexc('#a8d8ff')), (25, 18, hexc('#f4d35e')), (21, 22, hexc('#ff9f9f')))
+        c.vline(19, 11, 15, DARKPL_LIT)
+    else:
+        c.vline(x1 - 1, 9, 19, INK)
+        text(c, 'DONE', 4, 12, hexc('#8fd3a3'))
+        tickets = ((5, 18, hexc('#8fd3a3')),)
+        c.vline(21, 11, 15, DARKPL_LIT)
+        # a sad empty column with a single sticky note
+        c.rect(23, 17, 5, 4, PAPER)
+        c.hline(24, 19, 3, PAPER_DARK)
+    for x, y, col in tickets:
+        c.rect(x, y, 3, 3, col)
+        c.put(x + 1, y + 1, mix(col, INK, 0.5))
+    return c
+
+
+def org_chart(part: str) -> Cell:
+    """Two-tile org chart: one gold box at the top, a lot of grey boxes below."""
+    c = Cell()
+    x0 = 2 if part == 'l' else 0
+    x1 = 32 if part == 'l' else 30
+    c.rect(x0, 10, x1 - x0, 17, PAPER)
+    c.hline(x0, 9, x1 - x0, INK)
+    c.hline(x0, 27, x1 - x0, INK)
+    c.hline(x0, 26, x1 - x0, PAPER_DARK)
+    if part == 'l':
+        c.vline(x0, 9, 19, INK)
+        c.rect(26, 11, 8, 3, GOLD)  # runs onto the right half
+        c.frame(25, 10, 10, 5, INK)
+        c.vline(29, 15, 2, INK)
+        c.hline(8, 16, 24, INK)
+        for bx in (8, 16, 24):
+            c.vline(bx, 17, 2, INK)
+            c.rect(bx - 2, 19, 5, 3, PLASTIC_DARK)
+            c.frame(bx - 3, 18, 7, 5, INK)
+            c.hline(bx - 1, 20, 3, PAPER)
+        c.vline(8, 23, 1, INK)
+        c.rect(6, 24, 5, 2, PLASTIC_DARK)
+    else:
+        c.vline(x1 - 1, 9, 19, INK)
+        c.rect(0, 11, 2, 3, GOLD)
+        c.hline(0, 10, 3, INK)
+        c.hline(0, 14, 3, INK)
+        c.vline(2, 10, 5, INK)
+        c.hline(0, 16, 22, INK)
+        for bx in (4, 12, 20):
+            c.vline(bx, 17, 2, INK)
+            c.rect(bx - 2, 19, 5, 3, PLASTIC_DARK)
+            c.frame(bx - 3, 18, 7, 5, INK)
+            c.hline(bx - 1, 20, 3, PAPER)
+        # a box that has been crossed out in red
+        c.hline(18, 19, 5, MARKER_RED)
+        c.hline(18, 21, 5, MARKER_RED)
+    return c
+
+
+def incident_board(part: str) -> Cell:
+    """DAYS SINCE REORG — the counter reads 0, freshly reset."""
+    c = Cell()
+    x0 = 2 if part == 'l' else 0
+    x1 = 32 if part == 'l' else 30
+    c.rect(x0, 10, x1 - x0, 16, SAFETY)
+    c.hline(x0, 10, x1 - x0, mix(SAFETY, PAPER_LIT, 0.4))
+    c.hline(x0, 9, x1 - x0, INK)
+    c.hline(x0, 26, x1 - x0, INK)
+    c.hline(x0, 25, x1 - x0, SAFETY_DARK)
+    if part == 'l':
+        c.vline(x0, 9, 18, INK)
+        text(c, 'DAYS', 5, 12, INK)
+        text(c, 'SINCE', 5, 18, INK)
+    else:
+        c.vline(x1 - 1, 9, 18, INK)
+        text(c, 'REORG', 4, 12, INK)
+        # counter window
+        c.rect(9, 18, 12, 7, PAPER)
+        c.frame(8, 17, 14, 9, INK)
+        text(c, '0', 14, 19, RED_DARK)
+        c.put(11, 20, PAPER_DARK)
+        c.put(19, 20, PAPER_DARK)
+    return c
+
+
+def compliance_poster() -> Cell:
+    c = Cell()
+    c.rect(8, 11, 16, 16, hexc('#1e3a4a'))
+    # shield with a check
+    c.rect(12, 14, 8, 7, PAPER)
+    c.rect(13, 21, 6, 2, PAPER)
+    c.rect(14, 23, 4, 1, PAPER)
+    c.put(15, 24, PAPER)
+    c.put(16, 24, PAPER)
+    c.put(14, 18, MARKER_GREEN)
+    c.put(15, 19, MARKER_GREEN)
+    c.put(16, 18, MARKER_GREEN)
+    c.put(17, 17, MARKER_GREEN)
+    c.put(18, 16, MARKER_GREEN)
+    c.hline(10, 12, 12, GOLD)
+    c.frame(7, 10, 18, 18, INK)
+    return c
+
+
+def breaker_panel() -> Cell:
+    """Sits high on the wall so the cabinet below never overlaps it."""
+    c = Cell()
+    c.box(9, 9, 14, 11, STEEL, STEEL_LIT, STEEL_DARK)
+    for row in range(3):
+        y = 11 + row * 3
+        for col in range(3):
+            x = 11 + col * 4
+            on = (row + col) % 3 != 1
+            c.rect(x, y, 2, 2, DARKPL if on else RED_DARK)
+    c.rect(11, 17, 10, 2, SAFETY)
+    c.put(13, 17, INK)
+    c.put(16, 18, INK)
+    return c
+
+
+def calendar() -> Cell:
+    c = Cell()
+    c.rect(9, 10, 14, 17, PAPER)
+    c.rect(9, 10, 14, 4, RED_DARK)
+    c.hline(9, 10, 14, RED)
+    c.frame(8, 9, 16, 19, INK)
+    for row in range(4):
+        for col in range(5):
+            x, y = 10 + col * 3, 15 + row * 3
+            c.put(x, y, PAPER_DARK)
+            c.put(x + 1, y, PAPER_DARK)
+    # the review date, circled
+    c.frame(15, 20, 4, 3, MARKER_RED)
+    c.put(11, 9, STEEL_DARK)  # hanging pin
+    return c
+
+
+def server_status() -> Cell:
+    """Wall monitor with a green uptime chart and one red bar."""
+    c = Cell()
+    c.rect(7, 11, 18, 12, DARKPL)
+    c.frame(6, 10, 20, 14, INK)
+    c.rect(8, 12, 16, 10, SCREEN)
+    for i, h in enumerate((3, 4, 4, 5, 2, 5, 6, 6)):
+        col = MARKER_RED if i == 4 else GREEN
+        c.rect(9 + i * 2, 21 - h, 1, h, col)
+    c.hline(9, 13, 6, SCREEN_GLOW)
+    c.rect(14, 24, 4, 2, DARKPL_DARK)
+    return c
+
+
+def nameplate(label: str) -> Cell:
+    """Brushed-steel door plaque with an engraved name."""
+    c = Cell()
+    w = len(label) * 4 + 5
+    x0 = (32 - w) // 2
+    c.rect(x0, 13, w, 9, STEEL)
+    c.hline(x0, 13, w, STEEL_LIT)
+    c.hline(x0, 21, w, STEEL_DARK)
+    c.frame(x0 - 1, 12, w + 2, 11, INK)
+    text(c, label, x0 + 3, 15, INK)
+    c.put(x0 + 1, 17, STEEL_DARK)
+    c.put(x0 + w - 2, 17, STEEL_DARK)
+    return c
+
+
+# --- Floor 2 props ----------------------------------------------------------
+
+
+def directory_f2() -> Cell:
+    c = Cell()
+    c.ground_shadow(7, 27, 18, 3)
+    c.rect(14, 12, 4, 15, STEEL_DARK)
+    c.vline(14, 12, 15, STEEL)
+    c.rect(10, 26, 12, 2, STEEL_DARK)
+    c.hline(10, 26, 12, STEEL)
+    c.frame(9, 25, 14, 4, INK)
+    c.vline(13, 12, 14, INK)
+    c.vline(18, 12, 14, INK)
+    c.box(3, -8, 26, 20, DARKPL, DARKPL_LIT, DARKPL_DARK)
+    c.rect(4, -7, 24, 3, GOLD)
+    c.hline(4, -7, 24, GOLD_LIT)
+    text(c, 'FLOOR 2', 3, -3, PAPER)
+    for i in range(3):
+        y = 3 + i * 3
+        c.hline(5, y, 3, GOLD_DARK)
+        c.hline(9, y, 12 - (i * 4) % 7, PLASTIC_DARK)
+    return c
+
+
+def server_rack(frame: int) -> Cell:
+    """42U cabinet; LED columns alternate between frames."""
+    c = Cell()
+    c.ground_shadow(5, 27, 22, 3)
+    c.box(6, -14, 20, 42, DARKPL, DARKPL_LIT, DARKPL_DARK)
+    c.rect(6, 25, 20, 3, DARKPL_DARK)  # plinth
+    for u in range(8):
+        y = -12 + u * 4
+        c.rect(8, y, 16, 3, hexc('#1d2230'))
+        c.hline(8, y, 16, DARKPL_LIT)
+        # handles and a vent slot
+        c.rect(9, y + 1, 4, 1, STEEL_DARK)
+        c.rect(19, y + 1, 4, 1, STEEL_DARK)
+        # LEDs
+        lit = (u + frame) % 2 == 0
+        c.put(15, y + 1, GREEN if lit else GREEN_DARK)
+        c.put(17, y + 1, AMBER if (u % 3 == 1 and not lit) else DARKPL_LIT)
+    # cable bundle down the right side
+    c.vline(24, -12, 32, hexc('#2f6fe0'))
+    c.vline(23, -6, 26, hexc('#e05a5a'))
+    # bottom grille
+    for y in range(21, 25, 2):
+        c.hline(9, y, 14, STEEL_DARK)
+    return c
+
+
+def photo_booth(state: str, frame: int = 0) -> Cell:
+    """Badge photo booth: navy cabinet, PHOTO sign, curtain; flash frames."""
+    c = Cell()
+    c.ground_shadow(5, 27, 22, 3)
+    c.box(6, -15, 20, 43, NAVY, NAVY_LIT, hexc('#141c33'))
+    # sign
+    c.rect(7, -14, 18, 7, DARKPL)
+    c.hline(7, -14, 18, DARKPL_LIT)
+    c.frame(6, -15, 20, 9, INK)
+    text(c, 'PHOTO', 7, -13, GOLD if state == 'idle' else PAPER_LIT)
+    # camera window
+    flashing = state == 'flash'
+    if flashing:
+        bright = frame == 0
+        c.rect(9, -4, 14, 8, PAPER_LIT if bright else hexc('#dbe6f2'))
+        c.rect(10, -3, 12, 6, PAPER_LIT if bright else PAPER)
+    else:
+        c.rect(9, -4, 14, 8, SCREEN)
+        c.rect(10, -3, 12, 6, hexc('#12233a'))
+        c.rect(15, -1, 2, 2, SCREEN_GLOW)
+        c.put(15, -1, SCREEN_GLOW_LIT)
+    c.frame(8, -5, 16, 10, INK)
+    # curtain
+    for x in range(8, 24):
+        col = CURTAIN_LIT if x % 4 == 0 else CURTAIN_DARK if x % 4 == 2 else CURTAIN
+        c.vline(x, 7, 18, col)
+    c.hline(8, 7, 16, INK)
+    c.rect(7, 6, 18, 1, STEEL)
+    c.hline(8, 24, 16, CURTAIN_DARK)
+    c.frame(7, 6, 18, 20, INK)
+    # stool leg peeking under the curtain
+    c.rect(15, 25, 2, 3, STEEL_DARK)
+    if flashing and frame == 0:
+        # light spill onto the floor
+        c.blend_rect(6, 26, 20, 3, hexc('#ffffff', 70))
+    return c
+
+
+def badge_printer(state: str, frame: int = 0) -> Cell:
+    """Card printer on a steel stand. idle / printing (2 frames) / done."""
+    c = Cell()
+    c.ground_shadow(6, 27, 20, 3)
+    # stand
+    c.rect(8, 14, 16, 14, STEEL)
+    c.hline(8, 14, 16, STEEL_LIT)
+    c.vline(8, 14, 14, STEEL_LIT)
+    c.vline(23, 14, 14, STEEL_DARK)
+    c.rect(8, 25, 16, 3, STEEL_DARK)
+    c.frame(7, 13, 18, 16, INK)
+    c.rect(10, 17, 12, 6, DARKPL_DARK)  # open shelf with card stock
+    c.rect(11, 18, 8, 4, PAPER)
+    c.hline(11, 18, 8, PAPER_LIT)
+    c.hline(12, 20, 5, PAPER_DARK)
+    # printer body
+    c.box(7, 1, 18, 11, PLASTIC, PLASTIC_LIT, PLASTIC_DARK)
+    c.box(9, -3, 14, 4, PLASTIC_DARK, PLASTIC, DARKPL_LIT)  # hopper lid
+    # screen + led
+    c.rect(9, 3, 8, 4, DARKPL)
+    c.frame(8, 2, 10, 6, INK)
+    if state == 'idle':
+        c.rect(10, 4, 6, 2, SCREEN_DIM)
+        c.put(11, 4, SCREEN_GLOW)
+        c.put(20, 3, AMBER)
+    elif state == 'printing':
+        c.rect(10, 4, 6, 2, SCREEN_GLOW)
+        c.put(20, 3, GREEN if frame == 0 else GREEN_DARK)
+    else:
+        c.rect(10, 4, 6, 2, GREEN_DARK)
+        c.hline(11, 4, 3, GREEN)
+        c.put(20, 3, GREEN)
+    c.rect(19, 6, 4, 2, DARKPL_LIT)
+    # card slot
+    c.rect(9, 9, 14, 2, DARKPL)
+    c.hline(9, 9, 14, DARKPL_DARK)
+    if state == 'printing':
+        drop = 0 if frame == 0 else 3
+        c.rect(12, 8 + drop, 8, 4, PAPER)
+        c.hline(12, 8 + drop, 8, PAPER_LIT)
+        c.rect(13, 9 + drop, 2, 2, GOLD)
+        c.frame(11, 7 + drop, 10, 6, INK)
+    elif state == 'done':
+        # the badge, face up in the tray
+        c.rect(12, 12, 8, 5, PAPER)
+        c.hline(12, 12, 8, PAPER_LIT)
+        c.rect(13, 13, 2, 3, hexc('#e8b896'))
+        c.hline(16, 13, 3, NAVY)
+        c.hline(16, 15, 2, PAPER_DARK)
+        c.frame(11, 11, 10, 7, INK)
+    return c
+
+
+def filing_cabinet(open_: bool) -> Cell:
+    c = Cell()
+    c.ground_shadow(6, 27, 20, 3)
+    c.box(7, -8, 18, 36, STEEL, STEEL_LIT, STEEL_DARK)
+    c.rect(7, 25, 18, 3, STEEL_DARK)
+    for d in range(3):
+        y = -6 + d * 11
+        if open_ and d == 1:
+            # drawer pulled out: dark interior, folder tabs
+            c.rect(8, y, 16, 9, DARKPL_DARK)
+            for i, col in enumerate((MUG_A, MUG_C, MUG_B, GREEN)):
+                c.rect(9 + i * 4, y + 1, 3, 6, PAPER)
+                c.rect(9 + i * 4, y + 1, 3, 1, col)
+            c.rect(6, y + 7, 20, 4, STEEL)
+            c.hline(6, y + 7, 20, STEEL_LIT)
+            c.frame(5, y + 6, 22, 6, INK)
+            c.rect(13, y + 8, 6, 1, INK)
+            continue
+        c.hline(8, y, 16, STEEL_LIT)
+        c.hline(8, y + 9, 16, STEEL_DARK)
+        c.hline(7, y + 10, 18, INK)
+        c.rect(13, y + 3, 6, 2, INK)  # handle
+        c.put(14, y + 3, STEEL_LIT)
+        c.rect(9, y + 2, 3, 3, PAPER)  # label
+        c.put(10, y + 3, PAPER_DARK)
+    return c
+
+
+def sofa(part: str) -> Cell:
+    """Two-wide People Ops sofa, mustard fabric."""
+    c = Cell()
+    left = part == 'l'
+    x0 = 3 if left else 0
+    x1 = 32 if left else 29
+    w = x1 - x0
+    c.ground_shadow(x0 + 1, 27, w - 2, 3)
+    # back rest
+    c.rect(x0, 4, w, 10, MUSTARD)
+    c.hline(x0, 4, w, MUSTARD_LIT)
+    c.rect(x0, 12, w, 2, MUSTARD_DARK)
+    c.hline(x0, 3, w, INK)
+    # seat cushion
+    c.rect(x0, 14, w, 8, MUSTARD_LIT)
+    c.hline(x0, 14, w, mix(MUSTARD_LIT, PAPER_LIT, 0.3))
+    c.rect(x0, 20, w, 2, MUSTARD)
+    c.hline(x0, 13, w, MUSTARD_DARK)
+    # front skirt
+    c.rect(x0, 22, w, 4, MUSTARD_DARK)
+    c.hline(x0, 26, w, INK)
+    # cushion seam
+    seam = 16 if left else 15
+    c.vline(seam, 14, 8, MUSTARD_DARK)
+    # arm rest on the outer end
+    if left:
+        c.rect(x0, 8, 5, 18, MUSTARD)
+        c.vline(x0, 8, 18, MUSTARD_LIT)
+        c.hline(x0, 8, 5, MUSTARD_LIT)
+        c.vline(x0 + 4, 9, 17, MUSTARD_DARK)
+        c.vline(x0 - 1, 7, 20, INK)
+        c.hline(x0, 7, 5, INK)
+    else:
+        c.rect(x1 - 5, 8, 5, 18, MUSTARD)
+        c.hline(x1 - 5, 8, 5, MUSTARD_LIT)
+        c.vline(x1 - 1, 9, 17, MUSTARD_DARK)
+        c.vline(x1, 7, 20, INK)
+        c.hline(x1 - 5, 7, 5, INK)
+    # feet
+    c.rect(x0 + 2, 26, 2, 2, WALNUT_DARK)
+    c.rect(x1 - 4, 26, 2, 2, WALNUT_DARK)
+    return c
+
+
+def people_counter(part: str) -> Cell:
+    """Self-service People Ops counter: oak front, white top; the tray is the m part."""
+    c = Cell()
+    left_end = part == 'l'
+    right_end = part == 'r'
+    x0 = 1 if left_end else 0
+    x1 = 31 if right_end else 32
+    w = x1 - x0
+    c.ground_shadow(x0 + 1, 28, w - 3, 3)
+    c.rect(x0, 8, w, 20, OAK)
+    c.hline(x0, 8, w, OAK_LIT)
+    c.rect(x0, 26, w, 2, OAK_DARK)
+    for x in range(x0 + 2, x1 - 1, 6):  # slat panelling
+        c.vline(x, 10, 15, OAK_DARK)
+    top = hexc('#eceae2')
+    top_lit = hexc('#fbfaf6')
+    top_dark = hexc('#b9b6aa')
+    c.rect(x0, -6, w, 13, top)
+    c.hline(x0, -6, w, top_lit)
+    c.hline(x0, -5, w, top_lit)
+    c.rect(x0, 5, w, 2, top_dark)
+    c.hline(x0, 7, w, INK)
+    c.hline(x0, -7, w, INK)
+    c.hline(x0, 28, w, INK)
+    if left_end:
+        c.vline(x0 - 1, -7, 36, INK)
+        c.vline(x0, -6, 13, top_lit)
+    if right_end:
+        c.vline(x1, -7, 36, INK)
+        c.vline(x1 - 1, -6, 13, top_dark)
+    if part == 'l':
+        # TAKE A NUMBER dispenser with a red ticket
+        c.box(8, -4, 12, 8, RED_DARK, RED, hexc('#7a2424'))
+        c.rect(10, -2, 8, 3, PAPER)
+        c.hline(11, -1, 5, PAPER_DARK)
+        c.rect(13, 4, 3, 2, PAPER)
+        c.put(14, 4, RED)
+        c.rect(22, -3, 6, 7, PAPER)
+        c.frame(21, -4, 8, 9, INK)
+        c.hline(23, -1, 3, PAPER_DARK)
+        c.hline(23, 1, 4, PAPER_DARK)
+    elif part == 'm':
+        # in-tray with a stack of packets, a sign that says IN, and a face drawn on the tray
+        c.rect(7, -4, 16, 9, DARKPL)
+        c.hline(7, -4, 16, DARKPL_LIT)
+        c.frame(6, -5, 18, 11, INK)
+        c.rect(9, -3, 12, 6, PAPER)
+        c.hline(9, -3, 12, PAPER_LIT)
+        c.hline(10, -1, 9, PAPER_DARK)
+        c.hline(10, 1, 6, PAPER_DARK)
+        c.rect(11, 2, 8, 3, hexc('#ffe27a'))  # a sticky note with two eyes and a mouth
+        c.put(12, 3, INK)
+        c.put(14, 3, INK)
+        c.hline(13, 4, 3, INK)
+        text(c, 'IN', 25, -3, INK)
+    else:
+        # succulent + tissue box
+        c.rect(6, -2, 7, 6, PAPER)
+        c.hline(6, -2, 7, PAPER_LIT)
+        c.rect(8, -1, 3, 1, hexc('#a8d8ff'))
+        c.frame(5, -3, 9, 8, INK)
+        pot = rows(
+            """
+            ..lLl..
+            .lLLLl.
+            lLLDLLl
+            .OOOOO.
+            .PPPDP.
+            .PPPDP.
+            ..OOO..
+            """
+        )
+        c.paste(pot, 17, -5, {'L': LEAF, 'l': LEAF_LIT, 'D': LEAF_DARK, 'P': POT, 'O': INK}, outline=False)
+    return c
+
+
+def exec_desk(part: str) -> Cell:
+    """Director's walnut desk with a leather inlay; lamp + nameplate on l, monitor on r."""
+    c = Cell()
+    left_end = part == 'l'
+    x0 = 2 if left_end else 0
+    x1 = 30 if not left_end else 32
+    w = x1 - x0
+    c.ground_shadow(x0 + 1, 27, w - 3, 3)
+    # pedestal + modesty panel
+    c.rect(x0, 15, w, 10, WALNUT)
+    c.hline(x0, 15, w, WALNUT_LIT)
+    c.rect(x0, 23, w, 2, WALNUT_DARK)
+    for x in range(x0 + 3, x1 - 2, 8):
+        c.frame(x, 17, 5, 5, WALNUT_DARK)
+    # top with leather inlay
+    c.rect(x0, -8, w, 24, WALNUT)
+    c.hline(x0, -8, w, WALNUT_LIT)
+    c.hline(x0, -7, w, WALNUT_LIT)
+    c.rect(x0, 12, w, 3, WALNUT_DARK)
+    c.hline(x0, 14, w, INK)
+    c.hline(x0, -9, w, INK)
+    c.hline(x0, 25, w, INK)
+    inlay_x0 = x0 + 3 if left_end else x0
+    inlay_x1 = x1 if left_end else x1 - 3
+    c.rect(inlay_x0, -5, inlay_x1 - inlay_x0, 14, LEATHER)
+    c.hline(inlay_x0, -5, inlay_x1 - inlay_x0, LEATHER_LIT)
+    if left_end:
+        c.vline(x0 - 1, -9, 35, INK)
+        c.vline(x0, -8, 24, WALNUT_LIT)
+        c.vline(inlay_x0 - 1, -5, 14, BRASS_DARK)
+        # brass lamp
+        c.rect(7, -14, 8, 4, BRASS)
+        c.hline(7, -14, 8, BRASS_LIT)
+        c.rect(8, -10, 6, 1, BRASS_DARK)
+        c.frame(6, -15, 10, 6, INK)
+        c.rect(10, -9, 2, 7, BRASS_DARK)
+        c.rect(8, -2, 6, 2, BRASS)
+        c.frame(7, -3, 8, 4, INK)
+        c.blend_rect(7, -9, 8, 5, hexc('#ffe9a8', 60))
+        # nameplate
+        c.rect(18, 7, 12, 4, BRASS)
+        c.hline(18, 7, 12, BRASS_LIT)
+        c.frame(17, 6, 14, 6, INK)
+        c.hline(20, 9, 8, INK)
+    else:
+        c.vline(x1, -9, 35, INK)
+        c.vline(x1 - 1, -8, 24, WALNUT_DARK)
+        c.vline(inlay_x1, -5, 14, BRASS_DARK)
+        monitor(c, 8, -6, 0, wide=True)
+        # pen cup
+        c.rect(24, 3, 4, 5, DARKPL)
+        c.frame(23, 2, 6, 7, INK)
+        c.put(25, 1, MUG_B)
+        c.put(26, 1, MUG_A)
+        c.put(25, 0, INK)
+        c.put(26, 0, INK)
+    return c
+
+
+def locker() -> Cell:
+    c = Cell()
+    c.ground_shadow(8, 27, 16, 3)
+    body = hexc('#5b6f8c')
+    body_lit = hexc('#7288a8')
+    body_dark = hexc('#41526a')
+    c.box(9, -12, 14, 40, body, body_lit, body_dark)
+    c.rect(9, 25, 14, 3, body_dark)
+    # door split into two compartments
+    c.hline(9, 6, 14, INK)
+    c.hline(9, 7, 14, body_lit)
+    for y0 in (-10, 9):
+        for y in range(y0, y0 + 5, 2):
+            c.hline(12, y, 8, body_dark)  # vents
+        c.rect(19, y0 + 9, 2, 4, INK)  # handle
+        c.put(19, y0 + 10, STEEL_LIT)
+    # padlock on the lower door
+    c.rect(18, 18, 4, 3, BRASS)
+    c.frame(18, 16, 4, 2, BRASS_DARK)
+    c.put(19, 19, INK)
+    return c
+
+
+def janitor_cart() -> Cell:
+    c = Cell()
+    c.ground_shadow(6, 27, 20, 3)
+    # bucket body
+    c.box(8, 10, 16, 14, SAFETY, mix(SAFETY, PAPER_LIT, 0.3), SAFETY_DARK)
+    c.rect(8, 21, 16, 3, SAFETY_DARK)
+    c.hline(9, 12, 14, SAFETY_DARK)
+    # water
+    c.rect(10, 11, 12, 2, WATER_DARK)
+    c.hline(10, 11, 12, WATER)
+    # wringer
+    c.rect(20, 5, 6, 6, STEEL)
+    c.frame(19, 4, 8, 8, INK)
+    c.rect(21, 6, 4, 4, STEEL_DARK)
+    # mop handle + head
+    c.rect(12, -14, 2, 26, WOOD)
+    c.vline(12, -14, 26, WOOD_LIT)
+    c.frame(11, -15, 4, 28, INK)
+    for i, dx in enumerate((-4, -2, 0, 2, 4, 6)):
+        c.vline(12 + dx, 6 + (i % 2), 4, PAPER_DARK if i % 2 else PAPER)
+    c.rect(8, 5, 10, 2, STEEL_DARK)
+    c.hline(7, 6, 12, INK)
+    # trash bag hooked on the side
+    c.rect(4, 12, 5, 9, DARKPL)
+    c.hline(4, 12, 5, DARKPL_LIT)
+    c.frame(3, 11, 7, 11, INK)
+    # casters
+    c.rect(9, 26, 3, 2, DARKPL)
+    c.rect(20, 26, 3, 2, DARKPL)
+    return c
+
+
+def safe() -> Cell:
+    c = Cell()
+    c.ground_shadow(6, 27, 20, 3)
+    body = hexc('#3a3f4b')
+    body_lit = hexc('#535a69')
+    body_dark = hexc('#262a33')
+    c.box(7, -6, 18, 34, body, body_lit, body_dark)
+    c.rect(7, 25, 18, 3, body_dark)
+    c.frame(9, -4, 14, 26, body_dark)  # door recess
+    # dial
+    c.rect(13, 3, 6, 6, STEEL)
+    c.frame(12, 2, 8, 8, INK)
+    c.put(15, 4, INK)
+    c.put(15, 5, STEEL_DARK)
+    # handle
+    c.rect(20, 5, 2, 8, STEEL_DARK)
+    c.vline(20, 5, 8, STEEL_LIT)
+    c.frame(19, 4, 4, 10, INK)
+    # sticky note with the combination on the door
+    c.rect(11, 14, 8, 5, hexc('#ffe27a'))
+    c.hline(12, 16, 5, INK)
+    c.frame(10, 13, 10, 7, INK)
+    # hinges
+    c.rect(8, -3, 1, 4, STEEL_LIT)
+    c.rect(8, 12, 1, 4, STEEL_LIT)
+    return c
+
+
+def shredder(state: str, frame: int = 0) -> Cell:
+    """Cross-cut shredder. idle / shredding (2 frames: a sheet feeding in, strips falling)."""
+    c = Cell()
+    c.ground_shadow(7, 27, 18, 3)
+    # bin
+    c.box(8, 6, 16, 22, DARKPL, DARKPL_LIT, DARKPL_DARK)
+    c.rect(8, 25, 16, 3, DARKPL_DARK)
+    # clear window with strips
+    c.rect(10, 12, 12, 11, hexc('#1a2233'))
+    for i in range(6):
+        x = 11 + i * 2
+        h = 5 + (i * 3) % 4 if state != 'idle' else 3 + (i * 2) % 3
+        c.vline(x, 23 - h, h, PAPER if i % 2 == 0 else PAPER_DARK)
+    c.blend_rect(10, 12, 12, 11, GLASS)
+    c.frame(9, 11, 14, 13, INK)
+    # head unit
+    c.box(6, 0, 20, 6, PLASTIC_DARK, PLASTIC, DARKPL_LIT)
+    c.rect(9, 1, 14, 2, DARKPL)  # slot
+    c.put(23, 3, GREEN if state == 'shredding' else AMBER)
+    if state == 'shredding':
+        # sheet going in
+        drop = 0 if frame == 0 else 2
+        c.rect(11, -8 + drop, 10, 8 - drop, PAPER)
+        c.hline(11, -8 + drop, 10, PAPER_LIT)
+        c.hline(13, -6 + drop, 6, PAPER_DARK)
+        c.hline(13, -4 + drop, 4, PAPER_DARK)
+        c.frame(10, -9 + drop, 12, 9 - drop, INK)
+        # strips dropping inside the window
+        for i in range(3):
+            c.put(12 + i * 3, 13 + frame + i, PAPER)
+    return c
+
+
+def break_table_f2(part: str) -> Cell:
+    """Facilities table: donut box on l, an OUT OF ORDER sign and a mug on r."""
+    c = Cell()
+    left = part == 'l'
+    x0 = 3 if left else 0
+    x1 = 32 if left else 29
+    w = x1 - x0
+    c.ground_shadow(x0 + 2, 27, w - 4, 3)
+    c.rect(x0, 2, w, 14, PLASTIC)
+    c.hline(x0, 2, w, PLASTIC_LIT)
+    c.hline(x0, 3, w, PLASTIC_LIT)
+    c.rect(x0, 13, w, 3, PLASTIC_DARK)
+    c.hline(x0, 1, w, INK)
+    c.hline(x0, 16, w, INK)
+    if left:
+        c.vline(x0 - 1, 2, 15, INK)
+        c.vline(x0, 3, 12, PLASTIC_LIT)
+    else:
+        c.vline(x1, 2, 15, INK)
+        c.vline(x1 - 1, 3, 12, PLASTIC_DARK)
+    c.rect(14, 17, 4, 9, STEEL_DARK)
+    c.vline(14, 17, 9, STEEL)
+    c.rect(10, 26, 12, 2, STEEL_DARK)
+    c.hline(10, 26, 12, STEEL)
+    c.frame(9, 25, 14, 4, INK)
+    c.vline(13, 17, 9, INK)
+    c.vline(18, 17, 9, INK)
+    if left:
+        # open donut box: lid up, three donuts, one missing
+        c.rect(9, -4, 16, 8, PINK_BOX)
+        c.hline(9, -4, 16, PINK_BOX_LIT)
+        c.frame(8, -5, 18, 10, INK)
+        c.rect(9, 5, 16, 8, PINK_BOX_DARK)
+        c.frame(8, 4, 18, 10, INK)
+        for i, dx in enumerate((10, 15, 20)):
+            if i == 2:
+                continue
+            c.rect(dx, 6, 4, 4, DONUT)
+            c.hline(dx, 6, 4, DONUT_ICING)
+            c.put(dx + 1, 8, PINK_BOX_DARK)
+        c.rect(20, 7, 3, 2, PAPER_DARK)  # the napkin where the third one was
+    else:
+        c.rect(6, 6, 5, 5, MUG_B)
+        c.hline(6, 6, 5, mix(MUG_B, PAPER_LIT, 0.45))
+        c.frame(5, 5, 7, 7, INK)
+        c.vline(12, 7, 3, INK)
+        c.put(11, 7, MUG_B)
+        c.put(11, 9, MUG_B)
+        # folded sign
+        c.rect(15, 5, 10, 7, PAPER)
+        c.hline(15, 5, 10, PAPER_LIT)
+        c.frame(14, 4, 12, 9, INK)
+        c.hline(17, 7, 6, RED_DARK)
+        c.hline(17, 9, 4, PAPER_DARK)
+    return c
+
+
+def build_floor2() -> None:
+    register('floor_it', floor_it())
+    register('floor_people', floor_people())
+    register('floor_director', floor_director())
+    register('floor_facilities', floor_facilities())
+    register('floor_finance', floor_finance())
+    for part in ('l', 'r', 'c'):
+        register(f'rug_gold_{part}', rug_patch(RUG_GOLD, part))
+    for part in ('tbl', 'tb', 'tbr'):
+        register(f'rug_navy_{part}', rug_patch(RUG_NAVY, part))
+    register('door_v_single', door_v_single())
+    register('plaque_ops_l', plaque_ops('l'))
+    register('plaque_ops_m', plaque_ops('m'))
+    register('plaque_ops_r', plaque_ops('r'))
+    register('ticketboard_l', ticket_board('l'))
+    register('ticketboard_r', ticket_board('r'))
+    register('orgchart_l', org_chart('l'))
+    register('orgchart_r', org_chart('r'))
+    register('incident_l', incident_board('l'))
+    register('incident_r', incident_board('r'))
+    register('compliance_poster', compliance_poster())
+    register('breaker_panel', breaker_panel())
+    register('calendar', calendar())
+    register('server_status', server_status())
+    register('sign_helpdesk', sign_room('HELPDESK'))
+    register('sign_people', sign_room('PEOPLE'))
+    register('sign_finance', sign_room('FINANCE'))
+    register('sign_pantry', sign_room('PANTRY'))
+    register('nameplate_kessler', nameplate('KESSLER'))
+    register('directory_f2', directory_f2())
+    register_group(['server_rack_0', 'server_rack_1'], [server_rack(0), server_rack(1)])
+    register('photo_booth_idle', photo_booth('idle'))
+    register_group(
+        ['photo_booth_flash_0', 'photo_booth_flash_1'],
+        [photo_booth('flash', 0), photo_booth('flash', 1)],
+    )
+    register('badge_printer_idle', badge_printer('idle'))
+    register_group(
+        ['badge_printer_printing_0', 'badge_printer_printing_1'],
+        [badge_printer('printing', 0), badge_printer('printing', 1)],
+    )
+    register('badge_printer_done', badge_printer('done'))
+    register('filing_closed', filing_cabinet(False))
+    register('filing_open', filing_cabinet(True))
+    register('sofa_l', sofa('l'))
+    register('sofa_r', sofa('r'))
+    register('pcounter_l', people_counter('l'))
+    register('pcounter_m', people_counter('m'))
+    register('pcounter_r', people_counter('r'))
+    register('exec_desk_l', exec_desk('l'))
+    register('exec_desk_r', exec_desk('r'))
+    register('locker', locker())
+    register('janitor_cart', janitor_cart())
+    register('safe', safe())
+    register('shredder_idle', shredder('idle'))
+    register_group(
+        ['shredder_shredding_0', 'shredder_shredding_1'],
+        [shredder('shredding', 0), shredder('shredding', 1)],
+    )
+    register('btable_f2_l', break_table_f2('l'))
+    register('btable_f2_r', break_table_f2('r'))
+
+
 # ---------------------------------------------------------------------------
 # Assembly
 # ---------------------------------------------------------------------------
@@ -2010,6 +2976,8 @@ def build_atlas() -> None:
         ['reader_green_0', 'reader_green_1'], [reader('green', 0), reader('green', 1)]
     )
     register('street_exit', street_exit())
+    # Floor 2 cells are appended so every Floor 1 index above stays put.
+    build_floor2()
 
 
 def extrude(im: Image.Image) -> Image.Image:

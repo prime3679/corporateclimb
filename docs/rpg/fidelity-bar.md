@@ -115,6 +115,15 @@ decides which cell of a hand-authored pixel tileset goes where, and
   by `background-position-x`; reduced motion holds frame 0 and stills the
   light pools, as before.
 
+### Floor 2 art (`feat/office-floor-2-design`)
+
+The same two generators now carry Floor 2 (`docs/rpg/floor-2-design.md` §11). Floor 2 tile
+cells are appended after every Floor 1 cell, so the 108 Floor 1 atlas indices and their pixels
+are unchanged; the sheet grows to 272×1050 (165 cells) with five room floors, a one-tile
+vertical doorway, Operations signage and the help-desk / People Ops / Facilities / Finance /
+director props. Three new walk sheets (`teddy`, `kessler`, `whitlock`) use the same rig and
+are registered in `ACTOR_IDS` and `NPC_ACTOR`.
+
 ## What stays frozen
 
 - Office reducer, party projection, `corporate-climb-office-save` v1
