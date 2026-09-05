@@ -8,6 +8,39 @@ second combat engine or a second perk pool._
 Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.md`
 (ledger and combat numbers), `CLAUDE.md` (Classic tower).
 
+## Ownership — Astra vs Fable
+
+Matches the freeze header in `docs/rpg/mvp-design.md`: Fable owns the
+experience; Astra implements the playable required route. Do not swap those
+jobs.
+
+**Astra owns** the playable Floor 1 required route:
+
+- Office engine and a pure `dispatchOfficeAction` reducer
+- Party projection into existing `turn.ts` (`resolvePartySwitch`,
+  `switch_required`) — no second combat engine
+- Isolated `corporate-climb-office-save` v1 (Classic `corporate-climb-save`
+  untouched)
+- Title **THE OFFICE** entry; reuse of `BattleScreen`, `ClassSelect`,
+  `PromotionScreen`, `ShopScreen`
+- Token-tinted stand-in tiles and tests that keep Classic green
+
+Astra does **not** own ship-quality art, §12 / §13 / §19 polish sign-off,
+rewriting frozen IDs or wording, a second perk pool, merge, or deploy.
+
+**Fable owns** experience, content, wording, and pacing:
+
+- The `mvp-design.md` freeze (player-facing IDs, copy, numbers)
+- §14 ship-quality tileset and badge-token art
+- Full §12 feedback matrix, coach-mark motion, and §13 fade/duck timings
+- §19 device sign-off (task-8 playtest)
+
+Fable does **not** invent a parallel combat resolver, touch Classic
+save/combat, or treat token-tinted tiles as done art.
+
+CoS playtests the required route on this draft. Fable's §19 checklist is
+later polish, not a merge gate for this PR.
+
 ---
 
 ## 1. Split
@@ -109,7 +142,13 @@ and the reuse of `BattleScreen` / `PromotionScreen` / `ShopScreen`.
 
 ## 7. Deferred for Fable (polish, not architecture)
 
-Ship-quality tileset and badge-token art (§14), full §12 feedback matrix,
-§13 fade/duck timings, coach-mark motion, and the §19 device sign-off. The
-MVP is playable on the required route with token-tinted tiles and the
+These stay on Fable's side of the ownership table. They are not Astra
+architecture work and they do not block this draft:
+
+- Ship-quality tileset and badge-token art (§14)
+- Full §12 feedback matrix and coach-mark motion
+- §13 fade/duck timings
+- §19 device sign-off
+
+The MVP is playable on the required route with token-tinted tiles and the
 existing portrait sprites.
