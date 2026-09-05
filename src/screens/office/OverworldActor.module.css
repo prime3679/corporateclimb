@@ -4,10 +4,15 @@
   position: absolute;
   width: 32px;
   height: 40px;
+  z-index: 4;
   pointer-events: none;
   transition:
     left 250ms linear,
     top 250ms linear;
+}
+
+.player {
+  z-index: 5;
 }
 
 .ground {
@@ -19,10 +24,6 @@
   border-radius: 999px;
   background: color-mix(in srgb, var(--actor-ring) 28%, rgba(0, 0, 0, 0.5));
   filter: blur(1.5px);
-}
-
-.player .ground {
-  background: color-mix(in srgb, var(--actor-ring) 40%, rgba(0, 0, 0, 0.5));
 }
 
 .sheet {

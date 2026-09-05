@@ -6,9 +6,12 @@ import {
   TILE_ATLAS,
   TILE_CELL_H,
   TILE_CELL_W,
+  TILE_PAD,
   TILE_SHEET_H,
   TILE_SHEET_URL,
   TILE_SHEET_W,
+  TILE_STRIDE_X,
+  TILE_STRIDE_Y,
   type TileName,
 } from '@/screens/office/tileAtlas'
 import {
@@ -18,7 +21,6 @@ import {
   floorSprites,
   propCells,
   propSprite,
-  rowZ,
   wallMask,
   type Sprite,
   type TileStates,
@@ -48,8 +50,8 @@ const STATE_VARIANTS: TileStates[] = [
 function expectInAtlas(sprite: Sprite) {
   expect(TILE_ATLAS[sprite.name], sprite.name).toBeDefined()
   const [col, row] = TILE_ATLAS[sprite.name]
-  expect(col * TILE_CELL_W).toBeLessThan(TILE_SHEET_W)
-  expect(row * TILE_CELL_H).toBeLessThan(TILE_SHEET_H)
+  expect(col * TILE_STRIDE_X).toBeLessThan(TILE_SHEET_W)
+  expect(row * TILE_STRIDE_Y).toBeLessThan(TILE_SHEET_H)
   if (sprite.frames && sprite.frames > 1) {
     // CSS steps through neighbouring cells, so every frame must sit on the same row.
     for (let f = 1; f < sprite.frames; f++) {
@@ -72,19 +74,21 @@ describe('office tileset sheet', () => {
     expect(w).toBe(TILE_SHEET_W)
     expect(h).toBe(TILE_SHEET_H)
     expect(colorType).toBe(6)
+    expect(TILE_STRIDE_X).toBe(TILE_CELL_W + 2 * TILE_PAD)
+    expect(TILE_STRIDE_Y).toBe(TILE_CELL_H + 2 * TILE_PAD)
     for (const [col, row] of Object.values(TILE_ATLAS)) {
-      expect((col + 1) * TILE_CELL_W).toBeLessThanOrEqual(w)
-      expect((row + 1) * TILE_CELL_H).toBeLessThanOrEqual(h)
+      expect((col + 1) * TILE_STRIDE_X).toBeLessThanOrEqual(w)
+      expect((row + 1) * TILE_STRIDE_Y).toBeLessThanOrEqual(h)
     }
   })
 
-  it('reports background offsets on the 32×48 cell grid', () => {
+  it('reports background offsets that skip the extruded border of each slot', () => {
     for (const name of Object.keys(TILE_ATLAS) as TileName[]) {
       const { bx, by } = atlasOffset(name)
-      expect(bx).toBeLessThanOrEqual(0)
-      expect(by).toBeLessThanOrEqual(0)
-      expect(-bx % TILE_CELL_W).toBe(0)
-      expect(-by % TILE_CELL_H).toBe(0)
+      expect(bx).toBeLessThan(0)
+      expect(by).toBeLessThan(0)
+      expect((-bx - TILE_PAD) % TILE_STRIDE_X).toBe(0)
+      expect((-by - TILE_PAD) % TILE_STRIDE_Y).toBe(0)
     }
   })
 })
@@ -116,7 +120,7 @@ describe('floor pass', () => {
         if (glyphAt(x, y) !== 'D') continue
         const names = floorSprites(x, y).map((s) => s.name)
         expect(names[0], `${x},${y}`).toMatch(/^floor_/)
-        expect(names.at(-1), `${x},${y}`).toMatch(/^door_/)
+        expect(names[names.length - 1], `${x},${y}`).toMatch(/^door_/)
         expect(isSolid(x, y)).toBe(false)
       }
     }
@@ -188,11 +192,9 @@ describe('prop pass', () => {
     expect(propSprite(17, 11, BASE)!.name).toBe('btable_r')
   })
 
-  it('row-sorts props with the actors so tall furniture occludes correctly', () => {
-    expect(propCells(BASE).length).toBeGreaterThan(40)
-    for (let y = 0; y < MAP_HEIGHT - 1; y++) {
-      expect(rowZ(y, true)).toBeGreaterThan(rowZ(y))
-      expect(rowZ(y + 1)).toBeGreaterThan(rowZ(y, true))
-    }
+  it('lists every prop once with its footprint tile', () => {
+    const cells = propCells(BASE)
+    expect(cells.length).toBeGreaterThan(40)
+    expect(new Set(cells.map((c) => `${c.x},${c.y}`)).size).toBe(cells.length)
   })
 })

@@ -16,8 +16,8 @@ import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/en
 import { ringColorFor } from './ringColor'
 import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
-import { atlasOffset, floorCells, propCells, rowZ, type Sprite, type TileStates } from './tiles'
-import { TILE_SHEET_H, TILE_SHEET_URL, TILE_SHEET_W } from './tileAtlas'
+import { atlasOffset, floorCells, propCells, type Sprite, type TileStates } from './tiles'
+import { TILE_CELL_H, TILE_SHEET_H, TILE_SHEET_URL, TILE_SHEET_W } from './tileAtlas'
 import styles from './WorldMap.module.css'
 
 const T = TILE_SIZE
@@ -56,12 +56,26 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
   }
 }
 
+/* ── sprite-sheet layers ────────────────────────────────────
+   One <span> per sheet cell (public/office/tiles.png), like OverworldActor.
+   Each span is drawn one pixel larger than its cell into the sheet's extruded
+   border, so neighbours overlap by an identical pixel: under the Stage's
+   fractional scale, separately rasterised spans otherwise meet in
+   anti-aliased hairline seams.
+
+   Props are split around the actors instead of z-sorted with them: the 32×32
+   footprint sits under everyone (a person standing south overlaps it with
+   their head and is in front), the 16px upward overflow sits over everyone
+   (only a person standing north can overlap it, and they are behind). */
+
+const OVERFLOW = TILE_CELL_H - T
+
 /** Inline vars for one sprite-sheet cell; `.cell` in the CSS module reads them. */
-function cellStyle(sprite: Sprite, extra?: CSSProperties): CSSProperties {
+function cellStyle(sprite: Sprite, dy: number, extra: CSSProperties): CSSProperties {
   const { bx, by } = atlasOffset(sprite.name)
   return {
     '--bx': `${bx}px`,
-    '--by': `${by}px`,
+    '--by': `${by - dy}px`,
     '--period': `${sprite.periodMs ?? 0}ms`,
     ...extra,
   } as CSSProperties
@@ -79,8 +93,8 @@ const FloorLayer = memo(function FloorLayer() {
         cell.layers.map((sprite, i) => (
           <span
             key={`${cell.x},${cell.y},${i}`}
-            className={styles.cell}
-            style={cellStyle(sprite, { left: cell.x * T, top: cell.y * T - (48 - T) })}
+            className={`${styles.cell} ${styles.full}`}
+            style={cellStyle(sprite, 0, { left: cell.x * T, top: cell.y * T - OVERFLOW })}
           />
         )),
       )}
@@ -88,18 +102,29 @@ const FloorLayer = memo(function FloorLayer() {
   )
 })
 
-/** Props with a footprint. Row-sorted with the actors so tall furniture occludes. */
-const PropLayer = memo(function PropLayer(states: TileStates) {
+/** Prop pass in two layers around the actors (see above). */
+const PropLayers = memo(function PropLayers(states: TileStates) {
+  const cells = propCells(states)
   return (
     <>
-      {propCells(states).map(({ x, y, sprite }) => (
-        <span
-          key={`${x},${y}`}
-          className={`${styles.cell} ${styles.prop} ${frameClass(sprite)}`}
-          style={cellStyle(sprite, { left: x * T, top: y * T - (48 - T), zIndex: rowZ(y) })}
-          aria-hidden
-        />
-      ))}
+      <div className={styles.footprints} aria-hidden>
+        {cells.map(({ x, y, sprite }) => (
+          <span
+            key={`${x},${y}`}
+            className={`${styles.cell} ${styles.footprint} ${frameClass(sprite)}`}
+            style={cellStyle(sprite, OVERFLOW, { left: x * T, top: y * T })}
+          />
+        ))}
+      </div>
+      <div className={styles.overflows} aria-hidden>
+        {cells.map(({ x, y, sprite }) => (
+          <span
+            key={`${x},${y}`}
+            className={`${styles.cell} ${styles.overflow} ${frameClass(sprite)}`}
+            style={cellStyle(sprite, 0, { left: x * T, top: y * T - OVERFLOW })}
+          />
+        ))}
+      </div>
     </>
   )
 })
@@ -136,6 +161,9 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   )
   const camYMax = Math.max(0, MAP_HEIGHT - viewRows)
   const camY = Math.max(0, Math.min(state.player.y + lookAheadY - viewRows / 2 + 0.5, camYMax))
+  // Whole pixels only: a fractional look-ahead offset puts every sprite edge on
+  // a sub-pixel boundary and the sheet cells grow hairline seams.
+  const camPx = { x: Math.round(camX * T), y: Math.round(camY * T) }
 
   const ov = state.overlay
   const dialogueKey = ov?.kind === 'dialogue' && ov.line === 0 ? ov.nodeId : null
@@ -152,9 +180,9 @@ export default function WorldMap({ state }: { state: OfficeState }) {
 
   const cardOpen = !!ov && ov.kind !== 'coach'
   const nearbyLeft = nearby
-    ? Math.max(4, Math.min(VIEW_W - 4, ((outlineTile?.x ?? ahead.x) - camX) * T + T / 2))
+    ? Math.max(4, Math.min(VIEW_W - 4, (outlineTile?.x ?? ahead.x) * T - camPx.x + T / 2))
     : 0
-  const nearbyTop = nearby ? Math.max(30, ((outlineTile?.y ?? ahead.y) - camY) * T - 6) : 0
+  const nearbyTop = nearby ? Math.max(30, (outlineTile?.y ?? ahead.y) * T - camPx.y - 6) : 0
   const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
   const elevatorDot =
     nearby?.kind === 'poi' && nearby.id === 'poi_elevator_door'
@@ -166,7 +194,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     callout !== null && NPC_TILE[callout].x === obj.pin.x && NPC_TILE[callout].y === obj.pin.y
   const pinOffLeft = obj.pin.x < camX
   const pinOffRight = obj.pin.x >= camX + VIEWPORT_TILES_X
-  const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, (obj.pin.y - camY) * T))
+  const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, obj.pin.y * T - camPx.y))
   const poiFxTile =
     nearby?.kind === 'poi' &&
     (nearby.id === 'poi_elevator_door' ||
@@ -194,10 +222,10 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     >
       <div
         className={styles.camera}
-        style={{ transform: `translate(${-camX * T}px, ${-camY * T}px)` }}
+        style={{ transform: `translate(${-camPx.x}px, ${-camPx.y}px)` }}
       >
         <FloorLayer />
-        <PropLayer {...states} />
+        <PropLayers {...states} />
         <div className={styles.lightPools} aria-hidden>
           <span className={`${styles.pool} ${styles.poolElevator}`} />
           <span className={`${styles.pool} ${styles.poolDesks}`} />

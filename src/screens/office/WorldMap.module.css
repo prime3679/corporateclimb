@@ -35,7 +35,7 @@
   transition: transform 280ms cubic-bezier(0.2, 0.85, 0.35, 1);
 }
 
-/* ── sprite-sheet cells (public/office/tiles.png, 32×48 per cell) ── */
+/* ── sprite-sheet layers (public/office/tiles.png, 32×48 cells in 34×50 slots) ── */
 .floor {
   position: relative;
   z-index: 1;
@@ -44,13 +44,26 @@
   will-change: transform;
 }
 
+.footprints,
+.overflows {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.footprints {
+  z-index: 3;
+}
+
+.overflows {
+  z-index: 7;
+}
+
 .cell {
   --bx: 0px;
   --by: 0px;
   --period: 0ms;
   position: absolute;
-  width: 32px;
-  height: 48px;
   background-image: var(--tile-sheet);
   background-repeat: no-repeat;
   background-size: var(--sheet-w) var(--sheet-h);
@@ -58,6 +71,22 @@
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   pointer-events: none;
+}
+
+/* one pixel larger than the art: reaches into the slot's extruded border */
+.full {
+  width: 33px;
+  height: 49px;
+}
+
+.footprint {
+  width: 33px;
+  height: 33px;
+}
+
+.overflow {
+  width: 33px;
+  height: 17px;
 }
 
 .frames2 {
@@ -70,7 +99,7 @@
     background-position-x: var(--bx);
   }
   50% {
-    background-position-x: calc(var(--bx) - 32px);
+    background-position-x: calc(var(--bx) - 34px);
   }
 }
 
@@ -131,7 +160,7 @@
   position: absolute;
   width: 32px;
   height: 32px;
-  z-index: 3;
+  z-index: 4;
   border: 1px solid color-mix(in srgb, var(--zone-accent) 78%, var(--cc-gold) 22%);
   border-radius: 4px;
   box-shadow:
