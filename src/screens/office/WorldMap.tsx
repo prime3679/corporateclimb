@@ -13,7 +13,7 @@ import {
   type NpcId,
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
-import { ringColorFor } from './Headshot'
+import { ringColorFor } from './ringColor'
 import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
 import { TileDefs, renderForegroundTile, renderTile, type TileStates } from './tiles'
@@ -212,7 +212,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
               <div key={id}>
                 <OverworldActor
                   actorId={NPC_ACTOR[id]}
-                  spriteId={cast.spriteId}
                   ring={ringColorFor(cast.types, false)}
                   facing={facing}
                   x={tile.x}
@@ -236,7 +235,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
 
         <OverworldActor
           actorId={leadActorId(lead.id)}
-          spriteId={lead.spriteId}
           ring="var(--cc-gold)"
           facing={state.player.facing}
           x={state.player.x}

@@ -1,6 +1,5 @@
 import type { CSSProperties } from 'react'
 import { MOVE_MS, TILE_SIZE, type Facing, type NpcId } from '@/content/office'
-import Headshot from './Headshot'
 import styles from './OverworldActor.module.css'
 
 export const ACTOR_IDS = [
@@ -48,12 +47,12 @@ export function actorSheetUrl(id: OfficeActorId): string {
 
 /**
  * Full-body overworld token. Facing selects a sheet row; a tile change
- * retriggers a one-shot 250ms walk (idle / stepL / idle / stepR). The
- * small Headshot badge keeps the map face identical to dialogue cards.
+ * retriggers a one-shot 250ms walk (idle / stepL / idle / stepR).
+ * Dialogue / party chips keep Headshot — this token does not mount one
+ * (a map-token Headshot created a circular import crash).
  */
 export default function OverworldActor({
   actorId,
-  spriteId,
   ring,
   facing,
   x,
@@ -62,7 +61,6 @@ export default function OverworldActor({
   label,
 }: {
   actorId: OfficeActorId
-  spriteId: string
   ring: string
   facing: Facing
   x: number
@@ -82,6 +80,7 @@ export default function OverworldActor({
           left: x * TILE_SIZE,
           top: y * TILE_SIZE - (40 - TILE_SIZE),
           '--walk-ms': `${MOVE_MS}ms`,
+          '--actor-ring': ring,
         } as CSSProperties
       }
       aria-label={label}
@@ -94,7 +93,6 @@ export default function OverworldActor({
         style={{ backgroundImage: `url(${actorSheetUrl(actorId)})` }}
         aria-hidden
       />
-      <Headshot spriteId={spriteId} size={12} ring={ring} shape="badge" className={styles.badge} />
     </div>
   )
 }

@@ -35,8 +35,9 @@ body stub, facing notch, step-phase bob. Readable, on-brand, still a badge.
 
 **After (this PR):** each actor is a 32×40 full-body sheet (`public/office/actors/`)
 with four facings and a one-shot 250ms walk (`idle / stepL / idle / stepR`)
-keyed on tile change. A 12px `Headshot` badge stays pinned to the sprite so
-the map face matches dialogue. Recruits still do not follow.
+keyed on tile change. Map tokens do **not** mount a mini `Headshot` (that
+circular import crashed the office screen). Dialogue / party / cards still
+use `Headshot`. Recruits still do not follow.
 
 Sheets (128×160 RGBA, 4×4, frame 32×40):
 

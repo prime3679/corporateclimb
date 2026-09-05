@@ -3,6 +3,8 @@ import { resolve } from 'node:path'
 import { describe, expect, it } from 'vitest'
 import { PLAYER_CLASSES } from '@/data'
 import { SPEAKER_SPRITE, type NpcId } from '@/content/office'
+import { ringColorFor } from '@/screens/office/ringColor'
+import { ringColorFor as headshotRing } from '@/screens/office/Headshot'
 import {
   ACTOR_IDS,
   NPC_ACTOR,
@@ -21,6 +23,13 @@ const NPC_IDS: NpcId[] = [
 function pngSize(buf: Buffer) {
   return { w: buf.readUInt32BE(16), h: buf.readUInt32BE(20), colorType: buf[25] }
 }
+
+describe('ringColorFor isolation', () => {
+  it('lives in ringColor and is re-exported from Headshot', () => {
+    expect(ringColorFor(['technical'], true)).toBe('var(--cc-gold)')
+    expect(ringColorFor(['strategy'], false)).toBe(headshotRing(['strategy'], false))
+  })
+})
 
 describe('overworld actor sheets', () => {
   it('maps every lead class and floor NPC onto a committed sheet', () => {
