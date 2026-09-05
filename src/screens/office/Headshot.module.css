@@ -1,0 +1,36 @@
+.frame {
+  --hs-ring: var(--cc-gold);
+  position: relative;
+  display: inline-block;
+  flex: none;
+  overflow: hidden;
+  background: radial-gradient(circle at 50% 30%, #2a3646, #121923 78%);
+  /* 2px type ring + 1px ink outline: the badge-token signature. */
+  box-shadow:
+    0 0 0 2px var(--hs-ring),
+    0 0 0 3px rgba(10, 13, 19, 0.95);
+}
+
+.circle {
+  border-radius: 50%;
+}
+
+.badge {
+  border-radius: 6px;
+}
+
+.img {
+  position: absolute;
+  max-width: none;
+  display: block;
+  pointer-events: none;
+  filter: saturate(1.06);
+}
+
+.out .img {
+  filter: saturate(0) brightness(0.72);
+}
+
+.out {
+  --hs-ring: var(--cc-text-faint);
+}

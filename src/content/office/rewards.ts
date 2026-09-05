@@ -27,6 +27,8 @@ export interface ReceiptDef {
   title: string
   rewardId?: RewardId
   lines: ReceiptLine[]
+  /** One satire line printed under the rows (design §10.6). */
+  footer: string
 }
 
 export const RECEIPTS: Record<ReceiptId, ReceiptDef> = {
@@ -35,35 +37,41 @@ export const RECEIPTS: Record<ReceiptId, ReceiptDef> = {
     title: 'SIGNING BONUS',
     rewardId: 'rwd_start_options',
     lines: [{ text: '+10 📈  Starting float' }],
+    footer: 'Vests immediately. Suspicious.',
   },
   rcpt_printer_online: {
     id: 'rcpt_printer_online',
     title: 'PRINTER — ONLINE',
     lines: [{ text: 'Offer Letter ×2  📄' }],
+    footer: 'Two letters. Zero names. Infinite potential.',
   },
   rcpt_ticket_closed: {
     id: 'rcpt_ticket_closed',
     title: 'TICKET #0001 CLOSED',
     rewardId: 'rwd_asg_printer',
     lines: [{ text: '+10 📈' }],
+    footer: 'Filed under: things that beep.',
   },
   rcpt_desk_argument: {
     id: 'rcpt_desk_argument',
     title: 'DESK-PIT ARGUMENT — WON',
     rewardId: 'rwd_enc_desk_challenger',
     lines: [{ text: '+15 XP' }, { text: '+8 📈' }, { text: 'Offer eligible ✓' }],
+    footer: 'Coffee refill: his problem now.',
   },
   rcpt_meeting_prepped: {
     id: 'rcpt_meeting_prepped',
     title: 'THE 10:30 — PREPPED',
     rewardId: 'rwd_asg_meeting_prep',
     lines: [{ text: '+6 📈' }],
+    footer: "Nobody will read it. It's still right.",
   },
   rcpt_premeeting_spar: {
     id: 'rcpt_premeeting_spar',
     title: 'PRE-MEETING SPAR — WON',
     rewardId: 'rwd_enc_meeting_prepper',
     lines: [{ text: '+22 XP' }, { text: '+11 📈' }, { text: 'Offer eligible ✓' }],
+    footer: "She'll be calm. Nobody will know why.",
   },
   rcpt_one_on_one: {
     id: 'rcpt_one_on_one',
@@ -75,11 +83,13 @@ export const RECEIPTS: Record<ReceiptId, ReceiptDef> = {
       { text: 'Access Badge 🪪' },
       { text: 'Promotion →' },
     ],
+    footer: 'Laminated. Finally.',
   },
   rcpt_promotion_signing_bonus: {
     id: 'rcpt_promotion_signing_bonus',
     title: 'SIGNING BONUS',
     lines: [{ text: '+60 📈  Perk payout. Not a floor ledger row.' }],
+    footer: 'HR calls it a development plan.',
   },
 }
 

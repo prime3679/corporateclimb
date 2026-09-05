@@ -21,12 +21,15 @@ export default function TitleScreen({
   onDaily,
   onCodex,
   onOffice,
+  officeStatus,
 }: {
   onStart: () => void
   onContinue?: () => void
   onDaily: () => void
   onCodex: () => void
   onOffice?: () => void
+  /** One-line campaign summary under THE OFFICE when a save exists. */
+  officeStatus?: string
 }) {
   const [confirmNew, setConfirmNew] = useState(false)
   const [goldenBadge, setGoldenBadge] = useState(hasGoldenBadge)
@@ -371,9 +374,37 @@ export default function TitleScreen({
       )}
 
       {onOffice && (
-        <Button variant="accent" size="md" onClick={onOffice} style={{ zIndex: 2, minWidth: 210 }}>
-          THE OFFICE
-        </Button>
+        <div
+          style={{
+            zIndex: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: 5,
+          }}
+        >
+          <span
+            className="t-display"
+            style={{
+              fontSize: 'var(--display-2xs)',
+              letterSpacing: 'var(--cc-track-label)',
+              color: 'var(--cc-text-dim)',
+            }}
+          >
+            PREVIEW · FLOOR 1
+          </span>
+          <Button variant="accent" size="md" onClick={onOffice} style={{ minWidth: 210 }}>
+            THE OFFICE
+          </Button>
+          {officeStatus && (
+            <span
+              className="t-body"
+              style={{ fontSize: 'var(--body-sm)', color: 'var(--cc-text-2)' }}
+            >
+              {officeStatus}
+            </span>
+          )}
+        </div>
       )}
 
       <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
