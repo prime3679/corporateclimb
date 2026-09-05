@@ -45,8 +45,32 @@ Sheets (128×160 RGBA, 4×4, frame 32×40):
 - `renata`, `gavin`, `priya`, `holloway` — floor NPCs
 
 Regenerate with `python3 scripts/gen_office_actors.py` (Pillow). Palettes track
-the existing 512px portraits. These sheets are **generated stand-ins**, not
-ship-quality art.
+the existing 512px portraits.
+
+### Sprite art (`feat/office-sprite-art`)
+
+The first cut of these sheets was a ~1.7KB rectangle generator. They are now
+hand-authored pixel art, versioned as ASCII templates inside
+`scripts/gen_office_actors.py` so the sheets stay regenerable:
+
+- One chibi rig for the whole cast (13px head / 10px torso / 9px legs, feet on
+  y=33, ~8px head overflow above the tile) so everyone reads as one world.
+- Per-character heads (hair silhouette is the primary identity carrier),
+  costumes and props: Eng hoodie + lanyard + laptop, Design patchwork blazer +
+  hair clip + wide trousers + tablet, PM bob + teal blazer + tablet, Renata
+  wavy hair + phone, Gavin slicked hair + pin + paper stack, Priya spikes +
+  sticky-note badges + index cards, Holloway slouch + mug + binder.
+- Top-left light, lit / base / shadow ramp per material, one plum ink for the
+  silhouette plus selective outlines that separate head, arms and props from
+  the torso.
+- Walk: front / back lift one foot and drop the hips 1px; side views use the
+  contact stride (near leg forward, far leg trailing in shadow tone) with the
+  arms swinging opposite the legs. Frame order and cell size are unchanged.
+
+`OverworldActor.module.css` gives `.sheet` its own compositor layer
+(`will-change: transform`). Without it the sprites live inside the camera
+layer, which the `Stage` scales fractionally, and every 1px detail gets
+bilinear-filtered into mush.
 
 ## What stays frozen
 
@@ -76,8 +100,8 @@ ship-quality art.
 #67 and this follow-up raise the presentation floor. They do **not** clear
 Fable's ownership table:
 
-- Ship-quality tileset and character art (`mvp-design.md` §14) — these sheets
-  are generated pixel stand-ins
+- Ship-quality tileset (`mvp-design.md` §14). Character walk sheets are now
+  hand-authored pixel art (see "Sprite art" above); tiles and props are not.
 - Full §12 feedback matrix and coach-mark motion
 - §13 fade/duck timings
 - §19 device sign-off (task-8 playtest)
