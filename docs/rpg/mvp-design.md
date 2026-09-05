@@ -1,14 +1,18 @@
 # The Office — Overworld MVP Design (Floor 1)
 
-_Status: design freeze for the first slice, revision 2 (party system promoted to v1). Owner:
-Fable (experience, content, wording, pacing). Implementation: Astra. This document is meant to be
-playtested on paper — every tile, line, and number a reviewer needs is here. Anything marked
-**FROZEN** is an ID or value code will be written against; change it here first, then in code._
+_Status: design freeze for the first slice, revision 3 (polish specified as an acceptance
+criterion). Owner: Fable (experience, content, wording, pacing, polish sign-off). Implementation:
+Astra. This document is meant to be playtested on paper — every tile, line, number, screen, and
+piece of feedback a reviewer needs is here. Anything marked **FROZEN** is an ID or value code will
+be written against; change it here first, then in code. Nothing player-facing in this document is
+"fine for now": §14 separates ship-quality requirements from stand-ins, and §19 is the checklist
+the slice must pass before it is called done._
 
 Companion reading: `CLAUDE.md` (architecture), `src/content/*` (existing classes, items, perks,
 enemies the overworld reuses), `src/engine/turn.ts` (the one battle resolver the party rides on),
-`src/ui/tokens.css` (visual system). `docs/REWRITE_PLAN.md` is historical; nothing here restarts
-that rewrite.
+`src/ui/tokens.css` (visual system), `src/sfx.ts` and `src/platform/haptics.ts` (the cue
+vocabulary every feedback row below is written against). `docs/REWRITE_PLAN.md` is historical;
+nothing here restarts that rewrite.
 
 ---
 
@@ -23,20 +27,30 @@ Battles are the existing Corporate Climb combat, entered on purpose, never by am
 coworkers fight one at a time, Pokémon-style, and you switch between them. Losing costs the whole
 team a walk to the break room.
 
+### Polish is the acceptance criterion
+
+This is a small floor, so every surface on it is load-bearing. The bar: a player who has never seen
+Corporate Climb can pick this up on a phone, always knows where to go and why, never wonders
+whether an input registered, never sees a blank panel or a raw emoji standing in for furniture, and
+finishes wanting Floor 2. Concretely: every screen and overlay is named and laid out (§10), every
+action has feedback (§12), every transition has a return position and a tone (§13), the art is
+ship-quality or it blocks done (§14), and Fable signs the §19 checklist in the task-8 playtest.
+
 ### Locked defaults (from the brief, confirmed against the repo)
 
 | Default                                         | Repo check / design answer                                                                                                                  |
 | ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | Player is the lead employee (chosen class)      | `PLAYER_CLASSES` (pm / eng / design) reused as-is; `ClassSelect` reused; lead is always party slot 0                                        |
 | **Recruitable coworker party — required in v1** | §3. Party cap 3 (lead + 2). Recruit by beating a recruitable coworker and extending an Offer Letter the printer produced                    |
-| Persistent completed work                       | Assignment stages, encounter results and the party roster live on the office campaign save (§12)                                            |
+| Persistent completed work                       | Assignment stages, encounter results and the party roster live on the office campaign save (§15)                                            |
 | Free break-room recovery, no loss currency cost | "Take five" restores the whole party; nothing in `RunState` is decremented on defeat                                                        |
-| Static directional avatar                       | 4 facing frames per class, no walk cycle; recruits do not follow on the map (§11)                                                           |
-| Classic tower stays on its own save slot        | Classic uses `corporate-climb-save`; the office campaign gets its own key (§12). Title screen gets a third mode button                      |
+| Static directional avatar                       | Badge-token avatar with a facing notch, 4 facings, no walk cycle (§14.2); recruits do not follow on the map                                 |
+| Classic tower stays on its own save slot        | Classic uses `corporate-climb-save`; the office campaign gets its own key (§15). Title screen gets a third mode button                      |
 | One floor, 24×18 tiles, five zones + connector  | §1                                                                                                                                          |
 | No random encounters                            | Every battle is behind an explicit confirm (§5). Sightlines trigger _dialogue_, never combat                                                |
 | One battle system                               | The party is a projection over the existing `TurnContext`; one new player action (switch) and one new battle phase (§3.4). No second engine |
-| Currency                                        | Stock Options (`📈`, `CURRENCY_ICON`), the existing run currency. Written "Options" in dialogue, "OPT" in HUD chips                         |
+| Currency                                        | Stock Options (`📈`, `CURRENCY_ICON`), the existing run currency. Written "Options" in dialogue, "OPT" only in the wallet chip              |
+| Polish                                          | Hard acceptance criterion: §10 presentation, §12 feedback, §13 transitions, §14 asset bar, §19 sign-off checklist                           |
 
 ---
 
@@ -86,7 +100,7 @@ to the map); the whole floor height is always on screen.
 | `A`   | Agenda on the table        | yes   | "Read agenda"                                         | `poi_agenda`          |
 | `H`   | Handout rack               | yes   | "Pick a handout"                                      | `poi_handout_rack`    |
 | `c`   | Chair                      | yes   | —                                                     | —                     |
-| `=`   | Desk                       | yes   | Reception desk tiles `(7–9,15)` proxy "Talk — Renata" | `poi_reception_desk`  |
+| `=`   | Desk                       | yes   | Reception desk tiles `(7–9,15)` proxy "Talk · Renata" | `poi_reception_desk`  |
 | `P`   | Printer                    | yes   | "Inspect" / "Install toner" (state-dependent)         | `poi_printer`         |
 | `S`   | Supply cabinet             | yes   | "Open cabinet"                                        | `poi_supply_cabinet`  |
 | `K`   | Coffee counter (3 tiles)   | yes   | "Take five"                                           | `poi_break_counter`   |
@@ -103,7 +117,7 @@ to the map); the whole floor height is always on screen.
 
 Doors are decorative: they render as glass frames but are walkable floor. Only `(10,3)` carries
 logic. Interaction rule: the player must be on an adjacent tile _facing_ the target (Pokémon
-rule). Standing adjacent without facing shows no label. Recruited coworkers keep their map tile
+rule). Standing adjacent without facing shows no prompt. Recruited coworkers keep their map tile
 (they are "on your team" and "at their desk" simultaneously — see §3.2); no follower sprites.
 
 ### 1.3 Zones
@@ -117,8 +131,8 @@ rule). Standing adjacent without facing shows no label. Recruited coworkers keep
 | `zone_elevator`  | x1–9, y1–5     | `--cc-type-strategy`                   | Elevator, badge reader, Holloway; door at `(10,3)`        |
 | `zone_hall`      | x11–13, y1–12  | `--cc-text-dim`                        | Connector spine; Priya stands here                        |
 
-The zone name shows as an uppercase eyebrow chip (`--cc-track-label`) top-left of the map when the
-player crosses a zone boundary, for 1.6 s (instant swap under reduced motion).
+Zone display names (used in the zone chip and in objective destination chips): RECEPTION, DESKS,
+BREAK ROOM, MEETING ROOM, ELEVATOR LOBBY, HALL.
 
 ### 1.4 NPC positions, facing, sightlines, triggers
 
@@ -135,7 +149,7 @@ fires once per state (repeat entries in the same state do nothing; talk directly
 | `trg_first_step`      | any                          | —      | —                            | player's first completed step                            | `dlg_renata_callout`                            |
 | `trg_supervisor_door` | `(10,3)`                     | —      | —                            | prerequisites met (§8) and `enc_supervisor_1on1 ≠ won`   | commit prompt (§8); blocks passage on "Not yet" |
 | `trg_elevator_ride`   | `(2,2)`/`(3,2)` facing north | —      | —                            | `key_access_badge` held                                  | ride prompt → celebration (§8)                  |
-| `trg_switch_coach`    | in battle                    | —      | —                            | §3.6                                                     | one-time switch coach mark                      |
+| `trg_switch_coach`    | in battle                    | —      | —                            | §3.6                                                     | `coach_switch`                                  |
 
 Sightline overlay (`*` = trigger tile, `>` `<` `v` = NPC facing):
 
@@ -176,10 +190,13 @@ Sightline overlay (`*` = trigger tile, `>` `<` `v` = NPC facing):
 
 ## 2. NPCs and dialogue trees — **FROZEN IDs**
 
-Dialogue conventions: one box = one line below. Lines advance on Enter/E/tap; Esc closes a plain
-dialogue, and on a choice prompt Esc selects the safe option (marked ⎋). Text uses the existing
-`TextBox` typewriter (`--cc-type-speed`, honours text-speed setting). Speaker name renders as the
-eyebrow chip above the box. `→` means state effect. Every node id is `dlg_<npc>_<name>`.
+Dialogue conventions: one box = one line below, rendered in `ovl_dialogue` (§10.4). Lines advance
+on Enter/E/tap; Esc closes a plain dialogue, and on a choice prompt Esc selects the safe option
+(marked ⎋). `→` means state effect. Every node id is `dlg_<npc>_<name>`.
+
+Copy rules (§9.2): a line is ≤ 90 characters and fits two rows of the box; a node is at most three
+lines before a choice or an effect; no line explains a control (controls are taught by prompts and
+coach marks, §9.3); every NPC line names a place, a person, or a joke.
 
 State vocabulary used in conditions:
 
@@ -199,45 +216,50 @@ Recruitability at a glance:
 | Priya    | **yes**     | Optional coworker; fills the third slot                   |
 | Holloway | no          | Boss. "I'm your manager. That's the opposite of joining." |
 
+Portraits (all reused from `src/assets/characters/`, see §14.2): Renata `recruiter`, Gavin
+`overachiever`, Priya `scrum`, Holloway `manager`. The same headshot crop appears on the map token,
+in the dialogue eyebrow, on the party strip, in the team panel, on the bench picker and on the
+recruit card — one face per person everywhere.
+
 ### 2.1 `npc_receptionist` — Renata, Front Desk
 
-Role: teaches movement + interaction, issues and closes the printer ticket, points to the next
-beat, explains the Offer Letters. Never fights. Map token only (no battle portrait needed).
+Role: gets the player moving and interacting, issues and closes the printer ticket, points to the
+next beat, explains the Offer Letters. Never fights.
 
-| Node                       | Condition                                                 | Lines / choices                                                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| -------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `dlg_renata_callout`       | `trg_first_step`, once                                    | _(spoken across the room, marker bounces over Renata)_ "New hire. Front desk. Now." → objective banner: **Talk to Renata at the front desk** → `flag_greeted`                                                                                                                                                                                                                                                                                                                        |
-| `dlg_renata_ticket`        | `asg_printer = not_started`                               | "You have the look. Hopeful. Badge-less." · "Floor 1: reception, desks, break room, meeting room, elevator. That's the whole world for now." · "Your first ticket is already late. The desk-pit printer is down. Toner's in the grey cabinet in the break room." · "Fix it, then come back so I can close the ticket." → `asg_printer = accepted` → objective: **Get the printer working — find toner in the break room**                                                            |
-| `dlg_renata_hint_toner`    | `asg_printer = accepted`                                  | "Break room's up the hall, on the right. Grey cabinet. Nobody labels it. Push."                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `dlg_renata_hint_install`  | `asg_printer = toner_collected`                           | "You're holding toner like it's a promotion. Printer. Desk pit. Go."                                                                                                                                                                                                                                                                                                                                                                                                                 |
-| `dlg_renata_close_ticket`  | `asg_printer = installed`                                 | "It printed? It printed. Ticket closed." · _(reward toast: +10 📈 Stock Options)_ "Ten Options. Don't spend them all on espresso. Spend most of them on espresso." · "It printed offer letters too? Keep them. HR pre-signs a stack every quarter. Beat someone in an argument, hand them one, they're yours." · "Gavin at the desks wants a word. He wants a word with everyone." → `asg_printer = complete`, `rwd_asg_printer` claimed → objective: **Talk to Gavin at the desks** |
-| `dlg_renata_gavin_pending` | `asg_printer = complete`, `enc_desk_challenger = open`    | "Gavin's still at his desk. He's always at his desk. It's sort of his whole thing."                                                                                                                                                                                                                                                                                                                                                                                                  |
-| `dlg_renata_holloway`      | `enc_desk_challenger = won`, `enc_supervisor_1on1 = open` | "Holloway wants to see you. Elevator lobby, through the glass door." · _(if party size = 1)_ "Alone? Bold. She's built to outlast one person." · _(if party size ≥ 2)_ "Bring the team. She talks a lot; let someone else stand there for a bit." · "Eat something first."                                                                                                                                                                                                           |
-| `dlg_renata_recruit_me`    | any time the player holds `key_offer_letter`, talk twice  | "Don't. I'm the front desk. I don't go places."                                                                                                                                                                                                                                                                                                                                                                                                                                      |
-| `dlg_renata_badged`        | `key_access_badge` held, `flag_preview_complete` unset    | "Look at you. Badged. Elevator's top left. It goes to Floor 2." · "Floor 2 isn't finished. Take that up with the people who build floors."                                                                                                                                                                                                                                                                                                                                           |
-| `dlg_renata_after`         | `flag_preview_complete` set                               | "Back already? Floor 2 will be there when it exists."                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Node                       | Condition                                                 | Lines / choices                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| -------------------------- | --------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dlg_renata_callout`       | `trg_first_step`, once                                    | _(spoken across the room — no portrait, "!" marker pops over Renata, destination pin lands on her)_ "New hire. Front desk. Now." → objective: **Talk to Renata** · destination RECEPTION → `flag_greeted`                                                                                                                                                                                                                                                                                         |
+| `dlg_renata_ticket`        | `asg_printer = not_started`                               | "You have the look. Hopeful. Badge-less." · "Floor 1: reception, desks, break room, meeting room, elevator. That's the whole world for now." · "Your first ticket is already late. The desk-pit printer is down. Toner's in the grey cabinet in the break room." · "Fix it, then come back so I can close the ticket." → `asg_printer = accepted` → objective: **Get toner from the supply cabinet** · destination BREAK ROOM                                                                     |
+| `dlg_renata_hint_toner`    | `asg_printer = accepted`                                  | "Break room's up the hall, on the right. Grey cabinet. Nobody labels it. Push."                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `dlg_renata_hint_install`  | `asg_printer = toner_collected`                           | "You're holding toner like it's a promotion. Printer. Desk pit. Go."                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `dlg_renata_close_ticket`  | `asg_printer = installed`                                 | "It printed? It printed. Ticket closed." → **receipt** `TICKET #0001 CLOSED` (+10 📈) · "Ten Options. Don't spend them all on espresso. Spend most of them on espresso." · "It printed offer letters too? Keep them. HR pre-signs a stack every quarter. Beat someone in an argument, hand them one, they're yours." · "Gavin at the desks wants a word. He wants a word with everyone." → `asg_printer = complete`, `rwd_asg_printer` claimed → objective: **Talk to Gavin** · destination DESKS |
+| `dlg_renata_gavin_pending` | `asg_printer = complete`, `enc_desk_challenger = open`    | "Gavin's still at his desk. He's always at his desk. It's sort of his whole thing."                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `dlg_renata_holloway`      | `enc_desk_challenger = won`, `enc_supervisor_1on1 = open` | "Holloway wants to see you. Elevator lobby, through the glass door." · _(if party size = 1)_ "Alone? Bold. She's built to outlast one person." · _(if party size ≥ 2)_ "Bring the team. She talks a lot; let someone else stand there for a bit." · "Eat something first."                                                                                                                                                                                                                        |
+| `dlg_renata_recruit_me`    | any time the player holds `key_offer_letter`, talk twice  | "Don't. I'm the front desk. I don't go places."                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| `dlg_renata_badged`        | `key_access_badge` held, `flag_preview_complete` unset    | "Look at you. Badged. Elevator's top left. It goes to Floor 2." · "Floor 2 isn't finished. Take that up with the people who build floors."                                                                                                                                                                                                                                                                                                                                                        |
+| `dlg_renata_after`         | `flag_preview_complete` set                               | "Back already? Floor 2 will be there when it exists."                                                                                                                                                                                                                                                                                                                                                                                                                                             |
 
 ### 2.2 `npc_desk_challenger` — Gavin, Senior Associate
 
 Role: the required gate before the supervisor and the first recruit. Grudging, territorial, never
-actually busy. Encounter `enc_desk_challenger` (rank 0). Declinable. No rematch after a win (§14).
+actually busy. Encounter `enc_desk_challenger` (rank 0). Declinable. No rematch after a win (§17).
 Recruit def `cw_desk_challenger` (§3.3).
 
-| Node                       | Condition                                               | Lines / choices                                                                                                                                                                                                                                                                                                                 |
-| -------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dlg_gavin_busy`           | `asg_printer = not_started`                             | "Can't talk. Printing." · "Trying to print. Somebody's meant to be fixing that."                                                                                                                                                                                                                                                |
-| `dlg_gavin_no_pressure`    | `asg_printer ∈ {accepted, toner_collected, installed}`  | "You're the fix? Great. No pressure. The whole quarter is in that tray."                                                                                                                                                                                                                                                        |
-| `dlg_gavin_callout`        | sightline, `asg_printer = complete`, `enc = open`, once | "Hey. Printer person." → continues into `dlg_gavin_challenge`                                                                                                                                                                                                                                                                   |
-| `dlg_gavin_challenge`      | talk, `asg_printer = complete`, `enc = open`            | "You fixed a printer on day one. Now everyone thinks you're competent." · "Desk-pit rules: we argue until one of us stops. Loser refills the coffee." → **stakes card** (§5): `[Bring it]` → battle · `[Not now]` ⎋ → `dlg_gavin_declined`                                                                                      |
-| `dlg_gavin_declined`       | chose Not now                                           | "Sure. I'll be here. I'm always here."                                                                                                                                                                                                                                                                                          |
-| `dlg_gavin_you_lost`       | talk after a loss, `enc = open`                         | "Break room's that way. Take five." · "I'll be here, still not having been beaten." → `dlg_gavin_challenge` on next talk                                                                                                                                                                                                        |
-| `dlg_gavin_beaten`         | immediately after win                                   | "…Okay. Fine. Okay." · "Holloway's going to hear about this. From me. Reluctantly." → `enc_desk_challenger = won`, rewards (§5) → continues into `dlg_gavin_offer` if `key_offer_letter` held, else objective: **See Holloway in the elevator lobby**                                                                           |
-| `dlg_gavin_offer`          | `enc = won`, not in party, `key_offer_letter` held      | "…Is that an offer letter. Is that a pre-signed offer letter." · "You know what, fine. If you're going up against Holloway I want to be in the room. For the story." → **recruit card** (§3.2): `[Extend the offer]` → `dlg_gavin_joined` · `[Not yet]` ⎋ → `dlg_gavin_offer_declined`                                          |
-| `dlg_gavin_offer_declined` | chose Not yet                                           | "Right. Keep it. I'll be at my desk, professionally unbothered." → objective: **See Holloway in the elevator lobby**                                                                                                                                                                                                            |
-| `dlg_gavin_joined`         | offer extended                                          | _(toast: "Gavin joined the team" · party strip fills slot 2)_ "I'm still sitting here. Being on your team and being at my desk are both true." · "Switch me in when Holloway starts a sentence with 'so'. Trust me." → `party += cw_desk_challenger`, `key_offer_letter` −1 → objective: **See Holloway in the elevator lobby** |
-| `dlg_gavin_party`          | in party, `enc_supervisor_1on1 = open`                  | "Still on your team. Still at my desk. Multitasking."                                                                                                                                                                                                                                                                           |
-| `dlg_gavin_after`          | `enc = won`, not in party, no `key_offer_letter`        | "We're not doing that again. I have a reputation to rebuild."                                                                                                                                                                                                                                                                   |
-| `dlg_gavin_after_win`      | in party, `enc_supervisor_1on1 = won`                   | "We beat Holloway. I'm putting it on my calendar as a recurring event."                                                                                                                                                                                                                                                         |
+| Node                       | Condition                                               | Lines / choices                                                                                                                                                                                                                                                                        |
+| -------------------------- | ------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dlg_gavin_busy`           | `asg_printer = not_started`                             | "Can't talk. Printing." · "Trying to print. Somebody's meant to be fixing that."                                                                                                                                                                                                       |
+| `dlg_gavin_no_pressure`    | `asg_printer ∈ {accepted, toner_collected, installed}`  | "You're the fix? Great. No pressure. The whole quarter is in that tray."                                                                                                                                                                                                               |
+| `dlg_gavin_callout`        | sightline, `asg_printer = complete`, `enc = open`, once | "Hey. Printer person." → continues into `dlg_gavin_challenge`                                                                                                                                                                                                                          |
+| `dlg_gavin_challenge`      | talk, `asg_printer = complete`, `enc = open`            | "You fixed a printer on day one. Now everyone thinks you're competent." · "Desk-pit rules: we argue until one of us stops. Loser refills the coffee." → **stakes card** (§5.2): `[Bring it]` → battle · `[Not now]` ⎋ → `dlg_gavin_declined`                                           |
+| `dlg_gavin_declined`       | chose Not now                                           | "Sure. I'll be here. I'm always here."                                                                                                                                                                                                                                                 |
+| `dlg_gavin_you_lost`       | talk after a loss, `enc = open`                         | "Break room's that way. Take five." · "I'll be here, still not having been beaten." → `dlg_gavin_challenge` on next talk                                                                                                                                                               |
+| `dlg_gavin_beaten`         | immediately after win (after the receipt)               | "…Okay. Fine. Okay." · "Holloway's going to hear about this. From me. Reluctantly." → `enc_desk_challenger = won` → continues into `dlg_gavin_offer` if `key_offer_letter` held, else objective: **See Holloway** · destination ELEVATOR LOBBY                                         |
+| `dlg_gavin_offer`          | `enc = won`, not in party, `key_offer_letter` held      | "…Is that an offer letter. Is that a pre-signed offer letter." · "You know what, fine. If you're going up against Holloway I want to be in the room. For the story." → **recruit card** (§3.2): `[Extend the offer]` → `dlg_gavin_joined` · `[Not yet]` ⎋ → `dlg_gavin_offer_declined` |
+| `dlg_gavin_offer_declined` | chose Not yet                                           | "Right. Keep it. I'll be at my desk, professionally unbothered." → objective: **See Holloway** · destination ELEVATOR LOBBY                                                                                                                                                            |
+| `dlg_gavin_joined`         | offer extended                                          | "I'm still sitting here. Being on your team and being at my desk are both true." · "Switch me in when Holloway starts a sentence with 'so'. Trust me." → `party += cw_desk_challenger`, `key_offer_letter` −1 → objective: **See Holloway** · destination ELEVATOR LOBBY               |
+| `dlg_gavin_party`          | in party, `enc_supervisor_1on1 = open`                  | "Still on your team. Still at my desk. Multitasking."                                                                                                                                                                                                                                  |
+| `dlg_gavin_after`          | `enc = won`, not in party, no `key_offer_letter`        | "We're not doing that again. I have a reputation to rebuild."                                                                                                                                                                                                                          |
+| `dlg_gavin_after_win`      | in party, `enc_supervisor_1on1 = won`                   | "We beat Holloway. I'm putting it on my calendar as a recurring event."                                                                                                                                                                                                                |
 
 ### 2.3 `npc_meeting_prepper` — Priya, Ops
 
@@ -246,25 +268,25 @@ over-caffeinated, blames herself out loud so nobody else has to. Encounter `enc_
 (rank 1). Declinable. The spar is offered only after the handout is delivered. Recruit def
 `cw_meeting_prepper` (§3.3).
 
-| Node                       | Condition                                                      | Lines / choices                                                                                                                                                                                                                                                          |
-| -------------------------- | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `dlg_priya_hook`           | sightline, `asg_meeting_prep = not_started`, once              | "Don't go in there. The 10:30 isn't ready. I'm the reason. I'm choosing not to accept that." → continues into `dlg_priya_request`                                                                                                                                        |
-| `dlg_priya_request`        | talk, `asg_meeting_prep = not_started`                         | "Read the agenda on the table. Bring me the handout that matches." · "There are three. Two are wrong. That's the job." → `[Take it on]` → `asg_meeting_prep = accepted`, objective (optional): **Prepare the meeting — read the agenda** · `[Pass]` ⎋ → `dlg_priya_pass` |
-| `dlg_priya_pass`           | chose Pass                                                     | "Fair. Nobody signed up for the 10:30."                                                                                                                                                                                                                                  |
-| `dlg_priya_waiting`        | `asg_meeting_prep = accepted`                                  | "Agenda's on the table. Handouts are on the rack. Matching is the hard part, apparently."                                                                                                                                                                                |
-| `dlg_priya_wrong_deck`     | `handout_held`, holding `key_handout_q3_deck`                  | "Forty-eight pages. She'll read the first one and hold the rest like a shield." · "Summary. One page." _(handout stays in hand; swap it at the rack)_                                                                                                                    |
-| `dlg_priya_wrong_q2`       | `handout_held`, holding `key_handout_q2_summary`               | "That's Q2. We don't say Q2 here anymore." · "Check the quarter on the agenda." _(handout stays in hand)_                                                                                                                                                                |
-| `dlg_priya_delivered`      | `handout_held`, holding `key_handout_q3_summary`               | "This is it. This is the one. You have no idea how rare that is." → consume handout, `asg_meeting_prep = complete`, `rwd_asg_meeting_prep` (+6 📈) · "Six Options. Expensed, technically." → continues into `dlg_priya_spar`                                             |
-| `dlg_priya_spar`           | `asg_meeting_prep = complete`, `enc_meeting_prepper = open`    | "While I've got you. I run a thing. Pre-meeting sparring. Keeps the nerves off." → **stakes card** (§5): `[Spar]` → battle · `[Rain check]` ⎋ → `dlg_priya_raincheck`                                                                                                    |
-| `dlg_priya_raincheck`      | chose Rain check                                               | "Rain check. I'll hold you to it. I hold everyone to it."                                                                                                                                                                                                                |
-| `dlg_priya_you_lost`       | talk after a loss, `enc = open`                                | "Break room. Hydrate. Come back angrier." → `dlg_priya_spar` on next talk                                                                                                                                                                                                |
-| `dlg_priya_beaten`         | immediately after win                                          | "Good. Now I'll be calm in the 10:30 and nobody will know why." → `enc_meeting_prepper = won`, rewards (§5) → continues into `dlg_priya_offer` if `key_offer_letter` held and party has a free slot                                                                      |
-| `dlg_priya_offer`          | `enc = won`, not in party, `key_offer_letter` held, slot free  | "An offer letter. Pre-signed. You're just handing these out?" · "Yes. Obviously yes. I've been trying to get off this floor since the 10:30 existed." → **recruit card**: `[Extend the offer]` → `dlg_priya_joined` · `[Not yet]` ⎋ → `dlg_priya_offer_declined`         |
-| `dlg_priya_offer_declined` | chose Not yet                                                  | "Sure. Come back. I'm easy to find. I'm always outside this door."                                                                                                                                                                                                       |
-| `dlg_priya_offer_full`     | `enc = won`, not in party, `key_offer_letter` held, party full | "You've got a full team. Send someone home first. Not me — I mean, hypothetically." _(no action in MVP; the party is never full on Floor 1 — see §3.1)_                                                                                                                  |
-| `dlg_priya_joined`         | offer extended                                                 | _(toast: "Priya joined the team")_ "Great. I'll hold you to the schedule. Switch me in early; I front-load." → `party += cw_meeting_prepper`, `key_offer_letter` −1                                                                                                      |
-| `dlg_priya_party`          | in party                                                       | "Team member. Also still running the 10:30. It's called range."                                                                                                                                                                                                          |
-| `dlg_priya_after`          | `enc = won`, not in party, no `key_offer_letter`               | "The 10:30 went fine. Nobody read the handout. It was still the right handout."                                                                                                                                                                                          |
+| Node                       | Condition                                                     | Lines / choices                                                                                                                                                                                                                                                             |
+| -------------------------- | ------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dlg_priya_hook`           | sightline, `asg_meeting_prep = not_started`, once             | "Don't go in there. The 10:30 isn't ready. I'm the reason. I'm choosing not to accept that." → continues into `dlg_priya_request`                                                                                                                                           |
+| `dlg_priya_request`        | talk, `asg_meeting_prep = not_started`                        | "Read the agenda on the table. Bring me the handout that matches." · "There are three. Two are wrong. That's the job." → `[Take it on]` → `asg_meeting_prep = accepted`, optional objective: **Read the agenda** · destination MEETING ROOM · `[Pass]` ⎋ → `dlg_priya_pass` |
+| `dlg_priya_pass`           | chose Pass                                                    | "Fair. Nobody signed up for the 10:30."                                                                                                                                                                                                                                     |
+| `dlg_priya_waiting`        | `asg_meeting_prep = accepted`                                 | "Agenda's on the table. Handouts are on the rack. Matching is the hard part, apparently."                                                                                                                                                                                   |
+| `dlg_priya_wrong_deck`     | `handout_held`, holding `key_handout_q3_deck`                 | "Forty-eight pages. She'll read the first one and hold the rest like a shield." · "Summary. One page." _(handout stays in hand; swap it at the rack)_                                                                                                                       |
+| `dlg_priya_wrong_q2`       | `handout_held`, holding `key_handout_q2_summary`              | "That's Q2. We don't say Q2 here anymore." · "Check the quarter on the agenda." _(handout stays in hand)_                                                                                                                                                                   |
+| `dlg_priya_delivered`      | `handout_held`, holding `key_handout_q3_summary`              | "This is it. This is the one. You have no idea how rare that is." → consume handout, `asg_meeting_prep = complete` → **receipt** `THE 10:30 — PREPPED` (+6 📈) · "Six Options. Expensed, technically." → continues into `dlg_priya_spar`                                    |
+| `dlg_priya_spar`           | `asg_meeting_prep = complete`, `enc_meeting_prepper = open`   | "While I've got you. I run a thing. Pre-meeting sparring. Keeps the nerves off." → **stakes card** (§5.2): `[Spar]` → battle · `[Rain check]` ⎋ → `dlg_priya_raincheck`                                                                                                     |
+| `dlg_priya_raincheck`      | chose Rain check                                              | "Rain check. I'll hold you to it. I hold everyone to it."                                                                                                                                                                                                                   |
+| `dlg_priya_you_lost`       | talk after a loss, `enc = open`                               | "Break room. Hydrate. Come back angrier." → `dlg_priya_spar` on next talk                                                                                                                                                                                                   |
+| `dlg_priya_beaten`         | immediately after win (after the receipt)                     | "Good. Now I'll be calm in the 10:30 and nobody will know why." → `enc_meeting_prepper = won` → continues into `dlg_priya_offer` if `key_offer_letter` held and a slot is free                                                                                              |
+| `dlg_priya_offer`          | `enc = won`, not in party, `key_offer_letter` held, slot free | "An offer letter. Pre-signed. You're just handing these out?" · "Yes. Obviously yes. I've been trying to get off this floor since the 10:30 existed." → **recruit card**: `[Extend the offer]` → `dlg_priya_joined` · `[Not yet]` ⎋ → `dlg_priya_offer_declined`            |
+| `dlg_priya_offer_declined` | chose Not yet                                                 | "Sure. Come back. I'm easy to find. I'm always outside this door."                                                                                                                                                                                                          |
+| `dlg_priya_offer_full`     | `enc = won`, not in party, letter held, party full            | "You've got a full team. Send someone home first. Not me — I mean, hypothetically." _(unreachable on Floor 1 — kept so the state is never silent)_                                                                                                                          |
+| `dlg_priya_joined`         | offer extended                                                | "Great. I'll hold you to the schedule. Switch me in early; I front-load." → `party += cw_meeting_prepper`, `key_offer_letter` −1                                                                                                                                            |
+| `dlg_priya_party`          | in party                                                      | "Team member. Also still running the 10:30. It's called range."                                                                                                                                                                                                             |
+| `dlg_priya_after`          | `enc = won`, not in party, no `key_offer_letter`              | "The 10:30 went fine. Nobody read the handout. It was still the right handout."                                                                                                                                                                                             |
 
 ### 2.4 `npc_supervisor` — Holloway, Team Lead (Interim)
 
@@ -273,42 +295,42 @@ Role: mandatory boss, designed to be fought as a team. Dry, tired, quietly fair.
 recruitable. Prerequisites: `asg_printer = complete` and `enc_desk_challenger = won`. Party size is
 **not** a prerequisite (a solo win is allowed; the fight is tuned so it hurts).
 
-| Node                         | Condition                                                                 | Lines / choices                                                                                                                                                                                                                                                                                                                                                                                       |
-| ---------------------------- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `dlg_holloway_early`         | sightline or talk, `asg_printer ≠ complete`                               | "You're new. The printer's broken and you haven't met Gavin." · "Both of those are your problem now."                                                                                                                                                                                                                                                                                                 |
-| `dlg_holloway_gavin_pending` | sightline or talk, `asg_printer = complete`, `enc_desk_challenger = open` | "Printer works. Noted." · "Gavin hasn't signed off on you. It isn't a real process. It's the one we have."                                                                                                                                                                                                                                                                                            |
-| `dlg_holloway_1on1`          | sightline, prerequisites met, `enc = open` (fires on entering the lobby)  | "Sit. Actually — stand. This is the standing kind." · "Printer's fixed. Gavin's sulking. You've been here forty minutes and I already have to have an opinion about you." · _(party ≥ 2)_ "You brought people. Good. I talk for a living; take turns." · "This is your one-on-one. There's no leaving early. There's a badge on the other side of it." → **stakes card** (§5) with a single `[Begin]` |
-| `dlg_holloway_you_lost`      | spoken over the defeat fade                                               | "Break room. Five minutes. All of you. I have a 10:30 anyway."                                                                                                                                                                                                                                                                                                                                        |
-| `dlg_holloway_beaten`        | immediately after win                                                     | "…Well. That's a data point." · "Here. Badge. It opens the elevator." · "Don't lose it, don't lend it, don't laminate it. It's already laminated." → `key_access_badge`, `enc_supervisor_1on1 = won`, rewards (§5) → promotion screen (§8)                                                                                                                                                            |
-| `dlg_holloway_after`         | `enc = won`                                                               | "Elevator's behind me. Reader's on the right. It beeps. Everything here beeps." · _(if `key_offer_letter` held)_ "And no. I'm your manager. That's the opposite of joining."                                                                                                                                                                                                                          |
+| Node                         | Condition                                                                 | Lines / choices                                                                                                                                                                                                                                                                                                                                                                                         |
+| ---------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `dlg_holloway_early`         | sightline or talk, `asg_printer ≠ complete`                               | "You're new. The printer's broken and you haven't met Gavin." · "Both of those are your problem now."                                                                                                                                                                                                                                                                                                   |
+| `dlg_holloway_gavin_pending` | sightline or talk, `asg_printer = complete`, `enc_desk_challenger = open` | "Printer works. Noted." · "Gavin hasn't signed off on you. It isn't a real process. It's the one we have."                                                                                                                                                                                                                                                                                              |
+| `dlg_holloway_1on1`          | sightline, prerequisites met, `enc = open` (fires on entering the lobby)  | "Sit. Actually — stand. This is the standing kind." · "Printer's fixed. Gavin's sulking. You've been here forty minutes and I already have to have an opinion about you." · _(party ≥ 2)_ "You brought people. Good. I talk for a living; take turns." · "This is your one-on-one. There's no leaving early. There's a badge on the other side of it." → **stakes card** (§5.2) with a single `[Begin]` |
+| `dlg_holloway_you_lost`      | spoken over the defeat interstitial                                       | "Break room. Five minutes. All of you. I have a 10:30 anyway."                                                                                                                                                                                                                                                                                                                                          |
+| `dlg_holloway_beaten`        | immediately after win (after the receipt)                                 | "…Well. That's a data point." · "Here. Badge. It opens the elevator." · "Don't lose it, don't lend it, don't laminate it. It's already laminated." → `key_access_badge`, `enc_supervisor_1on1 = won` → promotion (§8) → objective: **Take the elevator** · destination ELEVATOR LOBBY                                                                                                                   |
+| `dlg_holloway_after`         | `enc = won`                                                               | "Elevator's behind me. Reader's on the right. It beeps. Everything here beeps." · _(if `key_offer_letter` held)_ "And no. I'm your manager. That's the opposite of joining."                                                                                                                                                                                                                            |
 
 ### 2.5 Point-of-interest copy (state-keyed)
 
-| POI                   | Condition                                 | Text / effect                                                                                                                                                                                                                                                                                                                                                               |
-| --------------------- | ----------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `poi_printer`         | `asg_printer = not_started`               | "The printer shows an error in a font designed to calm you. It does not."                                                                                                                                                                                                                                                                                                   |
-| `poi_printer`         | `accepted` (no toner)                     | "TONER LOW. It has been low since March."                                                                                                                                                                                                                                                                                                                                   |
-| `poi_printer`         | `toner_collected` — label "Install toner" | "You install the toner. The printer thinks about it." · "It prints a test page. The test page says TEST PAGE. Triumph." · "Then it prints two more pages. OFFER LETTER. Pre-signed by HR. Blank where the name goes." _(toast: "Got: Offer Letter ×2")_ → consume `key_toner`, gain `key_offer_letter` ×2, `asg_printer = installed` → objective: **Report back to Renata** |
-| `poi_printer`         | `installed` or later                      | "The printer hums. Gavin has already printed forty pages. None of them are offer letters; it only does that for you, apparently."                                                                                                                                                                                                                                           |
-| `poi_supply_cabinet`  | `asg_printer = not_started`               | "Grey cabinet. Unlabeled. Full of things nobody ordered."                                                                                                                                                                                                                                                                                                                   |
-| `poi_supply_cabinet`  | `accepted`                                | "Behind eleven boxes of the wrong toner: the right toner." → gain `key_toner`, `asg_printer = toner_collected` → objective: **Install the toner at the desk-pit printer**                                                                                                                                                                                                   |
-| `poi_supply_cabinet`  | `toner_collected` or later                | "Eleven boxes of the wrong toner. Someone's annual review."                                                                                                                                                                                                                                                                                                                 |
-| `poi_break_counter`   | always — label "Take five"                | "Take five? Restores HP and PP for the whole team. Free. Always." `[Take five]` `[Not now]` ⎋ → "You take five. Everyone's restored. The couch has seen worse."                                                                                                                                                                                                             |
-| `poi_vending_machine` | always — label "Buy"                      | Opens the vending shop (§7). Flavor line on open: "The machine accepts Stock Options. Nobody asked how."                                                                                                                                                                                                                                                                    |
-| `poi_break_table`     | always                                    | "Someone left a cake. The icing says SORRY FOR YOUR LOSS. It was forty percent off."                                                                                                                                                                                                                                                                                        |
-| `poi_agenda`          | `asg_meeting_prep = not_started`          | "A meeting agenda. You have no meeting. You read it anyway." · _(agenda text below)_                                                                                                                                                                                                                                                                                        |
-| `poi_agenda`          | `accepted` or later                       | _(agenda text)_ → if `accepted`: objective: **Pick the matching handout from the rack**                                                                                                                                                                                                                                                                                     |
-| `poi_handout_rack`    | `asg_meeting_prep = not_started`          | "Three stacks of paper. None of them are yours yet."                                                                                                                                                                                                                                                                                                                        |
-| `poi_handout_rack`    | `accepted` or `handout_held`              | Choice menu (§4.2). Picking swaps whatever handout is held.                                                                                                                                                                                                                                                                                                                 |
-| `poi_handout_rack`    | `complete`                                | "Two stacks left. Both wrong. Both will be here forever."                                                                                                                                                                                                                                                                                                                   |
-| `poi_elevator_door`   | no `key_access_badge`                     | "The reader blinks red. It's not personal. It's policy." → `flag_badge_reader_denied`                                                                                                                                                                                                                                                                                       |
-| `poi_elevator_door`   | `key_access_badge` held                   | "The reader blinks green." `[Ride up]` `[Not yet]` ⎋ → celebration (§8)                                                                                                                                                                                                                                                                                                     |
-| `poi_exit_door`       | always                                    | "You just got here. Leaving now would be a statement."                                                                                                                                                                                                                                                                                                                      |
-| `poi_water_cooler`    | always                                    | "No gossip today. The VPs are upstairs, being VPs."                                                                                                                                                                                                                                                                                                                         |
-| `poi_directory_sign`  | always                                    | "FLOOR 1 — Desks: left. Break room: up the hall, right. Meeting room: top right. Elevator: top left. Badge required."                                                                                                                                                                                                                                                       |
-| `poi_reception_desk`  | always                                    | Proxies `npc_receptionist` (same node table as §2.1)                                                                                                                                                                                                                                                                                                                        |
+| POI                   | Condition                                  | Text / effect                                                                                                                                                                                                                                                                                                                                                                                             |
+| --------------------- | ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `poi_printer`         | `asg_printer = not_started`                | "The printer shows an error in a font designed to calm you. It does not."                                                                                                                                                                                                                                                                                                                                 |
+| `poi_printer`         | `accepted` (no toner)                      | "TONER LOW. It has been low since March."                                                                                                                                                                                                                                                                                                                                                                 |
+| `poi_printer`         | `toner_collected` — prompt "Install toner" | "You install the toner. The printer thinks about it." · "It prints a test page. The test page says TEST PAGE. Triumph." · "Then two more pages. OFFER LETTER. Pre-signed by HR. Blank where the name goes." → consume `key_toner`, gain `key_offer_letter` ×2 (**receipt** `PRINTER — ONLINE`: Offer Letter ×2), `asg_printer = installed` → objective: **Report back to Renata** · destination RECEPTION |
+| `poi_printer`         | `installed` or later                       | "The printer hums. Gavin has already printed forty pages. None of them are offer letters; it only does that for you, apparently."                                                                                                                                                                                                                                                                         |
+| `poi_supply_cabinet`  | `asg_printer = not_started`                | "Grey cabinet. Unlabeled. Full of things nobody ordered."                                                                                                                                                                                                                                                                                                                                                 |
+| `poi_supply_cabinet`  | `accepted`                                 | "Behind eleven boxes of the wrong toner: the right toner." → gain `key_toner` (toast "Got: Toner Cartridge"), `asg_printer = toner_collected` → objective: **Install the toner** · destination DESKS                                                                                                                                                                                                      |
+| `poi_supply_cabinet`  | `toner_collected` or later                 | "Eleven boxes of the wrong toner. Someone's annual review."                                                                                                                                                                                                                                                                                                                                               |
+| `poi_break_counter`   | always — prompt "Take five"                | confirm card `TAKE FIVE`: "Restores HP and PP for the whole team. Free. Always." `[Take five]` `[Not now]` ⎋ → "You take five. Everyone's restored. The couch has seen worse."                                                                                                                                                                                                                            |
+| `poi_vending_machine` | always — prompt "Buy"                      | Opens `ovl_vending` (§10.9). Flavor line in the header: "Accepts Stock Options. Nobody asked how."                                                                                                                                                                                                                                                                                                        |
+| `poi_break_table`     | always                                     | "Someone left a cake. The icing says SORRY FOR YOUR LOSS. It was forty percent off."                                                                                                                                                                                                                                                                                                                      |
+| `poi_agenda`          | `asg_meeting_prep = not_started`           | "A meeting agenda. You have no meeting. You read it anyway." · `ovl_document` (agenda)                                                                                                                                                                                                                                                                                                                    |
+| `poi_agenda`          | `accepted` or later                        | `ovl_document` (agenda) → if `accepted`: optional objective: **Pick the matching handout** · destination MEETING ROOM                                                                                                                                                                                                                                                                                     |
+| `poi_handout_rack`    | `asg_meeting_prep = not_started`           | "Three stacks of paper. None of them are yours yet."                                                                                                                                                                                                                                                                                                                                                      |
+| `poi_handout_rack`    | `accepted` or `handout_held`               | Choice card (§4.2). Picking swaps whatever handout is held. → optional objective: **Bring the handout to Priya** · destination HALL                                                                                                                                                                                                                                                                       |
+| `poi_handout_rack`    | `complete`                                 | "Two stacks left. Both wrong. Both will be here forever."                                                                                                                                                                                                                                                                                                                                                 |
+| `poi_elevator_door`   | no `key_access_badge`                      | "The reader blinks red. It's not personal. It's policy." → `flag_badge_reader_denied`                                                                                                                                                                                                                                                                                                                     |
+| `poi_elevator_door`   | `key_access_badge` held                    | confirm card `FLOOR 2`: "The reader blinks green." `[Ride up]` `[Not yet]` ⎋ → celebration (§8)                                                                                                                                                                                                                                                                                                           |
+| `poi_exit_door`       | always                                     | "You just got here. Leaving now would be a statement."                                                                                                                                                                                                                                                                                                                                                    |
+| `poi_water_cooler`    | always                                     | "No gossip today. The VPs are upstairs, being VPs."                                                                                                                                                                                                                                                                                                                                                       |
+| `poi_directory_sign`  | always                                     | `ovl_document` (directory): "FLOOR 1 — Desks: left. Break room: up the hall, right. Meeting room: top right. Elevator: top left. Badge required."                                                                                                                                                                                                                                                         |
+| `poi_reception_desk`  | always                                     | Proxies `npc_receptionist` (same node table as §2.1)                                                                                                                                                                                                                                                                                                                                                      |
 
-Agenda text (shown as a document card, not a speech box):
+Agenda document (`ovl_document`, §10.5):
 
 > **10:30 — Q3 NUMBERS REVIEW**
 > Owner: Holloway. Room: this one.
@@ -328,7 +350,7 @@ Agenda text (shown as a document card, not a speech box):
   end of the preview — a 4-slot party would ship with a permanently empty slot and a UI that
   advertises content that isn't there. Three also fits the battle deck: the bench picker is two
   cards beside the active card, the same width as the existing 2×2 move grid, and the HUD party
-  strip is three chips on a 472-px frame at `--tap-min`. Raising the cap on Floor 2+ is a constant
+  strip is three 54-px chips on a 472-px frame. Raising the cap on Floor 2+ is a constant
   (`PARTY_MAX`), not a redesign.
 - **No nicknames.** Everyone has their name on a badge; the office is not a place where you rename
   people. Saves one input surface and one moderation problem.
@@ -345,26 +367,18 @@ Recruitment is a two-key lock: **beat them** and **have an Offer Letter**.
 - `key_offer_letter` — a key item (not a battle item; never occupies the 4-slot bag). The
   fixed printer produces exactly **two** on install (§2.5). They cannot be bought, found elsewhere,
   or lost. Two letters, two recruitables: the economy of letters is exactly the content of the
-  floor. Renata explains the rule when closing the ticket.
+  floor. Renata explains the rule when closing the ticket; the receipt shows them as a line item.
 - Immediately after a recruitable coworker's `dlg_*_beaten`, if the player holds a letter and the
-  party has a free slot, the NPC's `dlg_*_offer` node runs and ends in the **recruit card**:
-
-  ```
-  EXTEND AN OFFER · GAVIN · Senior Associate
-  Offer Letters left: 2
-  HP 70 · ATK 10 · DEF 8 · NORMAL
-  Well, Actually · Passive-Aggressive Sticky Note
-  Team  [ YOU ] [ + ] [ — ]
-  [ Extend the offer ]   [ Not yet ]
-  ```
-
+  party has a free slot, the NPC's `dlg_*_offer` node runs and ends in the **recruit card**
+  (`ovl_recruit_card`, §10.7).
 - `[Extend the offer]`: `key_offer_letter` −1, member appended to the party at **full HP / full
-  PP**, toast "Gavin joined the team", party strip animates the slot filling (static under reduced
-  motion), `dlg_*_joined` plays.
-- `[Not yet]`: nothing is consumed. Talking to the NPC again while holding a letter re-offers
-  (`dlg_*_offer`). Declining is never final.
+  PP**, recruit feedback (§12 row "Recruit joined"), `dlg_*_joined` plays.
+- `[Not yet]`: nothing is consumed; card closes with `menuBack`; the letter count on the HUD is
+  unchanged and visibly so (the count chip doesn't move). Talking to the NPC again while holding a
+  letter re-offers (`dlg_*_offer`). Declining is never final.
 - Recruitment costs **no** Options and grants **no** XP or Options. The encounter reward was paid
-  once on the win; recruiting is a use of that win, not a second one.
+  once on the win; recruiting is a use of that win, not a second one. The receipt for the win shows
+  "Offer eligible ✓" as a line item so the player knows the offer is coming before the card appears.
 - Not recruitable: Renata (never fights), Holloway (boss). Both have a line for players who try
   (`dlg_renata_recruit_me`, `dlg_holloway_after`).
 - Recruits are state, not a screen: the whole flow is dialogue + one card; ~10 s per recruit.
@@ -383,7 +397,10 @@ apply to whichever member is active, exactly as they apply to the lead today.
 
 Kits are `PlayerClass`-shaped (`maxHp`, `atk`, `def`, `spd`, `types`, `moves[]`, `perk: none`) so
 `getEffectivePlayer` and the move grid work unchanged. Coworker moves never upgrade (no promotion
-track); `spd` is 10 for both (only `caffeinated` reads it).
+track); `spd` is 10 for both (only `caffeinated` reads it). Move descriptions (shown on the move
+buttons like the class kits): Well, Actually — "Corrects you. Loudly."; Passive-Aggressive Sticky
+Note — "Left on the monitor. Signed 'thx'."; Calendar Hold — "Blocks their afternoon."; Agenda
+Item — "Item 4 is you."; Circle Back — "Reschedules the damage."
 
 Intended loop against Holloway: Gavin lands Sticky Note (Holloway −DEF) → switch to the lead →
 lead's big move hits harder; when the lead is low, switch to Gavin to eat a turn. Priya's
@@ -395,18 +412,18 @@ Nothing about damage, statuses, type effectiveness, items, or the enemy AI chang
 screen still shows **one** fighter per side. The party is a projection: the active member's
 `hp`/`pp`/kit are what `TurnContext` sees.
 
-| Rule                  | Design                                                                                                                                                                                                                                                              |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Who starts            | The lead, unless the lead is fainted (HP 0) entering the battle, then the first non-fainted member in slot order. If _every_ member is fainted the stakes card is replaced by "Your team needs a minute. Break room first." and no battle starts.                   |
-| Switch action         | A fifth player action, **SWITCH** (`act_switch`; key **5** or **Tab**; touch button beside ITEMS). Opens the bench picker (`ui_party_bench`): cards for the other members with HP/PP bars; fainted cards greyed and unselectable; ⎋/back cancels.                   |
-| Switch cost           | Switching **uses your action**. Events: `switch_out` (outgoing member steps back, its statuses are cleared), `switch_in` (incoming member steps up), then the enemy takes its normal turn against the incoming member. Pokémon rule; the free hit is the price.     |
-| Statuses on switch    | Cleared for the outgoing member (they "leave the room"). This gives switching a defensive use (drop Demoralized/Micromanaged/Burned Out) and costs buffs (Motivated/Focused) — a real trade.                                                                        |
-| Faint → forced switch | When the active member's HP hits 0 and any bench member has HP > 0: `member_faint` event, then battle phase `switch_required` — the bench picker opens with **no cancel**. The enemy does **not** act after a forced switch (the KO already consumed the exchange). |
-| Loss                  | Battle is lost only when every member has fainted (`party_wipe`). Loss flow is §6, and it restores the **whole party**.                                                                                                                                             |
-| Items                 | One shared bag (`RunState.inventory`, 4 slots), carried by the lead. Items used in battle apply to the **active** member (Espresso heals whoever is standing there; PIP Notice still targets the enemy). Using an item is still a full action.                      |
-| Struggle              | Unchanged: a member with 0 PP on every move Struggles. Switching is always available as an alternative while a bench member stands.                                                                                                                                 |
-| Boss phase 2          | Holloway has none. Rule for later floors: a phase-2 transition happens to the enemy regardless of who is active.                                                                                                                                                    |
-| Keyboard              | Moves 1–4 unchanged; 5/Tab opens SWITCH; in the bench picker ←/→ or 1–2 select, Enter confirms, Esc cancels (disabled when forced).                                                                                                                                 |
+| Rule                  | Design                                                                                                                                                                                                                                                                                                       |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Who starts            | The lead, unless the lead is fainted (HP 0) entering the battle, then the first non-fainted member in slot order. If _every_ member is fainted the stakes card is replaced by a confirm card "Your team needs a minute. Break room first." with `[Back]`, and no battle starts.                              |
+| Switch action         | A fifth player action, **SWITCH** (`act_switch`; key **5** or **Tab**; `ui_switch_button` beside ITEMS). Opens the bench picker (`ui_party_bench`, §10.8): cards for the other members with HP/PP; fainted cards greyed and unselectable; ⎋/back cancels.                                                    |
+| Switch cost           | Switching **uses your action**. Events: `switch_out` (outgoing member steps back, its statuses are cleared), `switch_in` (incoming member steps up), then the enemy takes its normal turn against the incoming member. Pokémon rule; the free hit is the price. The bench card says so: "Costs your turn."   |
+| Statuses on switch    | Cleared for the outgoing member (they "leave the room"). This gives switching a defensive use (drop Demoralized/Micromanaged/Burned Out) and costs buffs (Motivated/Focused) — a real trade. The bench card lists the active member's statuses with "cleared on switch".                                     |
+| Faint → forced switch | When the active member's HP hits 0 and any bench member has HP > 0: `member_faint` event, then battle phase `switch_required` — the bench picker opens with **no cancel** and the header "Send in the next person." The enemy does **not** act after a forced switch (the KO already consumed the exchange). |
+| Loss                  | Battle is lost only when every member has fainted (`party_wipe`). Loss flow is §6, and it restores the **whole party**.                                                                                                                                                                                      |
+| Items                 | One shared bag (`RunState.inventory`, 4 slots), carried by the lead. Items used in battle apply to the **active** member (Espresso heals whoever is standing there; PIP Notice still targets the enemy). Using an item is still a full action.                                                               |
+| Struggle              | Unchanged: a member with 0 PP on every move Struggles. Switching is always available as an alternative while a bench member stands.                                                                                                                                                                          |
+| Boss phase 2          | Holloway has none. Rule for later floors: a phase-2 transition happens to the enemy regardless of who is active.                                                                                                                                                                                             |
+| Keyboard              | Moves 1–4 unchanged; 5/Tab opens SWITCH; in the bench picker ←/→ or 1–2 select, Enter confirms, Esc cancels (disabled when forced).                                                                                                                                                                          |
 
 **What Astra adds to the engine surface (and nothing else):**
 
@@ -447,41 +464,39 @@ construct a party, so their code paths are untouched.
 
 ### 3.5 XP, level, rewards, items — who gets what
 
-| Thing                                  | Rule                                                                                                                                                                      |
-| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| XP                                     | Paid once per won encounter to the **team** (`RunState.xp`). One team level; every member's level bonus is the team level. No per-member XP, no grinding surface.         |
-| Level-up heal (+20)                    | Applies to **every** member (the team gets promoted together). Fainted members stay fainted (0 → 20 would be a free revive; they get `min(hp + 20, max)` only if hp > 0). |
-| Post-battle heals (PM perk, Self Care) | Apply to the member **active at the end** of the battle.                                                                                                                  |
-| Stock Options                          | Team wallet on `RunState`. Once-only per encounter (`rwd_enc_*`). Recruiting pays nothing.                                                                                |
-| Items                                  | Team bag (`RunState.inventory`). Key items (`keyItems`) are separate and uncapped.                                                                                        |
-| Perks (promotion)                      | Team-wide via `collectMods`; stat packages apply to whoever is active. "Cleared Probation" is one pick for the team.                                                      |
-| Break room / defeat restore            | Whole party, HP and PP, statuses cleared.                                                                                                                                 |
+| Thing                                  | Rule                                                                                                                                                              |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| XP                                     | Paid once per won encounter to the **team** (`RunState.xp`). One team level; every member's level bonus is the team level. No per-member XP, no grinding surface. |
+| Level-up heal (+20)                    | Applies to **every** member with HP > 0 (the team gets promoted together). Fainted members stay fainted (a free revive would make the break room pointless).      |
+| Post-battle heals (PM perk, Self Care) | Apply to the member **active at the end** of the battle.                                                                                                          |
+| Stock Options                          | Team wallet on `RunState`. Once-only per encounter (`rwd_enc_*`). Recruiting pays nothing.                                                                        |
+| Items                                  | Team bag (`RunState.inventory`). Key items (`keyItems`) are separate and uncapped.                                                                                |
+| Perks (promotion)                      | Team-wide via `collectMods`; stat packages apply to whoever is active. "Cleared Probation" is one pick for the team.                                              |
+| Break room / defeat restore            | Whole party, HP and PP, statuses cleared.                                                                                                                         |
 
-### 3.6 Switch tutorial (`trg_switch_coach`)
+### 3.6 Switch tutorial (`trg_switch_coach` → `coach_switch`)
 
 The party must be real without being mandatory in a way that punishes solo players. The teaching
 moment is placed where the switch is genuinely the right call:
 
 - Fires **once per save** (`flag_switch_coached`), in any battle where (a) the party has ≥ 2
   standing members, (b) the active member is below 50% HP, and (c) it's the player's turn.
-- Coach mark (reuses the `onboarding.ts` coach-mark style) anchored on the SWITCH button:
-  "SWITCH — send in Gavin. Holloway gets one free swing at whoever walks in." (name resolves to the
-  first standing bench member). Dismisses on any action.
-- Gavin's `dlg_gavin_joined` line seeds the idea in prose before the fight.
+- `coach_switch` (§10.10) anchored on the SWITCH button: "**SWITCH** — send in Gavin. Holloway
+  gets one free swing at whoever walks in." (name resolves to the first standing bench member;
+  opponent name resolves to the current enemy). Dismisses on any action.
+- Gavin's `dlg_gavin_joined` line seeds the idea in prose before the fight, so the coach mark is a
+  reminder, not a lesson.
 
 In practice this fires during the Holloway fight on the acceptance route. It never fires for a
 player with no recruits, and it never blocks input.
 
-### 3.7 Party UI
+### 3.7 Party surfaces
 
-| Surface                            | Design                                                                                                                                                                                                                        |
-| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| HUD party strip (`ui_party_strip`) | Top strip, right side, next to HP / 📈 chips: three 54-px chips — portrait emoji/token, tiny HP bar (`HpBar` at 60% scale), fainted = greyed with "OUT". Empty slot = dotted outline. Lead chip has a `LEAD` eyebrow.         |
-| Team panel (`ui_party_panel`)      | Key **P** / touch **TEAM** button (bottom bar, beside ACT). A `Panel` listing members: name, role, HP / PP per move, types, moves with `TypeBadge`. Read-only in MVP (no reorder/dismiss). Esc closes.                        |
-| Bench picker (`ui_party_bench`)    | In battle, replaces the move grid while open: up to two member cards (portrait via `StagedSprite` at 64 px, name, HP bar, PP summary) + a back button. Forced mode hides the back button and shows "Send in the next person." |
-| Recruit card                       | §3.2. A `Panel` over the overworld.                                                                                                                                                                                           |
-| Battle deck                        | Existing 2×2 moves + a bottom row: `ITEMS` · `SWITCH` (badge shows standing bench count, e.g. "SWITCH · 1").                                                                                                                  |
-| Active swap presentation           | `switch_out`: sprite slides down and fades (200 ms; instant under reduced motion), `switch_in`: new `StagedSprite` rises with its type-ring; log line "Gavin steps in." / "You step back in."                                 |
+The party appears on five surfaces, each specified in §10: `hud_party_strip` (always visible),
+`ovl_team_panel` (P / TEAM), `ui_party_bench` + `ui_switch_button` (battle), `ovl_recruit_card`
+(recruitment), and the party rows on every stakes/door card. One rule ties them together: **a
+member is always shown as the same headshot, the same name, and an HP number with a bar** — never
+just a bar, never just a name.
 
 ---
 
@@ -489,13 +504,13 @@ player with no recruits, and it never blocks input.
 
 ### 4.1 Required: "Get the printer working" — `asg_printer`
 
-| #   | Stage             | Where                 | Player does             | Copy / feedback                                                                               | Objective banner after                                 |
-| --- | ----------------- | --------------------- | ----------------------- | --------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| 0   | `not_started`     | Reception             | Talk to Renata          | `dlg_renata_ticket`                                                                           | Get the printer working — find toner in the break room |
-| 1   | `accepted`        | Break room `(15,8)` ↑ | Open the supply cabinet | gain `key_toner` (toast: "Got: Toner Cartridge")                                              | Install the toner at the desk-pit printer              |
-| 2   | `toner_collected` | Desks `(9,8)` ↑       | Install toner           | test page + two Offer Letters; `key_toner` consumed, `key_offer_letter` ×2 gained             | Report back to Renata                                  |
-| 3   | `installed`       | Reception             | Talk to Renata          | `dlg_renata_close_ticket` → **+10 📈** (once, `rwd_asg_printer`); Renata explains the letters | Talk to Gavin at the desks                             |
-| 4   | `complete`        | —                     | —                       | Unlocks Gavin's challenge; counts toward the supervisor prerequisite                          | —                                                      |
+| #   | Stage             | Where                 | Player does             | Copy / feedback                                                                                 | Objective banner after (destination)           |
+| --- | ----------------- | --------------------- | ----------------------- | ----------------------------------------------------------------------------------------------- | ---------------------------------------------- |
+| 0   | `not_started`     | Reception             | Talk to Renata          | `dlg_renata_ticket`                                                                             | Get toner from the supply cabinet (BREAK ROOM) |
+| 1   | `accepted`        | Break room `(15,8)` ↑ | Open the supply cabinet | toast "Got: Toner Cartridge"                                                                    | Install the toner (DESKS)                      |
+| 2   | `toner_collected` | Desks `(9,8)` ↑       | Install toner           | printer state flips to working; receipt `PRINTER — ONLINE` with Offer Letter ×2                 | Report back to Renata (RECEPTION)              |
+| 3   | `installed`       | Reception             | Talk to Renata          | receipt `TICKET #0001 CLOSED` **+10 📈** (once, `rwd_asg_printer`); Renata explains the letters | Talk to Gavin (DESKS)                          |
+| 4   | `complete`        | —                     | —                       | Unlocks Gavin's challenge; counts toward the supervisor prerequisite                            | —                                              |
 
 Reward is paid exactly once; re-talking never re-pays. The assignment can't be abandoned or
 failed. The Offer Letters are the printer's second payload on purpose: the required activity hands
@@ -504,15 +519,16 @@ detour.
 
 ### 4.2 Optional: "Prepare the meeting" — `asg_meeting_prep`
 
-| #   | Stage          | Where                   | Player does               | Copy / feedback                                                                                          | Objective banner after (optional style) |
-| --- | -------------- | ----------------------- | ------------------------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------- |
-| 0   | `not_started`  | Hall `(13,2)`           | Talk to Priya, take it on | `dlg_priya_request`                                                                                      | Prepare the meeting — read the agenda   |
-| 1   | `accepted`     | Meeting room `(16,2)` → | Read agenda               | agenda card                                                                                              | Pick the matching handout from the rack |
-| 2   | `accepted`     | Meeting room `(21,1)` → | Pick a handout            | choice menu below → `handout_held`                                                                       | Bring the handout to Priya              |
-| 3   | `handout_held` | Hall                    | Deliver to Priya          | wrong → hint, handout kept, stage stays `handout_held`; right → **+6 📈** (once, `rwd_asg_meeting_prep`) | (cleared) → Priya offers the spar       |
-| 4   | `complete`     | —                       | —                         | Spar available via `dlg_priya_spar`; winning it opens the second recruit                                 | —                                       |
+| #   | Stage          | Where                   | Player does               | Copy / feedback                                                                                                     | Objective banner after (optional style, destination) |
+| --- | -------------- | ----------------------- | ------------------------- | ------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------- |
+| 0   | `not_started`  | Hall `(13,2)`           | Talk to Priya, take it on | `dlg_priya_request`                                                                                                 | Read the agenda (MEETING ROOM)                       |
+| 1   | `accepted`     | Meeting room `(16,2)` → | Read agenda               | `ovl_document`                                                                                                      | Pick the matching handout (MEETING ROOM)             |
+| 2   | `accepted`     | Meeting room `(21,1)` → | Pick a handout            | choice card below → `handout_held`; toast "Got: <handout>"                                                          | Bring the handout to Priya (HALL)                    |
+| 3   | `handout_held` | Hall                    | Deliver to Priya          | wrong → hint line + handout chip shake, stage stays `handout_held`; right → receipt `THE 10:30 — PREPPED` **+6 📈** | (cleared) → Priya offers the spar                    |
+| 4   | `complete`     | —                       | —                         | Spar available via `dlg_priya_spar`; winning it opens the second recruit                                            | —                                                    |
 
-Handout rack choice menu (order fixed; the correct answer is deliberately in the middle):
+Handout rack choice card (`ovl_confirm` variant with three options; order fixed; the correct answer
+is deliberately in the middle):
 
 | Choice label (as shown)        | Key item granted         | Rack line on pick                                        |
 | ------------------------------ | ------------------------ | -------------------------------------------------------- |
@@ -542,13 +558,15 @@ is a premium override). Overworld enemies live in their own content module and n
 | `enc_meeting_prepper` | Priya    | 1    | no   | `cw_meeting_prepper` | 85  | 11  | 7   | `strategy`              | `scrum`        | 22  | 11     | yes        | n/a    |
 | `enc_supervisor_1on1` | Holloway | 2    | yes  | —                    | 130 | 14  | 9   | `influence`, `strategy` | `manager`      | 30  | 20     | **no**     | **no** |
 
-Holloway is retuned from the solo draft (110/13/9 → 130/14/9) because the party adds 70–150 HP of
-bench; she should still be a real threat to a solo lead and a tense, winnable fight for a team of
-two.
+Holloway is tuned for a bench (130/14/9): a real threat to a solo lead and a tense, winnable fight
+for a team of two.
 
 "Flee n/a": the existing battle screen has no flee action; declining happens on the stakes card
 before combat. For Holloway the stakes card has one button, and the lobby door prompt (§8) is the
 only exit — before you step in.
+
+Encounter title cards (the battle intro beat, §13): Gavin `DESK-PIT ARGUMENT`, Priya `PRE-MEETING
+SPAR`, Holloway `ONE-ON-ONE` with the eyebrow `NO LEAVING EARLY`.
 
 ### 5.1 Move sets and battle copy
 
@@ -593,39 +611,43 @@ solo is possible with Espresso and luck, and that's the point. With Gavin on the
 wins comfortably with one switch each way. Engineer (90 HP, DEF 8) takes 25–32 a turn and kills her
 in four; Designer has an in-kit heal. Retune HP/DEF after the first playtest, not before.
 
-### 5.2 Stakes card (pre-commit) — shared component copy
+### 5.2 Stakes card (`ovl_stakes_card`) — exact copy
 
-Shown as a `Panel` over the overworld before any battle. Live party strip (all members' HP) and
-the active member's PP are displayed so the player can judge. Buttons use the existing `Button`
-primary/secondary styles.
-
-```
-CHALLENGE · GAVIN · RANK 0
-Win   +15 XP  ·  +8 📈 Options  ·  Offer eligible
-Lose  Break room, walk back. Nothing lost.
-Team  [ YOU 100 ] [ — ] [ — ]
-[ Bring it ]   [ Not now ]
-```
+Layout is §10.6. Live party row (every member's headshot + HP number) and the active member's PP
+summary are displayed so the player can judge. Buttons use the existing `Button` primary/secondary
+styles; the ⎋ option is always the secondary button on the right.
 
 ```
-SPAR · PRIYA · RANK 1
-Win   +22 XP  ·  +11 📈 Options  ·  Offer eligible
-Lose  Break room, walk back. Nothing lost.
-Team  [ YOU 100 ] [ GAVIN 70 ] [ — ]
-[ Spar ]   [ Rain check ]
+CHALLENGE · RANK 0
+Gavin — Senior Associate
+WIN    +15 XP · +8 📈 · Offer eligible
+LOSE   Break room, walk back. Nothing lost.
+TEAM   [●YOU 100/100]  [ + ]  [ — ]
+[ Bring it ]                    [ Not now ]
 ```
 
 ```
-ONE-ON-ONE · HOLLOWAY · RANK 2 · BOSS
-Win   +30 XP  ·  +20 📈 Options  ·  Access Badge  ·  Promotion
-Lose  Break room, walk back, try again.
-No leaving early.
-Team  [ YOU 74 ] [ GAVIN 70 ] [ — ]
+SPAR · RANK 1
+Priya — Ops
+WIN    +22 XP · +11 📈 · Offer eligible
+LOSE   Break room, walk back. Nothing lost.
+TEAM   [●YOU 100/100]  [●GAVIN 70/70]  [ — ]
+[ Spar ]                        [ Rain check ]
+```
+
+```
+ONE-ON-ONE · RANK 2 · BOSS
+Holloway — Team Lead (Interim)
+WIN    +30 XP · +20 📈 · Access Badge · Promotion
+LOSE   Break room, walk back, try again.
+       No leaving early.
+TEAM   [●YOU 74/100]  [●GAVIN 70/70]  [ — ]
 [ Begin ]
 ```
 
 Won encounters pay once (`rwd_enc_*`). A won encounter cannot be re-fought in the MVP. "Offer
-eligible" appears only on recruitable opponents while the player holds an Offer Letter.
+eligible" appears only on recruitable opponents while the player holds an Offer Letter; without a
+letter the line reads "Offer letters: 0" in `--cc-text-dim` so the absence is explained, not blank.
 
 ---
 
@@ -634,45 +656,51 @@ eligible" appears only on recruitable opponents while the player holds an Offer 
 1. Battle reaches `phase: 'lost'` — which, with a party, means every member has fainted
    (`party_wipe`). A single member fainting is a forced switch (§3.4), not a loss. The tower's
    `GameOverScreen` must **not** appear; the campaign is not over.
-2. Interstitial (1.2 s, skippable, static under reduced motion): "Your team needs a minute." with
-   the opponent's loss line (`dlg_*_you_lost`) beneath it.
+2. `ovl_interstitial_minute` (§10.11): "Your team needs a minute." with the opponent's loss line
+   (`dlg_*_you_lost`) beneath it. 1.2 s, tap/Enter to skip, static under reduced motion.
 3. Fade to the break room. Player placed at `(19,8)` facing the coffee counter. On arrival: **every
-   party member** restored to full HP and PP, all statuses cleared, toast "You take five. Everyone's
-   back." (auto — no press required; the counter stays available for free at any later time).
+   party member** restored to full HP and PP, all statuses cleared; the recover feedback plays (§12
+   row "Recover (break room)"); toast "You take five. Everyone's back." (auto — no press required;
+   the counter stays available for free at any later time).
 4. State: the encounter stays `open`; the opponent is at their tile and offers the same stakes
-   card again; no XP, no Options, no items, no recruits are awarded or removed by the loss.
+   card again; no XP, no Options, no items, no recruits are awarded or removed by the loss. The
+   objective banner is unchanged and its destination pin still points at the opponent, so the walk
+   back is never a guess.
 5. The cost is the walk back (break room → Gavin: 16 tiles; → Priya: 13; → Holloway's door: 16;
    about 4 s each at 4 tiles/s) plus the re-commit prompt. Consumables used during the lost battle
    are gone — the same rule as the tower, kept deliberately so Espresso purchases mean something.
-6. Objective banner is unchanged by a loss.
 
 Fainted members outside a loss: a member KO'd in a battle you _won_ stays at 0 HP until the break
-room (or a level-up heal if they had HP left — they didn't). The party strip shows "OUT". The
-stakes card shows them greyed. Walking into Holloway with a fainted bench is allowed and is a
-choice the card makes visible.
+room. The party strip chip shows the headshot desaturated with an `OUT` tag; the stakes card shows
+them greyed with "OUT — break room"; the team panel row says "Out. Take five in the break room."
+Walking into Holloway with a fainted bench is allowed and is a choice the card makes visible.
 
 ---
 
 ## 7. Economy touchpoints (feel, not gating)
 
-| Touchpoint             | Amount | When                      | Ledger id                 |
-| ---------------------- | ------ | ------------------------- | ------------------------- |
-| Signing float          | +10    | New campaign save created | `rwd_start_options`       |
-| Printer ticket closed  | +10    | `dlg_renata_close_ticket` | `rwd_asg_printer`         |
-| Gavin beaten           | +8     | `dlg_gavin_beaten`        | `rwd_enc_desk_challenger` |
-| Handout delivered      | +6     | `dlg_priya_delivered`     | `rwd_asg_meeting_prep`    |
-| Priya beaten           | +11    | `dlg_priya_beaten`        | `rwd_enc_meeting_prepper` |
-| Holloway beaten        | +20    | `dlg_holloway_beaten`     | `rwd_enc_supervisor_1on1` |
-| Recruiting (either)    | **0**  | `dlg_*_joined`            | — (no ledger entry)       |
-| **Maximum on Floor 1** | **65** |                           |                           |
+| Touchpoint             | Amount | When                      | Ledger id                 | Receipt title                                                         |
+| ---------------------- | ------ | ------------------------- | ------------------------- | --------------------------------------------------------------------- |
+| Signing float          | +10    | New campaign save created | `rwd_start_options`       | `SIGNING BONUS` (shown once, on first spawn, before Renata's callout) |
+| Printer ticket closed  | +10    | `dlg_renata_close_ticket` | `rwd_asg_printer`         | `TICKET #0001 CLOSED`                                                 |
+| Gavin beaten           | +8     | after battle              | `rwd_enc_desk_challenger` | `DESK-PIT ARGUMENT — WON`                                             |
+| Handout delivered      | +6     | `dlg_priya_delivered`     | `rwd_asg_meeting_prep`    | `THE 10:30 — PREPPED`                                                 |
+| Priya beaten           | +11    | after battle              | `rwd_enc_meeting_prepper` | `PRE-MEETING SPAR — WON`                                              |
+| Holloway beaten        | +20    | after battle              | `rwd_enc_supervisor_1on1` | `ONE-ON-ONE — SURVIVED`                                               |
+| Recruiting (either)    | **0**  | `dlg_*_joined`            | — (no ledger entry)       | none (party strip is the feedback)                                    |
+| **Maximum on Floor 1** | **65** |                           |                           |                                                                       |
 
 Recruitment is free and pays nothing: the floor's wallet is fixed at 65, an Options price would
 compete directly with the Espresso that makes the boss survivable, and an Options reward would be
 a second payout for the same win. Beating the coworker is the cost; the Offer Letter is the token.
 
-Vending machine (`poi_vending_machine`) — the only spend on the floor. Prices are the existing
-base prices at act-1 inflation (×1), unaffected by perks until a perk is owned (after Holloway,
-`employee_discount` would apply via `shopPrice` — fine, it's post-boss).
+Every grant above is delivered through exactly one `ovl_reward_receipt` (§10.6). Nothing is ever
+granted silently, and nothing is ever shown as granted twice: a re-talk that pays nothing shows no
+receipt and the NPC's line says so in character ("Ticket's closed. I don't reopen tickets.").
+
+Vending machine (`poi_vending_machine`, `ovl_vending` §10.9) — the only spend on the floor.
+Prices are the existing base prices at act-1 inflation (×1), unaffected by perks until a perk is
+owned (after Holloway, `employee_discount` would apply via `shopPrice` — fine, it's post-boss).
 
 | Item (existing id) | Price | Stock | Why it's here                                                                                  |
 | ------------------ | ----- | ----- | ---------------------------------------------------------------------------------------------- |
@@ -681,8 +709,7 @@ base prices at act-1 inflation (×1), unaffected by perks until a perk is owned 
 
 Rules: purchases never gate progress (every fight is winnable from a fresh full-HP state without
 items); `MAX_INVENTORY = 4` applies to the team bag; Wellness Day is not sold (the counter is
-free); stock does not restock in the preview. Buying UI reuses `ShopScreen` with the stock and
-Wellness row hidden.
+free); stock does not restock in the preview. Reject states are specified in §10.9 and §12.
 
 ---
 
@@ -692,16 +719,16 @@ Wellness row hidden.
 spawn ──► Renata ticket ──► toner ──► install (prints 2 Offer Letters) ──► Renata closes (+10)
                                                                                  │
                                                                                  ▼
-               Gavin sightline/talk ──► stakes ──► WIN ──► enc_desk_challenger = won ──► OFFER? ──► Gavin joins
-                                           │  LOSE ──► break room ──► walk back ──┘         (Not yet: re-offer on talk)
+               Gavin sightline/talk ──► stakes ──► WIN ──► receipt ──► OFFER? ──► Gavin joins
+                                           │  LOSE ──► break room ──► walk back ──┘   (Not yet: re-offer on talk)
                                            ▼
     door (10,3): prerequisites met? ──no──► door just opens; Holloway explains what's missing
               │ yes
               ▼
-"Step in?" [Step in] [Not yet] ──► lobby sightline ──► Holloway stakes [Begin] ──► fight (switch coach fires) ──► WIN
+"Step in?" [Step in] [Not yet] ──► lobby sightline ──► Holloway stakes [Begin] ──► fight (coach_switch fires) ──► WIN
                                                         │ LOSE (party wipe) ──► break room ──► door again
                                                         ▼
-                 badge ──► promotion (pick 1 of 3, offer persisted first) ──► elevator green
+        receipt ──► badge ──► promotion (pick 1 of 3, offer persisted first) ──► elevator green
                                                                                  │
                                                                                  ▼
                                                    "Ride up?" ──► FLOOR 1 CLEARED ──► back to (3,2)
@@ -710,192 +737,575 @@ spawn ──► Renata ticket ──► toner ──► install (prints 2 Offer 
 - **Supervisor gate**: `asg_printer = complete` AND `enc_desk_challenger = won`. Party size is not
   a gate. Until then the door at `(10,3)` is a normal door and Holloway just talks
   (`dlg_holloway_early` / `dlg_holloway_gavin_pending`).
-- **Door commit prompt** (`trg_supervisor_door`, only when the gate is open and the boss is
-  unbeaten). Stepping onto `(10,3)`:
+- **Door commit prompt** (`ovl_door_prompt`, only when the gate is open and the boss is unbeaten).
+  Stepping onto `(10,3)`:
 
   ```
   ELEVATOR LOBBY
   Holloway's one-on-one starts when you step in. It doesn't stop.
-  Team  [ YOU 74/100 ] [ GAVIN 70/70 ] [ — ]   ·   📈 28
-  [ Step in ]   [ Not yet ]
+  TEAM   [●YOU 74/100]  [●GAVIN 70/70]  [ — ]      📈 28
+  [ Step in ]                              [ Not yet ]
   ```
 
-  "Not yet" ⎋ steps the player back to `(11,3)`. "Step in" places the player at `(9,3)` — inside
-  Holloway's sightline — and `dlg_holloway_1on1` fires immediately. If every member is fainted the
-  prompt reads "Your team needs a minute. Break room first." with only `[Back]`.
+  "Not yet" ⎋ steps the player back to `(11,3)` with `menuBack`. "Step in" places the player at
+  `(9,3)` — inside Holloway's sightline — and `dlg_holloway_1on1` fires immediately. If every member
+  is fainted the card reads "Your team needs a minute. Break room first." with only `[Back]`, and
+  the destination pin jumps to the coffee counter until someone is standing.
 
 - **Promotion**: on `dlg_holloway_beaten`, the engine rolls `rollPerkOffer(run.perks, rng,
-BASE_PERK_POOL)` and writes it to `pendingPerkOffer`, **saves**, then shows `PromotionScreen`
-  with headline `CLEARED PROBATION`, sub-line "Pick one. HR calls it a development plan. It applies
-  to the whole team." A reload mid-pick resumes the same offer (same rule as the tower). No title
-  change in the MVP. Ledger `rwd_promotion_f1`.
-- **Badge → elevator**: `key_access_badge` flips `poi_elevator_door` to the green state.
-  Objective: **Take the elevator**.
-- **End-of-preview celebration** (`screen_preview_complete`), full-bleed, reuses the
-  `RunCompleteScreen` layout language:
-
-  ```
-  FLOOR 1 CLEARED
-  You fixed a printer, hired a critic, survived a one-on-one, and got laminated.
-  That's a career.
-
-  Team  YOU · GAVIN · (PRIYA)        Assignments  2 / 2
-  Battles won  3      Losses  1      Switches  2
-  Options earned  65 📈              Time on floor  11:42
-
-  Floor 2 is under construction. The elevator goes back down.
-  [ Back to Floor 1 ]   [ Title ]
-  ```
-
-  Sets `flag_preview_complete`; returns the player to `(3,2)` facing south. The elevator can be
-  ridden again (same screen, no new rewards). The second line adapts: "hired a critic" if Gavin
-  was recruited, "hired nobody" if not, "hired two people" with Priya.
+BASE_PERK_POOL)` and writes it to `pendingPerkOffer`, **saves**, then shows `screen_promotion`
+  (the existing `PromotionScreen`) with headline `CLEARED PROBATION`, sub-line "Pick one. HR calls
+  it a development plan. It applies to the whole team." A reload mid-pick resumes the same offer
+  (same rule as the tower). No title change in the MVP. Ledger `rwd_promotion_f1`. The pick is
+  confirmed with `menuConfirm` + `Haptics.success` and the perk appears as a chip in the team
+  panel footer.
+- **Badge → elevator**: `key_access_badge` flips `poi_elevator_door` to the green state (reader
+  LED `--cc-heal`, steady). Objective: **Take the elevator** · destination ELEVATOR LOBBY, pin on
+  the doors.
+- **End-of-preview celebration** (`screen_preview_complete`, §10.12).
 
 ---
 
-## 9. Pacing targets and estimates
+## 9. Pacing, copy and tutorial weave
+
+### 9.1 Targets and estimates
 
 Assumptions: 4 tiles/s, ~2.5 s per dialogue line at normal text speed (read time included),
-first battle ~45–60 s with the current sequencer timings, boss ~2–3 min with switches.
+receipts ~2 s each, first battle ~45–60 s with the current sequencer timings, boss ~2–3 min with
+switches.
 
-| Target                       | Brief   | Estimate (attentive first-time player)                                                                       |
-| ---------------------------- | ------- | ------------------------------------------------------------------------------------------------------------ |
-| Visible objective            | ≤ 30 s  | ~3 s (`trg_first_step` banner) · ticket objective at ~20 s (5 tiles + 4 lines)                               |
-| First battle begins          | ≤ 3 min | ~2:05 — 52 tiles of printer loop (~13 s) + 7 interactions (~45 s incl. the letters) + Gavin's 3 lines + card |
-| Recruit Gavin                | —       | +10 s (2 lines + card) — happens where you already stand                                                     |
-| Full required department     | 10–15   | ~10–13 min with one loss, a vending stop, and a two-switch boss; ~8 min for a fast reader who never loses    |
-| Optional meeting prep + spar | —       | +3–4 min; +10 s to recruit Priya                                                                             |
+| Target                       | Brief   | Estimate (attentive first-time player)                                                                    |
+| ---------------------------- | ------- | --------------------------------------------------------------------------------------------------------- |
+| Visible objective            | ≤ 30 s  | ~3 s (`trg_first_step` banner + pin) · ticket objective at ~20 s (5 tiles + 4 lines)                      |
+| First battle begins          | ≤ 3 min | ~2:10 — 52 tiles of printer loop (~13 s) + 7 interactions and 2 receipts (~50 s) + Gavin's 3 lines + card |
+| Recruit Gavin                | —       | +10 s (2 lines + card) — happens where you already stand                                                  |
+| Full required department     | 10–15   | ~10–13 min with one loss, a vending stop, and a two-switch boss; ~8 min for a fast reader who never loses |
+| Optional meeting prep + spar | —       | +3–4 min; +10 s to recruit Priya                                                                          |
 
 Recruitment adds no tiles to any route: both offers happen at the tile where you just won, using a
 tool the required path already put in your hand. The switch tutorial is a coach mark, not a
-screen. The boss fight is longer than the solo draft (130 HP, switches cost turns) — that is where
-the extra minutes live, and it's the part that should feel long.
+screen. The boss fight is longer than a solo draft would be (130 HP, switches cost turns) — that is
+where the extra minutes live, and it's the part that should feel long.
 
 Risk: the required path can still land under 10 minutes for fast players. Do not pad it with
 walking or extra lines; the fix, if wanted, is content on Floor 2, not friction on Floor 1.
 
----
+### 9.2 Copy rules
 
-## 10. Controls and accessibility
+- A dialogue line is ≤ 90 characters and never wraps past two rows of `ovl_dialogue` at
+  `--body-lg`. A node is ≤ 3 lines before a choice or an effect.
+- Every line does one of three jobs: names the next place or person, states a stake, or lands a
+  joke. Lines that only explain a control are forbidden; controls are taught by prompts and coach
+  marks (§9.3).
+- Card titles are display-face uppercase eyebrows ≤ 24 characters. Button labels are ≤ 14
+  characters, verb-first, and the safe option always reads as a real choice ("Not now", "Rain
+  check", "Not yet"), never "Cancel".
+- Receipt titles are corporate artefacts (`TICKET #0001 CLOSED`, `ONE-ON-ONE — SURVIVED`), never
+  "You won!". Toasts are ≤ 40 characters and start with "Got:", "Swapped:", or "Saved".
+- Numbers are always shown with their unit: `+8 📈`, `+15 XP`, `74/100`. Never a bare number.
+- Satire target is the institution, not the player. Nobody on this floor calls the player stupid.
 
-| Action              | Keyboard             | Touch                                             | Notes                                                                                          |
-| ------------------- | -------------------- | ------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
-| Move                | Arrows / WASD        | D-pad, bottom-left (min 54 px hits, `--tap-min`)  | 4-direction, tile-locked, hold to keep walking                                                 |
-| Interact / advance  | Enter / E            | ACT button, bottom-right; tap dialogue to advance | Label chip shows the verb ("E · Talk — Renata" / "ACT · Talk — Renata")                        |
-| Close / safe choice | Esc                  | ✕ on the dialogue box                             | Esc on a stakes card = the ⎋ option; disabled on Holloway's `[Begin]` card and forced switches |
-| Team panel          | P                    | TEAM button (bottom bar, beside ACT)              | Read-only roster (§3.7)                                                                        |
-| Battle moves        | 1–4 (existing)       | existing MoveButtons                              | Unchanged                                                                                      |
-| Battle switch       | 5 / Tab              | SWITCH button beside ITEMS                        | Bench picker: ←/→ or 1–2 select, Enter confirm, Esc cancel (not when forced)                   |
-| Menu (settings)     | Existing gear button | Existing gear button                              | Reduced motion, text speed, haptics already exist in `settings.ts`                             |
+### 9.3 Tutorial weave (no tutorial screens)
 
-Layout on the 472×884 frame: top strip 60 px (objective banner left, HP / 📈 chips and the
-3-chip party strip right), map 576 px (18 tiles × 32), controls 248 px (D-pad, ACT, TEAM, zone
-chip). Desktop hides the D-pad/ACT/TEAM buttons and uses the space for the objective + a "Nearby"
-line; P still opens the team panel.
+Exactly three coach marks exist on Floor 1, each attached to the first moment its input matters;
+none pauses the game; each dismisses on the action it teaches and never returns on that save.
 
-Nearby interactions are always labeled: when the player is adjacent to and facing an interactable,
-an `IconChip` with the verb and target name floats above it; it is also mirrored into an
-`aria-live="polite"` region as "Nearby: Talk — Renata. Press E." Objective changes, reward toasts,
-recruit toasts and switch events go through the same live region ("Gavin steps in. 70 HP.").
+| Coach mark       | When                                                   | Copy (desktop / touch)                                                      | Dismissed by         |
+| ---------------- | ------------------------------------------------------ | --------------------------------------------------------------------------- | -------------------- |
+| `coach_move`     | on spawn, before any input                             | "Arrows or WASD to move" / "D-pad to move"                                  | first completed step |
+| `coach_interact` | the first time a Nearby prompt appears (Renata's desk) | the prompt chip itself pulses twice and appends " — press E" / " — tap ACT" | first interaction    |
+| `coach_switch`   | §3.6                                                   | "SWITCH — send in Gavin. Holloway gets one free swing at whoever walks in." | any battle action    |
 
-Reduced motion (OS preference or the in-app toggle): camera snaps per tile instead of easing; no
-idle bob on NPC markers; sightline "!" bounce becomes a static "!"; zone chip swaps without fade;
-switch-in/out slides become instant swaps; the party-strip fill animation is skipped; dialogue
-typewriter is unaffected (it has its own text-speed setting).
-
-Haptics (existing adapter): a short tick on interaction and on a recruit joining, the existing
-battle pattern in combat, nothing on movement.
-
-Focus: dialogue box is a focus trap while open; choice buttons are real `<button>`s with the
-global `:focus-visible` ring; the bench picker traps focus while open and, in forced mode, moves
-focus to the first standing member; when a box closes, focus returns to the map canvas or the move
-grid.
+Everything else is taught by the world: Renata's callout makes you walk; the receipt teaches what
+Options and letters are; Gavin's offer teaches recruiting by doing it; the stakes card teaches what
+losing costs before the first fight; the door prompt teaches "no flee" with your HP in front of you.
 
 ---
 
-## 11. Asset list
+## 10. Presentation spec — every screen and overlay, named
 
-Reuse first. Placeholders are acceptable for the first slice and are listed so nothing ships
-unlabeled.
+Design space is the existing `Stage` frame, **472 × 884** design-px, scaled to fit. Typography and
+color come only from `tokens.css`: display face `--cc-font-display` (Anton) for eyebrows and
+titles, `--cc-font-body` (Space Grotesk) for everything else; body text is never below
+`--body-sm` (13 px) and interactive text never below `--body-md` (14 px). Surfaces are
+`--cc-surface-1/2/3` with `--cc-line` hairlines and `--radius-md`; the one accent is `--cc-gold`.
+Every overlay below is a `Panel`; every button is the existing `Button`. New CSS lives in CSS
+modules on tokens; no inline style objects.
 
-### 11.1 Reused as-is
+### 10.1 Screen map
 
-| Asset                                                       | Use                                                                                                                                |
-| ----------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------- |
-| `PixelSprite` / `StagedSprite` + `src/assets/characters/*`  | Battle portraits: player class sprites; Gavin `overachiever`, Priya `scrum` (as enemy **and** as party member), Holloway `manager` |
-| `TextBox`                                                   | Dialogue typewriter                                                                                                                |
-| `Panel`, `Button`, `IconChip`                               | Stakes card, recruit card, prompts, interaction labels                                                                             |
-| `HpBar`, `XpBar`, `StatusBadges`, `MoveButton`, `TypeBadge` | Battle screen, party strip mini-bars, team panel                                                                                   |
-| `PromotionScreen`                                           | Cleared Probation pick                                                                                                             |
-| `ShopScreen`                                                | Vending machine (stock-only mode)                                                                                                  |
-| `RunCompleteScreen` layout                                  | Floor 1 Cleared celebration                                                                                                        |
-| Coach-mark style from `onboarding.ts`                       | Switch tutorial                                                                                                                    |
-| `tokens.css`                                                | Zone tints, chips, eyebrows                                                                                                        |
-| Emoji `📈`, `☕`, `💰`, `🪪`, `📄`                          | Currency, Espresso, Side Hustle, badge toast, Offer Letter toast                                                                   |
+| Id                        | Type    | Purpose                                                        | Entered from → returns to                             |
+| ------------------------- | ------- | -------------------------------------------------------------- | ----------------------------------------------------- |
+| `screen_title`            | screen  | existing title; gains THE OFFICE button                        | app start → `screen_office_start`                     |
+| `screen_office_start`     | screen  | Continue / New campaign for the office slot                    | title → overworld or `ClassSelect`                    |
+| `screen_class_select`     | screen  | existing `ClassSelect`, eyebrow "YOUR ROLE · FLOOR 1"          | office start → `screen_overworld` (first spawn)       |
+| `screen_overworld`        | screen  | the floor: HUD + map + controls                                | everywhere returns here at a stated tile/facing (§13) |
+| `screen_battle`           | screen  | existing battle screen + `ui_switch_button` + `ui_party_bench` | stakes card → receipt (win) / interstitial (loss)     |
+| `screen_promotion`        | screen  | existing `PromotionScreen`, office copy                        | Holloway receipt → overworld `(9,3)` facing west      |
+| `screen_preview_complete` | screen  | Floor 1 Cleared celebration                                    | elevator confirm → overworld `(3,2)` facing south     |
+| `ovl_dialogue`            | overlay | speech + choices                                               | over the map                                          |
+| `ovl_document`            | overlay | agenda / directory cards                                       | over the map                                          |
+| `ovl_reward_receipt`      | overlay | every XP / Options / item / badge grant                        | over the map (after battles, over the returned map)   |
+| `ovl_stakes_card`         | overlay | pre-battle commit                                              | over the map                                          |
+| `ovl_door_prompt`         | overlay | lobby commit                                                   | over the map                                          |
+| `ovl_recruit_card`        | overlay | extend an offer                                                | over the map                                          |
+| `ovl_confirm`             | overlay | Take five / Ride up / handout pick / New campaign erase        | over the map                                          |
+| `ovl_team_panel`          | overlay | roster                                                         | over the map (P / TEAM)                               |
+| `ovl_vending`             | overlay | `ShopScreen` in vending mode                                   | over the map                                          |
+| `ovl_coach_mark`          | overlay | the three coach marks                                          | over map or battle deck                               |
+| `ovl_interstitial_minute` | overlay | "Your team needs a minute."                                    | over the battle → fades to overworld                  |
+| `ovl_toast`               | overlay | minor pickups and "Saved"                                      | over the map, bottom of the map region                |
+| `ovl_settings`            | overlay | existing `SettingsPanel`                                       | gear button                                           |
 
-### 11.2 Needed — tiles (32×32, flat pixel style, dark palette from `--cc-surface-*`)
+### 10.2 `screen_title` and `screen_office_start`
 
-| Tile                                                                                         | MVP placeholder                                                         |
-| -------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
-| Floor carpet × 6 zone tints                                                                  | `--cc-surface-3` fill with zone accent at 8% overlay                    |
-| Wall, glass wall/door frame, street exit                                                     | `--cc-surface-1` blocks with `--cc-line` hairline; door frame in accent |
-| Elevator doors (2-wide), badge reader (red/green states)                                     | Two `--cc-surface-2` panels + a 4 px LED in `--cc-danger` / `--cc-heal` |
-| Reception desk (3-wide), desk, chair                                                         | Rounded rectangles in `--cc-surface-1`, chairs in `--cc-text-faint`     |
-| Printer (error / working states)                                                             | Box + tiny screen: `--cc-danger` when broken, `--cc-heal` when working  |
-| Supply cabinet, vending machine, coffee counter (3-wide), break table (2-wide), water cooler | Boxes with emoji decals (`🗄️`, `🥤`, `☕`, `🎂`, `💧`)                  |
-| Meeting table (4×2), agenda decal, handout rack                                              | Table block; `📄` decal; `🗂️` decal                                     |
-| Plant, directory sign                                                                        | `🪴`, `🪧` decals on floor tiles                                        |
+- Title: a third primary button **THE OFFICE** under the existing ones, eyebrow `PREVIEW · FLOOR 1`
+  in `--cc-text-dim`. If an office save exists, a one-line status under the label in `--body-sm`:
+  "Floor 1 · Team of 2 · 📈 28 · 11:42 in". Never shows a bare "Continue".
+- `screen_office_start`: a `Panel` with the campaign summary card (headshot row of the party, class
+  name, wallet, time on floor) and two buttons: **Continue** (primary) and **New campaign**
+  (secondary). New campaign with a save present opens `ovl_confirm`: "Erase this campaign? The team
+  goes back to being coworkers." `[Erase]` (danger style: `--cc-danger` text on secondary)
+  `[Keep it]` ⎋. No save → straight to `screen_class_select`. Back arrow top-left returns to the
+  title with `menuBack`.
 
-### 11.3 Needed — characters
+### 10.3 `screen_overworld` layout
 
-| Asset                                        | Count | MVP placeholder                                                               |
-| -------------------------------------------- | ----- | ----------------------------------------------------------------------------- |
-| Player avatar, static, 4 facings, per class  | 12    | Class emoji (`📋` `⌨️` `🎨`) on a type-colored ring token with a facing notch |
-| NPC map tokens (fixed facing)                | 4     | Emoji tokens: Renata `🪪`, Gavin `👓`, Priya `📅`, Holloway `👔`              |
-| Party-strip chips                            | 3 + 2 | Same emoji tokens at 24 px (lead uses the class emoji; recruits reuse theirs) |
-| "!" marker (callout), "?" marker (objective) | 2     | Text glyphs in `--cc-gold`                                                    |
+```
+┌──────────────────────────────── 472 ────────────────────────────────┐
+│ hud_top (60)   [OBJECTIVE ▸ text ....... → DESKS] [●][●][ ] [📈 28] │
+├─────────────────────────────────────────────────────────────────────┤
+│ hud_map (576)  zone chip top-left · tiles · pins · nearby prompt     │
+│                ovl_dialogue docks over the bottom 3 tile rows        │
+├─────────────────────────────────────────────────────────────────────┤
+│ ctl_band (248) [ D-PAD 192×192 ]        [ TEAM 54 ] [ ACT 84 ] [⚙]  │
+└─────────────────────────────────────────────────────────────────────┘
+```
 
-### 11.4 Needed — UI
+| Element            | Spec                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   |
+| ------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hud_objective`    | Left 60% of `hud_top`. Row 1 eyebrow `OBJECTIVE` (`--display-2xs`, `--cc-track-label`, gold) or `OPTIONAL` (`--cc-text-dim`). Row 2 objective text `--body-md`, ≤ 42 chars, one line, ellipsis never allowed (copy is written to fit). Right-aligned within the banner: a destination chip `→ DESKS` in the destination zone's accent. When the optional objective is also active it shows as a second, dimmer row; the banner grows to 72 px. Never empty: after the preview it reads `FLOOR 1 CLEARED · Floor 2 under construction`. |
+| `hud_party_strip`  | Right of the objective: up to three 54×54 chips. Each chip: headshot (40 px circle, type ring 2 px), HP number `74` bottom-right in `--display-2xs`, 3-px HP bar under the headshot colored by `--cc-hp-high/mid/low` thresholds (>50 / 25–50 / <25 %). Lead chip has a 1-px gold ring instead of type ring. Fainted: headshot desaturated, `OUT` tag replaces the number. Empty slot: dotted `--cc-line` circle with `+` in `--cc-text-faint`. Active member (in battle only) gets a gold underline.                                  |
+| `hud_wallet`       | Far right chip `📈 28` in `--display-sm`; pulses gold once on change (§12).                                                                                                                                                                                                                                                                                                                                                                                                                                                            |
+| `hud_letters`      | Appears under the wallet chip only while `key_offer_letter > 0`: `📄 ×2` in `--body-sm`. Disappears at 0 — the team panel keeps the explanation (§10.8).                                                                                                                                                                                                                                                                                                                                                                               |
+| `hud_zone_chip`    | Top-left over the map, 8 px inset: uppercase zone name eyebrow on a `--cc-glass` plate with a 4-px left bar in the zone accent (`--cc-accent-bar`). Shows for 1.6 s on zone change, then fades to 60% and stays (the player always knows the room they're in).                                                                                                                                                                                                                                                                         |
+| `hud_pin`          | Destination pin: a gold `?` glyph (display face, 14 px) bobbing 2 px above the objective's target tile (NPC or POI); static under reduced motion. Exactly one pin for the required objective; the optional objective uses a dim `?` at 60%.                                                                                                                                                                                                                                                                                            |
+| `hud_edge_arrow`   | When the pinned target is off-screen horizontally, a gold chevron `›`/`‹` sits at the map's edge on the target's row, 24 px, with the destination zone name beneath it in `--display-2xs`. Disappears when the target is on screen.                                                                                                                                                                                                                                                                                                    |
+| `hud_nearby`       | Interaction prompt chip (§10.4) floating 6 px above the faced interactable; also mirrored as plain text centered in `ctl_band` on desktop ("E · Talk · Renata"). Only one prompt at a time; absent when nothing is faced.                                                                                                                                                                                                                                                                                                              |
+| `ctl_dpad`         | Touch only. 192×192 cross, four 64×64 pads with 54-px minimum hit targets that extend into the gaps; pressed pad fills `--cc-fill-soft` → `--cc-gold` at 30%. Hold repeats at tile cadence.                                                                                                                                                                                                                                                                                                                                            |
+| `ctl_act`          | Touch only. 84-px gold circle, label `ACT` in display face; when a prompt is available the label becomes the verb (`TALK`, `BUY`, `TAKE FIVE`) so the thumb knows before it moves. Disabled look (40% alpha) when nothing is faced.                                                                                                                                                                                                                                                                                                    |
+| `ctl_team`         | Touch only. 54-px secondary square left of ACT, headshot stack icon + `TEAM`; badge with member count. Desktop: key `P`.                                                                                                                                                                                                                                                                                                                                                                                                               |
+| `ctl_settings`     | Existing gear, top-right of `ctl_band`.                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                |
+| Desktop `ctl_band` | D-pad/ACT/TEAM hidden; the band shows the mirrored Nearby text (center) and a one-line key legend in `--cc-text-faint`: `Move ↑↓←→ · Interact E · Team P · Menu Esc`.                                                                                                                                                                                                                                                                                                                                                                  |
 
-D-pad (4 buttons, 54 px min), ACT button, TEAM button, objective banner, party strip, team panel,
-zone chip, reward toast, recruit card, bench picker, SWITCH button, "Your team needs a minute."
-interstitial, agenda document card, celebration screen. All from existing tokens; no new colors.
+### 10.4 Interaction prompts and dialogue chrome
 
-### 11.5 Audio
+**Prompt chip** (`hud_nearby`): `IconChip` on `--cc-glass`, 28 px tall, hairline border; content
+`[E] Talk · Renata` on desktop, `Talk · Renata` on touch (the ACT button carries the key). Verb
+table:
 
-Reuse `SFX` cues: `menuSelect` for steps onto interactables and bench selection, `fanfare` for a
-recruit joining, the badge and the celebration, existing battle cues; the existing faint cue for
-`member_faint`. New: none required. Music: overworld reuses the current title loop until a floor
-theme exists (flagged as missing, not blocking).
+| Target state                     | Verb          | Object                            |
+| -------------------------------- | ------------- | --------------------------------- |
+| Any NPC                          | Talk          | first name                        |
+| Reception desk tiles             | Talk          | Renata                            |
+| Printer, not installable         | Inspect       | Printer                           |
+| Printer, toner held              | Install toner | Printer                           |
+| Supply cabinet                   | Open          | Supply cabinet                    |
+| Coffee counter                   | Take five     | Coffee counter                    |
+| Vending machine                  | Buy           | Vending                           |
+| Agenda                           | Read          | Agenda                            |
+| Handout rack (assignment active) | Pick          | Handout                           |
+| Handout rack (otherwise)         | Inspect       | Handout rack                      |
+| Elevator, no badge               | Badge in      | Elevator (chip shows a red dot)   |
+| Elevator, badge                  | Ride          | Elevator (chip shows a green dot) |
+| Break table, water cooler, exit  | Inspect       | object name                       |
+| Directory sign                   | Read          | Directory                         |
+
+**`ovl_dialogue`**: docks over the bottom three tile rows of `hud_map` with 12-px side margins;
+`--cc-glass` plate, `--radius-md`, `--cc-line-strong` border, `--cc-shadow-plate`. Left: 48-px
+speaker headshot with type ring (absent for "spoken across the room" lines, which render in italic
+with the speaker name still in the eyebrow). Eyebrow: `RENATA · FRONT DESK` (display face,
+`--display-xs`, `--cc-track-label`, gold). Body: `--body-lg` (16 px), `--cc-text`, two rows max,
+typewriter via `TextBox` with `SFX.textTick`. Advance caret `▾` bottom-right, blinking 0.9 s
+(static under reduced motion). Tap anywhere on the box / Enter / E advances; a tap during
+typewriting completes the line first (existing behaviour). Choices render below the body as
+stacked full-width buttons, ≥ 54 px tall, primary gold for the forward option, secondary for the
+⎋ option; ↑/↓ moves focus, Enter confirms, Esc picks ⎋. While open, movement input is ignored
+and the D-pad dims to 40%.
+
+### 10.5 `ovl_document`
+
+Agenda and directory. A "paper" card centered over the map: `--cc-surface-1` plate with a 4-px gold
+top bar and a paperclip glyph top-left; title in display face `--display-md`; body `--body-md` with
+bold via `--cc-text` vs `--cc-text-2`. One button **Close** (Enter/E/Esc/tap outside). The agenda's
+key phrase (`Q3 summary`) is bold so the answer is findable in two seconds.
+
+### 10.6 `ovl_reward_receipt` and `ovl_stakes_card`
+
+**Receipt** — the single grant surface. Styled as an expense report:
+
+```
+┌ APPROVED ───────────────────────────────┐   eyebrow in --cc-heal, display-2xs
+│ TICKET #0001 CLOSED                     │   title, display-md
+│                                         │
+│ Stock Options                  +10 📈   │   rows: label --body-md left, value display-sm right
+│ Offer Letter                    ×2 📄   │   values count up over 400 ms (instant under RM)
+│                                         │
+│ "Filed under: things that beep."        │   one satire footer line, --body-sm, --cc-text-dim
+│                       [ File it ]       │   single primary button; Enter / E / tap
+└─────────────────────────────────────────┘
+```
+
+Row vocabulary (only these, in this order when present): `Stock Options +N 📈` · `XP +N (cur/next)`
+· `TEAM LEVEL N · +20 HP all` (gold row, plays `levelUp`) · `Offer Letter ×N 📄` ·
+`Access Badge 🪪` · `Offer eligible ✓` · `Promotion → next`. Footer lines per receipt: SIGNING
+BONUS "Vests immediately. Suspicious."; TICKET #0001 CLOSED "Filed under: things that beep.";
+PRINTER — ONLINE "Two letters. Zero names. Infinite potential."; DESK-PIT ARGUMENT — WON "Coffee
+refill: his problem now."; THE 10:30 — PREPPED "Nobody will read it. It's still right."; PRE-MEETING
+SPAR — WON "She'll be calm. Nobody will know why."; ONE-ON-ONE — SURVIVED "Laminated. Finally."
+The wallet chip and XP (team panel) update **when the receipt closes**, with the wallet pulse — so
+the number on the HUD never changes while the player isn't looking at it. After a battle, the
+receipt appears over the overworld once the player is back at their tile (§13), before the NPC's
+post-battle line.
+
+**Stakes card** — layout per §5.2: eyebrow (`CHALLENGE · RANK 0`), name row with headshot (name
+display-md, role `--body-sm` dim), `WIN` / `LOSE` rows with labels in display-2xs and values in
+`--body-md`, the `TEAM` row of member chips (same component as `hud_party_strip`, 44 px), and the
+button row. Card width 440 px, centered over the map, with the map dimmed to 40% behind it.
+
+### 10.7 `ovl_recruit_card`
+
+```
+┌ EXTEND AN OFFER ────────────────────────┐   eyebrow gold
+│ [headshot 64]  Gavin                    │   display-md
+│                Senior Associate         │   --body-sm dim
+│ HP 70 · ATK 10 · DEF 8 · [NORMAL]       │   stat row + TypeBadge
+│ Well, Actually · Passive-Aggressive     │   move names, --body-sm
+│ Sticky Note                             │
+│ Offer Letters left: 2 📄                │   --body-md
+│ TEAM  [●YOU] [ + ] [ — ]                │   the + slot is outlined gold: "he goes here"
+│ [ Extend the offer ]        [ Not yet ] │
+└─────────────────────────────────────────┘
+```
+
+On confirm the `+` slot fills with his headshot in place (the card stays 400 ms so the player sees
+it land), `fanfare` plays, then the card closes and the same fill repeats on `hud_party_strip`.
+
+### 10.8 `ovl_team_panel`, `ui_party_bench`, `ui_switch_button`
+
+**Team panel** — full map height, 440 px wide, `Panel`. Header eyebrow `TEAM · FLOOR 1`, close `✕`
+(Esc / P / TEAM toggles). Three member rows, 96 px each:
+
+- Filled row: 64-px headshot with type ring (gold for the lead) · name (display-sm) + `LEAD` chip or
+  role (`--body-sm` dim) · HP bar with `74 / 100` · four PP mini-bars each labeled with the move
+  name in `--body-sm` and `12/15` · type badges · status line when fainted: "Out. Take five in the
+  break room."
+- Empty row: dotted outline, headshot silhouette, text "Open seat" (display-sm dim) and one
+  explanatory line that changes with state — letters > 0: "Beat a coworker, hand them an Offer
+  Letter."; letters = 0 and recruitables remain: "Out of letters. HR prints two per quarter."; no
+  recruitables remain: "Floor 1 is fully staffed." Never a blank row.
+- Footer: `Team level 2 · XP 7/55` with the existing `XpBar`, then perk chips (`--cc-fill-soft`) or
+  "No perks yet — Holloway decides that." Then `Offer Letters: 1 📄 · Bag 2/4`.
+
+**Bench picker** (battle) — replaces the move grid in place (same height, so the deck never jumps):
+header `SWITCH · costs your turn` (or `SEND IN THE NEXT PERSON` in forced mode, eyebrow in
+`--cc-danger`), then one card per bench member, 200 px wide: `StagedSprite` at 64 px with type
+ring, name, HP bar with number, PP summary `PP 20 · 10`, and a footnote of the active member's
+statuses that will clear ("Clears: Demoralized"). Fainted card: greyed, `OUT`, unselectable.
+Footer: `[ Back ]` (hidden when forced). Keys per §3.4.
+
+**Switch button** — sits beside ITEMS in the deck's bottom row, same size, label `SWITCH` with a
+count badge of standing bench members (`SWITCH · 1`); disabled look with tooltip text "No one on
+the bench" when the party is solo. Key hint `5` in the corner like the move keys.
+
+### 10.9 `ovl_vending`
+
+`ShopScreen` in vending mode: header eyebrow `VENDING · BREAK ROOM`, sub-line "Accepts Stock
+Options. Nobody asked how.", wallet chip top-right, `Bag 2/4` chip beside it. Rows: item emoji
+(the existing item icon language), name, one-line desc, price chip `14 📈`, stock `×2`. Row
+states:
+
+| State                | Look                                                         | On press                                                                      |
+| -------------------- | ------------------------------------------------------------ | ----------------------------------------------------------------------------- |
+| Affordable, bag room | normal, price chip gold                                      | buy: `coin`, price chip counts down, stock decrements, bag chip increments    |
+| Insufficient funds   | price chip `--cc-danger`, row 80%; sub-label "Short by 6 📈" | row shakes 4 px (static under RM), `eventBad`, `Haptics.warning`, no purchase |
+| Bag full             | row 80%; sub-label "Bag full (4/4) — use something first"    | same reject feedback                                                          |
+| Sold out             | row 50%, price replaced by `SOLD OUT` in `--cc-text-faint`   | inert, no sound                                                               |
+
+No Wellness row. **Leave** button bottom (Esc). The vending machine tile shows a lit face while the
+overlay is open.
+
+### 10.10 `ovl_coach_mark`
+
+Gold-bordered callout (`--cc-gold` 1 px on `--cc-glass`), `--body-md` text with the key word in
+display face, a 8-px pointer toward its anchor. Anchors: `coach_move` above the D-pad (touch) or
+centered in `ctl_band` (desktop); `coach_interact` is the prompt chip itself; `coach_switch` above
+the SWITCH button. Appears with a 120-ms scale-in (instant under RM); never has a close button —
+it dies on the action it teaches.
+
+### 10.11 `ovl_interstitial_minute`
+
+Full-frame `--cc-bg` at 92%, centered: eyebrow `TIME OUT` in `--cc-danger`, headline "Your team
+needs a minute." (display-lg), the opponent's `dlg_*_you_lost` line in `--body-lg` italic, and a
+dim "tap to continue". 1.2 s minimum, then the break-room fade.
+
+### 10.12 `screen_preview_complete`
+
+`RunCompleteScreen` layout language, full-bleed:
+
+```
+FLOOR 1 CLEARED                                   display-xl, gold
+You fixed a printer, hired a critic, survived a    --body-lg
+one-on-one, and got laminated. That's a career.
+
+[●YOU] [●GAVIN] [ + ]                             party chips, 64 px, with names beneath
+Assignments  2 / 2         Battles won  3
+Losses  1                  Switches  2
+Options earned  65 📈      Time on floor  11:42
+
+Floor 2 is under construction.                    --body-md dim
+The elevator goes back down.
+
+[ Back to Floor 1 ]            [ Title ]
+```
+
+The second line adapts: "hired a critic" if Gavin was recruited, "hired nobody" if not, "hired two
+people" with Priya. Stats count up over 600 ms (instant under RM). `fanfare` on mount. The empty
+slot shows as the dotted `+` chip, never omitted — the screen tells the truth about the team.
+
+### 10.13 Empty and edge states (none may be blank)
+
+| State                                  | What the player sees                                                                                                          |
+| -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- |
+| No objective (never happens by design) | `hud_objective` always has text; after the preview: `FLOOR 1 CLEARED · Floor 2 under construction`                            |
+| Party of one                           | Strip shows `[●YOU] [ + ] [ + ]`; team panel rows explain how to fill them (§10.8)                                            |
+| Zero Offer Letters                     | `hud_letters` hidden; team panel footer `Offer Letters: 0 📄`; stakes card line "Offer letters: 0"; Priya/Gavin `dlg_*_after` |
+| Empty bag                              | Team panel `Bag 0/4`; battle ITEMS button disabled look with "Bag's empty. Vending's in the break room."                      |
+| Full bag at the cabinet / rack         | Key items don't use the bag — no conflict, by design                                                                          |
+| Vending sold out                       | Rows read `SOLD OUT`; header sub-line changes to "Restocked never. Budget."                                                   |
+| Fainted bench at the door              | §8: card explains, pin moves to the coffee counter                                                                            |
+| Replay after the preview               | Elevator ride shows the same celebration; no receipt; Renata `dlg_renata_after`                                               |
+| Save missing/corrupt on Continue       | `screen_office_start` shows "Couldn't read this campaign." and only **New campaign**; Classic save unaffected                 |
 
 ---
 
-## 12. Frozen content IDs — **FROZEN**
+## 11. Controls, readability and accessibility
+
+| Action              | Keyboard             | Touch                                              | Notes                                                                                          |
+| ------------------- | -------------------- | -------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| Move                | Arrows / WASD        | D-pad (`ctl_dpad`), 64-px pads, 54-px minimum hits | 4-direction, tile-locked, hold to keep walking                                                 |
+| Interact / advance  | Enter / E            | ACT (`ctl_act`, 84 px); tap dialogue to advance    | ACT's label becomes the verb when a prompt exists                                              |
+| Close / safe choice | Esc                  | ✕ on the box / secondary button                    | Esc on a stakes card = the ⎋ option; disabled on Holloway's `[Begin]` card and forced switches |
+| Team panel          | P                    | TEAM (`ctl_team`, 54 px)                           | Read-only roster (§10.8)                                                                       |
+| Battle moves        | 1–4 (existing)       | existing MoveButtons                               | Unchanged                                                                                      |
+| Battle switch       | 5 / Tab              | SWITCH button beside ITEMS                         | Bench picker: ←/→ or 1–2 select, Enter confirm, Esc cancel (not when forced)                   |
+| Menu (settings)     | Existing gear button | Existing gear button                               | Reduced motion, text speed, haptics already exist in `settings.ts`                             |
+
+**Readability guarantees**
+
+- The objective is always visible (`hud_objective` never hides, never scrolls off, never empties)
+  and always names its destination zone; the destination itself is pinned on the map and pointed
+  to at the edge when off-screen (§10.3).
+- Party HP is readable at a glance: number + bar + color threshold on every chip; fainted is a word
+  (`OUT`), not a color.
+- Text floors: body ≥ 13 px, interactive ≥ 14 px, in design px before Stage scaling (the Stage can
+  shrink ~17% on small phones; `--text-floor` guards the result).
+- Touch targets: every tappable thing ≥ `--tap-min` (54 px) including D-pad hit slop, choice
+  buttons, chips that open panels, and bench cards. Thumb zones: D-pad bottom-left, ACT/TEAM
+  bottom-right, nothing important in the top corners.
+- One prompt at a time, one pin for the required objective, one receipt per grant, one toast at a
+  time (later toasts queue).
+
+**Reduced motion (OS preference or the in-app toggle)** — a complete path, not a degradation:
+camera snaps per tile instead of easing; no idle bob on pins or markers (static glyphs); zone chip
+swaps without fade; dialogue caret static; receipt values appear instantly; switch-in/out become
+instant swaps; the party-strip fill is instant; shake rejects become a color flash; the encounter
+title card holds instead of wiping. The typewriter is governed by its own text-speed setting.
+
+**Screen readers / live region**: one `aria-live="polite"` region receives: objective changes
+("Objective: Get toner from the supply cabinet. Break room."), Nearby prompts ("Nearby: Talk,
+Renata. Press E."), receipts (title + rows), recruit events ("Gavin joined the team."), switch and
+faint events ("Gavin steps in. 70 HP."), rejects ("Not enough Options. Short by 6."). Focus: the
+dialogue box is a focus trap while open; choice buttons are real `<button>`s with the global
+`:focus-visible` ring; the bench picker traps focus while open and, in forced mode, moves focus to
+the first standing member; when a box closes, focus returns to the map canvas or the move grid.
+
+**Haptics** (existing adapter, respects the setting): `selection` on interact and menu moves,
+`impact('light')` on a blocked step (once per press, not per frame), `success` on recruit / badge /
+level-up, `warning` on rejects, existing battle patterns in combat, nothing on movement.
+
+---
+
+## 12. Feedback matrix — every action answers
+
+Cues are the existing `SFX` methods and `Haptics` calls; "RM" is the reduced-motion variant.
+Nothing in this table is optional.
+
+| Moment                           | Visual                                                                                                                                   | Audio                            | Haptic             | Live region                            |
+| -------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------- | ------------------ | -------------------------------------- |
+| Step                             | avatar slides one tile in 250 ms (RM: snaps); camera follows                                                                             | —                                | —                  | —                                      |
+| Move blocked (wall/solid/NPC)    | avatar nudges 2 px into the tile and back in 120 ms (RM: none); facing updates                                                           | —                                | `impact('light')`  | —                                      |
+| Move blocked by a door prompt    | `ovl_door_prompt` opens (§8)                                                                                                             | `glassDoor`                      | `selection`        | card text                              |
+| Interact available               | `hud_nearby` chip appears; target tile gets a 1-px gold outline; ACT label becomes the verb                                              | —                                | —                  | "Nearby: …"                            |
+| Interact (talk / inspect)        | chip collapses into the dialogue box                                                                                                     | `menuSelect`                     | `selection`        | speaker + line                         |
+| Dialogue advance                 | caret blinks off, next line types                                                                                                        | `textTick`                       | —                  | line                                   |
+| Choice focused / confirmed       | focus ring / button press state                                                                                                          | `menuSelect` / `menuConfirm`     | `selection`        | button label                           |
+| Safe choice / close              | box slides down 8 px and fades (RM: instant)                                                                                             | `menuBack`                       | —                  | —                                      |
+| Sightline callout                | gold `!` pops over the NPC 300 ms, NPC token faces the player, dialogue opens                                                            | `email`                          | `selection`        | speaker + line                         |
+| Zone change                      | `hud_zone_chip` swaps with 1.6-s full opacity then 60%; carpet tint differs per zone                                                     | —                                | —                  | "Entering: Break room."                |
+| Objective stage advance          | old text strikes through and slides up (300 ms), new text slides in; pin jumps to the new target; edge arrow updates (RM: swap)          | `menuConfirm`                    | `selection`        | "Objective: …"                         |
+| Optional objective accepted      | dim second row appears in the banner; dim pin appears                                                                                    | `menuConfirm`                    | —                  | "Optional: …"                          |
+| Key item pickup (toner, handout) | `ovl_toast` "Got: Toner Cartridge" 1.8 s; cabinet/rack tile plays its open frame                                                         | `coin`                           | `selection`        | toast text                             |
+| Printer fixed                    | printer tile flips from red-screen to green-screen, three "pages" slide out; receipt `PRINTER — ONLINE`                                  | `printerJam` then `coin`         | `success`          | receipt                                |
+| Options / XP grant               | `ovl_reward_receipt`; on close, `hud_wallet` pulses gold once and counts to the new value                                                | `coin`; `levelUp` on a level row | `success`          | receipt rows                           |
+| Team level up                    | gold `TEAM LEVEL 2 · +20 HP all` row in the receipt; every standing chip's HP bar grows                                                  | `levelUp`                        | `success`          | "Team level 2."                        |
+| Recruit joined                   | `+` slot on the card fills with the headshot (400 ms), then `hud_party_strip` fills the same way; letters chip decrements                | `fanfare`                        | `success`          | "Gavin joined the team."               |
+| Recruit declined                 | card closes; letters chip does not move; NPC line                                                                                        | `menuBack`                       | —                  | line                                   |
+| Offer unavailable (no letter)    | stakes card line "Offer letters: 0"; NPC `dlg_*_after`; no card                                                                          | —                                | —                  | line                                   |
+| Battle start                     | encounter title card wipe (§13)                                                                                                          | `enemyAppear` / `bossIntro`      | `impact('medium')` | title                                  |
+| Switch (voluntary)               | bench picker → outgoing sprite slides down/fades, incoming `StagedSprite` rises (RM: swap); log "Gavin steps in."; strip underline moves | `menuConfirm`                    | `selection`        | "Gavin steps in. 70 HP."               |
+| Member faint                     | existing faint animation; strip chip desaturates with `OUT`; bench picker opens in forced mode                                           | `faint`                          | `impact('heavy')`  | "You're out. Send in the next person." |
+| Party wipe                       | `ovl_interstitial_minute` (§10.11)                                                                                                       | `gameOver` (short)               | `warning`          | "Your team needs a minute."            |
+| Recover (break room)             | counter tile steams; chips refill left-to-right 200 ms each (RM: instant); `OUT` tags drop; toast "You take five. Everyone's back."      | `coffee` then `heal`             | `success`          | toast                                  |
+| Take five (manual)               | same as above after the confirm; if already full: toast "Everyone's fine. Take five anyway." and the same steam, no `heal`               | `coffee`                         | `selection`        | toast                                  |
+| Shop buy                         | price chip counts down, stock `×1`, bag chip `3/4`, item row flashes gold                                                                | `coin`                           | `success`          | "Bought Espresso Shot. 14 Options."    |
+| Shop reject — insufficient funds | row shake 4 px (RM: red flash), sub-label "Short by 6 📈"                                                                                | `eventBad`                       | `warning`          | "Not enough Options. Short by 6."      |
+| Shop reject — bag full           | row shake (RM: flash), sub-label "Bag full (4/4) — use something first"                                                                  | `eventBad`                       | `warning`          | "Bag full."                            |
+| Shop — sold out row pressed      | nothing (row is inert)                                                                                                                   | —                                | —                  | —                                      |
+| Elevator, no badge               | reader LED blinks red twice; line                                                                                                        | `eventBad`                       | `warning`          | line                                   |
+| Elevator, badge                  | reader LED steady green; confirm card                                                                                                    | `menuConfirm`                    | `selection`        | card                                   |
+| Ride up                          | doors close (2 tiles slide), fade, celebration                                                                                           | `elevatorUp` then `fanfare`      | `success`          | "Floor 1 cleared."                     |
+| Wrong handout delivered          | handout chip in the dialogue shakes (RM: flash); Priya's hint line                                                                       | `eventBad`                       | `warning`          | line                                   |
+| Coach mark appears               | 120-ms scale-in (RM: instant)                                                                                                            | —                                | —                  | coach text                             |
+| Save written                     | `ovl_toast` "Saved" 0.8 s at 60% — only on recruit, promotion pick, and celebration (not every step)                                     | —                                | —                  | —                                      |
+
+---
+
+## 13. Transitions — continuous, with return positions
+
+Every transition names the out-beat, the in-beat, where the player lands, and the audio tone. Audio
+tracks may be deferred (§14.4) but the cue points are fixed now so the sequencer has them.
+
+| Transition                           | Out                                                                                                                                                                               | In                                                                                                                                                                                   | Return position / facing                                                                           | Tone                                                                                  |
+| ------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------- |
+| Title → office start → class → floor | existing screen fades                                                                                                                                                             | map fades in on `(12,15)`, `coach_move` appears, `SIGNING BONUS` receipt (first spawn only), then first step → Renata's callout                                                      | `(12,15)` north                                                                                    | overworld loop starts on the fade-in                                                  |
+| Overworld → battle                   | stakes card `[Bring it]`: card collapses, map desaturates 200 ms, encounter title card wipes in (display-lg, opponent name, eyebrow) 700 ms; RM: title card holds 700 ms, no wipe | existing battle intro (enemy `StagedSprite` rises, taunt in the log)                                                                                                                 | —                                                                                                  | overworld loop ducks out over 300 ms; battle cue on the wipe; boss uses `bossIntro`   |
+| Battle (win) → overworld             | existing victory beat (`victory`), 600 ms                                                                                                                                         | map fades in **at the exact tile and facing the player had when the stakes card opened**, NPC token facing the player; then `ovl_reward_receipt`; on close, `dlg_*_beaten` continues | same tile/facing as before the fight                                                               | battle cue resolves; overworld loop returns under the receipt                         |
+| Battle (wipe) → break room           | `ovl_interstitial_minute` 1.2 s                                                                                                                                                   | map fades in on `(19,8)`, recover feedback plays immediately                                                                                                                         | `(19,8)` north                                                                                     | silence under the interstitial; overworld loop returns low-passed for 2 s then normal |
+| Receipt → recruit card               | receipt `[File it]`                                                                                                                                                               | `dlg_*_offer` lines → card                                                                                                                                                           | unchanged                                                                                          | —                                                                                     |
+| Holloway receipt → promotion         | receipt `[File it]`                                                                                                                                                               | `screen_promotion` slides up over the map (existing screen); `CLEARED PROBATION`                                                                                                     | on pick: map returns at `(9,3)` facing west, Holloway's `dlg_holloway_beaten` badge lines continue | `fanfare` on the promotion mount                                                      |
+| Overworld → elevator celebration     | confirm `[Ride up]`: doors close over the avatar (400 ms), `elevatorUp`, fade to `--cc-bg`                                                                                        | `screen_preview_complete` counts up                                                                                                                                                  | `[Back to Floor 1]`: fade in at `(3,2)` facing south, doors open behind the avatar                 | celebration `fanfare`; overworld loop returns on the fade-in                          |
+| Overlay open / close (any card)      | map dims to 40% behind the card, 120 ms                                                                                                                                           | card scales from 96% → 100%, 120 ms (RM: instant)                                                                                                                                    | unchanged                                                                                          | `menuSelect` / `menuBack`                                                             |
+| Team panel                           | slides in from the right 160 ms (RM: instant)                                                                                                                                     | slides out                                                                                                                                                                           | unchanged; the game does not pause music                                                           | —                                                                                     |
+
+Continuity rules: the player never appears at a tile they did not walk to except the three named
+placements (spawn, break-room respawn, post-celebration). Facing is preserved across every battle.
+The NPC you fought is always facing you when you return. Music never hard-cuts: every transition
+is a duck or a fade with the durations above.
+
+---
+
+## 14. Asset bar — ship-quality vs stand-ins
+
+Rule: **everything the player sees is ship-quality or the slice is not done.** Reuse of existing
+high-quality assets is preferred over new art of any lower quality. Emoji are allowed only where
+the shipped game already uses them as an icon language (items, currency, perk icons, status
+badges) — never as furniture, characters, or map tiles.
+
+### 14.1 Reused as-is (ship-quality today)
+
+| Asset                                                                                                 | Use                                                                                                                                          |
+| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/assets/characters/*.webp` via `PixelSprite`/`StagedSprite`                                       | Battle portraits (player classes; Gavin `overachiever`, Priya `scrum`, Holloway `manager`) and, cropped, every headshot on the floor (§14.2) |
+| `TextBox`, `Panel`, `Button`, `IconChip`, `HpBar`, `XpBar`, `TypeBadge`, `StatusBadges`, `MoveButton` | Dialogue, cards, chips, bars, badges, deck                                                                                                   |
+| `PromotionScreen`, `ShopScreen`, `RunCompleteScreen` layout, `SettingsPanel`                          | Promotion, vending, celebration, settings                                                                                                    |
+| `SFX` cues, `Haptics` adapter                                                                         | The entire §12 matrix                                                                                                                        |
+| Emoji `📈 ☕ 💰 🪪 📄` and item emoji                                                                 | Wallet, item rows, badge/letter receipt rows (existing icon language)                                                                        |
+| `tokens.css`                                                                                          | All color, type, spacing, motion                                                                                                             |
+
+### 14.2 Required new assets — ship-quality, block "done"
+
+**Characters: the badge-token system.** Everyone on the floor is drawn as their employee badge: a
+28×28 rounded-rect lanyard token with the character's existing portrait cropped to a headshot
+(top-of-frame focal crop, defined per sprite in `sprites.ts` metadata), a 2-px ring in the
+character's primary type color (gold for the player), a 1-px ink outline matching `PixelSprite`'s
+drop-shadow outline, and a soft 4-px shadow ellipse. Facing is a 6-px notch on the ring edge plus a
+2° tilt toward the facing side; four facings per token. This is a deliberate art direction (the
+office renders people as their badges), it reuses the best art the project has, and the same
+headshot recurs on every party surface so faces are consistent everywhere. Required: 3 player
+tokens (pm/eng/design) × 4 facings, 4 NPC tokens × 1 facing each, plus the same crops at 40/48/64
+px for chips, dialogue and cards. Renata's headshot is the `recruiter` portrait.
+
+**Tileset (32×32, one sheet), flat two-tone with hairline and 1-px ink outline, palette from
+`--cc-surface-*` and zone accents.** Required tiles and states:
+
+| Tile                                                  | States                                                  |
+| ----------------------------------------------------- | ------------------------------------------------------- |
+| Carpet × 6 zone tints (subtle pattern, not flat fill) | —                                                       |
+| Wall, wall top edge, inner corner                     | —                                                       |
+| Glass wall, glass door frame (open)                   | —                                                       |
+| Street exit (double door, closed)                     | —                                                       |
+| Elevator doors (2-wide) + badge reader                | closed / opening frames; reader red / green             |
+| Reception desk (3-wide, with monitor and bell)        | —                                                       |
+| Desk (with monitor), chair                            | —                                                       |
+| Printer                                               | error (red screen) / working (green) / printing (pages) |
+| Supply cabinet                                        | closed / open                                           |
+| Coffee counter (3-wide: machine, cups, sink)          | idle / steaming                                         |
+| Vending machine                                       | idle / lit                                              |
+| Break table (2-wide) with the cake                    | —                                                       |
+| Meeting table (4×2) with agenda sheet, handout rack   | —                                                       |
+| Water cooler, plant, directory sign                   | —                                                       |
+
+**UI vector (CSS/SVG, no raster):** D-pad, ACT, TEAM, SWITCH glyphs; pin `?` and callout `!` in
+the display face; headshot-stack icon; paperclip glyph; reader LEDs.
+
+### 14.3 Stand-ins that block "done"
+
+Any of the following present in a build means the slice is not done, regardless of what else works:
+emoji or colored rectangles standing in for any tile or character; a missing tile state (a printer
+that never changes); an unstyled default button or panel; text overflow, ellipsis, or clipping in
+any card at the smallest supported viewport; a blank empty state from §10.13; a placeholder string
+(`TODO`, `Lorem`, `??`); a transition that hard-cuts where §13 specifies a fade.
+
+### 14.4 Deferred with approval (audio)
+
+Two music tracks are specified but may ship after the first playtest with Adrian's sign-off: an
+overworld loop (calm, sparse, office-hum register) and a boss variant (same loop, added pulse). Until
+they exist, the current title loop plays as the overworld loop and the battle cue is unchanged —
+the §13 duck/fade points are implemented against whatever track is present. All SFX cue points in
+§12 are **not** deferrable; every one is an existing method.
+
+---
+
+## 15. Frozen content IDs — **FROZEN**
 
 Astra codes against these. Additions are fine; renames go through this doc.
 
-| Kind          | Ids                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Floor         | `floor_01`                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Zones         | `zone_reception`, `zone_desks`, `zone_break`, `zone_meeting`, `zone_elevator`, `zone_hall`                                                                                                                                                                                                                                                                                                                                                                                  |
-| NPCs          | `npc_receptionist`, `npc_desk_challenger`, `npc_meeting_prepper`, `npc_supervisor`                                                                                                                                                                                                                                                                                                                                                                                          |
-| Encounters    | `enc_desk_challenger`, `enc_meeting_prepper`, `enc_supervisor_1on1` (enemy content entries use the same ids)                                                                                                                                                                                                                                                                                                                                                                |
-| Party slots   | `party_slot_0` (lead, fixed), `party_slot_1`, `party_slot_2`; constant `PARTY_MAX = 3`                                                                                                                                                                                                                                                                                                                                                                                      |
-| Recruit defs  | `cw_desk_challenger` (Gavin), `cw_meeting_prepper` (Priya) — `PlayerClass`-shaped kits (§3.3)                                                                                                                                                                                                                                                                                                                                                                               |
-| Party actions | `act_move` (existing move pick), `act_item` (existing item use), `act_switch` (new, key 5/Tab), `act_party_menu` (overworld, key P)                                                                                                                                                                                                                                                                                                                                         |
-| Battle phases | existing `player` / `won` / `lost` + new `switch_required`                                                                                                                                                                                                                                                                                                                                                                                                                  |
-| Battle events | new `switch_out`, `switch_in`, `member_faint` (with `slot`); `party_wipe` is `lost` with no standing member                                                                                                                                                                                                                                                                                                                                                                 |
-| Party UI      | `ui_party_strip`, `ui_party_panel`, `ui_party_bench`, `ui_recruit_card`                                                                                                                                                                                                                                                                                                                                                                                                     |
-| Assignments   | `asg_printer` (`not_started → accepted → toner_collected → installed → complete`), `asg_meeting_prep` (`not_started → accepted → handout_held → complete`)                                                                                                                                                                                                                                                                                                                  |
-| Key items     | `key_toner`, `key_offer_letter` (stack, max 2, the recruit token), `key_handout_q3_summary`, `key_handout_q3_deck`, `key_handout_q2_summary`, `key_access_badge` — stored in `keyItems`, **never** in the 4-slot battle `inventory`                                                                                                                                                                                                                                         |
-| POIs          | `poi_reception_desk`, `poi_directory_sign`, `poi_exit_door`, `poi_water_cooler`, `poi_printer`, `poi_supply_cabinet`, `poi_break_counter`, `poi_vending_machine`, `poi_break_table`, `poi_agenda`, `poi_handout_rack`, `poi_elevator_door`, `poi_supervisor_door`                                                                                                                                                                                                           |
-| Triggers      | `trg_first_step`, `trg_sight_desk_challenger`, `trg_sight_meeting_prepper`, `trg_sight_supervisor`, `trg_supervisor_door`, `trg_elevator_ride`, `trg_switch_coach`                                                                                                                                                                                                                                                                                                          |
-| Rewards       | `rwd_start_options`, `rwd_asg_printer`, `rwd_asg_meeting_prep`, `rwd_enc_desk_challenger`, `rwd_enc_meeting_prepper`, `rwd_enc_supervisor_1on1`, `rwd_promotion_f1` (each claimable once; recruitment has none)                                                                                                                                                                                                                                                             |
-| Flags         | `flag_greeted`, `flag_badge_reader_denied`, `flag_switch_coached`, `flag_preview_complete`                                                                                                                                                                                                                                                                                                                                                                                  |
-| Dialogue      | `dlg_renata_{callout,ticket,hint_toner,hint_install,close_ticket,gavin_pending,holloway,recruit_me,badged,after}` · `dlg_gavin_{busy,no_pressure,callout,challenge,declined,you_lost,beaten,offer,offer_declined,joined,party,after,after_win}` · `dlg_priya_{hook,request,pass,waiting,wrong_deck,wrong_q2,delivered,spar,raincheck,you_lost,beaten,offer,offer_declined,offer_full,joined,party,after}` · `dlg_holloway_{early,gavin_pending,1on1,you_lost,beaten,after}` |
-| Shop          | vending stock: `espresso` ×2, `side_hustle` ×1 (existing item ids)                                                                                                                                                                                                                                                                                                                                                                                                          |
-| Screens       | `screen_overworld`, `screen_preview_complete` (naming suggestion; Astra owns file names)                                                                                                                                                                                                                                                                                                                                                                                    |
-| Save          | separate slot key `corporate-climb-office-save`, own version number starting at 1; Classic `corporate-climb-save` untouched                                                                                                                                                                                                                                                                                                                                                 |
+| Kind           | Ids                                                                                                                                                                                                                                                                                                                                                                                                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Floor          | `floor_01`                                                                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Zones          | `zone_reception`, `zone_desks`, `zone_break`, `zone_meeting`, `zone_elevator`, `zone_hall`                                                                                                                                                                                                                                                                                                                                                                                  |
+| NPCs           | `npc_receptionist`, `npc_desk_challenger`, `npc_meeting_prepper`, `npc_supervisor`                                                                                                                                                                                                                                                                                                                                                                                          |
+| Encounters     | `enc_desk_challenger`, `enc_meeting_prepper`, `enc_supervisor_1on1` (enemy content entries use the same ids)                                                                                                                                                                                                                                                                                                                                                                |
+| Party slots    | `party_slot_0` (lead, fixed), `party_slot_1`, `party_slot_2`; constant `PARTY_MAX = 3`                                                                                                                                                                                                                                                                                                                                                                                      |
+| Recruit defs   | `cw_desk_challenger` (Gavin), `cw_meeting_prepper` (Priya) — `PlayerClass`-shaped kits (§3.3)                                                                                                                                                                                                                                                                                                                                                                               |
+| Party actions  | `act_move` (existing move pick), `act_item` (existing item use), `act_switch` (new, key 5/Tab), `act_party_menu` (overworld, key P)                                                                                                                                                                                                                                                                                                                                         |
+| Battle phases  | existing `player` / `won` / `lost` + new `switch_required`                                                                                                                                                                                                                                                                                                                                                                                                                  |
+| Battle events  | new `switch_out`, `switch_in`, `member_faint` (with `slot`); `party_wipe` is `lost` with no standing member                                                                                                                                                                                                                                                                                                                                                                 |
+| Screens        | `screen_title`, `screen_office_start`, `screen_class_select`, `screen_overworld`, `screen_battle`, `screen_promotion`, `screen_preview_complete`                                                                                                                                                                                                                                                                                                                            |
+| Overlays       | `ovl_dialogue`, `ovl_document`, `ovl_reward_receipt`, `ovl_stakes_card`, `ovl_door_prompt`, `ovl_recruit_card`, `ovl_confirm`, `ovl_team_panel`, `ovl_vending`, `ovl_coach_mark`, `ovl_interstitial_minute`, `ovl_toast`, `ovl_settings`                                                                                                                                                                                                                                    |
+| HUD / controls | `hud_top`, `hud_objective`, `hud_party_strip`, `hud_wallet`, `hud_letters`, `hud_map`, `hud_zone_chip`, `hud_pin`, `hud_edge_arrow`, `hud_nearby`, `ctl_band`, `ctl_dpad`, `ctl_act`, `ctl_team`, `ctl_settings`; battle `ui_party_bench`, `ui_switch_button`                                                                                                                                                                                                               |
+| Coach marks    | `coach_move`, `coach_interact`, `coach_switch`                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| Receipts       | `rcpt_signing_bonus`, `rcpt_printer_online`, `rcpt_ticket_closed`, `rcpt_desk_argument`, `rcpt_meeting_prepped`, `rcpt_premeeting_spar`, `rcpt_one_on_one`                                                                                                                                                                                                                                                                                                                  |
+| Assignments    | `asg_printer` (`not_started → accepted → toner_collected → installed → complete`), `asg_meeting_prep` (`not_started → accepted → handout_held → complete`)                                                                                                                                                                                                                                                                                                                  |
+| Key items      | `key_toner`, `key_offer_letter` (stack, max 2, the recruit token), `key_handout_q3_summary`, `key_handout_q3_deck`, `key_handout_q2_summary`, `key_access_badge` — stored in `keyItems`, **never** in the 4-slot battle `inventory`                                                                                                                                                                                                                                         |
+| POIs           | `poi_reception_desk`, `poi_directory_sign`, `poi_exit_door`, `poi_water_cooler`, `poi_printer`, `poi_supply_cabinet`, `poi_break_counter`, `poi_vending_machine`, `poi_break_table`, `poi_agenda`, `poi_handout_rack`, `poi_elevator_door`, `poi_supervisor_door`                                                                                                                                                                                                           |
+| Triggers       | `trg_first_step`, `trg_sight_desk_challenger`, `trg_sight_meeting_prepper`, `trg_sight_supervisor`, `trg_supervisor_door`, `trg_elevator_ride`, `trg_switch_coach`                                                                                                                                                                                                                                                                                                          |
+| Rewards        | `rwd_start_options`, `rwd_asg_printer`, `rwd_asg_meeting_prep`, `rwd_enc_desk_challenger`, `rwd_enc_meeting_prepper`, `rwd_enc_supervisor_1on1`, `rwd_promotion_f1` (each claimable once; recruitment has none)                                                                                                                                                                                                                                                             |
+| Flags          | `flag_greeted`, `flag_badge_reader_denied`, `flag_switch_coached`, `flag_move_coached`, `flag_interact_coached`, `flag_preview_complete`                                                                                                                                                                                                                                                                                                                                    |
+| Dialogue       | `dlg_renata_{callout,ticket,hint_toner,hint_install,close_ticket,gavin_pending,holloway,recruit_me,badged,after}` · `dlg_gavin_{busy,no_pressure,callout,challenge,declined,you_lost,beaten,offer,offer_declined,joined,party,after,after_win}` · `dlg_priya_{hook,request,pass,waiting,wrong_deck,wrong_q2,delivered,spar,raincheck,you_lost,beaten,offer,offer_declined,offer_full,joined,party,after}` · `dlg_holloway_{early,gavin_pending,1on1,you_lost,beaten,after}` |
+| Shop           | vending stock: `espresso` ×2, `side_hustle` ×1 (existing item ids)                                                                                                                                                                                                                                                                                                                                                                                                          |
+| Save           | separate slot key `corporate-climb-office-save`, own version number starting at 1; Classic `corporate-climb-save` untouched                                                                                                                                                                                                                                                                                                                                                 |
 
 Office campaign save shape (the field names below are part of the freeze; Astra owns types and
 migration plumbing):
@@ -926,68 +1336,76 @@ written on every overworld state change, including recruitment and the promotion
 
 ---
 
-## 13. Route traces and acceptance checklist (paper playtest)
+## 16. Route traces and acceptance checklist (paper playtest)
 
 Steps are tile moves; `→` is an interaction. State after each beat is in brackets.
 
-### 13.1 Required route (acceptance route: recruit Gavin, win Holloway with a switch)
+### 16.1 Required route (acceptance route: recruit Gavin, win Holloway with a switch)
 
-1. Spawn `(12,15)` facing north. First step → `dlg_renata_callout`; banner "Talk to Renata".
-2. Walk `(12,16) → (8,16)` (5 steps), face north → Renata. `dlg_renata_ticket`
-   [`asg_printer = accepted`]. Banner: find toner.
+1. Spawn `(12,15)` facing north; `coach_move`; `SIGNING BONUS` receipt (+10 📈, wallet 10). First
+   step → `dlg_renata_callout`; banner "Talk to Renata → RECEPTION", pin on Renata.
+2. Walk `(12,16) → (8,16)` (5 steps), face north → prompt "Talk · Renata" (`coach_interact`) →
+   `dlg_renata_ticket` [`asg_printer = accepted`]. Banner: toner → BREAK ROOM; pin on the cabinet;
+   edge arrow `›` (cabinet is off-screen to the right).
 3. Walk `(8,16) → (5,16) → (5,13) → (5,12)D → (5,11)` (8). Gavin is at `(6,10)`; his sightline is
    inactive (printer not complete). Optional peek: talk → `dlg_gavin_no_pressure`.
 4. Walk `(6,11) → (9,11) → (9,9) → (10,9)D → (13,9) → (14,9)D → (15,9) → (15,8)` (13), face north
-   → cabinet. [`toner_collected`, `key_toner`]. Banner: install.
-5. Walk back `(15,9) → (14,9) → (10,9) → (9,9) → (9,8)` (8), face north → printer. Three lines.
-   [`installed`, toner consumed, **`key_offer_letter` ×2**]. Banner: report back.
+   → cabinet opens. [`toner_collected`, `key_toner`]. Toast. Banner: install → DESKS.
+5. Walk back `(15,9) → (14,9) → (10,9) → (9,9) → (9,8)` (8), face north → "Install toner". Printer
+   flips to working, pages slide out, receipt `PRINTER — ONLINE` (Offer Letter ×2). [`installed`,
+   **`key_offer_letter` ×2**, `hud_letters` appears]. Banner: report back → RECEPTION.
 6. Walk `(9,9) → (9,11) → (5,11) → (5,12) → (5,13) → (7,13) → (7,14)` (12), face east → Renata.
-   `dlg_renata_close_ticket`, **+10 📈** (balance 20), letters explained. [`complete`]. Banner:
-   talk to Gavin.
+   `dlg_renata_close_ticket` → receipt `TICKET #0001 CLOSED` **+10 📈** (wallet 20 on close),
+   letters explained. [`complete`]. Banner: talk to Gavin → DESKS; pin on Gavin.
 7. Walk `(6,14) → (6,13) → (5,13) → (5,12) → (5,11) → (5,10)` (6). Stepping on `(5,10)` enters
-   Gavin's sightline → `dlg_gavin_callout` → `dlg_gavin_challenge` → stakes card → `[Bring it]`.
-   **Battle 1**, solo (~2:05 elapsed at this point).
-8. Win → `dlg_gavin_beaten`, +15 XP (15/30), **+8 📈** (28). [`enc_desk_challenger = won`] →
-   `dlg_gavin_offer` → recruit card → `[Extend the offer]` → `dlg_gavin_joined`.
-   [**party = YOU, GAVIN**; letters 1]. Banner: see Holloway.
-9. Optional vending: `(5,9) → (9,9) → (14,9) → (21,9)` (16), face east → buy Espresso (14 → balance
-   14). Recommended for a first run; skip for the fastest route.
-10. Walk `(5,9) → (9,9) → (10,9)D → (11,9) → (11,3) → (10,3)D` (14). Door prompt (party strip shows
-    YOU / GAVIN) → `[Step in]` → placed at `(9,3)` → `dlg_holloway_1on1` (with the "You brought
-    people" line) → `[Begin]`. **Boss.**
+   Gavin's sightline → `!` → `dlg_gavin_callout` → `dlg_gavin_challenge` → stakes card (Offer
+   eligible) → `[Bring it]` → title card `DESK-PIT ARGUMENT`. **Battle 1**, solo (~2:10 elapsed).
+8. Win → return to `(5,10)` facing east, Gavin facing you → receipt `DESK-PIT ARGUMENT — WON`
+   (+15 XP 15/30, **+8 📈** → 28, Offer eligible ✓) → `dlg_gavin_beaten` → `dlg_gavin_offer` →
+   recruit card → `[Extend the offer]` → slot fills, `fanfare` → `dlg_gavin_joined`.
+   [**party = YOU, GAVIN**; letters 1]. Banner: see Holloway → ELEVATOR LOBBY; pin on the door.
+9. Optional vending: `(5,9) → (9,9) → (14,9) → (21,9)` (16), face east → `ovl_vending` → Espresso
+   (wallet 14, bag 2/4). Recommended for a first run; skip for the fastest route.
+10. Walk `(5,9) → (9,9) → (10,9)D → (11,9) → (11,3) → (10,3)D` (14). `ovl_door_prompt` (party row
+    shows YOU / GAVIN) → `[Step in]` → placed at `(9,3)` → `dlg_holloway_1on1` (with the "You
+    brought people" line) → `[Begin]` → title card `ONE-ON-ONE / NO LEAVING EARLY`. **Boss.**
 11. Boss script a reviewer should be able to reproduce: lead attacks twice (~56 dmg); Holloway's
-    two turns leave the lead near 50% → `trg_switch_coach` fires → `SWITCH` → Gavin in (Holloway's
-    free swing hits Gavin) → Gavin uses Passive-Aggressive Sticky Note (Holloway Demoralized) →
-    `SWITCH` back to the lead (free swing on the lead) → two boosted hits finish her. If the lead
-    faints instead, the forced switch to Gavin happens with no enemy turn and Gavin finishes or
-    falls; a party wipe goes to §6 and the route resumes at step 10.
-12. Win → `dlg_holloway_beaten`, +30 XP (45 ≥ 30 → **team Level 2**, +20 HP to every standing
-    member), **+20 📈** (48, or 34 with the Espresso), `key_access_badge`. Offer rolled and saved →
-    `PromotionScreen` "CLEARED PROBATION" → pick one of three.
-13. Walk `(9,2) → (3,2)` (7 — Holloway stands at `(6,3)`, so go along row 2), face north →
-    elevator. "The reader blinks green." → `[Ride up]` → **FLOOR 1 CLEARED** → `[Back to Floor 1]`
-    → `(3,2)` facing south. [`flag_preview_complete`]. Renata now says `dlg_renata_after`; Gavin
-    says `dlg_gavin_after_win`.
+    two turns leave the lead near 50% → `coach_switch` → `SWITCH` → bench → Gavin in (Holloway's
+    free swing hits Gavin) → Sticky Note (Holloway Demoralized) → `SWITCH` back to the lead (free
+    swing on the lead) → two boosted hits finish her. If the lead faints instead, the forced bench
+    opens with no enemy turn and Gavin finishes or falls; a party wipe goes to §6 and the route
+    resumes at step 10.
+12. Win → return to `(9,3)` facing west → receipt `ONE-ON-ONE — SURVIVED` (+30 XP → **TEAM LEVEL
+    2** row, +20 HP to standing members; **+20 📈** → 48, or 34 with the Espresso; Access Badge;
+    Promotion →) → `screen_promotion` "CLEARED PROBATION" → pick → back at `(9,3)` →
+    `dlg_holloway_beaten` badge lines. Banner: take the elevator → ELEVATOR LOBBY; pin on the doors;
+    reader steady green.
+13. Walk `(9,2) → (3,2)` (7 — Holloway stands at `(6,3)`, so go along row 2), face north → confirm
+    `FLOOR 2` → `[Ride up]` → doors close, `elevatorUp` → **FLOOR 1 CLEARED** → `[Back to Floor 1]`
+    → `(3,2)` facing south, doors open behind you. [`flag_preview_complete`]. Banner: `FLOOR 1
+CLEARED · Floor 2 under construction`. Renata says `dlg_renata_after`; Gavin `dlg_gavin_after_win`.
 
 Tile total ≈ 73 moves (~18 s of walking); the rest is reading, recruiting and fighting.
 
-### 13.2 Optional route (insert between steps 8 and 10 above, or any time after step 2)
+### 16.2 Optional route (insert between steps 8 and 10 above, or any time after step 2)
 
 - a. From the desks door `(10,9)`, walk up the hall on column 13: `(11,9) → (13,9) → (13,5)` (6).
   Stepping on `(13,5)` enters Priya's sightline → `dlg_priya_hook` → `dlg_priya_request` →
-  `[Take it on]`. [`asg_meeting_prep = accepted`]. Optional-style banner: read the agenda.
-- b. Walk `(13,4) → (13,3) → (14,3)D → (16,3) → (16,2)` (5), face east → agenda card. Banner: pick
-  the handout.
-- c. Walk `(16,1) → (21,1)` (6), face east → rack → choose **Q3 Numbers — Summary (1 pg)**
-  [`handout_held`, `key_handout_q3_summary`]. Banner: bring it to Priya.
+  `[Take it on]`. [`asg_meeting_prep = accepted`]. Dim optional row in the banner; dim pin on the
+  agenda.
+- b. Walk `(13,4) → (13,3) → (14,3)D → (16,3) → (16,2)` (5), face east → `ovl_document`. Optional
+  row: pick the handout → MEETING ROOM.
+- c. Walk `(16,1) → (21,1)` (6), face east → rack card → **Q3 Numbers — Summary (1 pg)**
+  [`handout_held`, `key_handout_q3_summary`]; toast. Optional row: bring it to Priya → HALL.
   - Wrong-pick branch: choose the Full Deck, walk back to Priya `(13,3)` facing north (10 steps) →
-    `dlg_priya_wrong_deck`; return to the rack (10), swap for the Summary. Nothing lost; ~12 s.
-- d. Walk `(16,1) → (16,3) → (14,3)D → (13,3)` (10), face north → Priya → `dlg_priya_delivered`,
-  **+6 📈**, handout consumed [`complete`] → `dlg_priya_spar` → `[Spar]`. **Battle 2** — with
-  Gavin on the bench if step 8 happened (+22 XP, **+11 📈**) [`enc_meeting_prepper = won`] →
-  `dlg_priya_offer` (needs a letter and a free slot) → `[Extend the offer]` → `dlg_priya_joined`
-  [**party = YOU, GAVIN, PRIYA**; letters 0].
-- e. Loss branch (any fight): "Your team needs a minute." → `(19,8)`, whole party restored → walk
+    `dlg_priya_wrong_deck` (chip shake); return to the rack (10), swap (toast "Swapped: …").
+    Nothing lost; ~12 s.
+- d. Walk `(16,1) → (16,3) → (14,3)D → (13,3)` (10), face north → Priya → `dlg_priya_delivered` →
+  receipt `THE 10:30 — PREPPED` **+6 📈** [`complete`] → `dlg_priya_spar` → `[Spar]` → title card
+  `PRE-MEETING SPAR`. **Battle 2** — with Gavin on the bench if step 8 happened → receipt (+22 XP,
+  **+11 📈**, Offer eligible ✓) [`enc_meeting_prepper = won`] → `dlg_priya_offer` → `[Extend the
+offer]` → `dlg_priya_joined` [**party = YOU, GAVIN, PRIYA**; letters 0, `hud_letters` hides].
+- e. Loss branch (any fight): `ovl_interstitial_minute` → `(19,8)`, whole party restored → walk
   back: to Priya 13 tiles, to Gavin 16, to Holloway's door 16 → same stakes card.
 - f. Rejoin the required route at step 10 (Priya's tile is 4 steps from the lobby door).
 
@@ -995,31 +1413,33 @@ With the optional route: 65 📈 total, team level 2 reached at Priya (37 XP ≥
 lands at 37/55 — no second level-up in the preview. A full party makes Holloway comfortable; that
 is the reward for doing everything.
 
-### 13.3 Acceptance checklist (a reviewer must be able to tick every box)
+### 16.3 Functional acceptance checklist
 
-| #   | Check                                                                                                                                               | Where it's specified |
-| --- | --------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
-| A1  | Objective banner visible within 30 s of spawn                                                                                                       | §9                   |
-| A2  | Printer fixed; Renata pays +10 exactly once; installing toner yields Offer Letter ×2                                                                | §4.1, §2.5           |
-| A3  | Gavin's fight starts before 3:00 on a straight run; it is solo (party strip shows one chip)                                                         | §9, §13.1            |
-| A4  | After beating Gavin, the recruit card appears; `[Not yet]` keeps the letter and talking again re-offers; `[Extend the offer]` fills slot 2          | §3.2                 |
-| A5  | Team panel (P / TEAM) lists YOU + GAVIN with HP/PP; Gavin's map token is still at `(6,10)` with `dlg_gavin_party`                                   | §3.7, §2.2           |
-| A6  | Door `(10,3)` prompt shows the party strip; `[Not yet]` steps back; `[Step in]` triggers Holloway with the "You brought people" line                | §8                   |
-| A7  | In the Holloway fight, SWITCH (5/Tab/button) opens the bench; switching costs the turn (Holloway swings at the incoming member)                     | §3.4                 |
-| A8  | Switch coach mark appears once when the active member drops under 50% with a standing bench member; never again on this save                        | §3.6                 |
-| A9  | Lead KO with Gavin standing → forced bench picker, no cancel, no enemy turn; both KO → "Your team needs a minute." → break room, both restored      | §3.4, §6             |
-| A10 | Holloway win pays +30 XP / +20 📈 once, grants the badge, rolls and **saves** the perk offer before `PromotionScreen` shows                         | §5, §8               |
-| A11 | Elevator green → celebration screen shows Team, Switches count, Options earned; return to `(3,2)`; ride again shows the same screen, no new rewards | §8                   |
-| A12 | Optional: Priya recruited with the second letter; a third recruit attempt is impossible (no letters; `dlg_*_after`)                                 | §2.3, §3.2           |
-| A13 | Reload mid-campaign restores position, party HP/PP, letters, assignment stages, encounter results, and a pending promotion offer                    | §12                  |
-| A14 | Classic save untouched by any of the above; Classic Continue still works                                                                            | §12                  |
+| #   | Check                                                                                                                                                   | Where it's specified |
+| --- | ------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| A1  | Objective banner with destination chip and map pin visible within 30 s of spawn                                                                         | §9.1, §10.3          |
+| A2  | Printer fixed; tile state flips; Renata pays +10 exactly once via a receipt; installing toner yields Offer Letter ×2 via a receipt                      | §4.1, §10.6          |
+| A3  | Gavin's fight starts before 3:00 on a straight run; it is solo (strip shows one filled chip)                                                            | §9.1, §16.1          |
+| A4  | After beating Gavin, the recruit card appears; `[Not yet]` keeps the letter and talking again re-offers; `[Extend the offer]` fills slot 2              | §3.2, §10.7          |
+| A5  | Team panel (P / TEAM) lists YOU + GAVIN with HP/PP; empty row explains itself; Gavin's token is still at `(6,10)` with `dlg_gavin_party`                | §10.8, §2.2          |
+| A6  | Door `(10,3)` prompt shows the party row; `[Not yet]` steps back; `[Step in]` triggers Holloway with the "You brought people" line                      | §8                   |
+| A7  | In the Holloway fight, SWITCH (5/Tab/button) opens the bench; switching costs the turn (Holloway swings at the incoming member)                         | §3.4                 |
+| A8  | `coach_switch` appears once when the active member drops under 50% with a standing bench member; never again on this save                               | §3.6                 |
+| A9  | Lead KO with Gavin standing → forced bench, no cancel, no enemy turn; both KO → interstitial → break room, both restored with the recover feedback      | §3.4, §6, §12        |
+| A10 | Holloway win pays +30 XP / +20 📈 once via a receipt with the level row, grants the badge, rolls and **saves** the perk offer before `screen_promotion` | §5, §8, §10.6        |
+| A11 | Elevator green → celebration shows Team, Switches, Options earned; return to `(3,2)` facing south; ride again shows the same screen, no receipt         | §8, §10.12           |
+| A12 | Optional: Priya recruited with the second letter; a third recruit attempt is impossible (no letters; `dlg_*_after`; letters chip hidden)                | §2.3, §3.2           |
+| A13 | Reload mid-campaign restores position, facing, party HP/PP, letters, assignment stages, encounter results, and a pending promotion offer                | §15                  |
+| A14 | Classic save untouched by any of the above; Classic Continue still works                                                                                | §15                  |
+| A15 | Every row of the §12 feedback matrix can be triggered and observed (visual + audio + live region) on desktop and touch                                  | §12                  |
+| A16 | Every transition in §13 lands the player at the stated tile and facing with the NPC facing them                                                         | §13                  |
 
 Why the switch is exercised but not gated: gating the badge on "you must have switched" would be
 an invisible rule and would punish a strong solo run. Instead the boss is tuned so the switch is
 the obvious play (§5.1), the coach mark names it at the moment it matters (§3.6), and A7–A9 make
 the reviewer perform it. A solo win is legal, hard, and honest.
 
-### 13.4 State matrix (which line plays)
+### 16.4 State matrix (which line plays)
 
 | Player state                          | Renata                    | Gavin                      | Priya                            | Holloway (door open) | Elevator       |
 | ------------------------------------- | ------------------------- | -------------------------- | -------------------------------- | -------------------- | -------------- |
@@ -1033,7 +1453,7 @@ the reviewer perform it. A solo win is legal, hard, and honest.
 
 ---
 
-## 14. Decisions and their reasons
+## 17. Decisions and their reasons
 
 - **Party of 3, lead fixed in slot 0.** Matches the floor's content exactly, fits the deck and the
   strip, and keeps "you are the employee" true — coworkers are hires, not replacements.
@@ -1049,8 +1469,16 @@ the reviewer perform it. A solo win is legal, hard, and honest.
 - **Team-level XP, team wallet, team bag.** Zero per-member bookkeeping in a fixed-economy floor;
   `RunState.level/xp/inventory/stockOptions` stay exactly as they are.
 - **Recruits stay at their desks.** No follower sprites, no pathing; the dialogue owns the joke.
-- **Holloway retuned up (130 HP).** The bench is real HP; the boss has to respect it or the switch
-  is never worth its turn.
+- **Holloway tuned for a bench (130 HP).** The bench is real HP; the boss has to respect it or the
+  switch is never worth its turn.
+- **One receipt surface for every grant.** The player is never surprised by a number changing;
+  the HUD updates when the receipt closes; duplicated rewards are impossible to _feel_ because a
+  re-talk shows no receipt and says so in character.
+- **Badge tokens instead of new sprite sheets.** Reuses the project's best art at full quality,
+  makes every face consistent across seven surfaces, and turns the art constraint into an art
+  direction.
+- **Three coach marks, no tutorial screens.** Each teaches one input at the first moment it
+  matters and dies on that input. Everything else is taught by the world.
 - **Sightlines trigger talk, not fights.** Keeps "no random encounters" literal; the stakes card
   is the only way into combat.
 - **Auto-restore on defeat arrival**, whole party: removes the failure mode of wandering back to
@@ -1068,29 +1496,32 @@ the reviewer perform it. A solo win is legal, hard, and honest.
 - **Handout rule check happens at delivery, not at the rack.** The walk back is the small tax
   that makes the agenda worth reading; hints make it never punishing.
 
-## 15. Open risks for Astra's architecture pass
+## 18. Open risks for Astra's architecture pass
 
 1. **Party projection over `TurnContext`.** `resolvePlayerMove` / `resolveItemUse` read
    `run.hp`/`run.pp`/`effectivePlayer`. The design asks for a copy-in/copy-out projection of the
    active member (§3.4) plus one new entry point `resolvePartySwitch` and one new phase
    `switch_required`. Watch: `'lost'` is passed to `finish()` from two call sites in `turn.ts`
    (the enemy-turn KO and the end-of-turn burn KO) — both need the bench check to choose
-   `switch_required` instead. Keep the tower path bit-identical (no party → old
-   behaviour) so `simulation.test.ts` stays green.
+   `switch_required` instead. Keep the tower path bit-identical (no party → old behaviour) so
+   `simulation.test.ts` stays green.
 2. **`BattleEventKind` additions.** `switch_out` / `switch_in` / `member_faint` need sequencer
    entries (timing table) and `ViewPatch` support for swapping the player sprite/HP bar mid-battle.
-   The `BattleScreen` currently assumes one player identity for the whole fight.
-3. **Battle exit plumbing.** The tower's post-battle path (`applyVictory` → victory screen → floor
-   advance / `GameOverScreen`) assumes a run ladder. The office needs an encounter-mode battle entry
-   that returns to `screen_overworld` on win (then runs `dlg_*_beaten` → optional `dlg_*_offer`) and
-   to the break-room flow on loss, with explicit `xp` / `options` from the encounter.
+   The `BattleScreen` currently assumes one player identity for the whole fight, and the deck must
+   keep a stable height when the bench picker replaces the move grid (PR #59 fixed a deck-height
+   jitter; don't reintroduce it).
+3. **Battle exit plumbing and the receipt.** The tower's post-battle path (`applyVictory` →
+   `BattleVictoryScreen` → floor advance / `GameOverScreen`) assumes a run ladder. The office needs
+   an encounter-mode exit that returns to `screen_overworld` at the saved tile/facing **first**,
+   then shows `ovl_reward_receipt`, then continues the NPC's post-battle dialogue; and on a wipe,
+   the interstitial → break-room path. Rewards come from the encounter, never the formula.
 4. **Level-up heal semantics.** `applyVictory` heals `run.hp` by `levelUpHeal`; with a party it
    must heal every standing member (§3.5) — a small change but it touches a shared function; gate
    it on the presence of a party.
 5. **`Enemy.floor` is required by the type.** Either put `rank` in that slot for office entries or
-   widen the type; do not let office entries near `ENEMY_POOLS` (balance snapshot must stay
-   bit-identical). Recruit kits (`cw_*`) are `PlayerClass`-shaped but have no `perk`/`intro`/
-   `winText` — make those optional or give the kits neutral values.
+   widen the type; do not let office entries near `ENEMY_POOLS`. Recruit kits (`cw_*`) are
+   `PlayerClass`-shaped but have no `perk`/`intro`/`winText` — make those optional or give the kits
+   neutral values.
 6. **Promotion offer persistence.** Roll and save `pendingPerkOffer` before the screen mounts —
    the same rule the tower follows via `advanceFloor`; here the trigger is the boss win, not a floor
    change.
@@ -1098,21 +1529,98 @@ the reviewer perform it. A solo win is legal, hard, and honest.
    Continue states; clearing one must never clear the other; `history.ts` lifetime stats should
    either ignore the office or tag it. `run.hp`/`run.pp` mirroring `party[0]` at rest is a
    two-places-to-be-wrong risk — consider making `party` canonical and `run.hp/pp` derived.
-8. **Title screen crowding.** A third mode (Office) plus Continue/Daily/Codex/golden-badge easter
-   egg needs a layout pass; the office should probably be one button that manages its own
-   Continue/New inside.
-9. **Balance is untested.** Numbers in §5 are derived from the damage formula, not from play; the
-   solo-Engineer-vs-Holloway matchup is the tightest and the full-party fight may be too easy. Tune
-   Holloway's DEF/HP and the recruits' HP, not rewards or letter counts.
-10. **Pacing may run short** of the 10-minute floor for fast readers (§9). Recommendation: accept.
-11. **Touch ergonomics.** D-pad + ACT + TEAM on a 472-px-wide frame at ~17% shrink on small phones
-    must keep `--tap-min`; the 248-px control band is sized for that but needs a device check. The
-    battle deck gains a SWITCH button beside ITEMS — check the deck height stays stable (PR #59
-    fixed a deck-height jitter; don't reintroduce it).
-12. **Camera + reduced motion.** Horizontal follow with clamping is new UI code; verify no
-    sub-pixel shimmer at the Stage scale and that the snap mode is truly static.
-13. **Portrait/token mismatch.** Gavin's map token (emoji) and battle/party portrait
-    (`overachiever` WebP) won't match. Acceptable for the preview; fix with real tokens.
+8. **Headshot crops and the badge-token pipeline.** The token system (§14.2) needs a per-sprite
+   focal point and a shared `Headshot` component rendered at 24/40/48/64 px; get the crop right once
+   and every surface inherits it. A blurry or off-center crop anywhere fails §19.
+9. **Tileset states and the renderer.** Tiles have states (printer, cabinet, reader, counter,
+   vending); the map renderer needs per-tile state lookup, not a static image. Also new UI code:
+   horizontal camera follow with clamping — verify no sub-pixel shimmer at the Stage scale and that
+   the reduced-motion snap is truly static.
+10. **Title screen crowding.** A third mode (THE OFFICE) plus Continue/Daily/Codex/golden-badge
+    easter egg needs a layout pass; `screen_office_start` owns its Continue/New so the title gets
+    one button.
+11. **Balance is untested.** Numbers in §5 are derived from the damage formula, not from play; the
+    solo-Engineer-vs-Holloway matchup is the tightest and the full-party fight may be too easy. Tune
+    Holloway's DEF/HP and the recruits' HP, not rewards or letter counts.
+12. **Pacing may run short** of the 10-minute floor for fast readers (§9). Recommendation: accept.
+13. **Touch ergonomics.** D-pad + ACT + TEAM on a 472-px-wide frame at ~17% shrink on small phones
+    must keep `--tap-min`; the 248-px control band is sized for that but needs a device check.
 14. **Keyboard collisions.** Key 5 for SWITCH sits next to the 1–4 move keys; Tab is the
-    alternative. Make sure Tab doesn't fight the focus order of the move grid (it's also the
-    browser's focus key — intercept only while the battle deck has focus).
+    alternative. Intercept Tab only while the battle deck has focus so it doesn't fight the
+    browser's focus order.
+15. **Live region volume.** The §12 matrix routes many events through one polite live region; make
+    sure rapid sequences (switch → enemy hit → faint) coalesce rather than queue a backlog.
+
+## 19. Definition of polish-done — Fable's task-8 sign-off checklist
+
+Every line is pass/fail on a real device (one small phone, one desktop browser) with a player who
+has not read this document. Any fail blocks done.
+
+**Confusion points**
+
+- [ ] The tester says where they are going and why at any moment when paused (objective + pin + zone
+      chip do the job without a hint from the observer).
+- [ ] The tester finds the supply cabinet without backtracking more than once (edge arrow works).
+- [ ] The tester understands Offer Letters before the first recruit card (receipt + Renata line).
+- [ ] The tester understands that switching costs a turn before their first switch (bench header).
+- [ ] No tester asks "did that register?" for any input.
+
+**Dead ends**
+
+- [ ] No state exists where no NPC or POI advances the objective (walk the §16.4 matrix live).
+- [ ] Declining an offer, losing a fight, or walking away from the door never removes a path forward.
+- [ ] A fully fainted party is told exactly where to go (door card + pin on the counter).
+- [ ] Reload at every §16.1 step resumes with the correct banner, pin, and party.
+
+**Unclear stakes**
+
+- [ ] Every stakes card shows win/lose lines, the party's HP numbers, and (for Holloway) "No leaving
+      early" before the commit button is reachable.
+- [ ] The door prompt is the last exit and says so; no tester is surprised the fight can't be left.
+- [ ] Loss costs are exactly what the card promised (walk-back only; consumables used are gone and
+      the tester can name that rule when asked).
+
+**Ugly empty states**
+
+- [ ] Every §10.13 state has been reached in a build and matches its spec (no blank panel, no bare
+      dash, no "undefined", no missing headshot).
+- [ ] Party strip with one member, team panel with two open seats, vending sold out, letters at 0,
+      bag empty — all reviewed on the small phone.
+
+**Reward duplication feel**
+
+- [ ] Every grant appears as exactly one receipt; the wallet chip changes only when a receipt closes.
+- [ ] Re-talking any NPC after a payout shows no receipt and gets an in-character line.
+- [ ] Recruiting shows no Options/XP; the tester does not expect any (ask them).
+- [ ] The celebration's `Options earned` equals the sum of receipts seen (65 on the full route).
+
+**Party UX friction**
+
+- [ ] Recruit flow from win to "joined" is ≤ 15 s and needs no reading beyond the card.
+- [ ] The tester can name each member's HP from the strip without opening the panel.
+- [ ] Voluntary switch, forced switch, and cancel all work by keyboard alone and by thumb alone.
+- [ ] The bench picker never changes the deck's height; no layout jump on open/close.
+- [ ] `coach_switch` fires once, at the right moment, and is not needed a second time.
+
+**Presentation, feedback, motion**
+
+- [ ] Every §12 row verified on both devices with sound on; every reduced-motion variant verified
+      with the toggle on (no residual animation anywhere, including the caret and pins).
+- [ ] Every §13 transition lands at the stated tile/facing; no hard cuts; NPC faces the player.
+- [ ] No text overflow, clipping, or ellipsis in any card, banner, or chip at the smallest viewport
+      and at "slow" and "instant" text speeds.
+- [ ] No emoji or rectangle stand-ins for tiles or characters (§14.3); all tile states present.
+- [ ] Headshots are sharp and centered at every size; the same face everywhere for each person.
+- [ ] 60 fps camera scroll on the small phone; no shimmer; no input lag perceptible to the tester.
+- [ ] Touch: every target ≥ 54 px measured in the shrunk Stage; the tester's thumb never covers the
+      party strip or the objective while using the D-pad.
+- [ ] Keyboard-only run from title to celebration; screen reader announces objective, prompts,
+      receipts, recruits, switches, and rejects.
+
+**Pacing and copy**
+
+- [ ] First objective ≤ 30 s, first battle ≤ 3 min, required route 10–15 min for the tester
+      (measured, with one loss allowed).
+- [ ] The tester laughs or smiles at least twice; no line is read twice to be understood.
+- [ ] No line explains a control; no coach mark appears more than once; no coach mark appears for a
+      solo player except move and interact.
