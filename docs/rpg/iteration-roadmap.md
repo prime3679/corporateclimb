@@ -40,14 +40,18 @@ skip A to chase D.
 ## Current stack (as of 2026-09-05)
 
 `#72` Floor 2 art → `#73` 5-floor spine → `#74` F3–5 art → `#75` F3–5 hooks
+→ `#77` Fable must-fix → squash-landed on `main` as `#78`
+([`7b153bd`](https://github.com/prime3679/corporateclimb/commit/7b153bd95e0e58911a220faf47403b62b83a2b1a)).
+Roadmap text itself landed as `#80`
+([`5e81cb9`](https://github.com/prime3679/corporateclimb/commit/5e81cb90325cbe6d7b042adb8c6c67fd3d594b84)).
 
-Tip is `#75` (`cursor/office-floors-3-5-hooks-b301`). Do not merge any of
-these until CoS playtests the tip and squash-merges in that order.
+Tip is `main`. Do not remount the closed stack. Next work is Pass A cold
+playtest and Should-fix tickets against this tip.
 
 ## Immediate next (after tip playtest)
 
-Placeholders for the first cross-review comments. Fill them on `#75`; do not
-treat this list as already triaged.
+Placeholders for the first cross-review comments. Fill them against `main`;
+do not treat this list as already triaged.
 
 **Must-fix (Pass A)**
 
