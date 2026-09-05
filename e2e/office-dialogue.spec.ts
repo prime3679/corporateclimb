@@ -31,7 +31,12 @@ test('office preview dialogue advances without crashing and objective survives r
   await page.getByRole('button', { name: 'File it' }).click({ timeout: 15_000 })
 
   await page.keyboard.press('ArrowDown')
-  if (await page.getByText('New hire. Front desk. Now.').isVisible().catch(() => false)) {
+  if (
+    await page
+      .getByText('New hire. Front desk. Now.')
+      .isVisible()
+      .catch(() => false)
+  ) {
     await page.keyboard.press('Enter')
   }
   await page.keyboard.press('ArrowLeft')

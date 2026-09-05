@@ -39,15 +39,7 @@ const WALL_LIGHT_TILES = new Set([
   '16,12',
   '21,12',
 ])
-const WALL_NOTICE_TILES = new Set([
-  '5,0',
-  '19,0',
-  '5,6',
-  '19,6',
-  '4,12',
-  '17,12',
-  '20,12',
-])
+const WALL_NOTICE_TILES = new Set(['5,0', '19,0', '5,6', '19,6', '4,12', '17,12', '20,12'])
 const FLOOR_CLUTTER: Record<string, 'paper' | 'cable' | 'mat'> = {
   '2,14': 'paper',
   '20,14': 'paper',
@@ -912,7 +904,15 @@ export function renderForegroundTile(tx: number, ty: number, s: TileStates): Rea
           )}
           {light && (
             <g className="of-wall-light">
-              <rect x={x + 10} y={y + 1} width={12} height={3} rx={1} fill="#ffe2ad" opacity="0.82" />
+              <rect
+                x={x + 10}
+                y={y + 1}
+                width={12}
+                height={3}
+                rx={1}
+                fill="#ffe2ad"
+                opacity="0.82"
+              />
               <rect x={x + 9} y={y + 4} width={14} height={8} fill="rgba(255,220,148,0.16)" />
             </g>
           )}
