@@ -5,6 +5,8 @@ export {
   fromOfficeSave,
   hasFlag,
   inParty,
+  isHired,
+  directorGateOpen,
   keyCount,
   kitFor,
   lettersHeld,
@@ -30,9 +32,31 @@ export {
   loadOfficeSave,
   saveOffice,
 } from './save'
-export { currentObjective, objectiveLabel, type OfficeObjective } from './objective'
+export {
+  currentObjective,
+  destChip,
+  LANDING_DEST_ACCENT,
+  objectiveLabel,
+  type OfficeObjective,
+} from './objective'
+export {
+  CELEBRATION_COUNT_MS,
+  celebrationButtons,
+  celebrationCopy,
+  celebrationFloor,
+  celebrationStats,
+  type CelebrationButton,
+  type CelebrationScreen,
+} from './celebration'
 export { interactTarget, tryStep } from './movement'
-export { effectiveKit, maxHpFor, recruitCoworker, restoreParty } from './party'
+export {
+  dismissCoworker,
+  effectiveKit,
+  maxHpFor,
+  recruitCoworker,
+  rejoinCoworker,
+  restoreParty,
+} from './party'
 export { encounterIntro, shouldCoachSwitch, startEncounter } from './combat'
 export {
   dispatchOfficeAction,
@@ -40,4 +64,4 @@ export {
   type OfficeAction,
   type OfficeDispatchResult,
 } from './actions'
-export { resolveNpcTalk } from './talk'
+export { lossDialogue, resolveNpcTalk } from './talk'

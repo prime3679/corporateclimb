@@ -14,6 +14,15 @@ export const ACTOR_IDS = [
   'teddy',
   'kessler',
   'whitlock',
+  // Floors 3–5 (docs/rpg/floor-3-5-design.md §7)
+  'sloane',
+  'nico',
+  'quincy',
+  'harper',
+  'reyes',
+  'ashford',
+  'marlowe',
+  'caldwell',
 ] as const
 
 export type OfficeActorId = (typeof ACTOR_IDS)[number]
@@ -29,6 +38,14 @@ const SPRITE_TO_ACTOR: Record<string, OfficeActorId> = {
   intern: 'teddy',
   vp: 'kessler',
   boss: 'whitlock',
+  sloane: 'sloane',
+  nico: 'nico',
+  quincy: 'quincy',
+  harper: 'harper',
+  reyes: 'reyes',
+  ashford: 'ashford',
+  marlowe: 'marlowe',
+  caldwell: 'caldwell',
 }
 
 export const NPC_ACTOR: Record<NpcId, OfficeActorId> = {
@@ -39,6 +56,14 @@ export const NPC_ACTOR: Record<NpcId, OfficeActorId> = {
   npc_help_desk_intern: 'teddy',
   npc_auditor: 'whitlock',
   npc_director: 'kessler',
+  npc_staff_pm: 'sloane',
+  npc_researcher: 'nico',
+  npc_vp_product: 'quincy',
+  npc_account_exec: 'harper',
+  npc_client_success: 'reyes',
+  npc_vp_sales: 'ashford',
+  npc_exec_assistant: 'marlowe',
+  npc_ceo: 'caldwell',
 }
 
 export function actorIdForSprite(spriteId: string): OfficeActorId {

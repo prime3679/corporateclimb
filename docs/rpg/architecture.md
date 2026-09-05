@@ -1,4 +1,4 @@
-# The Office — Architecture (Floor 1 MVP)
+# The Office — Architecture (5-floor campaign)
 
 _Status: implementation contract for `feat/overworld-mvp`. Frozen player-facing
 IDs and numbers live in `docs/rpg/mvp-design.md`. This file records how Astra
@@ -10,7 +10,9 @@ Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.
 the #67 presentation rebuild), `CLAUDE.md` (Classic tower). Floor 2 is designed in
 `docs/rpg/floor-2-design.md`; the engine work it asks for (multi-floor state, elevator
 destinations, badges, roster, encounter phase 2) is listed in
-`docs/rpg/floor-2-engine-hooks.md`.
+`docs/rpg/floor-2-engine-hooks.md`. Floors 3–5 (the 5-floor climb) are designed in
+`docs/rpg/floor-3-5-design.md`; elevator panel, assignment reducers and boss doors
+are listed in `docs/rpg/floor-3-5-engine-hooks.md`.
 
 ## Ownership — Astra vs Fable
 
@@ -70,45 +72,54 @@ not written; reload restores the overworld (or `screen_promotion` when
 
 ```ts
 interface OfficeSave {
-  version: 1
+  version: 2
   run: RunState // floor stays 0; hp/pp mirror party[0] at rest
   party: PartyMember[] // [0] is the lead; PARTY_MAX = 3
-  floorId: 'floor_01' | 'floor_02'
+  hired: CoworkerId[]
+  bench: Partial<Record<CoworkerId, { hp: number; pp: number[] }>>
+  floorId: FloorId // floor_01 … floor_05
   player: { x: number; y: number; facing: 'n' | 'e' | 's' | 'w' }
-  assignments: Record<'asg_printer' | 'asg_meeting_prep', string>
-  encounters: Record<
-    'enc_desk_challenger' | 'enc_meeting_prepper' | 'enc_supervisor_1on1',
-    'open' | 'won'
-  >
+  assignments: Record<AssignmentId, string>
+  encounters: Record<EncounterId, 'open' | 'won'>
   keyItems: Record<string, number>
   rewardsClaimed: string[]
   flags: string[]
   firedTriggers: string[]
-  stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number }
+  stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number; rides: number }
 }
 ```
 
 `dispatchOfficeAction(state, action, rng?)` is a **pure reducer**. It never
 reads or writes `localStorage`. Persistence lives at the UI boundary: after an
 overworld / promotion / vending change, `CorporateClimb` writes
-`corporate-climb-office-save` v1. Mid-battle states are not persisted. Classic
+`corporate-climb-office-save` v2 (v1 migrates). Mid-battle states are not persisted. Classic
 `SAVE_KEY` (`corporate-climb-save`) is never read or written by this path.
 
-### 2.1 Multi-floor contracts
+### 2.1 Five-floor contract
 
-- `floorId` is now authoritative for office geometry and content lookups.
-  `src/content/office/map.ts` keys map art, zones, NPC positions, sight lines,
-  interact spots, and elevator metadata by floor.
-- Floor 1 coordinates and IDs stay frozen; Floor 2 is a stub layout with
-  additive IDs only. Future design merges can replace Floor 2 content without
-  changing engine semantics.
-- Elevator transitions are two-phase: `RIDE_ELEVATOR` moves to
-  `screen_elevator_ride`, then `COMPLETE_ELEVATOR_RIDE` swaps `floorId` and
-  teleports to `elevatorArrivalForFloor(destination)`.
-- Access gating: Floor 1 → Floor 2 requires `key_access_badge`; Floor 2 → Floor 1
-  is always allowed for backtracking.
-- Save/restore persists `floorId` and exact tile/facing together. Reload resumes
-  on the same floor and tile; Classic save behavior remains unchanged.
+`FloorId` is `'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05'`.
+`floorId` is authoritative for geometry and content lookups. `map.ts` keys art,
+zones, NPC tiles, sightlines, interact spots, spawn, and elevator arrival by
+floor. Floors 1–2 keep their frozen ids and maps. Floors 3–5 are Product / Sales
+/ Exec (`docs/rpg/floor-3-5-design.md`, `floor3.ts` / `floor4.ts` / `floor5.ts`)
+on the same shaft (`E` at `(2,1)`/`(3,1)`, reader `(4,1)`, arrival `(3,2)` facing
+south). The drop-in checklist is `docs/rpg/floors-3-5-content-contract.md`.
+
+The cab panel (`ovl_elevator_panel`, table `ELEVATOR_FLOORS`) is the only
+destination picker. Rows: 5 EXEC / 4 SALES / 3 PRODUCT (`key_employee_badge`),
+2 OPERATIONS (`key_access_badge`), 1 YOUR TEAM (open). The current floor is inert
+("You are here"). Pressing a locked 3+ row plays that destination’s red-reader inspect once
+(`poi_elevator_door_f2` / `_f3` / `_f4` with `flag_reader_denied_f2` / `_f3` /
+`_f4` for Floors 3 / 4 / 5) and leaves the panel open. `poi_elevator_door_f5`
+is the green “no 6” inspect, not a lockout.
+
+Rides stay two-phase: `RIDE_ELEVATOR { to }` → `screen_elevator_ride` (doors /
+fade presentation) → `COMPLETE_ELEVATOR_RIDE` sets `floorId`, teleports to
+`elevatorArrivalForFloor(to)`, increments `stats.rides`, and saves. Backtracking
+is always allowed once you are on a floor.
+
+Office save is v2 (`hired`, `bench`, `stats.rides`). v1 loads through
+`migrateOfficeSave`. Classic `corporate-climb-save` is never read or written.
 
 ## 3. Party
 

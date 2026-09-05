@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Office overworld walk-cycle sheets (Floor 1 + Floor 2 cast) — hand-authored pixel art.
+"""Office overworld walk-cycle sheets (Floors 1–5 cast) — hand-authored pixel art.
 
 Each sheet is 128x160 RGBA: 4 columns x 4 rows, frame 32x40.
 Columns: idle, stepL, idle, stepR. Rows: s, w, e, n (matches
@@ -2187,6 +2187,1328 @@ WHITLOCK = Actor(
     },
 )
 
+# ===========================================================================
+# Floors 3–5 cast (docs/rpg/floor-3-5-design.md §7). Same rig, same ink.
+# ===========================================================================
+
+# --- Sloane — Staff PM, copper undercut, saffron cardigan, clipboard
+
+SLOANE = Actor(
+    'sloane',
+    {
+        'k': '#d4a07a',
+        'K': '#b07c58',
+        'l': '#e8bc9a',
+        'H': '#c45a28',
+        'h': '#e07840',
+        'G': '#8a3a18',
+        'e': '#2a1a12',
+        'J': '#d4a04a',
+        'j': '#a87a32',
+        'i': '#e8bc62',
+        'S': '#f4efe4',
+        's': '#d0c8b8',
+        'T': '#3a6a8a',
+        't': '#2a4a62',
+        'P': '#3a3a48',
+        'p': '#282834',
+        'B': '#1a1a22',
+        'd': '#0e0e14',
+        'b': '#2c2c36',
+        'X': '#d8c8a0',
+        'x': '#b0a078',
+        'y': '#f4efe4',
+        'z': '#3a6a8a',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHh....
+                ..HHHhhhHHHh..
+                .HHhhHHHHHHHG.
+                .HHHHHHHHHHHG.
+                .HHkkkkkkkHGG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..kkkkkkkkkK..
+                ..KkkkkmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHhhhHHHH.
+                ..HHHhhHHHHHHH
+                ..HHHHHHHHHHHH
+                ..GHHHHHHkkkkk
+                ..GHHHHHkkkkkk
+                ..GHHHHkkkGkk.
+                ..GHHHHkkkekk.
+                ...GHHHkkkekkk
+                ...GHHKkkkkkK.
+                ....KKkkkkkK..
+                ....KkkkkmkK..
+                .....KkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHh....
+                ..HHHhhhHHHh..
+                .HHhhHHHHHHHG.
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSSSSSSSj
+                JSSSTTSSSj
+                JJSSTTSJJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJSSSj
+                JJJJSSTj
+                JJJJSSTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (5, 20), rows("""
+            yXXX
+            XzzX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'e': [('hand', (17, 20), rows("""
+            XXXy
+            XzzX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'n': [('hand', (22, 20), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+# --- Nico — Research, dark curls, glasses, olive chore coat, headphones
+
+NICO = Actor(
+    'nico',
+    {
+        'k': '#c9956c',
+        'K': '#a87450',
+        'l': '#d9ac86',
+        'H': '#2a2018',
+        'h': '#4a3a2c',
+        'G': '#16100c',
+        'e': '#1a1410',
+        'J': '#5a6a3a',
+        'j': '#3e4a28',
+        'i': '#7a8a52',
+        'S': '#e8e0d0',
+        's': '#c0b8a8',
+        'T': '#3a3a40',
+        't': '#242428',
+        'P': '#3a3a40',
+        'p': '#242428',
+        'B': '#1a1a1e',
+        'd': '#0e0e10',
+        'b': '#2c2c32',
+        'X': '#2a2a30',
+        'x': '#18181c',
+        'y': '#5a5a64',
+        'z': '#f4d35e',
+        '1': '#3a3a40',
+    },
+    head={
+        's': (
+            (8, 2),
+            rows(
+                """
+                ..H.HHHH.H....
+                .HHHhhHHHHHh..
+                HHhhHHHHHHHHG.
+                .HHHHHHHHHHHGG
+                .HHkkkkkkkkHG.
+                .HkkkkkkkkkGG.
+                ..kk1kkkk1kk..
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..k1kkkkkk1K..
+                ..kkkkkkkkkK..
+                ..KkkkkmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (8, 2),
+            rows(
+                """
+                ...H.HHHH.H...
+                ..HHhhhHHHHHH.
+                .HHHhhHHHHHHHH
+                .HHHHHHHHHHHH.
+                .GHHHHHHkkkkk.
+                .GHHHHHkkkkkk.
+                .GHHHH1kkkGkk.
+                .GHHHHKkkkekk.
+                ..GHHHKkkkekkk
+                ..GHH1KkkkkkK.
+                ..GGHKkkkkkkK.
+                ...KKkkkkmkK..
+                ....KkkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (8, 2),
+            rows(
+                """
+                ..H.HHHH.H....
+                .HHHhhHHHHHh..
+                HHhhHHHHHHHHG.
+                .HHHHHHHHHHHGG
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HH1HHHHH1GGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSSSSSSSj
+                JSSSSSSSSj
+                JJSSSSSSJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJSSSj
+                JJJJSSSj
+                JJJJSSSj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        # Headphones around the neck + a sticky pad
+        's': [('under', (10, 14), rows("""
+            XXXXXXXXXXX
+            X.........X
+            """))],
+        'e': [('hand', (17, 21), rows("""
+            XXX
+            XzX
+            xxx
+            """))],
+        'n': [('under', (10, 14), rows("""
+            XXXXXXXXXXX
+            X.........X
+            """))],
+    },
+)
+
+# --- Quincy — VP Product, silver fade, plum blazer, turtleneck, tube
+
+QUINCY = Actor(
+    'quincy',
+    {
+        'k': '#e0b090',
+        'K': '#bc8a68',
+        'l': '#f0c8a8',
+        'H': '#c8c8d0',
+        'h': '#e8e8ee',
+        'G': '#8a8a96',
+        'e': '#1a2030',
+        'J': '#5a2a68',
+        'j': '#3e1c4a',
+        'i': '#7a3a88',
+        'S': '#2a2430',
+        's': '#1c1820',
+        'T': '#2a2430',
+        't': '#1c1820',
+        'P': '#2a2438',
+        'p': '#1c1828',
+        'B': '#141418',
+        'd': '#0a0a0c',
+        'b': '#282830',
+        'X': '#c4a06a',
+        'x': '#8a6a40',
+        'y': '#e0c08a',
+        'z': '#f4d35e',
+    },
+    head={
+        's': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHHh....
+                .HHHHHHHHHh..
+                .HhHHHHHHHHG.
+                .HHkkkkkkkHG.
+                .Hkkkkkkkkkk.
+                ..kkkkkkkkkk.
+                ..kkGkkkkGkk.
+                ..kkekkkkekk.
+                ..kkkkkkkkkK.
+                ..KkkkkmkkkK.
+                ...KkkkkkkK..
+                """
+            ),
+        ),
+        'e': (
+            (9, 3),
+            rows(
+                """
+                ....HHHHHh...
+                ..HHHHHHHHHH.
+                .HHHHHHHHHHHH
+                .GHHHHHHkkkkk
+                .GHHHHHkkkkkk
+                .GHHHHkkkGkk.
+                .GHHHHkkkekk.
+                ..GHHHkkkekkk
+                ..GHHKkkkkkK.
+                ...KKkkkkmkK.
+                ....KkkkkkK..
+                """
+            ),
+        ),
+        'n': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHHh....
+                .HHHHHHHHHh..
+                .HHHHHHHHHHG.
+                .HHHHHHHHHHG.
+                .HHHHHHHHHGG.
+                .HHHHHHHHGGG.
+                ..HHHHHHHGGG.
+                ..HHHHHHGGGG.
+                ..HGGGGGGGGG.
+                ...KKkkkkKK..
+                ...KkkkkkkK..
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSTTTTTSj
+                JSSTTTTTSj
+                JJSSTTTSJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJTTTj
+                JJJJTTTj
+                JJJJTTTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (5, 18), rows("""
+            yX
+            XX
+            XX
+            XX
+            XX
+            XX
+            xx
+            """))],
+        'e': [('hand', (18, 18), rows("""
+            Xy
+            XX
+            XX
+            XX
+            XX
+            XX
+            xx
+            """))],
+        'n': [('hand', (23, 18), rows("""
+            XX
+            XX
+            XX
+            XX
+            XX
+            XX
+            xx
+            """))],
+    },
+)
+
+# --- Harper — AE, blonde ponytail, magenta blazer, phone
+
+HARPER = Actor(
+    'harper',
+    {
+        'k': '#efc3a0',
+        'K': '#c99270',
+        'l': '#f8d6bc',
+        'H': '#e0c060',
+        'h': '#f4dc88',
+        'G': '#a88838',
+        'e': '#2a1a12',
+        'J': '#c43a6a',
+        'j': '#8a2848',
+        'i': '#e05a88',
+        'S': '#f4f0f2',
+        's': '#d0c8cc',
+        'T': '#e0c060',
+        't': '#a88838',
+        'P': '#2a2a34',
+        'p': '#1c1c24',
+        'B': '#1a1a22',
+        'd': '#0e0e14',
+        'b': '#2c2c36',
+        'X': '#3a3f48',
+        'x': '#262a30',
+        'y': '#5a606c',
+        'z': '#4fb7e8',
+    },
+    head={
+        's': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHhhhHHHH.
+                ..HHHhhHHHHHHG
+                ..HHhHHHHHHHHG
+                ..HHHHHHHHHHGG
+                ..HHkkkkkkkkHG
+                ..HHkkkkkkkkHG
+                ..HHkkkkkkkkHG
+                ..HHkkekkkkekG
+                ..HHkkekkkkekG
+                ..HHKkkkkkkkKG
+                ..HH.KkkkkkK.G
+                ....H....H....
+                """
+            ),
+        ),
+        'e': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHHhhhHHH.
+                ..HHHHHhhHHHHH
+                ..HHHHHHHHHHHH
+                ..HHHHHHHHHHHH
+                ..HHHHHHHHkkkk
+                ..GHHHHHHkkkkk
+                ..GHHHHHkkkGkk
+                ..GHHHHHkkkekk
+                ...GHHHHKkkekk
+                ...GHHHKkkkkkK
+                ....KK.kkkkkK.
+                ......H.......
+                """
+            ),
+        ),
+        'n': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHhhhHHHH.
+                ..HHHhhHHHHHHG
+                ..HHHHHHHHHHHG
+                ..HHHHHHHHHHGG
+                ..HHHHHHHHHGGG
+                ..HHHHHHHHHGGG
+                ...HHHHHHHGGG.
+                ...HHHHHHHGGG.
+                ...HHHHHHGGGG.
+                ...HGGGGGGGGG.
+                ...HH....HH...
+                ....H....H....
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSSTTSSSj
+                JSSTTTTSSj
+                JJSSTTSJJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJSSTj
+                JJJJSSTj
+                JJJJSSTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (6, 20), rows("""
+            XXX
+            XzX
+            XzX
+            XzX
+            xxx
+            """))],
+        'e': [('hand', (17, 20), rows("""
+            XXX
+            XzX
+            XzX
+            XzX
+            xxx
+            """))],
+        'n': [('hand', (23, 20), rows("""
+            XX
+            XX
+            XX
+            XX
+            xx
+            """))],
+    },
+)
+
+# --- Reyes — Client Success, close fade, terracotta sweater, headset
+
+REYES = Actor(
+    'reyes',
+    {
+        'k': '#8a5a3a',
+        'K': '#6a4028',
+        'l': '#a87250',
+        'H': '#1a1410',
+        'h': '#3a2a22',
+        'G': '#0c0a08',
+        'e': '#1a1010',
+        'J': '#c45a38',
+        'j': '#8a3a24',
+        'i': '#e07850',
+        'S': '#c45a38',
+        's': '#8a3a24',
+        'T': '#f4efe8',
+        't': '#c8c0b4',
+        'P': '#2a2a30',
+        'p': '#1c1c22',
+        'B': '#1a1a1e',
+        'd': '#0e0e10',
+        'b': '#2c2c32',
+        'X': '#3a3a42',
+        'x': '#222228',
+        'y': '#5a5a64',
+        'z': '#4ade80',
+    },
+    head={
+        's': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHH....
+                .HHHHHHHHH..
+                .HHkkkkkkHG.
+                .Hkkkkkkkkk.
+                ..kkkkkkkkk.
+                ..kkGkkkkGk.
+                ..kkekkkkek.
+                ..kkkkkkkkkK
+                ..KkkkkmkkkK
+                ...KkkkkkkK.
+                """
+            ),
+        ),
+        'e': (
+            (9, 3),
+            rows(
+                """
+                ....HHHHH...
+                ..HHHHHHHHH.
+                .GHHHHHkkkkk
+                .GHHHHHkkkkk
+                .GHHHHkkkGk.
+                .GHHHHkkkek.
+                ..GHHHkkkekk
+                ..GHHKkkkkkK
+                ...KKkkkkmkK
+                ....KkkkkkK.
+                """
+            ),
+        ),
+        'n': (
+            (9, 3),
+            rows(
+                """
+                ...HHHHH....
+                .HHHHHHHHH..
+                .HHHHHHHHHG.
+                .HHHHHHHHGG.
+                .HHHHHHHGGG.
+                ..HHHHHHGGG.
+                ..HHHHHGGGG.
+                ..HGGGGGGGG.
+                ...KKkkkkKK.
+                ...KkkkkkkK.
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSSSSSSSj
+                JSSSTTSSSj
+                JJSSSSSJjj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJSSSj
+                JJJJSSTj
+                JJJJSSSj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('under', (8, 13), rows("""
+            XX.........XX
+            X...........X
+            """))],
+        'e': [('hand', (17, 21), rows("""
+            XXXXXXX
+            XzzzzzX
+            xxxxxxx
+            """))],
+        'n': [('under', (8, 13), rows("""
+            XX.........XX
+            X...........X
+            """))],
+    },
+)
+
+# --- Ashford — VP Sales, salt-and-pepper, pinstripe, closed-won folder
+
+ASHFORD = Actor(
+    'ashford',
+    {
+        'k': '#e8b896',
+        'K': '#c48a64',
+        'l': '#f4cdae',
+        'H': '#6a6468',
+        'h': '#9a9498',
+        'G': '#3a3438',
+        'e': '#1a1420',
+        'J': '#2a2038',
+        'j': '#1c1628',
+        'i': '#3e3450',
+        'S': '#f4f0e8',
+        's': '#d0ccc4',
+        'T': '#c43c3c',
+        't': '#8a2828',
+        'P': '#2a2038',
+        'p': '#1c1628',
+        'B': '#121018',
+        'd': '#08080c',
+        'b': '#2a2830',
+        'X': '#3a2a18',
+        'x': '#241810',
+        'y': '#5a4030',
+        'z': '#c9a24a',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHh....
+                .HHHHHHHHHHh..
+                .HhHHHHHHHHHG.
+                .HHHHHHHHHHHG.
+                .HHkkkkkkkHGG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkGkkkkGkk..
+                ..kkekkkkekk..
+                ..kkkkkkkkkK..
+                ..kkkkkkkkkK..
+                ..KkkkkmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ....HHHHHHh...
+                ..HHHHHHHHHHH.
+                .HHHHHHHHHHHHH
+                .HHHHHHHHHHHH.
+                .GHHHHHHHkkkkk
+                .GHHHHHHkkkkkk
+                .GHHHHHkkkGkk.
+                .GHHHHHkkkekk.
+                ..GHHHHKkkekkk
+                ..GHHHKkkkkkK.
+                ...KKKkkkkkK..
+                ....KkkkkmkK..
+                .....KkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHh....
+                .HHHHHHHHHHh..
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHGGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSTTTTTSj
+                JSSTTTTTSj
+                JJSSTTTSJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJTTTj
+                JJJJTTTj
+                JJJJTTTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (5, 20), rows("""
+            yXXX
+            XzzX
+            XXXX
+            xxxx
+            """))],
+        'e': [('hand', (17, 20), rows("""
+            XXXy
+            XzzX
+            XXXX
+            xxxx
+            """))],
+        'n': [('hand', (22, 20), rows("""
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+# --- Marlowe — EA, sharp black bob, black dress, gold folio
+
+MARLOWE = Actor(
+    'marlowe',
+    {
+        'k': '#e8c0a0',
+        'K': '#c49470',
+        'l': '#f4d4b8',
+        'H': '#141418',
+        'h': '#2e2e36',
+        'G': '#08080c',
+        'e': '#2a1a14',
+        'J': '#1a1a22',
+        'j': '#101014',
+        'i': '#2e2e38',
+        'S': '#1a1a22',
+        's': '#101014',
+        'T': '#c9a24a',
+        't': '#8a7028',
+        'P': '#1a1a22',
+        'p': '#101014',
+        'B': '#121214',
+        'd': '#08080a',
+        'b': '#2a2a30',
+        'X': '#c9a24a',
+        'x': '#8a7028',
+        'y': '#e0c06a',
+        'z': '#1a1a22',
+    },
+    head={
+        's': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHhhhHHHH.
+                ..HHHhhHHHHHHG
+                ..HHhHHHHHHHHG
+                ..HHHHHHHHHHGG
+                ..HHkkkkkkkkHG
+                ..HHkkkkkkkkHG
+                ..HHkkkkkkkkHG
+                ..HHkkekkkkekG
+                ..HHkkekkkkekG
+                ..HHKkkkkkkkKG
+                ..HH.KkkkkkK.G
+                """
+            ),
+        ),
+        'e': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHHhhhHHH.
+                ..HHHHHhhHHHHH
+                ..HHHHHHHHHHHH
+                ..HHHHHHHHHHHH
+                ..HHHHHHHHkkkk
+                ..GHHHHHHkkkkk
+                ..GHHHHHkkkGkk
+                ..GHHHHHkkkekk
+                ...GHHHHKkkekk
+                ...GHHHKkkkkkK
+                ....KK.kkkkkK.
+                """
+            ),
+        ),
+        'n': (
+            (8, 2),
+            rows(
+                """
+                .....HHHHHh...
+                ...HHHhhhHHHH.
+                ..HHHhhHHHHHHG
+                ..HHHHHHHHHHHG
+                ..HHHHHHHHHHGG
+                ..HHHHHHHHHGGG
+                ..HHHHHHHHHGGG
+                ...HHHHHHHGGG.
+                ...HHHHHHHGGG.
+                ...HHHHHHGGGG.
+                ...HGGGGGGGGG.
+                ...KK....KK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSSTTSSSj
+                JSSTTTTTSj
+                JJSSTTTSJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJTTTj
+                JJJJTTTj
+                JJJJTTTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (5, 20), rows("""
+            yXXX
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'e': [('hand', (17, 20), rows("""
+            XXXy
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'n': [('hand', (22, 20), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
+# --- Caldwell — CEO, white hair, navy three-piece, company pin
+
+CALDWELL = Actor(
+    'caldwell',
+    {
+        'k': '#e6b48e',
+        'K': '#bf8a66',
+        'l': '#f0c8a8',
+        'H': '#e8e8ee',
+        'h': '#ffffff',
+        'G': '#b0b0bc',
+        'e': '#1a1420',
+        'J': '#1a2438',
+        'j': '#101828',
+        'i': '#2a3858',
+        'S': '#f4f0e8',
+        's': '#d0ccc4',
+        'T': '#8a2020',
+        't': '#5a1414',
+        'P': '#1a2438',
+        'p': '#101828',
+        'B': '#101014',
+        'd': '#08080a',
+        'b': '#242428',
+        'X': '#c9a24a',
+        'x': '#8a7028',
+        'y': '#e0c06a',
+        'z': '#8a2020',
+    },
+    head={
+        's': (
+            (9, 2),
+            rows(
+                """
+                ..HHHHHHHHh...
+                .HhHHHHHHHHHH.
+                HHhHHHHHHHHHHG
+                .HHkkkkkkkkHG.
+                .HkkkkkkkkkkG.
+                ..kkkkkkkkkk..
+                ..kkGkkkkGkk..
+                ..kKekkkkeKk..
+                ..kkkkkkkkkK..
+                ..KkKkkkkKkK..
+                ..KkkkmmkkkK..
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+        'e': (
+            (9, 2),
+            rows(
+                """
+                ...HHHHHHHh...
+                ..HHHHHHHHHHH.
+                .HHHHHHHHHHHHH
+                .GHHHHHHHkkkkk
+                .GHHHHHHkkkkkk
+                .GHHHHHkkkGkk.
+                .GHHHHHkkkekk.
+                ..GHHHHKkekkkk
+                ..GHHHKkkkkkK.
+                ...KKKkkKkKkK.
+                ....KkkkmmkK..
+                .....KkkkkK...
+                """
+            ),
+        ),
+        'n': (
+            (9, 2),
+            rows(
+                """
+                ..HHHHHHHHh...
+                .HHHHHHHHHHHH.
+                .HHHHHHHHHHHG.
+                .HHHHHHHHHHGG.
+                .HHHHHHHHHGGG.
+                .HHHHHHHHGGGG.
+                ..HHHHHHHGGG..
+                ..HHHHHHGGGG..
+                ..HGGGGGGGGG..
+                ...KKkkkkKK...
+                ...KkkkkkkK...
+                """
+            ),
+        ),
+    },
+    torso={
+        's': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iSSTTTTTSj
+                JSSTTTTTSj
+                JJSSTXTSJj
+                JJJJTTJJJj
+                JJJJtTJJJj
+                JJJJJtJJJj
+                JJJJJJJJJj
+                JJJJjOjJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+        'e': (
+            (12, 15),
+            rows(
+                """
+                ..KKKK..
+                iJJJTTTj
+                JJJJTTTj
+                JJJJTXTj
+                JJJJJJTj
+                JJJJJJtj
+                JJJJJJJj
+                JJJJJJJj
+                JJJJJJJj
+                jjjjjjjj
+                """
+            ),
+        ),
+        'n': (
+            (11, 15),
+            rows(
+                """
+                ...KKKK...
+                iiJJJJJJJj
+                iJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                JJJJJjJJJj
+                jjjjjjjjjj
+                """
+            ),
+        ),
+    },
+    props={
+        's': [('hand', (6, 21), rows("""
+            yXXX
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'e': [('hand', (17, 21), rows("""
+            XXXy
+            XXXX
+            XzzX
+            XXXX
+            .xx.
+            """))],
+        'n': [('hand', (22, 21), rows("""
+            XXXX
+            XXXX
+            XXXX
+            XXXX
+            xxxx
+            """))],
+    },
+)
+
 CAST: list[Actor] = [
     LEAD_ENG,
     LEAD_DESIGN,
@@ -2198,6 +3520,14 @@ CAST: list[Actor] = [
     TEDDY,
     KESSLER,
     WHITLOCK,
+    SLOANE,
+    NICO,
+    QUINCY,
+    HARPER,
+    REYES,
+    ASHFORD,
+    MARLOWE,
+    CALDWELL,
 ]
 
 

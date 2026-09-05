@@ -10,7 +10,23 @@ export const MOVE_MS = 250
 
 export type Facing = 'n' | 'e' | 's' | 'w'
 
-export type FloorId = 'floor_01' | 'floor_02'
+export type FloorId = 'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05'
+
+export const FLOOR_IDS: readonly FloorId[] = [
+  'floor_01',
+  'floor_02',
+  'floor_03',
+  'floor_04',
+  'floor_05',
+]
+
+/**
+ * Floors 3–5 shipped assignment / encounter reducers, so nothing is a stub.
+ * Kept as a predicate so older tests and comments can still name the idea.
+ */
+export function isStubFloor(_floorId: FloorId): boolean {
+  return false
+}
 export type ZoneId =
   | 'zone_reception'
   | 'zone_desks'
@@ -26,6 +42,18 @@ export type ZoneId =
   | 'zone_director'
   | 'zone_facilities'
   | 'zone_finance'
+  // Floors 3–5 (docs/rpg/floor-3-5-design.md §8)
+  | 'zone_war'
+  | 'zone_intake'
+  | 'zone_hall_f3'
+  | 'zone_product'
+  | 'zone_pipeline'
+  | 'zone_client'
+  | 'zone_hall_f4'
+  | 'zone_sales'
+  | 'zone_ante'
+  | 'zone_hall_f5'
+  | 'zone_board'
 
 export type NpcId =
   | 'npc_receptionist'
@@ -36,6 +64,15 @@ export type NpcId =
   | 'npc_help_desk_intern'
   | 'npc_auditor'
   | 'npc_director'
+  // Floors 3–5
+  | 'npc_staff_pm'
+  | 'npc_researcher'
+  | 'npc_vp_product'
+  | 'npc_account_exec'
+  | 'npc_client_success'
+  | 'npc_vp_sales'
+  | 'npc_exec_assistant'
+  | 'npc_ceo'
 
 export type EncounterId =
   | 'enc_desk_challenger'
@@ -45,12 +82,29 @@ export type EncounterId =
   | 'enc_help_desk_intern'
   | 'enc_auditor'
   | 'enc_director_review'
+  // Floors 3–5
+  | 'enc_vp_product'
+  | 'enc_vp_sales'
+  | 'enc_ceo_review'
 
 export type PartySlot = 'party_slot_0' | 'party_slot_1' | 'party_slot_2'
 
 export type CoworkerId = 'cw_desk_challenger' | 'cw_meeting_prepper' | 'cw_help_desk_intern'
 
-export type AssignmentId = 'asg_printer' | 'asg_meeting_prep' | 'asg_transfer' | 'asg_audit'
+export type AssignmentId =
+  | 'asg_printer'
+  | 'asg_meeting_prep'
+  | 'asg_transfer'
+  | 'asg_audit'
+  | 'asg_roadmap'
+  | 'asg_leavebehind'
+  | 'asg_board_packet'
+
+export type RoadmapStage = 'not_started' | 'accepted' | 'card_held' | 'initialled' | 'complete'
+
+export type LeavebehindStage = 'not_started' | 'accepted' | 'deck_held' | 'delivered' | 'complete'
+
+export type BoardPacketStage = 'not_started' | 'accepted' | 'packet_held' | 'complete'
 
 export type PrinterStage = 'not_started' | 'accepted' | 'toner_collected' | 'installed' | 'complete'
 
@@ -80,6 +134,13 @@ export type KeyItemId =
   | 'key_transfer_form'
   | 'key_receipt_roll'
   | 'key_employee_badge'
+  // Floors 3–5
+  | 'key_roadmap_card'
+  | 'key_research_sticky'
+  | 'key_product_badge'
+  | 'key_leavebehind'
+  | 'key_client_badge'
+  | 'key_board_packet'
 
 export type PoiId =
   | 'poi_reception_desk'
@@ -115,6 +176,41 @@ export type PoiId =
   | 'poi_janitor_cart'
   | 'poi_safe'
   | 'poi_shredder'
+  // Floors 3–5 stubs (kept so Astra inspect / tests stay valid)
+  | 'poi_directory_sign_stub'
+  // Floor 3
+  | 'poi_elevator_door_f3'
+  | 'poi_directory_sign_f3'
+  | 'poi_roadmap_wall'
+  | 'poi_intake_board'
+  | 'poi_war_desk'
+  | 'poi_filing_f3'
+  | 'poi_water_cooler_f3'
+  | 'poi_break_counter_f3'
+  | 'poi_vending_machine_f3'
+  | 'poi_break_table_f3'
+  | 'poi_quincy_desk'
+  // Floor 4
+  | 'poi_elevator_door_f4'
+  | 'poi_directory_sign_f4'
+  | 'poi_pipeline_board'
+  | 'poi_leavebehind'
+  | 'poi_pipeline_desk'
+  | 'poi_water_cooler_f4'
+  | 'poi_break_counter_f4'
+  | 'poi_vending_machine_f4'
+  | 'poi_break_table_f4'
+  | 'poi_ashford_desk'
+  // Floor 5
+  | 'poi_elevator_door_f5'
+  | 'poi_directory_sign_f5'
+  | 'poi_sideboard'
+  | 'poi_water_cooler_f5'
+  | 'poi_break_counter_f5'
+  | 'poi_vending_machine_f5'
+  | 'poi_break_table_f5'
+  | 'poi_board_table'
+  | 'poi_caldwell_desk'
 
 export type TriggerId =
   | 'trg_first_step'
@@ -132,6 +228,21 @@ export type TriggerId =
   | 'trg_director_door'
   | 'trg_elevator_ride_f2'
   | 'trg_roster_coach'
+  // Floors 3–5
+  | 'trg_first_step_f3'
+  | 'trg_sight_staff_pm'
+  | 'trg_sight_researcher'
+  | 'trg_sight_vp_product'
+  | 'trg_elevator_ride_f3'
+  | 'trg_first_step_f4'
+  | 'trg_sight_account_exec'
+  | 'trg_sight_client_success'
+  | 'trg_sight_vp_sales'
+  | 'trg_elevator_ride_f4'
+  | 'trg_first_step_f5'
+  | 'trg_sight_exec_assistant'
+  | 'trg_sight_ceo'
+  | 'trg_elevator_ride_f5'
 
 export type RewardId =
   | 'rwd_start_options'
@@ -148,6 +259,16 @@ export type RewardId =
   | 'rwd_enc_auditor'
   | 'rwd_enc_director_review'
   | 'rwd_promotion_f2'
+  // Floors 3–5
+  | 'rwd_asg_roadmap'
+  | 'rwd_enc_vp_product'
+  | 'rwd_promotion_f3'
+  | 'rwd_asg_leavebehind'
+  | 'rwd_enc_vp_sales'
+  | 'rwd_promotion_f4'
+  | 'rwd_asg_board_packet'
+  | 'rwd_enc_ceo_review'
+  | 'rwd_promotion_f5'
 
 export type ReceiptId =
   | 'rcpt_signing_bonus'
@@ -165,6 +286,16 @@ export type ReceiptId =
   | 'rcpt_the_audit'
   | 'rcpt_operations_review'
   | 'rcpt_employee_badge'
+  // Floors 3–5
+  | 'rcpt_roadmap_initialled'
+  | 'rcpt_prioritization'
+  | 'rcpt_product_badge'
+  | 'rcpt_leavebehind_delivered'
+  | 'rcpt_the_close'
+  | 'rcpt_client_badge'
+  | 'rcpt_board_packet_filed'
+  | 'rcpt_the_review'
+  | 'rcpt_the_climb'
 
 export type FlagId =
   | 'flag_greeted'
@@ -179,6 +310,15 @@ export type FlagId =
   | 'flag_floor2_complete'
   | 'flag_roster_coached'
   | 'flag_reader_denied_f2'
+  // Floors 3–5
+  | 'flag_reader_denied_f3'
+  | 'flag_reader_denied_f4'
+  | 'flag_visited_f3'
+  | 'flag_floor3_complete'
+  | 'flag_visited_f4'
+  | 'flag_floor4_complete'
+  | 'flag_visited_f5'
+  | 'flag_floor5_complete'
 
 export type CoachId = 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster'
 
@@ -284,3 +424,52 @@ export type DialogueId =
   | 'dlg_holloway_sign_transfer'
   | 'dlg_holloway_upstairs'
   | 'dlg_holloway_f2_after'
+  // Floor 3 — Sloane / Nico / Quincy
+  | 'dlg_sloane_callout'
+  | 'dlg_sloane_brief'
+  | 'dlg_sloane_hint_card'
+  | 'dlg_sloane_hint_nico'
+  | 'dlg_sloane_filed'
+  | 'dlg_sloane_after'
+  | 'dlg_sloane_after_win'
+  | 'dlg_nico_hook'
+  | 'dlg_nico_waiting'
+  | 'dlg_nico_initialled'
+  | 'dlg_nico_after'
+  | 'dlg_quincy_early'
+  | 'dlg_quincy_sloane_pending'
+  | 'dlg_quincy_review'
+  | 'dlg_quincy_you_lost'
+  | 'dlg_quincy_beaten'
+  | 'dlg_quincy_after'
+  // Floor 4 — Harper / Reyes / Ashford
+  | 'dlg_harper_callout'
+  | 'dlg_harper_brief'
+  | 'dlg_harper_hint_deck'
+  | 'dlg_harper_hint_reyes'
+  | 'dlg_harper_filed'
+  | 'dlg_harper_after'
+  | 'dlg_harper_after_win'
+  | 'dlg_reyes_hook'
+  | 'dlg_reyes_waiting'
+  | 'dlg_reyes_delivered'
+  | 'dlg_reyes_after'
+  | 'dlg_ashford_early'
+  | 'dlg_ashford_harper_pending'
+  | 'dlg_ashford_close'
+  | 'dlg_ashford_you_lost'
+  | 'dlg_ashford_beaten'
+  | 'dlg_ashford_after'
+  // Floor 5 — Marlowe / Caldwell
+  | 'dlg_marlowe_callout'
+  | 'dlg_marlowe_brief'
+  | 'dlg_marlowe_hint_packet'
+  | 'dlg_marlowe_filed'
+  | 'dlg_marlowe_after'
+  | 'dlg_marlowe_after_win'
+  | 'dlg_caldwell_early'
+  | 'dlg_caldwell_packet_pending'
+  | 'dlg_caldwell_review'
+  | 'dlg_caldwell_you_lost'
+  | 'dlg_caldwell_beaten'
+  | 'dlg_caldwell_after'

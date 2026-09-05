@@ -36,10 +36,17 @@ export interface EncounterContext {
   activeIndex: number
 }
 
+export interface BenchRecord {
+  hp: number
+  pp: number[]
+}
+
 export interface OfficeSave {
-  version: 1
+  version: 1 | 2
   run: RunState
   party: PartyMember[]
+  hired: CoworkerId[]
+  bench: Partial<Record<CoworkerId, BenchRecord>>
   floorId: FloorId
   player: { x: number; y: number; facing: Facing }
   assignments: Record<AssignmentId, string>
@@ -48,7 +55,7 @@ export interface OfficeSave {
   rewardsClaimed: string[]
   flags: string[]
   firedTriggers: string[]
-  stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number }
+  stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number; rides: number }
 }
 
 export type OfficeScreenId = 'overworld' | 'battle' | 'promotion' | 'vending' | 'elevator_ride'
@@ -59,13 +66,22 @@ export type Overlay =
   | { kind: 'stakes'; encounterId: EncounterId }
   | { kind: 'recruit'; coworkerId: CoworkerId }
   | { kind: 'document'; docId: 'agenda' | 'directory' }
-  | { kind: 'confirm'; prompt: 'take_five' | 'elevator' | 'door' }
-  | { kind: 'team' }
-  | { kind: 'coach'; id: 'coach_move' | 'coach_interact' | 'coach_switch' }
+  | { kind: 'confirm'; prompt: 'take_five' | 'elevator' | 'door' | 'kessler_door' }
+  | { kind: 'team'; mode?: 'default' | 'roster'; returnRecruit?: CoworkerId }
+  | { kind: 'coach'; id: 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster' }
   | { kind: 'interstitial'; encounterId: EncounterId }
   | { kind: 'toast'; text: string }
   | { kind: 'handout' }
-  | { kind: 'celebration' }
+  | {
+      kind: 'celebration'
+      screen:
+        | 'screen_preview_complete'
+        | 'screen_floor2_complete'
+        | 'screen_floor3_complete'
+        | 'screen_floor4_complete'
+        | 'screen_floor5_complete'
+    }
+  | { kind: 'elevator_panel' }
 
 export interface OfficeState extends OfficeSave {
   screen: OfficeScreenId
@@ -75,6 +91,8 @@ export interface OfficeState extends OfficeSave {
   battle: BattleState | null
   lastLossEncounter: EncounterId | null
   benchOpen: boolean
+  /** Session-only destination while `screen === 'elevator_ride'`. */
+  rideTo: FloorId | null
 }
 
 export const OFFICE_VENDING_STOCK: ItemId[] = ['espresso', 'espresso', 'side_hustle']
@@ -97,6 +115,9 @@ export const FRESH_ASSIGNMENTS: Record<AssignmentId, string> = {
   asg_meeting_prep: 'not_started',
   asg_transfer: 'not_started',
   asg_audit: 'not_started',
+  asg_roadmap: 'not_started',
+  asg_leavebehind: 'not_started',
+  asg_board_packet: 'not_started',
 }
 
 export const FRESH_ENCOUNTERS: Record<EncounterId, 'open' | 'won'> = {
@@ -106,6 +127,9 @@ export const FRESH_ENCOUNTERS: Record<EncounterId, 'open' | 'won'> = {
   enc_help_desk_intern: 'open',
   enc_auditor: 'open',
   enc_director_review: 'open',
+  enc_vp_product: 'open',
+  enc_vp_sales: 'open',
+  enc_ceo_review: 'open',
 }
 
 export function newOfficeCampaign(cls: PlayerClass): OfficeState {
@@ -115,9 +139,11 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     stockOptions: 10,
   }
   return {
-    version: 1,
+    version: 2,
     run,
     party: [makeLead(cls)],
+    hired: [],
+    bench: {},
     floorId: 'floor_01',
     player: spawnForFloor('floor_01'),
     assignments: { ...FRESH_ASSIGNMENTS },
@@ -126,7 +152,7 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     rewardsClaimed: ['rwd_start_options'],
     flags: [],
     firedTriggers: [],
-    stats: { battlesWon: 0, losses: 0, switches: 0, msOnFloor: 0 },
+    stats: { battlesWon: 0, losses: 0, switches: 0, msOnFloor: 0, rides: 0 },
     screen: 'overworld',
     overlay: { kind: 'receipt', receiptId: 'rcpt_signing_bonus' },
     overlayQueue: [{ kind: 'coach', id: 'coach_move' }],
@@ -134,18 +160,25 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     battle: null,
     lastLossEncounter: null,
     benchOpen: false,
+    rideTo: null,
   }
+}
+
+export function coworkersInParty(party: PartyMember[]): CoworkerId[] {
+  return party.flatMap((m) => (m.def.kind === 'coworker' ? [m.def.id] : []))
 }
 
 export function toOfficeSave(state: OfficeState): OfficeSave {
   return {
-    version: 1,
+    version: 2,
     run: {
       ...state.run,
       hp: state.party[0]?.hp ?? state.run.hp,
       pp: state.party[0]?.pp ?? state.run.pp,
     },
     party: state.party,
+    hired: state.hired ?? coworkersInParty(state.party),
+    bench: state.bench ?? {},
     floorId: state.floorId,
     player: state.player,
     assignments: state.assignments,
@@ -154,17 +187,22 @@ export function toOfficeSave(state: OfficeState): OfficeSave {
     rewardsClaimed: state.rewardsClaimed,
     flags: state.flags,
     firedTriggers: state.firedTriggers,
-    stats: state.stats,
+    stats: { ...state.stats, rides: state.stats.rides ?? 0 },
   }
 }
 
 export function fromOfficeSave(save: OfficeSave): OfficeState {
   const lead = save.party[0]
+  const hired = save.hired ?? coworkersInParty(save.party)
   return {
     ...save,
+    version: 2,
+    hired,
+    bench: save.bench ?? {},
     // Saves written before Floor 2 existed lack its keys; they start fresh.
     assignments: { ...FRESH_ASSIGNMENTS, ...save.assignments },
     encounters: { ...FRESH_ENCOUNTERS, ...save.encounters },
+    stats: { ...save.stats, rides: save.stats.rides ?? 0 },
     run: {
       ...save.run,
       hp: lead?.hp ?? save.run.hp,
@@ -177,6 +215,7 @@ export function fromOfficeSave(save: OfficeSave): OfficeState {
     battle: null,
     lastLossEncounter: null,
     benchOpen: false,
+    rideTo: null,
   }
 }
 
@@ -207,6 +246,18 @@ export function rewardClaimed(state: OfficeSave, id: string): boolean {
 
 export function inParty(state: OfficeSave, id: CoworkerId): boolean {
   return state.party.some((m) => m.def.kind === 'coworker' && m.def.id === id)
+}
+
+export function isHired(state: OfficeSave, id: CoworkerId): boolean {
+  return (state.hired ?? []).includes(id)
+}
+
+export function directorGateOpen(state: OfficeSave): boolean {
+  return (
+    state.assignments.asg_transfer === 'complete' &&
+    state.encounters.enc_help_desk_intern === 'won' &&
+    state.encounters.enc_director_review !== 'won'
+  )
 }
 
 export function lettersHeld(state: OfficeSave): number {

@@ -2,6 +2,9 @@ import type { EncounterId, FloorId, ReceiptId, RewardId } from './ids'
 
 export const FLOOR_LEDGER_MAX = 65
 export const FLOOR_2_LEDGER_MAX = 90
+export const FLOOR_3_LEDGER_MAX = 54
+export const FLOOR_4_LEDGER_MAX = 64
+export const FLOOR_5_LEDGER_MAX = 78
 
 export const REWARD_OPTIONS: Record<RewardId, number> = {
   rwd_start_options: 10,
@@ -18,6 +21,16 @@ export const REWARD_OPTIONS: Record<RewardId, number> = {
   rwd_enc_auditor: 21,
   rwd_enc_director_review: 32,
   rwd_promotion_f2: 0,
+  // Floors 3–5 (docs/rpg/floor-3-5-design.md §5)
+  rwd_asg_roadmap: 14,
+  rwd_enc_vp_product: 40,
+  rwd_promotion_f3: 0,
+  rwd_asg_leavebehind: 16,
+  rwd_enc_vp_sales: 48,
+  rwd_promotion_f4: 0,
+  rwd_asg_board_packet: 18,
+  rwd_enc_ceo_review: 60,
+  rwd_promotion_f5: 0,
 }
 
 export const REWARD_XP: Partial<Record<RewardId, number>> = {
@@ -27,6 +40,9 @@ export const REWARD_XP: Partial<Record<RewardId, number>> = {
   rwd_enc_help_desk_intern: 36,
   rwd_enc_auditor: 43,
   rwd_enc_director_review: 55,
+  rwd_enc_vp_product: 57,
+  rwd_enc_vp_sales: 64,
+  rwd_enc_ceo_review: 80,
 }
 
 export interface ReceiptLine {
@@ -149,6 +165,76 @@ export const RECEIPTS: Record<ReceiptId, ReceiptDef> = {
     lines: [{ text: 'Employee Badge 🪪' }],
     footer: 'Eyes closed. Permanent.',
   },
+  rcpt_roadmap_initialled: {
+    id: 'rcpt_roadmap_initialled',
+    title: 'ROADMAP — INITIALLED',
+    rewardId: 'rwd_asg_roadmap',
+    lines: [{ text: '+14 📈' }],
+    footer: 'In pencil. Ink is a commitment.',
+  },
+  rcpt_prioritization: {
+    id: 'rcpt_prioritization',
+    title: 'PRIORITIZATION — NOW',
+    rewardId: 'rwd_enc_vp_product',
+    lines: [
+      { text: '+57 XP' },
+      { text: '+40 📈' },
+      { text: 'Product Badge 🪪' },
+      { text: 'Promotion →' },
+    ],
+    footer: 'The column had been empty since April.',
+  },
+  rcpt_product_badge: {
+    id: 'rcpt_product_badge',
+    title: 'PRODUCT BADGE — ISSUED',
+    lines: [{ text: 'Product Badge 🪪' }],
+    footer: 'Sequenced. Laminated. Still Later on Fridays.',
+  },
+  rcpt_leavebehind_delivered: {
+    id: 'rcpt_leavebehind_delivered',
+    title: 'LEAVE-BEHIND — DELIVERED',
+    rewardId: 'rwd_asg_leavebehind',
+    lines: [{ text: '+16 📈' }],
+    footer: 'The client has not seen it. That is why it works.',
+  },
+  rcpt_the_close: {
+    id: 'rcpt_the_close',
+    title: 'THE CLOSE — CLOSED',
+    rewardId: 'rwd_enc_vp_sales',
+    lines: [
+      { text: '+64 XP' },
+      { text: '+48 📈' },
+      { text: 'Client Badge 🪪' },
+      { text: 'Promotion →' },
+    ],
+    footer: 'The flute was empty the whole time.',
+  },
+  rcpt_client_badge: {
+    id: 'rcpt_client_badge',
+    title: 'CLIENT BADGE — ISSUED',
+    lines: [{ text: 'Client Badge 🪪' }],
+    footer: 'This quarter. Laminated. Already last quarter upstairs.',
+  },
+  rcpt_board_packet_filed: {
+    id: 'rcpt_board_packet_filed',
+    title: 'BOARD PACKET — FILED',
+    rewardId: 'rwd_asg_board_packet',
+    lines: [{ text: '+18 📈' }],
+    footer: 'The book does not come back out.',
+  },
+  rcpt_the_review: {
+    id: 'rcpt_the_review',
+    title: 'THE REVIEW — NODDED',
+    rewardId: 'rwd_enc_ceo_review',
+    lines: [{ text: '+80 XP' }, { text: '+60 📈' }, { text: 'The nod ✓' }, { text: 'Promotion →' }],
+    footer: 'There is no letter. There is no Floor 6.',
+  },
+  rcpt_the_climb: {
+    id: 'rcpt_the_climb',
+    title: 'THE CLIMB — COMPLETE',
+    lines: [{ text: 'Five floors. One nod.' }],
+    footer: 'The elevator still goes down.',
+  },
 }
 
 export const ENCOUNTER_RECEIPT: Record<EncounterId, ReceiptId> = {
@@ -158,6 +244,9 @@ export const ENCOUNTER_RECEIPT: Record<EncounterId, ReceiptId> = {
   enc_help_desk_intern: 'rcpt_compliance',
   enc_auditor: 'rcpt_the_audit',
   enc_director_review: 'rcpt_operations_review',
+  enc_vp_product: 'rcpt_prioritization',
+  enc_vp_sales: 'rcpt_the_close',
+  enc_ceo_review: 'rcpt_the_review',
 }
 
 export const FLOOR_REWARD_IDS: Record<FloorId, readonly RewardId[]> = {
@@ -178,6 +267,9 @@ export const FLOOR_REWARD_IDS: Record<FloorId, readonly RewardId[]> = {
     'rwd_enc_director_review',
     'rwd_promotion_f2',
   ],
+  floor_03: ['rwd_asg_roadmap', 'rwd_enc_vp_product', 'rwd_promotion_f3'],
+  floor_04: ['rwd_asg_leavebehind', 'rwd_enc_vp_sales', 'rwd_promotion_f4'],
+  floor_05: ['rwd_asg_board_packet', 'rwd_enc_ceo_review', 'rwd_promotion_f5'],
 }
 
 /** Options earned from claimed `rwd_*` rows; pass a floor to read one floor's ledger only. */

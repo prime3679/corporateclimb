@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Office tileset (Floor 1 + Floor 2) — hand-authored pixel art, one sheet.
+"""Office tileset (Floors 1–5) — hand-authored pixel art, one sheet.
 
 Output: public/office/tiles.png (RGBA) plus src/screens/office/tileAtlas.ts,
 the name → cell index the WorldMap sprite layer reads. Floor 2 cells
@@ -2284,6 +2284,18 @@ def server_status() -> Cell:
     return c
 
 
+def nameplate_tight(label: str) -> Cell:
+    """Full-width steel plaque for longer names (ASHFORD, CALDWELL)."""
+    c = Cell()
+    c.rect(1, 13, 30, 9, STEEL)
+    c.hline(1, 13, 30, STEEL_LIT)
+    c.hline(1, 21, 30, STEEL_DARK)
+    c.frame(0, 12, 32, 11, INK)
+    tw = len(label) * 4 - 1
+    text(c, label, max(1, (32 - tw) // 2), 15, INK)
+    return c
+
+
 def nameplate(label: str) -> Cell:
     """Brushed-steel door plaque with an engraved name."""
     c = Cell()
@@ -2883,6 +2895,300 @@ def build_floor2() -> None:
     register('btable_f2_r', break_table_f2('r'))
 
 
+# ===========================================================================
+# Floors 3–5 — Product / Sales / Exec. Appended after every Floor 1+2 cell
+# so those indices never move (docs/rpg/floor-3-5-design.md §7).
+# ===========================================================================
+
+FLOORS_F35 = {
+    'war': (hexc('#6a4a32'), hexc('#7d5a3e'), hexc('#563a28')),
+    'intake': (hexc('#5a4a6e'), hexc('#6a5a80'), hexc('#4a3c5c')),
+    'product': (hexc('#3a4a68'), hexc('#46587a'), hexc('#2e3c56')),
+    'pipeline': (hexc('#6a3a32'), hexc('#7d4a3e'), hexc('#562e28')),
+    'client': (hexc('#6a5a3a'), hexc('#7d6c48'), hexc('#56482e')),
+    'board': (hexc('#2a2438'), hexc('#3a3450'), hexc('#1c1828')),
+}
+
+CORK_F3 = hexc('#c4a06a')
+CORK_F3_LIT = hexc('#e0c08a')
+CORK_F3_DARK = hexc('#8a6a40')
+STICKY_Y = hexc('#f4d35e')
+STICKY_P = hexc('#f2a7c3')
+STICKY_B = hexc('#8ec5f0')
+STICKY_G = hexc('#8fd3a3')
+PLUM = hexc('#6a3a78')
+PLUM_LIT = hexc('#8a5a98')
+WINE = hexc('#6a2a38')
+WINE_LIT = hexc('#8a3a4a')
+
+
+def floor_war() -> Cell:
+    """Warm cork tile, 16px, ochre flecks like fallen stickies."""
+    base, lit, dark = FLOORS_F35['war']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(2):
+        for qx in range(2):
+            ox, oy = qx * 16, qy * 16
+            c.hline(ox, oy, 16, dark)
+            c.vline(ox, oy, 16, dark)
+            c.hline(ox + 1, oy + 1, 15, lit)
+            for k, (sx, sy) in enumerate(((4, 6), (11, 3), (8, 12), (13, 9))):
+                c.put(ox + sx, oy + sy, STICKY_Y if k % 2 == 0 else dark)
+    return c
+
+
+def floor_intake() -> Cell:
+    """Lilac carpet, 8px herringbone."""
+    base, lit, dark = FLOORS_F35['intake']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            band = (x // 8 + y // 8) % 2
+            if band == 0 and (x + y) % 4 == 0:
+                c.put(x, y, lit)
+            elif band == 1 and (x - y) % 4 == 0:
+                c.put(x, y, lit)
+            elif (x * 5 + y * 3) % 17 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_product() -> Cell:
+    """Slate-blue carpet tiles, 8px, alternating pile."""
+    base, lit, dark = FLOORS_F35['product']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(4):
+        for qx in range(4):
+            ox, oy = qx * 8, qy * 8
+            horizontal = (qx + qy) % 2 == 0
+            for i in range(8):
+                for j in range(8):
+                    x, y = ox + i, oy + j
+                    if horizontal and j % 4 == 1 and i % 2 == 0:
+                        c.put(x, y, lit)
+                    elif not horizontal and i % 4 == 1 and j % 2 == 0:
+                        c.put(x, y, lit)
+            c.hline(ox, oy, 8, dark)
+            c.vline(ox, oy, 8, dark)
+    return c
+
+
+def floor_pipeline() -> Cell:
+    """Terracotta tile, 16px, warm grout."""
+    base, lit, dark = FLOORS_F35['pipeline']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(2):
+        for qx in range(2):
+            ox, oy = qx * 16, qy * 16
+            c.hline(ox, oy, 16, dark)
+            c.vline(ox, oy, 16, dark)
+            c.hline(ox + 1, oy + 1, 15, lit)
+            c.put(ox + 6, oy + 8, GOLD_DARK)
+            c.put(ox + 12, oy + 4, dark)
+    return c
+
+
+def floor_client() -> Cell:
+    """Sand herringbone — the client-facing carpet."""
+    base, lit, dark = FLOORS_F35['client']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            if (x + y) % 6 == 0:
+                c.put(x, y, lit)
+            elif (x + y) % 6 == 3 and x % 2 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_board() -> Cell:
+    """Near-black plush with a gold fleck — the boardroom."""
+    base, lit, dark = FLOORS_F35['board']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            if (x + y) % 7 == 0:
+                c.put(x, y, lit)
+            elif (x * 3 + y * 5) % 23 == 0:
+                c.put(x, y, GOLD_DARK)
+            elif (x + y) % 7 == 3 and x % 2 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def plaque_dept(part: str, title: str, floor_n: str, accent: RGBA) -> Cell:
+    """3-tile hall plaque: rising bars + TITLE / FLOOR n."""
+    c = Cell()
+    off = {'l': 0, 'm': -32, 'r': -64}[part]
+    c.rect(0, 11, 32, 15, NAVY)
+    c.hline(0, 11, 32, NAVY_LIT)
+    c.hline(0, 10, 32, INK)
+    c.hline(0, 26, 32, INK)
+    c.hline(0, 27, 32, FACE_DARK)
+    if part == 'l':
+        c.vline(0, 10, 17, INK)
+        c.vline(1, 11, 15, NAVY_LIT)
+    if part == 'r':
+        c.vline(31, 10, 17, INK)
+        c.vline(30, 11, 15, hexc('#141c33'))
+    for i, h in enumerate((3, 5, 8, 11)):
+        c.rect(off + 5 + i * 4, 23 - h, 3, h, accent if i < 3 else mix(accent, PAPER_LIT, 0.4))
+    c.hline(off + 4, 23, 17, mix(accent, INK, 0.4))
+    text(c, title, off + 26, 13, accent)
+    c.hline(off + 26, 19, max(24, len(title) * 4), mix(accent, INK, 0.5))
+    text(c, f'FLOOR {floor_n}', off + 26, 20, PAPER)
+    return c
+
+
+def directory_floor(n: str, bar: RGBA) -> Cell:
+    c = Cell()
+    c.ground_shadow(7, 27, 18, 3)
+    c.rect(14, 12, 4, 15, STEEL_DARK)
+    c.vline(14, 12, 15, STEEL)
+    c.rect(10, 26, 12, 2, STEEL_DARK)
+    c.hline(10, 26, 12, STEEL)
+    c.frame(9, 25, 14, 4, INK)
+    c.vline(13, 12, 14, INK)
+    c.vline(18, 12, 14, INK)
+    c.box(3, -8, 26, 20, DARKPL, DARKPL_LIT, DARKPL_DARK)
+    c.rect(4, -7, 24, 3, bar)
+    c.hline(4, -7, 24, mix(bar, PAPER_LIT, 0.4))
+    text(c, f'FLOOR {n}', 3, -3, PAPER)
+    for i in range(3):
+        y = 3 + i * 3
+        c.hline(5, y, 3, mix(bar, INK, 0.4))
+        c.hline(9, y, 12 - (i * 4) % 7, PLASTIC_DARK)
+    return c
+
+
+def roadmap_wall() -> Cell:
+    """Cork war-room wall: NOW / LATER columns, one yellow card peeling."""
+    c = Cell()
+    c.ground_shadow(4, 27, 24, 3)
+    c.box(5, -12, 22, 40, CORK_F3, CORK_F3_LIT, CORK_F3_DARK)
+    c.rect(6, -11, 20, 5, DARKPL)
+    c.hline(6, -11, 20, DARKPL_LIT)
+    text(c, 'Q4', 12, -10, GOLD)
+    text(c, 'NOW', 7, -4, PAPER)
+    text(c, 'LATER', 16, -4, PAPER_DARK)
+    c.vline(15, -4, 28, CORK_F3_DARK)
+    # later column — a novel of cards
+    for i, col in enumerate((STICKY_B, STICKY_P, STICKY_G, STICKY_B, STICKY_P, STICKY_Y)):
+        c.rect(17, 2 + i * 4, 8, 3, col)
+        c.hline(17, 2 + i * 4, 8, mix(col, PAPER_LIT, 0.35))
+        c.frame(16, 1 + i * 4, 10, 5, INK)
+    # now column — empty except one peeling yellow
+    c.rect(7, 8, 7, 5, STICKY_Y)
+    c.hline(7, 8, 7, mix(STICKY_Y, PAPER_LIT, 0.4))
+    c.frame(6, 7, 9, 7, INK)
+    c.put(13, 9, STICKY_Y)  # dog-ear
+    return c
+
+
+def intake_board() -> Cell:
+    """Research intake: lilac frame, stickies coded by how tired Nico is."""
+    c = Cell()
+    c.ground_shadow(5, 27, 22, 3)
+    c.box(6, -10, 20, 38, PLUM, PLUM_LIT, hexc('#4a2860'))
+    c.rect(7, -9, 18, 5, DARKPL)
+    text(c, 'INTAKE', 8, -8, PAPER)
+    tickets = (
+        (8, 0, STICKY_Y),
+        (14, 0, STICKY_P),
+        (20, 0, STICKY_B),
+        (8, 6, STICKY_G),
+        (14, 6, STICKY_Y),
+        (8, 12, STICKY_P),
+        (14, 12, STICKY_B),
+        (20, 12, STICKY_Y),
+        (8, 18, STICKY_G),
+    )
+    for x, y, col in tickets:
+        c.rect(x, y, 5, 4, col)
+        c.hline(x, y, 5, mix(col, PAPER_LIT, 0.35))
+        c.frame(x - 1, y - 1, 7, 6, INK)
+    return c
+
+
+def pipeline_board() -> Cell:
+    """Sales pipeline: everything Closing, nothing Closed."""
+    c = Cell()
+    c.ground_shadow(5, 27, 22, 3)
+    c.box(6, -10, 20, 38, WINE, WINE_LIT, hexc('#4a1e28'))
+    c.rect(7, -9, 18, 5, DARKPL)
+    text(c, 'PIPE', 10, -8, GOLD)
+    # three columns
+    for i, label_x in enumerate((7, 13, 19)):
+        c.vline(label_x + 5, -2, 28, hexc('#4a1e28'))
+    c.rect(8, 0, 4, 3, STICKY_Y)
+    c.rect(8, 5, 4, 3, STICKY_Y)
+    c.rect(8, 10, 4, 3, STICKY_P)
+    c.rect(14, 0, 4, 3, STICKY_Y)
+    c.rect(14, 5, 4, 3, STICKY_Y)
+    c.rect(14, 10, 4, 3, STICKY_Y)
+    c.rect(14, 15, 4, 3, STICKY_P)
+    # closed column: empty except a sad sticky
+    c.rect(20, 20, 4, 3, STICKY_G)
+    for x, y in ((8, 0), (8, 5), (8, 10), (14, 0), (14, 5), (14, 10), (14, 15), (20, 20)):
+        c.frame(x - 1, y - 1, 6, 5, INK)
+    return c
+
+
+def sideboard() -> Cell:
+    """Walnut exec sideboard; gold-clipped board packet on top."""
+    c = Cell()
+    c.ground_shadow(3, 27, 26, 3)
+    c.box(4, 8, 24, 20, WALNUT, WALNUT_LIT, WALNUT_DARK)
+    c.rect(5, 10, 10, 8, WALNUT_DARK)
+    c.rect(17, 10, 10, 8, WALNUT_DARK)
+    c.frame(4, 9, 12, 10, INK)
+    c.frame(16, 9, 12, 10, INK)
+    c.put(9, 14, BRASS)
+    c.put(21, 14, BRASS)
+    # packet
+    c.rect(10, -2, 12, 10, PAPER)
+    c.hline(10, -2, 12, PAPER_LIT)
+    c.frame(9, -3, 14, 12, INK)
+    c.rect(14, -3, 4, 3, GOLD)
+    c.hline(11, 2, 10, PAPER_DARK)
+    c.hline(11, 4, 8, PAPER_DARK)
+    return c
+
+
+def build_floor35() -> None:
+    register('floor_war', floor_war())
+    register('floor_intake', floor_intake())
+    register('floor_product', floor_product())
+    register('floor_pipeline', floor_pipeline())
+    register('floor_client', floor_client())
+    register('floor_board', floor_board())
+    for part in ('l', 'm', 'r'):
+        register(f'plaque_product_{part}', plaque_dept(part, 'PRODUCT', '3', GOLD))
+        register(f'plaque_sales_{part}', plaque_dept(part, 'SALES', '4', hexc('#e08a4a')))
+        register(f'plaque_exec_{part}', plaque_dept(part, 'EXEC', '5', hexc('#e0d0a0')))
+    register('sign_war', sign_room('WAR'))
+    register('sign_intake', sign_room('INTAKE'))
+    register('sign_pipeline', sign_room('PIPE'))
+    register('sign_client', sign_room('CLIENT'))
+    register('sign_board', sign_room('BOARD'))
+    register('nameplate_quincy', nameplate('QUINCY'))
+    register('nameplate_ashford', nameplate_tight('ASHFORD'))
+    register('nameplate_caldwell', nameplate_tight('CALDWELL'))
+    register('directory_f3', directory_floor('3', hexc('#c47a3a')))
+    register('directory_f4', directory_floor('4', hexc('#d45a3a')))
+    register('directory_f5', directory_floor('5', hexc('#e0d0a0')))
+    register('roadmap_wall', roadmap_wall())
+    register('intake_board', intake_board())
+    register('pipeline_board', pipeline_board())
+    register('sideboard', sideboard())
+
+
 # ---------------------------------------------------------------------------
 # Assembly
 # ---------------------------------------------------------------------------
@@ -2978,6 +3284,8 @@ def build_atlas() -> None:
     register('street_exit', street_exit())
     # Floor 2 cells are appended so every Floor 1 index above stays put.
     build_floor2()
+    # Floors 3–5 append after Floor 2 so 1 and 2 never move.
+    build_floor35()
 
 
 def extrude(im: Image.Image) -> Image.Image:

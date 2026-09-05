@@ -24,7 +24,7 @@ import { ascensionEffects } from './ascension'
 import type { BattleState, RunState } from './state'
 import type { BattleEvent, Effectiveness, ViewPatch } from './events'
 import { collectMods, type Mods } from './modifiers'
-import { resolveEnemy, resolveNgBaseEnemy } from './enemy'
+import { applyPhase2, resolveEnemy, resolveNgBaseEnemy } from './enemy'
 
 export interface TurnContext {
   run: RunState
@@ -49,7 +49,12 @@ export interface TurnResult {
 const STRUGGLE_RECOIL = 5
 
 function combatEnemy(ctx: TurnContext, phase: 1 | 2): Enemy {
-  return ctx.encounterEnemy ?? resolveEnemy(ctx.run, phase)
+  if (ctx.encounterEnemy) {
+    return phase === 2 && ctx.encounterEnemy.phase2
+      ? applyPhase2(ctx.encounterEnemy)
+      : ctx.encounterEnemy
+  }
+  return resolveEnemy(ctx.run, phase)
 }
 
 function benchCanStand(ctx: TurnContext): boolean {
@@ -153,32 +158,24 @@ function finish(
  */
 function resolveEnemyDown(ctx: TurnContext, w: Working, events: BattleEvent[]): TurnResult | null {
   const { run } = ctx
-  if (!ctx.encounterEnemy) {
-    const ngBase = resolveNgBaseEnemy(run)
-    // Founder Mode (Re-Org 9) raises the transform trigger to 60% HP.
-    const threshold = ascensionEffects(run.ascension).bossPhase2Threshold
-    if (
-      w.enemyPhase === 1 &&
-      ngBase.phase2 &&
-      w.enemyHp > 0 &&
-      w.enemyHp <= ngBase.maxHp * threshold
-    ) {
-      const phase2 = resolveEnemy(run, 2)
-      w.enemyPhase = 2
-      w.enemyHp = phase2.maxHp
-      w.enemyStatuses = []
-      events.push({ kind: 'pause', ms: 600 })
-      events.push({ kind: 'log', text: `💥 ${ngBase.phase2.taunt}` })
-      events.push({ kind: 'pause', ms: 500 })
-      events.push({ kind: 'log', text: '⚠️ PHASE 2' })
-      events.push({
-        kind: 'phase2',
-        patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
-      })
-      events.push({ kind: 'pause', ms: 800 })
-      // The enemy spends its turn transforming.
-      return finish(ctx, w, events, 'player')
-    }
+  const base = ctx.encounterEnemy ?? resolveNgBaseEnemy(run)
+  const threshold = ctx.encounterEnemy ? 0.5 : ascensionEffects(run.ascension).bossPhase2Threshold
+  if (w.enemyPhase === 1 && base.phase2 && w.enemyHp > 0 && w.enemyHp <= base.maxHp * threshold) {
+    const phase2 = ctx.encounterEnemy ? applyPhase2(ctx.encounterEnemy) : resolveEnemy(run, 2)
+    w.enemyPhase = 2
+    w.enemyHp = phase2.maxHp
+    w.enemyStatuses = []
+    events.push({ kind: 'pause', ms: 600 })
+    events.push({ kind: 'log', text: `💥 ${base.phase2.taunt}` })
+    events.push({ kind: 'pause', ms: 500 })
+    events.push({ kind: 'log', text: '⚠️ PHASE 2' })
+    events.push({
+      kind: 'phase2',
+      patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
+    })
+    events.push({ kind: 'pause', ms: 800 })
+    // The enemy spends its turn transforming.
+    return finish(ctx, w, events, 'player')
   }
 
   if (w.enemyHp <= 0) {
