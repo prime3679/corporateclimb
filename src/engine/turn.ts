@@ -6,7 +6,7 @@
 // animation timing anymore. All randomness flows through the injected
 // rng, so seeded daily runs stay deterministic.
 
-import type { Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
+import type { Enemy, Move, PlayerClass, StatusEffectOnMove, StatusInstance } from '@/types'
 import { ITEMS, STATUS_DEFS, getTypeMultiplier } from '@/data'
 import {
   STRUGGLE_MOVE,
@@ -31,6 +31,13 @@ export interface TurnContext {
   battle: BattleState
   /** Class with promotion stat boosts / move upgrades applied. */
   effectivePlayer: PlayerClass
+  /** Office override — when set, ENEMY_POOLS / resolveEnemy are not consulted. */
+  encounterEnemy?: Enemy
+  /** Office bench HP (active member is mirrored in run.hp during the turn). */
+  partyHp?: number[]
+  activeIndex?: number
+  activeSlot?: string
+  switchSlots?: { out: string; in: string }
 }
 
 export interface TurnResult {
@@ -40,6 +47,26 @@ export interface TurnResult {
 }
 
 const STRUGGLE_RECOIL = 5
+
+function combatEnemy(ctx: TurnContext, phase: 1 | 2): Enemy {
+  return ctx.encounterEnemy ?? resolveEnemy(ctx.run, phase)
+}
+
+function benchCanStand(ctx: TurnContext): boolean {
+  if (!ctx.partyHp || ctx.partyHp.length < 2) return false
+  const active = ctx.activeIndex ?? 0
+  return ctx.partyHp.some((hp, i) => i !== active && hp > 0)
+}
+
+function finishPlayerKo(ctx: TurnContext, w: Working, events: BattleEvent[]): TurnResult {
+  if (benchCanStand(ctx)) {
+    events.push({ kind: 'member_faint', slot: ctx.activeSlot ?? 'party_slot_0' })
+    events.push({ kind: 'faint', side: 'player' })
+    return finish(ctx, w, events, 'switch_required')
+  }
+  events.push({ kind: 'faint', side: 'player' })
+  return finish(ctx, w, events, 'lost')
+}
 
 /** Working copy of everything a round mutates. */
 interface Working {
@@ -126,30 +153,32 @@ function finish(
  */
 function resolveEnemyDown(ctx: TurnContext, w: Working, events: BattleEvent[]): TurnResult | null {
   const { run } = ctx
-  const ngBase = resolveNgBaseEnemy(run)
-  // Founder Mode (Re-Org 9) raises the transform trigger to 60% HP.
-  const threshold = ascensionEffects(run.ascension).bossPhase2Threshold
-  if (
-    w.enemyPhase === 1 &&
-    ngBase.phase2 &&
-    w.enemyHp > 0 &&
-    w.enemyHp <= ngBase.maxHp * threshold
-  ) {
-    const phase2 = resolveEnemy(run, 2)
-    w.enemyPhase = 2
-    w.enemyHp = phase2.maxHp
-    w.enemyStatuses = []
-    events.push({ kind: 'pause', ms: 600 })
-    events.push({ kind: 'log', text: `💥 ${ngBase.phase2.taunt}` })
-    events.push({ kind: 'pause', ms: 500 })
-    events.push({ kind: 'log', text: '⚠️ PHASE 2' })
-    events.push({
-      kind: 'phase2',
-      patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
-    })
-    events.push({ kind: 'pause', ms: 800 })
-    // The enemy spends its turn transforming.
-    return finish(ctx, w, events, 'player')
+  if (!ctx.encounterEnemy) {
+    const ngBase = resolveNgBaseEnemy(run)
+    // Founder Mode (Re-Org 9) raises the transform trigger to 60% HP.
+    const threshold = ascensionEffects(run.ascension).bossPhase2Threshold
+    if (
+      w.enemyPhase === 1 &&
+      ngBase.phase2 &&
+      w.enemyHp > 0 &&
+      w.enemyHp <= ngBase.maxHp * threshold
+    ) {
+      const phase2 = resolveEnemy(run, 2)
+      w.enemyPhase = 2
+      w.enemyHp = phase2.maxHp
+      w.enemyStatuses = []
+      events.push({ kind: 'pause', ms: 600 })
+      events.push({ kind: 'log', text: `💥 ${ngBase.phase2.taunt}` })
+      events.push({ kind: 'pause', ms: 500 })
+      events.push({ kind: 'log', text: '⚠️ PHASE 2' })
+      events.push({
+        kind: 'phase2',
+        patch: { enemyPhase: 2, enemyHp: w.enemyHp, enemyStatuses: w.enemyStatuses },
+      })
+      events.push({ kind: 'pause', ms: 800 })
+      // The enemy spends its turn transforming.
+      return finish(ctx, w, events, 'player')
+    }
   }
 
   if (w.enemyHp <= 0) {
@@ -163,7 +192,7 @@ function resolveEnemyDown(ctx: TurnContext, w: Working, events: BattleEvent[]): 
 /** Player picks a move (or Struggle when all PP is gone). */
 export function resolvePlayerMove(ctx: TurnContext, moveIdx: number, rng: Rng): TurnResult {
   const { run, battle, effectivePlayer } = ctx
-  const enemy = resolveEnemy(run, battle.enemyPhase)
+  const enemy = combatEnemy(ctx, battle.enemyPhase)
   const events: BattleEvent[] = []
   const w: Working = {
     playerHp: run.hp,
@@ -367,7 +396,7 @@ export function resolveItemUse(ctx: TurnContext, itemIdx: number, rng: Rng): Tur
     }
   }
   if (item.effect.dmgEnemy) {
-    const enemy = resolveEnemy(run, w.enemyPhase)
+    const enemy = combatEnemy(ctx, w.enemyPhase)
     // The Endless Re-Org (tier 10) halves flat item burst — the item
     // cheese that trivializes boss HP walls stops working at the cap.
     const dmg = Math.max(
@@ -387,7 +416,7 @@ export function resolveItemUse(ctx: TurnContext, itemIdx: number, rng: Rng): Tur
     logMsg += ` ${enemy.name} took ${dmg} damage!`
   }
   if (item.effect.enemyStatus) {
-    const enemy = resolveEnemy(run, w.enemyPhase)
+    const enemy = combatEnemy(ctx, w.enemyPhase)
     const applied = rollStatus(
       w,
       { id: item.effect.enemyStatus.id, target: 'enemy', chance: 1 },
@@ -430,7 +459,7 @@ function resolveEnemyTurn(
   mods: Mods = collectMods(ctx.run.perks, ctx.run.relics),
 ): TurnResult {
   const { run, effectivePlayer } = ctx
-  const enemy = resolveEnemy(run, w.enemyPhase)
+  const enemy = combatEnemy(ctx, w.enemyPhase)
 
   // Burnout chips the player before the enemy acts — and can end the
   // run. A Stress Ball relic halves the chip.
@@ -446,8 +475,7 @@ function resolveEnemyTurn(
     })
     events.push({ kind: 'log', text: `${effectivePlayer.name} is burned out! -${playerBurn} HP!` })
     if (w.playerHp <= 0) {
-      events.push({ kind: 'faint', side: 'player' })
-      return finish(ctx, w, events, 'lost')
+      return finishPlayerKo(ctx, w, events)
     }
   }
 
@@ -556,9 +584,37 @@ function resolveEnemyTurn(
 
   if (w.playerHp <= 0) {
     events.push({ kind: 'pause', ms: 400 })
-    events.push({ kind: 'faint', side: 'player' })
-    return finish(ctx, w, events, 'lost')
+    return finishPlayerKo(ctx, w, events)
   }
 
   return finish(ctx, w, events, 'player')
+}
+
+/**
+ * Office party switch. `ctx` must already project the incoming member
+ * into run.hp / run.pp / effectivePlayer. Voluntary switches spend the
+ * turn (enemy acts); forced switches do not.
+ */
+export function resolvePartySwitch(ctx: TurnContext, rng: Rng, forced = false): TurnResult {
+  const events: BattleEvent[] = []
+  const w: Working = {
+    playerHp: ctx.run.hp,
+    enemyHp: ctx.battle.enemyHp,
+    pp: [...ctx.run.pp],
+    playerStatuses: [],
+    enemyStatuses: ctx.battle.enemyStatuses,
+    enemyPhase: ctx.battle.enemyPhase,
+    damageDealt: 0,
+  }
+  const out = ctx.switchSlots?.out ?? ctx.activeSlot ?? 'party_slot_0'
+  const incoming = ctx.switchSlots?.in ?? ctx.activeSlot ?? 'party_slot_0'
+  events.push({ kind: 'switch_out', slot: out })
+  events.push({
+    kind: 'switch_in',
+    slot: incoming,
+    patch: { playerHp: w.playerHp, playerStatuses: [] },
+  })
+  events.push({ kind: 'log', text: `${ctx.effectivePlayer.name} steps up!` })
+  if (forced) return finish(ctx, w, events, 'player')
+  return resolveEnemyTurn(ctx, w, events, rng)
 }

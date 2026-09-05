@@ -20,11 +20,13 @@ export default function TitleScreen({
   onContinue,
   onDaily,
   onCodex,
+  onOffice,
 }: {
   onStart: () => void
   onContinue?: () => void
   onDaily: () => void
   onCodex: () => void
+  onOffice?: () => void
 }) {
   const [confirmNew, setConfirmNew] = useState(false)
   const [goldenBadge, setGoldenBadge] = useState(hasGoldenBadge)
@@ -365,6 +367,12 @@ export default function TitleScreen({
       {onContinue && !confirmNew && (
         <Button variant="secondary" size="md" onClick={onContinue} style={{ zIndex: 2 }}>
           CONTINUE
+        </Button>
+      )}
+
+      {onOffice && (
+        <Button variant="accent" size="md" onClick={onOffice} style={{ zIndex: 2, minWidth: 210 }}>
+          THE OFFICE
         </Button>
       )}
 

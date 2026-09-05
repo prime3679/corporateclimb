@@ -15,7 +15,13 @@ export {
   type ViewPatch,
 } from './events'
 export { actualFloorIndex, battleIntroLine, resolveEnemy, resolveNgBaseEnemy } from './enemy'
-export { resolveItemUse, resolvePlayerMove, type TurnContext, type TurnResult } from './turn'
+export {
+  resolveItemUse,
+  resolvePartySwitch,
+  resolvePlayerMove,
+  type TurnContext,
+  type TurnResult,
+} from './turn'
 export {
   BASE_POOLS,
   MAX_INVENTORY,

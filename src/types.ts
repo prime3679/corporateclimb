@@ -217,6 +217,9 @@ export type Screen =
   | 'actTransition'
   | 'dailyPre'
   | 'dailyResult'
+  | 'officeStart'
+  | 'officeClassSelect'
+  | 'office'
 
 // ─── DAILY CHALLENGE ────────────────────────────────────────
 

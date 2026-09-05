@@ -76,7 +76,7 @@ export interface RunState {
   ascension: number
 }
 
-export type BattlePhase = 'player' | 'won' | 'lost'
+export type BattlePhase = 'player' | 'won' | 'lost' | 'switch_required'
 
 export interface BattleState {
   enemyHp: number

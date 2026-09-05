@@ -57,6 +57,9 @@ const DELAY: Record<BattleEvent['kind'], number> = {
   faint: 1000,
   log: 250,
   pause: 0, // uses the event's own ms
+  switch_out: 350,
+  switch_in: 350,
+  member_faint: 800,
 }
 
 const POPUP_LIFETIME = 1100

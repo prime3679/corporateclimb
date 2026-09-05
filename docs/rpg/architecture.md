@@ -1,0 +1,114 @@
+# The Office — Architecture (Floor 1 MVP)
+
+_Status: implementation contract for `feat/overworld-mvp`. Frozen player-facing
+IDs and numbers live in `docs/rpg/mvp-design.md`. This file records how Astra
+wired that freeze into the existing engine/presentation split. Do not invent a
+second combat engine or a second perk pool._
+
+Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.md`
+(ledger and combat numbers), `CLAUDE.md` (Classic tower).
+
+---
+
+## 1. Split
+
+| Layer        | Path                                                    | Owns                                                                                                            |
+| ------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Content      | `src/content/office/*`                                  | Frozen IDs, the 24×18 map, dialogue nodes, encounter kits, POI copy, reward ledger. Tables and lookups only.    |
+| Engine       | `src/engine/office/*`                                   | `OfficeState`, `dispatchOfficeAction`, party, movement, dialogue effects, save I/O, encounter projection.       |
+| Combat       | existing `src/engine/turn.ts`                           | Damage, statuses, items, enemy AI. Office passes an `EncounterContext` projection; it does not fork a resolver. |
+| Presentation | `src/screens/OfficeScreen.tsx` + `src/screens/office/*` | Map, overlays, party strip. Reuses `BattleScreen`, `ClassSelect`, `PromotionScreen`, `ShopScreen`.              |
+
+Classic (`corporate-climb-save`, `ENEMY_POOLS`, `BASE_PERK_POOL`, `simulation.test.ts`)
+is untouched. Office enemies never enter `ENEMY_POOLS`. Office campaigns always
+run at Re-Org 0 with `BASE_PERK_POOL`.
+
+## 2. Campaign state
+
+`OfficeSave` is the persisted freeze from mvp-design §15. `OfficeState` is that
+save plus session fields (overlay, battle, encounter). A battle in progress is
+not written; reload restores the overworld (or `screen_promotion` when
+`run.pendingPerkOffer` is set).
+
+```ts
+interface OfficeSave {
+  version: 1
+  run: RunState // floor stays 0; hp/pp mirror party[0] at rest
+  party: PartyMember[] // [0] is the lead; PARTY_MAX = 3
+  floorId: 'floor_01'
+  player: { x: number; y: number; facing: 'n' | 'e' | 's' | 'w' }
+  assignments: Record<'asg_printer' | 'asg_meeting_prep', string>
+  encounters: Record<
+    'enc_desk_challenger' | 'enc_meeting_prepper' | 'enc_supervisor_1on1',
+    'open' | 'won'
+  >
+  keyItems: Record<string, number>
+  rewardsClaimed: string[]
+  flags: string[]
+  firedTriggers: string[]
+  stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number }
+}
+```
+
+`dispatchOfficeAction(state, action, rng?)` is the single mutation entry. Every
+overworld change (including recruit and the Holloway perk-offer roll) writes
+`corporate-climb-office-save`. Classic `SAVE_KEY` is never read or written by
+this path.
+
+## 3. Party
+
+- Slot 0 is the chosen class. Slots 1–2 are `cw_desk_challenger` / `cw_meeting_prepper`
+  in recruit order.
+- Recruit = encounter won + `key_offer_letter` ≥ 1 + a free slot. The printer
+  grants exactly two letters. Recruiting costs no Options and grants no XP.
+- Team-wide: `RunState.level`, `xp`, `stockOptions`, `perks`, `inventory`.
+- Per-member: `hp`, `pp`. Statuses live on `BattleState` and clear on switch.
+
+## 4. Combat projection
+
+`EncounterContext` is the overworld’s battle entry:
+
+- `enemy` is the office content entry (`Enemy.floor` holds rank). It is passed
+  as `TurnContext.encounterEnemy` so `resolveEnemy` / `ENEMY_POOLS` are never
+  consulted.
+- Before `resolvePlayerMove` / `resolveItemUse` / `resolvePartySwitch`, copy the
+  active member’s `hp`/`pp`/kit into `run` + `effectivePlayer`. After the call,
+  write `run.hp`/`run.pp` back onto `party[activeIndex]`.
+- Classic path: no `encounterEnemy`, no `party` on the context → existing
+  `'lost'` behaviour, bit-identical.
+- Office path: a KO with a standing bench member becomes `switch_required`
+  (`member_faint`) instead of `'lost'`. Voluntary switch emits `switch_out` /
+  `switch_in` and then the existing enemy turn. Forced switch does not give the
+  enemy a turn.
+- Rewards are the encounter’s explicit `{ xp, options }`, claimed once via
+  `rwd_enc_*`. Do not call `applyVictory`.
+
+## 5. Economy and promotion
+
+The floor ledger is the `rwd_*` ids in `docs/rpg/balance.md`. Celebration
+“Options earned” sums only those claimed ids (max 65).
+
+`BASE_PERK_POOL` is unchanged. Holloway’s win rolls `rollPerkOffer(run.perks,
+rng, BASE_PERK_POOL)` into `pendingPerkOffer` and saves before
+`PromotionScreen` mounts. Picking `signing_bonus` still uses `choosePerk`
+(which applies `instantOptions: 60`) and then shows a **separate** receipt
+`rcpt_promotion_signing_bonus`. That +60 is not a `rwd_*` row and must not
+appear in the celebration total.
+
+Vending is the existing shop math at floor 0 (`shopPrice`, `buyShopItem`) with
+stock `espresso` ×2 and `side_hustle` ×1 stored on `run.shopStock`. Wellness
+Day is not sold.
+
+## 6. Screens
+
+Title gains one button, **THE OFFICE**, which opens an office Continue/New
+gate (`screen_office_start`). New starts `ClassSelect` (Re-Org pick is
+ignored; office is pinned to 0). `OfficeScreen` owns the overworld, overlays,
+and the reuse of `BattleScreen` / `PromotionScreen` / `ShopScreen`.
+
+## 7. Deferred for Fable (polish, not architecture)
+
+Ship-quality tileset and badge-token art (§14), full §12 feedback matrix,
+§13 fade/duck timings, coach-mark motion, and the §19 device sign-off. The
+MVP is playable on the required route with token-tinted tiles and the
+existing portrait sprites.
