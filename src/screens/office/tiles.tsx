@@ -104,15 +104,17 @@ function DoorFrame({ x, y, tx, ty }: { x: number; y: number; tx: number; ty: num
       <Carpet x={x} y={y} />
       {vertical ? (
         <>
-          <rect x={x} y={y} width={T} height={3} fill={GLASS_LINE} opacity="0.9" />
-          <rect x={x} y={y + T - 3} width={T} height={3} fill={GLASS_LINE} opacity="0.9" />
-          <rect x={x + 2} y={y + 3} width={T - 4} height={T - 6} fill={GLASS} opacity="0.35" />
+          <rect x={x + 1} y={y} width={2} height={T} fill={WALL_CAP} />
+          <rect x={x + T - 3} y={y} width={2} height={T} fill={WALL_CAP} />
+          <rect x={x + 3} y={y + 1} width={T - 6} height={1} fill={HAIR} opacity="0.7" />
+          <rect x={x + 3} y={y + T - 2} width={T - 6} height={1} fill={INK} opacity="0.45" />
         </>
       ) : (
         <>
-          <rect x={x} y={y} width={3} height={T} fill={GLASS_LINE} opacity="0.9" />
-          <rect x={x + T - 3} y={y} width={3} height={T} fill={GLASS_LINE} opacity="0.9" />
-          <rect x={x + 3} y={y + 2} width={T - 6} height={T - 4} fill={GLASS} opacity="0.35" />
+          <rect x={x} y={y + 1} width={T} height={2} fill={WALL_CAP} />
+          <rect x={x} y={y + T - 3} width={T} height={2} fill={WALL_CAP} />
+          <rect x={x + 1} y={y + 3} width={1} height={T - 6} fill={HAIR} opacity="0.7" />
+          <rect x={x + T - 2} y={y + 3} width={1} height={T - 6} fill={INK} opacity="0.45" />
         </>
       )}
     </g>
