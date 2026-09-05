@@ -1,0 +1,150 @@
+.actor {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  transition: left 180ms linear, top 180ms linear;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.shadow {
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: 2px;
+  height: 9px;
+  border-radius: 999px;
+  background: radial-gradient(ellipse at center, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0) 70%);
+  filter: blur(1px);
+}
+
+.base {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: 3px;
+  height: 7px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--actor-ring) 84%, #fff 16%);
+  background: color-mix(in srgb, var(--actor-ring) 24%, rgba(5, 7, 13, 0.9) 76%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+    0 0 10px color-mix(in srgb, var(--actor-ring) 45%, rgba(0, 0, 0, 0.4) 55%);
+}
+
+.playerAura {
+  position: absolute;
+  left: 1px;
+  right: 1px;
+  bottom: -1px;
+  height: 13px;
+  border-radius: 999px;
+  background: radial-gradient(
+    ellipse at center,
+    color-mix(in srgb, var(--actor-ring) 60%, rgba(255, 255, 255, 0.5) 40%),
+    rgba(255, 211, 77, 0) 70%
+  );
+  opacity: 0.82;
+}
+
+.spriteWrap {
+  position: absolute;
+  left: -5px;
+  top: -12px;
+  width: 42px;
+  height: 42px;
+  transform-origin: 50% 84%;
+  display: grid;
+  place-items: center;
+}
+
+.sprite {
+  width: 100%;
+  height: 100%;
+  image-rendering: auto;
+  object-fit: contain;
+  padding: 4% 2% 0;
+  filter:
+    drop-shadow(1px 0 0 rgba(27, 34, 50, 0.9))
+    drop-shadow(-1px 0 0 rgba(27, 34, 50, 0.9))
+    drop-shadow(0 1px 0 rgba(27, 34, 50, 0.9))
+    drop-shadow(0 -1px 0 rgba(27, 34, 50, 0.9))
+    drop-shadow(0 4px 5px rgba(0, 0, 0, 0.35))
+    saturate(1.08);
+}
+
+.facingPip {
+  position: absolute;
+  left: 50%;
+  width: 7px;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--actor-ring) 88%, #fff 12%);
+  box-shadow: 0 0 8px color-mix(in srgb, var(--actor-ring) 65%, transparent 35%);
+  transform: translateX(-50%);
+}
+
+.face_n .facingPip {
+  top: 1px;
+}
+
+.face_s .facingPip {
+  bottom: 0;
+}
+
+.face_e .facingPip {
+  bottom: 2px;
+  transform: translateX(-50%) translateX(8px);
+}
+
+.face_w .facingPip {
+  bottom: 2px;
+  transform: translateX(-50%) translateX(-8px);
+}
+
+.face_w .spriteWrap {
+  transform: scaleX(-1) translateY(0.2px);
+}
+
+.face_e .spriteWrap {
+  transform: translateY(0.2px);
+}
+
+.face_n .spriteWrap {
+  transform: scale(0.96);
+}
+
+.face_s .spriteWrap {
+  transform: scale(1.02);
+}
+
+.phaseA .spriteWrap {
+  margin-top: 0;
+}
+
+.phaseB .spriteWrap {
+  margin-top: 1px;
+}
+
+.actorPlayer .spriteWrap {
+  filter: saturate(1.14) brightness(1.05);
+}
+
+:global(.reduce-motion) .actor {
+  transition: none;
+}
+
+:global(.reduce-motion) .phaseA .spriteWrap,
+:global(.reduce-motion) .phaseB .spriteWrap {
+  margin-top: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .actor {
+    transition: none;
+  }
+  .phaseA .spriteWrap,
+  .phaseB .spriteWrap {
+    margin-top: 0;
+  }
+}

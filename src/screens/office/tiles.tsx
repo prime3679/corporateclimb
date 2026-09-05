@@ -25,6 +25,38 @@ const GLASS = 'rgba(145, 212, 255, 0.32)'
 const GLASS_LINE = '#9fd0ff'
 const PAPER = '#eff5fd'
 const SHADOW = 'rgba(2, 4, 8, 0.5)'
+const WALL_LIGHT_TILES = new Set([
+  '3,0',
+  '8,0',
+  '16,0',
+  '21,0',
+  '3,6',
+  '8,6',
+  '16,6',
+  '21,6',
+  '3,12',
+  '8,12',
+  '16,12',
+  '21,12',
+])
+const WALL_NOTICE_TILES = new Set([
+  '5,0',
+  '19,0',
+  '5,6',
+  '19,6',
+  '4,12',
+  '17,12',
+  '20,12',
+])
+const FLOOR_CLUTTER: Record<string, 'paper' | 'cable' | 'mat'> = {
+  '2,14': 'paper',
+  '20,14': 'paper',
+  '7,8': 'cable',
+  '17,8': 'cable',
+  '11,13': 'mat',
+  '12,6': 'mat',
+  '21,3': 'paper',
+}
 
 export interface TileStates {
   printer: 'error' | 'working' | 'printing'
@@ -135,12 +167,41 @@ export function TileDefs() {
 }
 
 function Carpet({ x, y }: { x: number; y: number }) {
-  const zone = zoneAt(x / T, y / T)
-  const north = glyphAt(x / T, y / T - 1)
-  const west = glyphAt(x / T - 1, y / T)
+  const tx = x / T
+  const ty = y / T
+  const zone = zoneAt(tx, ty)
+  const north = glyphAt(tx, ty - 1)
+  const west = glyphAt(tx - 1, ty)
+  const hallLane = zone === 'zone_hall' && tx >= 10 && tx <= 13
+  const receptionMat = zone === 'zone_reception' && ty === 16 && tx >= 7 && tx <= 9
+  const deskRunner = zone === 'zone_desks' && ty >= 9 && ty <= 10 && tx >= 2 && tx <= 8
+  const seed = (tx * 37 + ty * 17) % 9
   return (
     <g>
       <rect x={x} y={y} width={T} height={T} fill={`url(#${zoneCarpetId(zone)})`} />
+      <rect
+        x={x + 2}
+        y={y + 2}
+        width={T - 4}
+        height={T - 4}
+        fill="#ffffff"
+        opacity={seed === 0 ? 0.05 : seed === 1 ? 0.03 : 0}
+      />
+      {hallLane && (
+        <>
+          <rect x={x + 3} y={y + 14} width={T - 6} height={1} fill="rgba(255,228,172,0.26)" />
+          <rect x={x + 3} y={y + 16} width={T - 6} height={1} fill="rgba(0,0,0,0.35)" />
+        </>
+      )}
+      {deskRunner && (
+        <rect x={x + 4} y={y + 4} width={T - 8} height={T - 8} fill="rgba(141,197,255,0.09)" />
+      )}
+      {receptionMat && (
+        <>
+          <rect x={x + 2} y={y + 8} width={T - 4} height={T - 10} rx={2} fill="#111721" />
+          <rect x={x + 4} y={y + 10} width={T - 8} height={1} fill="rgba(255,211,77,0.6)" />
+        </>
+      )}
       {north === '#' && <rect x={x} y={y} width={T} height={2} fill="rgba(0,0,0,0.2)" />}
       {west === '#' && <rect x={x} y={y} width={2} height={T} fill="rgba(0,0,0,0.17)" />}
     </g>
@@ -778,12 +839,97 @@ function Glass({ x, y }: { x: number; y: number }) {
   )
 }
 
+function FloorClutter({
+  x,
+  y,
+  kind,
+  zone,
+}: {
+  x: number
+  y: number
+  kind: 'paper' | 'cable' | 'mat'
+  zone: ZoneId
+}) {
+  if (kind === 'paper') {
+    return (
+      <g>
+        <rect x={x + 8} y={y + 19} width={10} height={6} fill={PAPER} stroke={INK} />
+        <rect x={x + 10} y={y + 21} width={6} height={1} fill={STEEL_DARK} />
+      </g>
+    )
+  }
+  if (kind === 'cable') {
+    return (
+      <g fill="none" stroke={INK} strokeOpacity="0.65">
+        <path d={`M${x + 7} ${y + 24} q 5 -4 10 0 q 5 4 8 0`} />
+        <path d={`M${x + 9} ${y + 23} q 4 -3 8 0`} strokeOpacity="0.45" />
+      </g>
+    )
+  }
+  return (
+    <g>
+      <rect
+        x={x + 5}
+        y={y + 21}
+        width={T - 10}
+        height={5}
+        rx={2}
+        fill={zone === 'zone_break' ? 'rgba(72,185,138,0.22)' : 'rgba(224,179,74,0.2)'}
+      />
+      <rect x={x + 6} y={y + 22} width={T - 12} height={1} fill="rgba(255,255,255,0.22)" />
+    </g>
+  )
+}
+
 /** Foreground trim pass for extra depth and emissive accents. */
 export function renderForegroundTile(tx: number, ty: number, s: TileStates): ReactNode {
   const g = glyphAt(tx, ty)
   const x = tx * T
   const y = ty * T
   const key = `fg-${tx},${ty}`
+  if (g === '#') {
+    const below = glyphAt(tx, ty + 1)
+    if (below !== '#') {
+      const tileId = `${tx},${ty}`
+      const light = WALL_LIGHT_TILES.has(tileId)
+      const notice = WALL_NOTICE_TILES.has(tileId)
+      return (
+        <g key={key}>
+          <rect x={x} y={y + 11} width={T} height={1} fill="rgba(0,0,0,0.28)" />
+          <rect x={x + 1} y={y + 1} width={1} height={9} fill="rgba(255,255,255,0.08)" />
+          {notice && (
+            <>
+              <rect x={x + 8} y={y + 3} width={16} height={9} rx={1} fill="#dbe7f7" stroke={INK} />
+              <rect
+                x={x + 10}
+                y={y + 5}
+                width={12}
+                height={1}
+                fill={zoneAt(tx, ty + 1) === 'zone_break' ? '#48b98a' : '#4d8fe0'}
+              />
+              <rect x={x + 10} y={y + 8} width={7} height={1} fill={STEEL_DARK} />
+            </>
+          )}
+          {light && (
+            <g className="of-wall-light">
+              <rect x={x + 10} y={y + 1} width={12} height={3} rx={1} fill="#ffe2ad" opacity="0.82" />
+              <rect x={x + 9} y={y + 4} width={14} height={8} fill="rgba(255,220,148,0.16)" />
+            </g>
+          )}
+        </g>
+      )
+    }
+    return null
+  }
+  if (g === '.') {
+    const clutter = FLOOR_CLUTTER[`${tx},${ty}`]
+    if (!clutter) return null
+    return (
+      <g key={key}>
+        <FloorClutter x={x} y={y} kind={clutter} zone={zoneAt(tx, ty)} />
+      </g>
+    )
+  }
   if (g === '=') {
     return (
       <g key={key}>

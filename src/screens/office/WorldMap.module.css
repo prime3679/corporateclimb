@@ -538,6 +538,10 @@
   animation: of-monitor 1.1s ease-in-out infinite;
 }
 
+.foreground :global(.of-wall-light) {
+  animation: of-monitor 2.2s ease-in-out infinite;
+}
+
 :global(.reduce-motion) .camera,
 :global(.reduce-motion) .token,
 :global(.reduce-motion) .pin {
@@ -567,7 +571,8 @@
 :global(.reduce-motion) .tiles :global(.of-pages),
 :global(.reduce-motion) .tiles :global(.of-monitor),
 :global(.reduce-motion) .foreground :global(.of-vending),
-:global(.reduce-motion) .foreground :global(.of-elevator-shine) {
+:global(.reduce-motion) .foreground :global(.of-elevator-shine),
+:global(.reduce-motion) .foreground :global(.of-wall-light) {
   animation: none;
 }
 
@@ -601,7 +606,8 @@
   .tiles :global(.of-pages),
   .tiles :global(.of-monitor),
   .foreground :global(.of-vending),
-  .foreground :global(.of-elevator-shine) {
+  .foreground :global(.of-elevator-shine),
+  .foreground :global(.of-wall-light) {
     animation: none;
   }
 }
