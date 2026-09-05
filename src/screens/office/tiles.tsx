@@ -181,7 +181,8 @@ function Wall({ x, y, tx, ty }: { x: number; y: number; tx: number; ty: number }
 }
 
 function DoorFrame({ x, y, tx, ty }: { x: number; y: number; tx: number; ty: number }) {
-  const vertical = glyphAt(tx, ty - 1) === '#' && glyphAt(tx, ty + 1) === '#'
+  // Stacked hallway openings still need side jambs so they read as open doors.
+  const vertical = glyphAt(tx, ty - 1) === '#' || glyphAt(tx, ty + 1) === '#'
   return (
     <g>
       <Carpet x={x} y={y} />

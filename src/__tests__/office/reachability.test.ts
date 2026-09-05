@@ -1,9 +1,10 @@
 import { describe, expect, it } from 'vitest'
-import type { Facing } from '@/content/office'
+import { glyphAt, isSolid, zoneAt, type Facing } from '@/content/office'
 import { PLAYER_CLASSES } from '@/data'
 import {
   currentObjective,
   dispatchOfficeAction,
+  interactTarget,
   keyCount,
   newOfficeCampaign,
   tryStep,
@@ -85,6 +86,20 @@ function followRoute(state: OfficeState, route: Facing[]): OfficeState {
   return next
 }
 
+function followRouteWithTrace(
+  state: OfficeState,
+  route: Facing[],
+): { state: OfficeState; trace: Array<{ x: number; y: number; facing: Facing }> } {
+  let next = state
+  const trace = [{ ...next.player }]
+  for (const dir of route) {
+    next = dispatchOfficeAction(next, { type: 'MOVE', dir }).state
+    next = clearOverlays(next)
+    trace.push({ ...next.player })
+  }
+  return { state: next, trace }
+}
+
 function findRouteWithTryStep(state: OfficeState, target: ReachTarget): Facing[] | null {
   const queue: { x: number; y: number; facing: Facing; path: Facing[] }[] = [
     { ...state.player, path: [] },
@@ -124,6 +139,15 @@ function acceptPrinterTicket(state: OfficeState): OfficeState {
 }
 
 describe('office route reachability', () => {
+  it('keeps hall-to-room doorway tiles visibly open and non-solid', () => {
+    for (const y of [8, 9, 10]) {
+      expect(glyphAt(14, y)).toBe('D')
+      expect(isSolid(14, y)).toBe(false)
+      expect(glyphAt(10, y)).toBe('D')
+      expect(isSolid(10, y)).toBe(false)
+    }
+  })
+
   it('keeps key route tiles reachable after accepting the printer assignment', () => {
     const accepted = acceptPrinterTicket(start())
     expect(accepted.assignments.asg_printer).toBe('accepted')
@@ -141,12 +165,28 @@ describe('office route reachability', () => {
   it('updates objective after ticket acceptance and supports full reducer walk', () => {
     let state = acceptPrinterTicket(start())
     expect(state.assignments.asg_printer).toBe('accepted')
-    expect(currentObjective(state).text).toBe('Get toner from the supply cabinet')
+    expect(currentObjective(state)).toMatchObject({
+      text: 'Get toner from the supply cabinet',
+      zone: 'zone_break',
+      pin: { x: 15, y: 8 },
+    })
 
-    state = followRoute(
-      state,
-      mustFindRoute(state, { label: 'Supply cabinet interact tile', x: 15, y: 8, facing: 'n' }),
-    )
+    const cabinetRoute = mustFindRoute(state, {
+      label: 'Supply cabinet interact tile',
+      x: 15,
+      y: 8,
+      facing: 'n',
+    })
+    const toCabinet = followRouteWithTrace(state, cabinetRoute)
+    state = toCabinet.state
+    expect(toCabinet.trace.some((t) => t.x === 14 && [8, 9, 10].includes(t.y))).toBe(true)
+    expect(toCabinet.trace.some((t) => zoneAt(t.x, t.y) === 'zone_break')).toBe(true)
+    expect(interactTarget(state)).toMatchObject({
+      kind: 'poi',
+      id: 'poi_supply_cabinet',
+      label: 'Open · Supply cabinet',
+    })
+
     state = dispatchOfficeAction(state, { type: 'INTERACT' }).state
     state = clearOverlays(state)
     expect(state.assignments.asg_printer).toBe('toner_collected')
