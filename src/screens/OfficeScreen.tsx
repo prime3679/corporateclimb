@@ -109,16 +109,18 @@ export default function OfficeScreen({
     const prev = prevScreenRef.current
     if (prev === state.screen) return
     prevScreenRef.current = state.screen
-    if (reduceMotion) return
-    if (prev === 'overworld' && state.screen === 'battle') {
-      setSceneFx('battle-in')
-      return
+    if (reduceMotion) {
+      const t = window.setTimeout(() => setSceneFx(null), 0)
+      return () => window.clearTimeout(t)
     }
-    if (prev === 'battle' && state.screen === 'overworld') {
-      setSceneFx('battle-out')
-      return
-    }
-    setSceneFx(null)
+    const nextFx =
+      prev === 'overworld' && state.screen === 'battle'
+        ? ('battle-in' as const)
+        : prev === 'battle' && state.screen === 'overworld'
+          ? ('battle-out' as const)
+          : null
+    const t = window.setTimeout(() => setSceneFx(nextFx), 0)
+    return () => window.clearTimeout(t)
   }, [state.screen, reduceMotion])
 
   useEffect(() => {

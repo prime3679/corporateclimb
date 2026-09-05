@@ -1,4 +1,4 @@
-import { memo, useEffect, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
+import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import {
   DIALOGUE,
   MAP_HEIGHT,
@@ -146,8 +146,6 @@ function BadgeToken({
 export default function WorldMap({ state }: { state: OfficeState }) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [viewH, setViewH] = useState(MAP_H)
-  const [stepPhase, setStepPhase] = useState(0)
-  const prevPosRef = useRef({ x: state.player.x, y: state.player.y })
 
   useLayoutEffect(() => {
     const el = mapRef.current
@@ -160,16 +158,11 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     return () => ro.disconnect()
   }, [])
 
-  useEffect(() => {
-    const moved = prevPosRef.current.x !== state.player.x || prevPosRef.current.y !== state.player.y
-    if (moved) setStepPhase((n) => n + 1)
-    prevPosRef.current = { x: state.player.x, y: state.player.y }
-  }, [state.player.x, state.player.y])
-
   const obj = currentObjective(state)
   const nearby = interactTarget(state)
   const states = tileStates(state, nearby)
   const zone = zoneAt(state.player.x, state.player.y)
+  const stepPhase = (state.player.x + state.player.y) % 2
 
   const viewRows = viewH / T
   const lookAheadX = state.player.facing === 'e' ? 0.5 : state.player.facing === 'w' ? -0.5 : 0
