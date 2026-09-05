@@ -24,7 +24,7 @@
   max-width: none;
   display: block;
   pointer-events: none;
-  filter: drop-shadow(0 0 0 rgba(38, 50, 56, 0.9)) saturate(1.06);
+  filter: saturate(1.06);
 }
 
 .out .img {

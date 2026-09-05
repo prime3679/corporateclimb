@@ -413,9 +413,10 @@
 }
 
 .coachSwitch {
-  left: 50%;
-  bottom: 140px;
-  transform: translateX(-50%);
+  --coach-pointer: 99px; /* the SWITCH tab in the deck's tab row */
+  left: 130px;
+  bottom: 228px;
+  width: 270px;
 }
 
 /* ── battle bench picker ── */

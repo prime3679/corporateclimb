@@ -885,6 +885,22 @@ export function Interstitial({ state, onChange }: OverlayProps) {
     const t = window.setTimeout(() => setReady(true), 1200)
     return () => window.clearTimeout(t)
   }, [])
+  const advance = useRef(() => {})
+  useEffect(() => {
+    advance.current = () => {
+      if (ready) act({ type: 'ADVANCE' })
+    }
+  })
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Enter' || e.key === 'e' || e.key === 'E' || e.key === ' ') {
+        e.preventDefault()
+        advance.current()
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [])
   if (ov?.kind !== 'interstitial') return null
   const enc = OFFICE_ENCOUNTERS[ov.encounterId]
   const lostNode =
@@ -898,7 +914,7 @@ export function Interstitial({ state, onChange }: OverlayProps) {
       className={styles.interstitial}
       role="dialog"
       aria-live="assertive"
-      onClick={() => ready && act({ type: 'ADVANCE' })}
+      onClick={() => advance.current()}
     >
       <div className={`${styles.eyebrow} ${styles.eyebrowDanger}`}>Time out</div>
       <div className={`${styles.title} ${styles.titleLg}`}>Your team needs a minute.</div>

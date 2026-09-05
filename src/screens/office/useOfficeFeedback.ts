@@ -1,5 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
-import { OFFICE_ENCOUNTERS, POI_INSPECT, RECEIPTS, ZONE_LABEL, zoneAt } from '@/content/office'
+import {
+  OFFICE_ENCOUNTERS,
+  POI_INSPECT,
+  RECEIPTS,
+  REWARD_OPTIONS,
+  ZONE_LABEL,
+  zoneAt,
+} from '@/content/office'
 import {
   currentObjective,
   inspectText,
@@ -200,7 +207,14 @@ export function useOfficeFeedback(state: OfficeState): string {
  * the displayed value and whether it just changed (for the gold pulse).
  */
 export function useDeferredWallet(state: OfficeState): { shown: number; pulse: boolean } {
-  const [shown, setShown] = useState(state.run.stockOptions)
+  const [shown, setShown] = useState(() => {
+    // Mounting under an open receipt (new campaign, resumed grant): show the
+    // pre-grant total so the chip visibly counts up when it is filed.
+    const ov = state.overlay
+    const rewardId = ov?.kind === 'receipt' ? RECEIPTS[ov.receiptId].rewardId : undefined
+    const pending = rewardId ? REWARD_OPTIONS[rewardId] : 0
+    return Math.max(0, state.run.stockOptions - pending)
+  })
   const [pulse, setPulse] = useState(false)
   const holding = state.overlay?.kind === 'receipt'
   const actual = state.run.stockOptions

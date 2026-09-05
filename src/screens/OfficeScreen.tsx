@@ -145,9 +145,9 @@ export default function OfficeScreen({
       if (state.overlay) {
         const ov = state.overlay
         if (e.key === 'Enter' || e.key === 'e' || e.key === 'E') {
-          // The dialogue box owns Enter (it completes the typewriter first);
-          // focused buttons own it natively; everything else advances.
-          if (ov.kind === 'dialogue') return
+          // The dialogue box owns Enter (it completes the typewriter first), the
+          // interstitial owns it (1.2 s minimum); focused buttons own it natively.
+          if (ov.kind === 'dialogue' || ov.kind === 'interstitial') return
           if (document.activeElement instanceof HTMLButtonElement) return
           e.preventDefault()
           act({ type: 'ADVANCE' })
@@ -474,6 +474,12 @@ function Overworld({
   const letters = lettersHeld(state)
   const holdRef = useRef<number | null>(null)
   const [held, setHeld] = useState<Facing | null>(null)
+  // The repeat timer must dispatch against the latest state, not the one
+  // captured when the thumb first landed.
+  const actRef = useRef(act)
+  useEffect(() => {
+    actRef.current = act
+  })
 
   const stopHold = useCallback(() => {
     if (holdRef.current) window.clearInterval(holdRef.current)
@@ -486,8 +492,8 @@ function Overworld({
   const startHold = (dir: Facing) => {
     stopHold()
     setHeld(dir)
-    act({ type: 'MOVE', dir })
-    holdRef.current = window.setInterval(() => act({ type: 'MOVE', dir }), MOVE_MS)
+    actRef.current({ type: 'MOVE', dir })
+    holdRef.current = window.setInterval(() => actRef.current({ type: 'MOVE', dir }), MOVE_MS)
   }
 
   return (
