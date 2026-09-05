@@ -15,6 +15,22 @@ export const LANDING_DEST_ACCENT = '#e0844d'
 /** Elevator doors are the same tiles on every floor; the pin for a cross-floor target sits on them. */
 const ELEVATOR_PIN = { x: 3, y: 1 }
 
+/** Soft-skip: a floor the player already stepped onto (or started) stays the dest. */
+function floorStarted(state: OfficeSave, floor: 'floor_03' | 'floor_04' | 'floor_05'): boolean {
+  if (floor === 'floor_05') {
+    return (
+      state.flags.includes('flag_visited_f5') ||
+      state.assignments.asg_board_packet !== 'not_started'
+    )
+  }
+  if (floor === 'floor_04') {
+    return (
+      state.flags.includes('flag_visited_f4') || state.assignments.asg_leavebehind !== 'not_started'
+    )
+  }
+  return state.flags.includes('flag_visited_f3') || state.assignments.asg_roadmap !== 'not_started'
+}
+
 function awayZone(state: OfficeSave): ZoneId {
   return state.floorId === 'floor_01' ? 'zone_elevator' : 'zone_landing'
 }
@@ -69,7 +85,7 @@ function floor5Objective(state: OfficeSave): OfficeObjective | null {
   if (asg === 'not_started' && on) {
     return { text: 'Talk to Marlowe', zone: 'zone_ante', pin: { x: 10, y: 3 } }
   }
-  if (keyCount(state, 'key_client_badge') > 0) {
+  if (keyCount(state, 'key_client_badge') > 0 || floorStarted(state, 'floor_05')) {
     return on
       ? { text: 'Talk to Marlowe', zone: 'zone_ante', pin: { x: 10, y: 3 } }
       : {
@@ -133,7 +149,10 @@ function floor4Objective(state: OfficeSave): OfficeObjective | null {
   if (asg === 'not_started' && on) {
     return { text: 'Talk to Harper', zone: 'zone_pipeline', pin: { x: 10, y: 3 } }
   }
-  if (keyCount(state, 'key_product_badge') > 0 && asg === 'not_started') {
+  if (
+    (keyCount(state, 'key_product_badge') > 0 || floorStarted(state, 'floor_04')) &&
+    asg === 'not_started'
+  ) {
     return on
       ? { text: 'Talk to Harper', zone: 'zone_pipeline', pin: { x: 10, y: 3 } }
       : {
@@ -297,6 +316,19 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
 export function currentObjective(state: OfficeSave): OfficeObjective {
   if (isStubFloor(state.floorId)) {
     return { text: 'Look around', zone: 'zone_landing', pin: ELEVATOR_PIN }
+  }
+  // Honor the floor you're standing on so a skip to 4/5 doesn't yank the pin back.
+  if (state.floorId === 'floor_05') {
+    const here = floor5Objective(state)
+    if (here) return here
+  }
+  if (state.floorId === 'floor_04') {
+    const here = floor4Objective(state)
+    if (here) return here
+  }
+  if (state.floorId === 'floor_03') {
+    const here = floor3Objective(state)
+    if (here) return here
   }
   const floor5 = floor5Objective(state)
   if (floor5) return floor5

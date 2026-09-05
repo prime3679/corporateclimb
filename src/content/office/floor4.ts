@@ -132,6 +132,7 @@ export type Floor4PoiId = Extract<
   | 'poi_vending_machine_f4'
   | 'poi_break_table_f4'
   | 'poi_ashford_desk'
+  | 'poi_supply_cabinet_upper'
 >
 
 export type Floor4InteractTarget =
@@ -187,6 +188,9 @@ export const FLOOR_4_INTERACT_SPOTS: Floor4InteractSpot[] = [
   poi(20, 4, 'w', 'poi_leavebehind', 'Take · Leave-behind'),
   poi(21, 8, 'e', 'poi_water_cooler_f4', 'Inspect · Water cooler'),
   poi(22, 7, 's', 'poi_water_cooler_f4', 'Inspect · Water cooler'),
+  poi(3, 12, 'n', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
+  poi(2, 11, 'e', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
+  poi(3, 10, 's', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
   poi(4, 12, 'n', 'poi_break_counter_f4', 'Take five · Coffee counter'),
   poi(5, 12, 'n', 'poi_break_counter_f4', 'Take five · Coffee counter'),
   poi(6, 12, 'n', 'poi_break_counter_f4', 'Take five · Coffee counter'),
@@ -213,6 +217,7 @@ export const FLOOR_4_POI_GLYPHS: Record<Floor4PoiId, string> = {
   poi_vending_machine_f4: 'V',
   poi_break_table_f4: 't',
   poi_ashford_desk: 'd',
+  poi_supply_cabinet_upper: 'S',
 }
 
 export const FLOOR_4_PROP_CELLS: Record<string, string[]> = {

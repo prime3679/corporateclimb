@@ -119,6 +119,7 @@ export type Floor5PoiId = Extract<
   | 'poi_break_table_f5'
   | 'poi_board_table'
   | 'poi_caldwell_desk'
+  | 'poi_supply_cabinet_upper'
 >
 
 export type Floor5InteractTarget =
@@ -167,6 +168,9 @@ export const FLOOR_5_INTERACT_SPOTS: Floor5InteractSpot[] = [
   poi(18, 4, 'w', 'poi_sideboard', 'Take · Board packet'),
   poi(21, 8, 'e', 'poi_water_cooler_f5', 'Inspect · Water cooler'),
   poi(22, 7, 's', 'poi_water_cooler_f5', 'Inspect · Water cooler'),
+  poi(3, 12, 'n', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
+  poi(2, 11, 'e', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
+  poi(3, 10, 's', 'poi_supply_cabinet_upper', 'Inspect · Supply cabinet'),
   poi(4, 12, 'n', 'poi_break_counter_f5', 'Take five · Coffee counter'),
   poi(5, 12, 'n', 'poi_break_counter_f5', 'Take five · Coffee counter'),
   poi(6, 12, 'n', 'poi_break_counter_f5', 'Take five · Coffee counter'),
@@ -196,6 +200,7 @@ export const FLOOR_5_POI_GLYPHS: Record<Floor5PoiId, string> = {
   poi_break_table_f5: 't',
   poi_board_table: 'T',
   poi_caldwell_desk: 'd',
+  poi_supply_cabinet_upper: 'S',
 }
 
 export const FLOOR_5_PROP_CELLS: Record<string, string[]> = {

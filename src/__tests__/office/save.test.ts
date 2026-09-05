@@ -86,6 +86,7 @@ describe('office save isolation', () => {
       version: 1 as const,
       hired: undefined,
       bench: undefined,
+      vendingStock: undefined,
       stats: { battlesWon: 0, losses: 0, switches: 0, msOnFloor: 12 },
     }
     localStorage.setItem(OFFICE_SAVE_KEY, JSON.stringify(v1))
@@ -94,6 +95,13 @@ describe('office save isolation', () => {
     expect(loaded?.hired).toEqual([])
     expect(loaded?.bench).toEqual({})
     expect(loaded?.stats.rides).toBe(0)
+    expect(loaded?.vendingStock.floor_01).toEqual(['espresso', 'espresso', 'side_hustle'])
+    expect(loaded?.vendingStock.floor_02).toEqual([
+      'espresso',
+      'espresso',
+      'pto_day',
+      'standing_desk',
+    ])
   })
 
   it('dispatchOfficeAction is a pure reducer and never writes either save key', () => {

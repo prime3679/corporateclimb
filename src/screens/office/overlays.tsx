@@ -587,8 +587,8 @@ function MemberRow({
           <Button
             variant="secondary"
             onClick={() => {
-              SFX.menuBack()
-              act({ type: 'DISMISS_MEMBER', slot: state.party.indexOf(member) })
+              SFX.menuSelect()
+              act({ type: 'REQUEST_DISMISS', slot: state.party.indexOf(member) })
             }}
           >
             Send to desk
@@ -687,10 +687,42 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
 
 function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
   const here = state.floorId
+  const listRef = useRef<HTMLDivElement>(null)
+  const focusIdx = ELEVATOR_FLOORS.findIndex((row) => row.id !== here)
+  useEffect(() => {
+    const root = listRef.current
+    if (!root) return
+    const buttons = [...root.querySelectorAll<HTMLButtonElement>('button[role="option"]')]
+    const start = buttons[focusIdx >= 0 ? focusIdx : 0]
+    start?.focus()
+    const onKey = (e: KeyboardEvent) => {
+      const i = buttons.indexOf(document.activeElement as HTMLButtonElement)
+      if (e.key === 'ArrowDown' || e.key === 's' || e.key === 'S') {
+        e.preventDefault()
+        buttons[Math.min(buttons.length - 1, Math.max(0, i) + 1)]?.focus()
+      } else if (e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W') {
+        e.preventDefault()
+        buttons[Math.max(0, (i < 0 ? 0 : i) - 1)]?.focus()
+      } else if (e.key === 'Escape') {
+        e.preventDefault()
+        SFX.menuBack()
+        act({ type: 'CHOOSE', choice: 'stay' })
+      } else if (/^[1-5]$/.test(e.key)) {
+        e.preventDefault()
+        const row = ELEVATOR_FLOORS.find((r) => String(r.number) === e.key)
+        if (row) {
+          SFX.menuConfirm()
+          act({ type: 'CHOOSE', choice: row.id })
+        }
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [act, focusIdx])
   return (
     <Scrim tight>
       <div className={styles.eyebrow}>Elevator</div>
-      <div className={styles.elevList} role="listbox" aria-label="Elevator floors">
+      <div ref={listRef} className={styles.elevList} role="listbox" aria-label="Elevator floors">
         {ELEVATOR_FLOORS.map((row) => {
           const current = row.id === here
           const climbHere =
@@ -746,6 +778,28 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
       </div>
     </Scrim>
   )
+}
+
+const BADGE_PRINT_MS = 1800
+
+function PauseBeat({
+  ms,
+  reduceMotion,
+  onDone,
+}: {
+  ms: number
+  reduceMotion: boolean
+  onDone: () => void
+}) {
+  const cb = useRef(onDone)
+  useEffect(() => {
+    cb.current = onDone
+  })
+  useEffect(() => {
+    const t = window.setTimeout(() => cb.current(), reduceMotion ? 0 : ms)
+    return () => window.clearTimeout(t)
+  }, [ms, reduceMotion])
+  return <div className={styles.layer} aria-hidden />
 }
 
 /* ─── toast ─────────────────────────────────────────────── */
@@ -1028,6 +1082,32 @@ export default function OfficeOverlays({
         </div>
       )
     }
+    if (ov.prompt === 'send_to_desk') {
+      const member = state.party[ov.slot]
+      const id = member?.def.kind === 'coworker' ? member.def.id : null
+      const desk = id ? COWORKER_DESK[id] : null
+      const name = member ? memberName(member) : 'Them'
+      const pronoun = desk?.pronoun ?? 'their'
+      return (
+        <div className={styles.layer}>
+          <Confirm
+            eyebrow="Team · Roster"
+            title={`Send ${name} to ${pronoun} desk?`}
+            body={`${pronoun === 'her' ? 'She' : 'He'} keeps ${pronoun} HP, ${pronoun} PP and ${pronoun} opinions. Talk to ${pronoun === 'her' ? 'her' : 'him'} at ${pronoun} desk to bring ${pronoun === 'her' ? 'her' : 'him'} back.`}
+            yes="Send"
+            no="Keep"
+            onYes={() => {
+              SFX.menuBack()
+              act({ type: 'DISMISS_MEMBER', slot: ov.slot })
+            }}
+            onNo={() => {
+              SFX.menuBack()
+              act({ type: 'CLOSE_OVERLAY' })
+            }}
+          />
+        </div>
+      )
+    }
     return null
   }
 
@@ -1042,6 +1122,16 @@ export default function OfficeOverlays({
           onExit={onExit}
         />
       </div>
+    )
+  }
+
+  if (ov.kind === 'pause') {
+    return (
+      <PauseBeat
+        ms={ov.reason === 'badge_print' ? BADGE_PRINT_MS : 800}
+        reduceMotion={reduceMotion}
+        onDone={() => act({ type: 'ADVANCE' })}
+      />
     )
   }
 

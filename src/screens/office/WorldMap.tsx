@@ -1,6 +1,5 @@
 import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import {
-  BADGE_PRINTER_COPY,
   DIALOGUE,
   MAP_HEIGHT,
   MAP_WIDTH,
@@ -19,7 +18,14 @@ import {
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
 import { ringColorFor } from './ringColor'
 import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
-import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
+import {
+  NPC_CAST,
+  ZONE_ACCENT,
+  castForSpeaker,
+  isElevatorPoi,
+  isVendingPoi,
+  promptText,
+} from './cast'
 import { atlasOffset, floorCells, propCells, type Sprite, type TileStates } from './tiles'
 import { TILE_CELL_H, TILE_SHEET_H, TILE_SHEET_URL, TILE_SHEET_W } from './tileAtlas'
 import styles from './WorldMap.module.css'
@@ -66,7 +72,9 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
     cabinetOpen:
       state.floorId === 'floor_02'
         ? state.firedTriggers.includes('poi_supply_cabinet_f2:opened')
-        : printer !== 'not_started' && printer !== 'accepted',
+        : state.floorId === 'floor_01'
+          ? printer !== 'not_started' && printer !== 'accepted'
+          : state.firedTriggers.includes('poi_supply_cabinet_upper:opened'),
     counterSteaming:
       zone === 'zone_break' ||
       zone === 'zone_facilities' ||
@@ -74,13 +82,7 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
       zone === 'zone_sales' ||
       zone === 'zone_board' ||
       (ov?.kind === 'toast' && ov.text.startsWith('You take five')),
-    vendingLit:
-      nearby?.kind === 'poi' &&
-      (nearby.id === 'poi_vending_machine' ||
-        nearby.id === 'poi_vending_machine_f2' ||
-        nearby.id === 'poi_vending_machine_f3' ||
-        nearby.id === 'poi_vending_machine_f4' ||
-        nearby.id === 'poi_vending_machine_f5'),
+    vendingLit: nearby?.kind === 'poi' && isVendingPoi(nearby.id),
     readerGreen: (badge ?? 0) > 0,
     elevatorOpen:
       state.screen === 'elevator_ride'
@@ -92,7 +94,7 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
     badgePrinter:
       (state.keyItems.key_employee_badge ?? 0) > 0
         ? 'done'
-        : ov?.kind === 'dialogue' && ov.nodeId === `inspect:${BADGE_PRINTER_COPY.printing}`
+        : ov?.kind === 'pause' && ov.reason === 'badge_print'
           ? 'printing'
           : 'idle',
     shredding: ov?.kind === 'dialogue' && ov.nodeId === 'dlg_whitlock_after',
@@ -271,8 +273,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const nearbyTop = nearby ? Math.max(30, (outlineTile?.y ?? ahead.y) * T - camPx.y - 6) : 0
   const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
   const elevatorDot =
-    nearby?.kind === 'poi' &&
-    (nearby.id === 'poi_elevator_door' || nearby.id === 'poi_elevator_door_f2')
+    nearby?.kind === 'poi' && isElevatorPoi(nearby.id)
       ? states.readerGreen
         ? 'var(--cc-heal)'
         : 'var(--cc-danger)'
@@ -287,15 +288,13 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, obj.pin.y * T - camPx.y))
   const poiFxTile =
     nearby?.kind === 'poi' &&
-    (nearby.id === 'poi_elevator_door' ||
-      nearby.id === 'poi_elevator_door_f2' ||
+    (isElevatorPoi(nearby.id) ||
+      isVendingPoi(nearby.id) ||
       nearby.id === 'poi_supervisor_door' ||
       nearby.id === 'poi_director_door' ||
       nearby.id === 'poi_printer' ||
       nearby.id === 'poi_badge_printer' ||
-      nearby.id === 'poi_photo_booth' ||
-      nearby.id === 'poi_vending_machine' ||
-      nearby.id === 'poi_vending_machine_f2')
+      nearby.id === 'poi_photo_booth')
       ? { x: (outlineTile?.x ?? ahead.x) * T, y: (outlineTile?.y ?? ahead.y) * T }
       : null
 

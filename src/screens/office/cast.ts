@@ -16,7 +16,7 @@ import {
   type ZoneId,
 } from '@/content/office'
 import { kitFor, type OfficeSave, type PartyMember } from '@/engine/office'
-import { CURRENCY_ICON } from '@/data'
+import { CURRENCY_ICON, ITEMS } from '@/data'
 import { ringColorFor } from './ringColor'
 
 export function formatFloorTime(ms: number): string {
@@ -340,8 +340,51 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
     case 'poi_break_table_f4':
     case 'poi_break_table_f5':
       return 'Inspect · Break table'
+    case 'poi_supply_cabinet_upper':
+      return 'Inspect · Supply cabinet'
   }
   return 'Inspect'
+}
+
+export function isElevatorPoi(id: string): boolean {
+  return (
+    id === 'poi_elevator_door' ||
+    id === 'poi_elevator_door_f2' ||
+    id === 'poi_elevator_door_f3' ||
+    id === 'poi_elevator_door_f4' ||
+    id === 'poi_elevator_door_f5'
+  )
+}
+
+export function isVendingPoi(id: string): boolean {
+  return (
+    id === 'poi_vending_machine' ||
+    id === 'poi_vending_machine_f2' ||
+    id === 'poi_vending_machine_f3' ||
+    id === 'poi_vending_machine_f4' ||
+    id === 'poi_vending_machine_f5'
+  )
+}
+
+/** HUD key chips — visitor / employee / product / client plus held quest items. */
+export function hudKeyChips(state: OfficeSave): { id: string; label: string }[] {
+  const chips: { id: string; label: string }[] = []
+  const letters = state.keyItems.key_offer_letter ?? 0
+  if (letters > 0) chips.push({ id: 'letter', label: `📄 ×${letters}` })
+  if ((state.keyItems.key_toner ?? 0) > 0) chips.push({ id: 'toner', label: 'Toner' })
+  if ((state.keyItems.key_access_badge ?? 0) > 0) chips.push({ id: 'access', label: '🪪 Visitor' })
+  if ((state.keyItems.key_employee_badge ?? 0) > 0)
+    chips.push({ id: 'employee', label: '🪪 Employee' })
+  if ((state.keyItems.key_product_badge ?? 0) > 0)
+    chips.push({ id: 'product', label: '🪪 Product' })
+  if ((state.keyItems.key_client_badge ?? 0) > 0) chips.push({ id: 'client', label: '🪪 Client' })
+  if (state.run.inventory.length > 0) {
+    chips.push({
+      id: 'bag',
+      label: state.run.inventory.map((id) => ITEMS[id].emoji).join(' '),
+    })
+  }
+  return chips
 }
 
 export function promptVerb(text: string): string {

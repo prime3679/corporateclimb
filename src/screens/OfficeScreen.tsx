@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react'
-import { CURRENCY_ICON, ITEMS, PERKS } from '@/data'
+import { CURRENCY_ICON, PERKS } from '@/data'
 import { STRUGGLE_MOVE } from '@/battle'
 import { Sequencer, initialBattleView, type BattleView } from '@/sequencer'
 import BattleScreen from './BattleScreen'
@@ -11,9 +11,7 @@ import {
   effectiveKit,
   encounterIntro,
   interactTarget,
-  keyCount,
   kitFor,
-  lettersHeld,
   maxHpFor,
   memberName,
   currentObjective,
@@ -29,7 +27,14 @@ import WorldMap from './office/WorldMap'
 import PartyStrip, { hpTone } from './office/PartyStrip'
 import OfficeOverlays, { CoachMark, ElevatorRide, Interstitial } from './office/overlays'
 import Headshot from './office/Headshot'
-import { ZONE_ACCENT, memberRing, memberSprite, promptText, promptVerb } from './office/cast'
+import {
+  ZONE_ACCENT,
+  hudKeyChips,
+  memberRing,
+  memberSprite,
+  promptText,
+  promptVerb,
+} from './office/cast'
 import { useDeferredWallet, useOfficeFeedback } from './office/useOfficeFeedback'
 import styles from './office/OfficeScreen.module.css'
 
@@ -501,7 +506,7 @@ function Overworld({
   const overlayOpen =
     (!!state.overlay && state.overlay.kind !== 'coach') || state.screen === 'elevator_ride'
   const verb = actVerb(prompt, state)
-  const letters = lettersHeld(state)
+  const chips = hudKeyChips(state)
   const holdRef = useRef<number | null>(null)
   const [held, setHeld] = useState<Facing | null>(null)
   // The repeat timer must dispatch against the latest state, not the one
@@ -561,21 +566,13 @@ function Overworld({
             >
               {CURRENCY_ICON} {wallet.shown}
             </span>
-            {(letters > 0 ||
-              keyCount(state, 'key_toner') > 0 ||
-              keyCount(state, 'key_access_badge') > 0 ||
-              state.run.inventory.length > 0) && (
+            {chips.length > 0 && (
               <div className={styles.keyRow}>
-                {letters > 0 && <span className={styles.keyChip}>📄 ×{letters}</span>}
-                {keyCount(state, 'key_toner') > 0 && <span className={styles.keyChip}>Toner</span>}
-                {keyCount(state, 'key_access_badge') > 0 && (
-                  <span className={styles.keyChip}>🪪 Badge</span>
-                )}
-                {state.run.inventory.length > 0 && (
-                  <span className={styles.keyChip}>
-                    {state.run.inventory.map((id) => ITEMS[id].emoji).join(' ')}
+                {chips.map((chip) => (
+                  <span key={chip.id} className={styles.keyChip}>
+                    {chip.label}
                   </span>
-                )}
+                ))}
               </div>
             )}
           </div>

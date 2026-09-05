@@ -36,9 +36,8 @@ export default function OfficeStartScreen({
       <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
       <h1 className={styles.title}>THE OFFICE</h1>
       <p className={styles.blurb}>
-        Reception, desks, a printer, a one-on-one that does not end early — and upstairs,
-        Operations, where the badge you were given turns out to be a visitor badge. Floors 3–5 wait
-        on an employee badge.
+        Five floors. Reception through Exec. Print the badge they keep reprinting, file what nobody
+        wants to file, and sit the review that does not end early.
       </p>
 
       {save && (

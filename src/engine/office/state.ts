@@ -4,6 +4,7 @@ import { newRun } from '../run'
 import type { BattleState, RunState } from '../state'
 import {
   COWORKER_KITS,
+  FLOOR_IDS,
   PARTY_MAX,
   spawnForFloor,
   type AssignmentId,
@@ -56,6 +57,8 @@ export interface OfficeSave {
   flags: string[]
   firedTriggers: string[]
   stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number; rides: number }
+  /** Per-floor vending SKUs. `run.shopStock` is the machine currently open. */
+  vendingStock: Record<FloorId, ItemId[]>
 }
 
 export type OfficeScreenId = 'overworld' | 'battle' | 'promotion' | 'vending' | 'elevator_ride'
@@ -67,6 +70,8 @@ export type Overlay =
   | { kind: 'recruit'; coworkerId: CoworkerId }
   | { kind: 'document'; docId: 'agenda' | 'directory' }
   | { kind: 'confirm'; prompt: 'take_five' | 'elevator' | 'door' | 'kessler_door' }
+  | { kind: 'confirm'; prompt: 'send_to_desk'; slot: number }
+  | { kind: 'pause'; reason: 'badge_print' }
   | { kind: 'team'; mode?: 'default' | 'roster'; returnRecruit?: CoworkerId }
   | { kind: 'coach'; id: 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster' }
   | { kind: 'interstitial'; encounterId: EncounterId }
@@ -96,6 +101,42 @@ export interface OfficeState extends OfficeSave {
 }
 
 export const OFFICE_VENDING_STOCK: ItemId[] = ['espresso', 'espresso', 'side_hustle']
+/** Floors 2–5 share this SKU list until a later per-floor restock pass. */
+export const OFFICE_VENDING_STOCK_UPPER: ItemId[] = [
+  'espresso',
+  'espresso',
+  'pto_day',
+  'standing_desk',
+]
+
+export function vendingStockForFloor(floorId: FloorId): ItemId[] {
+  return floorId === 'floor_01' ? [...OFFICE_VENDING_STOCK] : [...OFFICE_VENDING_STOCK_UPPER]
+}
+
+export function defaultVendingStock(): Record<FloorId, ItemId[]> {
+  return {
+    floor_01: [...OFFICE_VENDING_STOCK],
+    floor_02: [...OFFICE_VENDING_STOCK_UPPER],
+    floor_03: [...OFFICE_VENDING_STOCK_UPPER],
+    floor_04: [...OFFICE_VENDING_STOCK_UPPER],
+    floor_05: [...OFFICE_VENDING_STOCK_UPPER],
+  }
+}
+
+export function mergeVendingStock(
+  raw?: Partial<Record<FloorId, ItemId[]>> | null,
+  shopStock?: ItemId[] | null,
+): Record<FloorId, ItemId[]> {
+  const next = defaultVendingStock()
+  if (raw) {
+    for (const id of FLOOR_IDS) {
+      if (raw[id]) next[id] = [...raw[id]!]
+    }
+  } else if (shopStock) {
+    next.floor_01 = [...shopStock]
+  }
+  return next
+}
 
 export function classById(classId: string): PlayerClass {
   return PLAYER_CLASSES.find((c) => c.id === classId) ?? PLAYER_CLASSES[0]
@@ -140,6 +181,7 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
   }
   return {
     version: 2,
+    vendingStock: defaultVendingStock(),
     run,
     party: [makeLead(cls)],
     hired: [],
@@ -188,6 +230,7 @@ export function toOfficeSave(state: OfficeState): OfficeSave {
     flags: state.flags,
     firedTriggers: state.firedTriggers,
     stats: { ...state.stats, rides: state.stats.rides ?? 0 },
+    vendingStock: mergeVendingStock(state.vendingStock, state.run.shopStock),
   }
 }
 
@@ -199,6 +242,7 @@ export function fromOfficeSave(save: OfficeSave): OfficeState {
     version: 2,
     hired,
     bench: save.bench ?? {},
+    vendingStock: mergeVendingStock(save.vendingStock, save.run.shopStock),
     // Saves written before Floor 2 existed lack its keys; they start fresh.
     assignments: { ...FRESH_ASSIGNMENTS, ...save.assignments },
     encounters: { ...FRESH_ENCOUNTERS, ...save.encounters },

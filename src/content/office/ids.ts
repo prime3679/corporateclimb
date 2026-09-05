@@ -190,6 +190,7 @@ export type PoiId =
   | 'poi_vending_machine_f3'
   | 'poi_break_table_f3'
   | 'poi_quincy_desk'
+  | 'poi_supply_cabinet_upper'
   // Floor 4
   | 'poi_elevator_door_f4'
   | 'poi_directory_sign_f4'
@@ -310,6 +311,7 @@ export type FlagId =
   | 'flag_floor2_complete'
   | 'flag_roster_coached'
   | 'flag_reader_denied_f2'
+  | 'flag_whitlock_recruit_seen'
   // Floors 3–5
   | 'flag_reader_denied_f3'
   | 'flag_reader_denied_f4'
