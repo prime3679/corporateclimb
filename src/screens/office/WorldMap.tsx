@@ -9,6 +9,7 @@ import {
   VIEWPORT_TILES_X,
   ZONE_LABEL,
   floorLabel,
+  floorNumber,
   npcTilesForFloor,
   zoneAt,
   type DialogueId,
@@ -82,7 +83,11 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
         nearby.id === 'poi_vending_machine_f5'),
     readerGreen: (badge ?? 0) > 0,
     elevatorOpen:
-      ov?.kind === 'elevator_panel' || (ov?.kind === 'confirm' && ov.prompt === 'elevator'),
+      state.screen === 'elevator_ride'
+        ? false
+        : ov?.kind === 'elevator_panel' ||
+          (ov?.kind === 'confirm' && ov.prompt === 'elevator') ||
+          (state.player.x === 3 && state.player.y === 2 && state.player.facing === 's'),
     boothFlash: ov?.kind === 'dialogue' && ov.nodeId === `inspect:${PHOTO_BOOTH_COPY.countdown}`,
     badgePrinter:
       (state.keyItems.key_employee_badge ?? 0) > 0
@@ -406,7 +411,11 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           aria-hidden
         >
           <span className={styles.chevron}>{pinOffLeft ? '‹' : '›'}</span>
-          <span className={styles.edgeZone}>{ZONE_LABEL[obj.zone]}</span>
+          <span className={styles.edgeZone}>
+            {obj.destFloor && obj.destFloor !== state.floorId
+              ? `FLOOR ${floorNumber(obj.destFloor)}`
+              : ZONE_LABEL[obj.zone]}
+          </span>
         </div>
       )}
 

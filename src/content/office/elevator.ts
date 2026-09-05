@@ -1,5 +1,5 @@
 import { COWORKER_NAME } from './encounters'
-import type { CoworkerId, FloorId, KeyItemId } from './ids'
+import type { CoworkerId, FlagId, FloorId, KeyItemId, PoiId } from './ids'
 
 export interface ElevatorFloorRow {
   id: FloorId
@@ -36,6 +36,25 @@ export function canRideTo(to: FloorId, keyItems: Record<string, number>): boolea
   const row = elevatorRowFor(to)
   if (!row.requires) return true
   return (keyItems[row.requires] ?? 0) > 0
+}
+
+export interface ElevatorDenyLine {
+  flag: FlagId
+  poiId: PoiId
+}
+
+/**
+ * Locked 3+ rows: first tap plays the inspect that names that destination.
+ * `poi_elevator_door_f5` is the green “no 6” line, not a lockout.
+ */
+const ELEVATOR_DENY: Partial<Record<FloorId, ElevatorDenyLine>> = {
+  floor_03: { flag: 'flag_reader_denied_f2', poiId: 'poi_elevator_door_f2' },
+  floor_04: { flag: 'flag_reader_denied_f3', poiId: 'poi_elevator_door_f3' },
+  floor_05: { flag: 'flag_reader_denied_f4', poiId: 'poi_elevator_door_f4' },
+}
+
+export function elevatorDenyFor(to: FloorId): ElevatorDenyLine | null {
+  return ELEVATOR_DENY[to] ?? null
 }
 
 export function canOpenElevatorPanel(floorId: FloorId, keyItems: Record<string, number>): boolean {

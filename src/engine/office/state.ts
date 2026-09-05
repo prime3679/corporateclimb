@@ -74,7 +74,12 @@ export type Overlay =
   | { kind: 'handout' }
   | {
       kind: 'celebration'
-      screen: 'screen_floor3_complete' | 'screen_floor4_complete' | 'screen_floor5_complete'
+      screen:
+        | 'screen_preview_complete'
+        | 'screen_floor2_complete'
+        | 'screen_floor3_complete'
+        | 'screen_floor4_complete'
+        | 'screen_floor5_complete'
     }
   | { kind: 'elevator_panel' }
 

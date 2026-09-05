@@ -894,6 +894,79 @@
   font-variant-numeric: tabular-nums;
 }
 
+.celebParty {
+  margin-top: 2px;
+}
+
+.celebActions {
+  width: min(420px, 100%);
+  justify-content: center;
+  flex-wrap: wrap;
+}
+
+/* ── Elevator cab (doors close 400ms → fade 300ms) ── */
+.cab {
+  position: absolute;
+  inset: 0;
+  z-index: 40;
+  pointer-events: auto;
+  overflow: hidden;
+}
+
+.cabDoor {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 52%;
+  background:
+    linear-gradient(
+      90deg,
+      rgba(255, 255, 255, 0.06),
+      transparent 18%,
+      transparent 82%,
+      rgba(0, 0, 0, 0.28)
+    ),
+    linear-gradient(180deg, #2a303c, #141820 70%, #0c1016);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.08);
+  transition: transform 400ms cubic-bezier(0.2, 0.85, 0.35, 1);
+}
+
+.cabDoorL {
+  left: 0;
+  transform: translateX(-102%);
+  border-right: 2px solid rgba(255, 193, 7, 0.18);
+}
+
+.cabDoorR {
+  right: 0;
+  transform: translateX(102%);
+  border-left: 2px solid rgba(255, 193, 7, 0.18);
+}
+
+.cabClose .cabDoorL,
+.cabClose .cabDoorR,
+.cabFade .cabDoorL,
+.cabFade .cabDoorR {
+  transform: translateX(0);
+}
+
+.cabVeil {
+  position: absolute;
+  inset: 0;
+  background: var(--cc-bg);
+  opacity: 0;
+  transition: opacity 300ms var(--cc-ease-out);
+}
+
+.cabFade .cabVeil {
+  opacity: 1;
+}
+
+:global(.reduce-motion) .cabDoor,
+:global(.reduce-motion) .cabVeil {
+  transition: none;
+}
+
 /* ── Motion ── */
 @keyframes ovl-fade {
   from {

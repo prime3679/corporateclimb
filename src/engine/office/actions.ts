@@ -12,13 +12,13 @@ import {
   COWORKER_NAME,
   canOpenElevatorPanel,
   canRideTo,
+  elevatorDenyFor,
   DIALOGUE,
   elevatorArrivalForFloor,
   elevatorBoardingSpotsForFloor,
   FLOOR_2_DIRECTOR_DOOR,
   FLOOR_2_DOOR_STEP_BACK,
   FLOOR_2_DOOR_STEP_IN,
-  floorLabel,
   floorNumber,
   HANDOUT_CHOICES,
   HANDOUT_PICK_LINE,
@@ -880,6 +880,12 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
   ) {
     return { ...state, lastLossEncounter: null }
   }
+  if (id === 'dlg_quincy_beaten') {
+    return pushOverlay(state, { kind: 'celebration', screen: 'screen_floor3_complete' })
+  }
+  if (id === 'dlg_ashford_beaten') {
+    return pushOverlay(state, { kind: 'celebration', screen: 'screen_floor4_complete' })
+  }
   if (id === 'dlg_caldwell_beaten') {
     return pushOverlay(state, { kind: 'celebration', screen: 'screen_floor5_complete' })
   }
@@ -888,7 +894,14 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
 
 function handleChoose(state: OfficeState, choice: string): OfficeState {
   const ov = state.overlay
-  if (ov?.kind === 'celebration' && (choice === 'continue' || choice === 'stay')) {
+  if (ov?.kind === 'celebration') {
+    if (choice === 'title') return closeOverlay(state)
+    if (choice === 'continue' || choice === 'stay' || choice === 'back') return closeOverlay(state)
+    if (isKnownFloorId(choice)) {
+      const closed = closeOverlay(state)
+      if (choice === closed.floorId) return closed
+      return rideElevator(closed, choice)
+    }
     return closeOverlay(state)
   }
   if (ov?.kind === 'elevator_panel') {
@@ -1252,16 +1265,15 @@ function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
   }
   if (to === state.floorId) return state
   if (!canRideTo(to, state.keyItems)) {
-    if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
-      const first = !state.flags.includes('flag_reader_denied_f2')
-      const flagged = withFlag(state, 'flag_reader_denied_f2')
-      if (!first) return flagged
-      return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
-        { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT.poi_elevator_door_f2}`, line: 0 },
-        { kind: 'elevator_panel' },
-      ])
-    }
-    return state
+    const deny = elevatorDenyFor(to)
+    if (!deny) return state
+    const first = !state.flags.includes(deny.flag)
+    const flagged = withFlag(state, deny.flag)
+    if (!first) return flagged
+    return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
+      { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT[deny.poiId]}`, line: 0 },
+      { kind: 'elevator_panel' },
+    ])
   }
   return rideElevator(state, to)
 }
@@ -1302,12 +1314,21 @@ function completeElevatorRide(state: OfficeState): OfficeState {
     rideTo: null,
     stats: { ...state.stats, rides: (state.stats.rides ?? 0) + 1 },
   }
+  const firstPreview =
+    from === 'floor_01' && to === 'floor_02' && !state.flags.includes('flag_preview_complete')
+  const firstFloor2 = to === 'floor_03' && !state.flags.includes('flag_floor2_complete')
   if (from === 'floor_01') next = withFlag(next, 'flag_preview_complete')
   if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
     next = withFlag(next, 'flag_floor2_complete')
   }
-  const zone = to === 'floor_01' ? 'Elevator lobby' : 'Landing'
-  return pushOverlay(next, { kind: 'toast', text: `Arrived: ${floorLabel(to)} · ${zone}` })
+  if (firstPreview) {
+    return pushOverlay(next, { kind: 'celebration', screen: 'screen_preview_complete' })
+  }
+  if (firstFloor2) {
+    return pushOverlay(next, { kind: 'celebration', screen: 'screen_floor2_complete' })
+  }
+  // Zone chip on the landing covers arrival — no stacked toast (floor-2 §8.2).
+  return next
 }
 
 function doorStepIn(state: OfficeState): OfficeState {

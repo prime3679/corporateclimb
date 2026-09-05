@@ -194,6 +194,17 @@ const COWORKER_ROLE: Record<CoworkerId, string> = {
   cw_help_desk_intern: 'IT Help Desk (Rotational)',
 }
 
+const COWORKER_NPC: Record<CoworkerId, NpcId> = {
+  cw_desk_challenger: 'npc_desk_challenger',
+  cw_meeting_prepper: 'npc_meeting_prepper',
+  cw_help_desk_intern: 'npc_help_desk_intern',
+}
+
+/** Recruit cards map coworker → cast/role. Never default a non-Priya hire to Priya. */
+export function castForCoworker(id: CoworkerId): CastEntry {
+  return NPC_CAST[COWORKER_NPC[id]]
+}
+
 /** `hud_nearby` copy per design §10.4: "Verb · Object", state-aware. */
 export function promptText(target: InteractTarget, state: OfficeSave): string {
   if (target.kind === 'npc') return `Talk · ${NPC_CAST[target.id].name}`

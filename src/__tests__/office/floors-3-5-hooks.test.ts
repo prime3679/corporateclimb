@@ -9,13 +9,16 @@ import {
 } from '@/content/office'
 import { resolvePlayerMove } from '@/engine'
 import {
+  celebrationCopy,
   currentObjective,
+  destChip,
   dispatchOfficeAction,
   effectiveKit,
   newOfficeCampaign,
   startEncounter,
   type OfficeState,
 } from '@/engine/office'
+import { castForCoworker } from '@/screens/office/cast'
 
 const PM = PLAYER_CLASSES.find((c) => c.id === 'pm')!
 
@@ -152,6 +155,11 @@ describe('Floors 3–5 assignment + boss reducers', () => {
     expect(s.keyItems.key_product_badge).toBe(1)
     expect(s.flags).toContain('flag_floor3_complete')
     expect(s.screen).toBe('promotion')
+    const perk = s.run.pendingPerkOffer?.[0]
+    expect(perk).toBeTruthy()
+    s = dispatchOfficeAction(s, { type: 'PICK_PERK', perkId: perk! }).state
+    s = drain(s)
+    expect(s.overlay).toMatchObject({ kind: 'celebration', screen: 'screen_floor3_complete' })
   })
 
   it('lets Floor 3 file the card on the intake board instead of talking Nico', () => {
@@ -246,6 +254,11 @@ describe('Floors 3–5 assignment + boss reducers', () => {
     expect(s.keyItems.key_client_badge).toBe(1)
     expect(s.flags).toContain('flag_floor4_complete')
     expect(s.screen).toBe('promotion')
+    const perk = s.run.pendingPerkOffer?.[0]
+    expect(perk).toBeTruthy()
+    s = dispatchOfficeAction(s, { type: 'PICK_PERK', perkId: perk! }).state
+    s = drain(s)
+    expect(s.overlay).toMatchObject({ kind: 'celebration', screen: 'screen_floor4_complete' })
   })
 
   it('runs Floor 5: Marlowe → packet → file → Caldwell → the climb (no Floor 6)', () => {
@@ -302,6 +315,11 @@ describe('Floors 3–5 assignment + boss reducers', () => {
     expect(s.keyItems.key_product_badge).toBe(1)
     expect(s.keyItems.key_client_badge).toBe(1)
     expect(s.screen).toBe('promotion')
+    const perk = s.run.pendingPerkOffer?.[0]
+    expect(perk).toBeTruthy()
+    s = dispatchOfficeAction(s, { type: 'PICK_PERK', perkId: perk! }).state
+    s = drain(s)
+    expect(s.overlay).toMatchObject({ kind: 'celebration', screen: 'screen_floor5_complete' })
   })
 
   it('transforms Caldwell at half HP (≤ 130) and leaves Classic phase-2 bit-identical', () => {
@@ -368,5 +386,58 @@ describe('Floors 3–5 assignment + boss reducers', () => {
     s = ride(s, 'floor_01')
     expect(s.floorId).toBe('floor_01')
     expect(s.player).toEqual({ x: 3, y: 2, facing: 's' })
+  })
+
+  it('plays Floor 1 and Floor 2 celebrations on the first 1→2 and 2→3 rides', () => {
+    let s: OfficeState = { ...start(), keyItems: { key_access_badge: 1, key_employee_badge: 1 } }
+    s = dispatchOfficeAction(at(s, 3, 2, 'n'), { type: 'RIDE_ELEVATOR', to: 'floor_02' }).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    expect(s.overlay).toMatchObject({ kind: 'celebration', screen: 'screen_preview_complete' })
+    expect(celebrationCopy(s, 'screen_preview_complete').title).toBe('FLOOR 1 CLEARED')
+    s = dispatchOfficeAction(s, { type: 'CHOOSE', choice: 'stay' }).state
+
+    s = dispatchOfficeAction(at(s, 3, 2, 'n'), { type: 'RIDE_ELEVATOR', to: 'floor_01' }).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    expect(s.overlay?.kind).not.toBe('celebration')
+    expect(s.overlay?.kind).not.toBe('toast')
+
+    s = dispatchOfficeAction(at(s, 3, 2, 'n'), { type: 'RIDE_ELEVATOR', to: 'floor_03' }).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    expect(s.overlay).toMatchObject({ kind: 'celebration', screen: 'screen_floor2_complete' })
+    expect(celebrationCopy(s, 'screen_floor2_complete').body).toContain('dodged an audit')
+    expect(celebrationCopy(s, 'screen_floor2_complete').body).toContain('passed compliance')
+  })
+
+  it('chips off-floor objectives as → FLOOR N with ▲/▼, pin on this floor’s elevator', () => {
+    let s: OfficeState = {
+      ...start(),
+      floorId: 'floor_02',
+      keyItems: { key_access_badge: 1 },
+      assignments: { ...start().assignments, asg_transfer: 'photo_taken' },
+      flags: ['flag_preview_complete', 'flag_visited_f2'],
+      overlay: null,
+      overlayQueue: [],
+    }
+    const holloway = currentObjective(s)
+    expect(holloway).toMatchObject({ destFloor: 'floor_01', pin: { x: 3, y: 1 } })
+    expect(destChip(s, holloway).label).toBe('▼ → FLOOR 1')
+
+    s = {
+      ...badged(),
+      floorId: 'floor_01',
+      assignments: { ...badged().assignments, asg_roadmap: 'accepted' },
+      overlay: null,
+      overlayQueue: [],
+    }
+    const card = currentObjective(s)
+    expect(card).toMatchObject({ destFloor: 'floor_03', pin: { x: 3, y: 1 } })
+    expect(destChip(s, card).label).toBe('▲ → FLOOR 3')
+  })
+
+  it('maps Teddy’s recruit card to IT Help Desk, not Priya', () => {
+    expect(castForCoworker('cw_help_desk_intern').role).toBe('IT Help Desk (Rotational)')
+    expect(castForCoworker('cw_help_desk_intern').name).toBe('Teddy')
+    expect(castForCoworker('cw_desk_challenger').role).toBe('Senior Associate')
+    expect(castForCoworker('cw_meeting_prepper').role).toBe('Ops')
   })
 })

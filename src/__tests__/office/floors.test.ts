@@ -3,6 +3,7 @@ import { PLAYER_CLASSES } from '@/data'
 import type { Facing } from '@/content/office'
 import {
   currentObjective,
+  destChip,
   dispatchOfficeAction,
   newOfficeCampaign,
   type OfficeState,
@@ -25,6 +26,8 @@ function drain(state: OfficeState): OfficeState {
   let s = state
   for (let i = 0; i < 20 && s.overlay; i++) {
     if (s.overlay.kind === 'receipt') s = dispatchOfficeAction(s, { type: 'ACK_RECEIPT' }).state
+    else if (s.overlay.kind === 'celebration')
+      s = dispatchOfficeAction(s, { type: 'CHOOSE', choice: 'stay' }).state
     else s = dispatchOfficeAction(s, { type: 'INTERACT' }).state
   }
   return s
@@ -110,7 +113,9 @@ describe('Floor 2 — Operations (docs/rpg/floor-2-design.md)', () => {
       text: "Get Holloway's signature (Floor 1)",
       zone: 'zone_landing',
       pin: { x: 3, y: 1 },
+      destFloor: 'floor_01',
     })
+    expect(destChip(s).label).toBe('▼ → FLOOR 1')
     // The tray will not take a half packet.
     s = dispatchOfficeAction(at(s, 18, 4, 'n'), { type: 'INTERACT' }).state
     expect(s.overlay).toMatchObject({ kind: 'dialogue' })
@@ -205,6 +210,8 @@ describe('Floor 2 — Operations (docs/rpg/floor-2-design.md)', () => {
       text: 'Take the elevator to Floor 2',
       zone: 'zone_elevator',
       pin: { x: 3, y: 1 },
+      destFloor: 'floor_02',
     })
+    expect(destChip(s).label).toBe('▲ → FLOOR 2')
   })
 })
