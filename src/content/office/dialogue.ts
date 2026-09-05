@@ -985,7 +985,7 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Ashford',
     lines: [
       'The Close. This quarter. There is no next quarter in this room.',
-      "You can reframe or you can lose. Those are the same sentence, later.",
+      'You can reframe or you can lose. Those are the same sentence, later.',
     ],
     choices: [{ id: 'begin', label: 'Begin the close' }],
   },
@@ -1022,7 +1022,7 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     speaker: 'marlowe',
     name: 'Marlowe',
     lines: [
-      "Caldwell reviews people who arrive with the packet. The packet lives on the sideboard.",
+      'Caldwell reviews people who arrive with the packet. The packet lives on the sideboard.',
       'That is where board packets live. I do not make the rules. I enforce the furniture.',
       'Bring it here. Then the door downstairs means something.',
     ],

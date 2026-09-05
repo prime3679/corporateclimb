@@ -273,11 +273,15 @@ for (const pack of FLOORS) {
 
     it('every interaction spot is reachable floor facing the tile it names', () => {
       for (const spot of pack.spots) {
-        expect(seen.has(`${spot.x},${spot.y}`), `${spot.target.id} @ ${spot.x},${spot.y}`).toBe(true)
+        expect(seen.has(`${spot.x},${spot.y}`), `${spot.target.id} @ ${spot.x},${spot.y}`).toBe(
+          true,
+        )
         const ahead = { x: spot.x + DELTA[spot.facing].x, y: spot.y + DELTA[spot.facing].y }
         const g = pack.glyphAt(ahead.x, ahead.y)
         if (spot.target.kind === 'npc') {
-          expect(g, `${spot.target.id} from ${spot.x},${spot.y}`).toBe(pack.npcGlyph[spot.target.id])
+          expect(g, `${spot.target.id} from ${spot.x},${spot.y}`).toBe(
+            pack.npcGlyph[spot.target.id],
+          )
         } else {
           expect(pack.poiGlyphs[spot.target.id], spot.target.id).toContain(g)
         }

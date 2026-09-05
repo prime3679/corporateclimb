@@ -276,7 +276,10 @@ export function sightDialogue(state: OfficeState, npc: NpcId): DialogueId | null
     return 'dlg_sloane_callout'
   }
   if (npc === 'npc_researcher') {
-    if (state.assignments.asg_roadmap !== 'accepted' && state.assignments.asg_roadmap !== 'card_held')
+    if (
+      state.assignments.asg_roadmap !== 'accepted' &&
+      state.assignments.asg_roadmap !== 'card_held'
+    )
       return null
     return 'dlg_nico_hook'
   }

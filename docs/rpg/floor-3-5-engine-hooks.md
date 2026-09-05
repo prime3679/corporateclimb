@@ -50,11 +50,11 @@ Content already exports `ELEVATOR_PANEL` from `src/content/office/map.ts`.
 
 Mirror Teddy's packet. First-step flags: `flag_visited_f3` / `_f4` / `_f5`.
 
-| Floor | Talk starts            | Fetch                                      | Deliver                         | Complete receipt              |
-| ----- | ---------------------- | ------------------------------------------ | ------------------------------- | ----------------------------- |
-| 3     | `dlg_sloane_brief`     | `poi_roadmap_wall` → `key_roadmap_card`    | Nico / `poi_intake_board`       | `rcpt_roadmap_initialled` +14 |
-| 4     | `dlg_harper_brief`     | `poi_pipeline_board` **or** `poi_leavebehind` → `key_leavebehind` (once) | Reyes                  | `rcpt_leavebehind_delivered` +16 |
-| 5     | `dlg_marlowe_brief`    | `poi_sideboard` → `key_board_packet`       | Marlowe                         | `rcpt_board_packet_filed` +18 |
+| Floor | Talk starts         | Fetch                                                                    | Deliver                   | Complete receipt                 |
+| ----- | ------------------- | ------------------------------------------------------------------------ | ------------------------- | -------------------------------- |
+| 3     | `dlg_sloane_brief`  | `poi_roadmap_wall` → `key_roadmap_card`                                  | Nico / `poi_intake_board` | `rcpt_roadmap_initialled` +14    |
+| 4     | `dlg_harper_brief`  | `poi_pipeline_board` **or** `poi_leavebehind` → `key_leavebehind` (once) | Reyes                     | `rcpt_leavebehind_delivered` +16 |
+| 5     | `dlg_marlowe_brief` | `poi_sideboard` → `key_board_packet`                                     | Marlowe                   | `rcpt_board_packet_filed` +18    |
 
 Boss talk is `early` until the assignment is `complete`, then the review node
 and a stakes card. Loss → `(5,12)` facing north on that floor.

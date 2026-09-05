@@ -46,7 +46,10 @@ export const FLOOR_5_DIRECTORY_TEXT = [
 export const FLOOR_5_ARRIVAL = { x: 3, y: 2, facing: 's' as Facing }
 export const FLOOR_5_DEFEAT_RESPAWN = { x: 5, y: 12, facing: 'n' as Facing }
 
-export type Floor5ZoneId = Extract<ZoneId, 'zone_landing' | 'zone_ante' | 'zone_board' | 'zone_hall_f5'>
+export type Floor5ZoneId = Extract<
+  ZoneId,
+  'zone_landing' | 'zone_ante' | 'zone_board' | 'zone_hall_f5'
+>
 
 export const FLOOR_5_ZONE_LABEL: Record<Floor5ZoneId, string> = {
   zone_landing: 'LANDING',
@@ -179,7 +182,7 @@ export const FLOOR_5_INTERACT_SPOTS: Floor5InteractSpot[] = [
   poi(13, 10, 's', 'poi_board_table', 'Inspect · Board table'),
   poi(14, 10, 's', 'poi_board_table', 'Inspect · Board table'),
   poi(19, 12, 'n', 'poi_caldwell_desk', 'Inspect · Desk'),
-  poi(20, 12, 'n', 'poi_caldwell_desk', 'Inspect · Desk'),
+  poi(20, 10, 's', 'poi_caldwell_desk', 'Inspect · Desk'),
   poi(21, 11, 'w', 'poi_caldwell_desk', 'Inspect · Desk'),
 ]
 
