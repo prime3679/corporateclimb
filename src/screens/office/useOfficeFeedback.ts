@@ -46,6 +46,8 @@ export function useOfficeFeedback(state: OfficeState): string {
     const prevZone = zoneAt(prev.player.x, prev.player.y)
     const zone = zoneAt(state.player.x, state.player.y)
     if (prevZone !== zone && state.screen === 'overworld') {
+      if (zone === 'zone_break') SFX.coffee()
+      else if (zone === 'zone_elevator') SFX.badgeSwipe()
       say(`Entering: ${ZONE_LABEL[zone]}.`)
     }
 
@@ -137,10 +139,10 @@ export function useOfficeFeedback(state: OfficeState): string {
     if (ov.kind === 'confirm') {
       if (ov.prompt === 'door') {
         SFX.glassDoor()
-        Haptics.selection()
+        Haptics.impact('medium')
         say("Elevator lobby. Holloway's one-on-one starts when you step in.")
       } else if (ov.prompt === 'elevator') {
-        SFX.menuConfirm()
+        SFX.badgeSwipe()
         Haptics.selection()
         say('Elevator. The reader blinks green. Ride up?')
       } else {
@@ -167,7 +169,8 @@ export function useOfficeFeedback(state: OfficeState): string {
       ov.kind === 'handout' ||
       ov.kind === 'recruit'
     ) {
-      SFX.menuSelect()
+      if (ov.kind === 'document' || ov.kind === 'handout') SFX.paper()
+      else SFX.menuSelect()
       Haptics.selection()
       return
     }

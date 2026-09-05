@@ -3,25 +3,28 @@ import { TILE_SIZE, glyphAt, zoneAt, type ZoneId } from '@/content/office'
 import { ZONE_ACCENT } from './cast'
 
 /* ─── Floor 1 tileset ────────────────────────────────────────
-   Flat two-tone vector tiles on a 32-px grid: one ink outline, one
-   hairline highlight, palette from the surface tokens plus the zone
-   accents. Every stateful tile (printer, cabinet, counter, vending,
-   badge reader) has its states drawn here, not swapped by emoji. */
+   Premium office pixel scene built in 32x32 tiles:
+   - zone-specific floor materials
+   - richer prop depth (shadow + bevel + highlights)
+   - ambient emissive details on interactive points
+   - foreground trims rendered in a second pass for occlusion depth */
 
 const T = TILE_SIZE
-const INK = '#0a0d13'
-const HAIR = 'rgba(255,255,255,0.14)'
-const WALL_CAP = '#243043'
-const WALL_FACE = '#161d29'
-const WOOD = '#6b4a2e'
-const WOOD_DARK = '#4a3320'
-const WOOD_LIGHT = '#8a6340'
-const STEEL = '#8b98a8'
-const STEEL_DARK = '#5c6979'
+const INK = '#080b12'
+const HAIR = 'rgba(255,255,255,0.2)'
+const WALL_CAP = '#2f3d54'
+const WALL_FACE = '#161d2a'
+const WALL_PLINTH = '#0d1320'
+const WOOD = '#7a5434'
+const WOOD_DARK = '#52351f'
+const WOOD_LIGHT = '#ab7d4f'
+const STEEL = '#9aa8bb'
+const STEEL_DARK = '#5f6e82'
 const SCREEN = '#0f141c'
-const GLASS = 'rgba(159, 208, 255, 0.28)'
+const GLASS = 'rgba(145, 212, 255, 0.32)'
 const GLASS_LINE = '#9fd0ff'
-const PAPER = '#e8eef6'
+const PAPER = '#eff5fd'
+const SHADOW = 'rgba(2, 4, 8, 0.5)'
 
 export interface TileStates {
   printer: 'error' | 'working' | 'printing'
@@ -36,27 +39,91 @@ export function zoneCarpetId(zone: ZoneId) {
   return `carpet-${zone}`
 }
 
-/** Pattern defs: a dotted carpet per zone (subtle, not flat). */
+function zoneFloor(zone: ZoneId) {
+  switch (zone) {
+    case 'zone_reception':
+      return { dark: '#1a2432', base: '#233248', light: '#2a3e58' }
+    case 'zone_desks':
+      return { dark: '#16233a', base: '#223552', light: '#2d4571' }
+    case 'zone_break':
+      return { dark: '#162c2a', base: '#234340', light: '#2f5b56' }
+    case 'zone_meeting':
+      return { dark: '#271e3e', base: '#342b55', light: '#46356c' }
+    case 'zone_elevator':
+      return { dark: '#33241d', base: '#473226', light: '#5a4130' }
+    case 'zone_hall':
+    default:
+      return { dark: '#1a202d', base: '#262d3d', light: '#313a4d' }
+  }
+}
+
+function fixtureShadow({
+  x,
+  y,
+  w = T - 4,
+  h = 6,
+}: {
+  x: number
+  y: number
+  w?: number
+  h?: number
+}) {
+  return <ellipse cx={x + T / 2} cy={y + T - 3} rx={w / 2} ry={h / 2} fill={SHADOW} />
+}
+
+/** Pattern defs: zone-tinted carpets + material gradients. */
 export function TileDefs() {
   return (
     <defs>
-      {(Object.keys(ZONE_ACCENT) as ZoneId[]).map((zone) => (
-        <pattern
-          key={zone}
-          id={zoneCarpetId(zone)}
-          width="8"
-          height="8"
-          patternUnits="userSpaceOnUse"
-        >
-          <rect width="8" height="8" fill="#1a2231" />
-          <rect width="8" height="8" fill={ZONE_ACCENT[zone]} opacity="0.13" />
-          <rect x="3" y="3" width="2" height="2" fill={ZONE_ACCENT[zone]} opacity="0.26" />
-        </pattern>
-      ))}
+      {(Object.keys(ZONE_ACCENT) as ZoneId[]).map((zone) => {
+        const floor = zoneFloor(zone)
+        return (
+          <pattern
+            key={zone}
+            id={zoneCarpetId(zone)}
+            width="16"
+            height="16"
+            patternUnits="userSpaceOnUse"
+          >
+            <rect width="16" height="16" fill={floor.dark} />
+            <rect width="16" height="16" fill={`url(#${zone}-floor-grad)`} />
+            <rect x="0" y="7" width="16" height="1" fill="rgba(255,255,255,0.045)" />
+            <rect x="7" y="0" width="1" height="16" fill="rgba(255,255,255,0.035)" />
+            <rect x="2" y="2" width="2" height="2" fill={floor.light} opacity="0.22" />
+            <rect x="11" y="10" width="2" height="2" fill={floor.light} opacity="0.2" />
+          </pattern>
+        )
+      })}
+      {(Object.keys(ZONE_ACCENT) as ZoneId[]).map((zone) => {
+        const floor = zoneFloor(zone)
+        return (
+          <linearGradient
+            key={`${zone}-grad`}
+            id={`${zone}-floor-grad`}
+            x1="0"
+            y1="0"
+            x2="1"
+            y2="1"
+          >
+            <stop offset="0" stopColor={floor.base} />
+            <stop offset="0.55" stopColor={floor.base} />
+            <stop offset="1" stopColor={floor.light} />
+          </linearGradient>
+        )
+      })}
       <linearGradient id="glass-sheen" x1="0" y1="0" x2="1" y2="1">
         <stop offset="0" stopColor="#ffffff" stopOpacity="0.32" />
         <stop offset="0.5" stopColor="#ffffff" stopOpacity="0.06" />
         <stop offset="1" stopColor="#ffffff" stopOpacity="0.2" />
+      </linearGradient>
+      <linearGradient id="wood-v" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor={WOOD_LIGHT} />
+        <stop offset="0.45" stopColor={WOOD} />
+        <stop offset="1" stopColor={WOOD_DARK} />
+      </linearGradient>
+      <linearGradient id="monitor-glow" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0" stopColor="#8ce9ff" stopOpacity="0.95" />
+        <stop offset="1" stopColor="#2c82ca" stopOpacity="0.45" />
       </linearGradient>
       <linearGradient id="steel-v" x1="0" y1="0" x2="1" y2="0">
         <stop offset="0" stopColor="#a4b1c2" />
@@ -68,8 +135,15 @@ export function TileDefs() {
 }
 
 function Carpet({ x, y }: { x: number; y: number }) {
+  const zone = zoneAt(x / T, y / T)
+  const north = glyphAt(x / T, y / T - 1)
+  const west = glyphAt(x / T - 1, y / T)
   return (
-    <rect x={x} y={y} width={T} height={T} fill={`url(#${zoneCarpetId(zoneAt(x / T, y / T))})`} />
+    <g>
+      <rect x={x} y={y} width={T} height={T} fill={`url(#${zoneCarpetId(zone)})`} />
+      {north === '#' && <rect x={x} y={y} width={T} height={2} fill="rgba(0,0,0,0.2)" />}
+      {west === '#' && <rect x={x} y={y} width={2} height={T} fill="rgba(0,0,0,0.17)" />}
+    </g>
   )
 }
 
@@ -83,16 +157,25 @@ function Wall({ x, y, tx, ty }: { x: number; y: number; tx: number; ty: number }
   const capH = faceDown ? 12 : T
   return (
     <g>
+      <rect x={x} y={y} width={T} height={T} fill={WALL_PLINTH} />
       <rect x={x} y={y} width={T} height={T} fill={WALL_FACE} />
       <rect x={x} y={y} width={T} height={capH} fill={WALL_CAP} />
+      <rect
+        x={x + 2}
+        y={y + 2}
+        width={T - 4}
+        height={Math.max(0, capH - 4)}
+        fill="rgba(255,255,255,0.04)"
+      />
       {faceDown && (
         <>
           <rect x={x} y={y + capH} width={T} height={1} fill={INK} />
           <rect x={x} y={y + capH + 1} width={T} height={1} fill={HAIR} />
-          <rect x={x} y={y + T - 2} width={T} height={2} fill={INK} opacity="0.7" />
+          <rect x={x} y={y + T - 4} width={T} height={4} fill={WALL_PLINTH} />
         </>
       )}
-      <rect x={x} y={y} width={T} height={1} fill={HAIR} opacity="0.7" />
+      <rect x={x} y={y} width={T} height={1} fill={HAIR} opacity="0.8" />
+      <rect x={x} y={y + T - 1} width={T} height={1} fill="rgba(0,0,0,0.55)" />
     </g>
   )
 }
@@ -143,8 +226,15 @@ function Monitor({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <rect x={x} y={y} width={12} height={9} rx={1} fill={SCREEN} stroke={INK} />
-      <rect x={x + 2} y={y + 2} width={8} height={2} fill="#4fc3f7" opacity="0.8" />
-      <rect x={x + 2} y={y + 5} width={5} height={1} fill="#4fc3f7" opacity="0.5" />
+      <rect
+        x={x + 2}
+        y={y + 2}
+        width={8}
+        height={4}
+        fill="url(#monitor-glow)"
+        className="of-monitor"
+      />
+      <rect x={x + 2} y={y + 6} width={5} height={1} fill="#7dd9ff" opacity="0.7" />
       <rect x={x + 4} y={y + 9} width={4} height={2} fill={STEEL_DARK} />
     </g>
   )
@@ -166,8 +256,10 @@ function Desk({
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 22, h: 5 })}
       <rect x={x} y={y + 6} width={T} height={T - 10} fill={top} />
       <rect x={x} y={y + T - 6} width={T} height={4} fill={edge} />
+      <rect x={x} y={y + 7} width={T} height={6} fill="rgba(255,255,255,0.03)" />
       <rect x={x} y={y + 6} width={T} height={1} fill={HAIR} />
       {reception ? (
         <>
@@ -196,6 +288,7 @@ function Desk({
         </>
       ) : (
         <>
+          <rect x={x} y={y + 6} width={T} height={T - 10} fill="url(#wood-v)" opacity="0.4" />
           {part !== 2 && <Monitor x={x + 10} y={y + 9} />}
           {part === 2 && (
             <rect x={x + 8} y={y + 12} width={14} height={8} fill={PAPER} stroke={INK} />
@@ -212,6 +305,7 @@ function Chair({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 16, h: 4 })}
       <rect x={x + 10} y={y + 22} width={12} height={5} rx={1} fill={STEEL_DARK} stroke={INK} />
       <circle cx={x + 16} cy={y + 17} r={8} fill="#34405a" stroke={INK} />
       <path
@@ -231,6 +325,7 @@ function Printer({ x, y, state }: { x: number; y: number; state: TileStates['pri
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 20 })}
       <rect x={x + 3} y={y + 20} width={26} height={9} rx={1} fill="#b8c3d1" stroke={INK} />
       <rect x={x + 5} y={y + 8} width={22} height={13} rx={2} fill="#cfd8e3" stroke={INK} />
       <rect x={x + 7} y={y + 10} width={8} height={5} rx={1} fill={led} stroke={INK} />
@@ -255,6 +350,7 @@ function Cabinet({ x, y, open }: { x: number; y: number; open: boolean }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 20 })}
       <rect x={x + 4} y={y + 2} width={24} height={28} rx={1} fill={STEEL} stroke={INK} />
       {open ? (
         <>
@@ -291,6 +387,7 @@ function Counter({
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 24 })}
       <rect x={x} y={y + 10} width={T} height={T - 14} fill="#3a4658" />
       <rect x={x} y={y + 10} width={T} height={1} fill={HAIR} />
       <rect x={x} y={y + T - 6} width={T} height={4} fill="#22304a" />
@@ -346,6 +443,7 @@ function Vending({ x, y, lit }: { x: number; y: number; lit: boolean }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 20 })}
       <rect x={x + 5} y={y + 1} width={22} height={30} rx={2} fill="#2a3a5a" stroke={INK} />
       <rect
         x={x + 7}
@@ -372,6 +470,7 @@ function Vending({ x, y, lit }: { x: number; y: number; lit: boolean }) {
       />
       <rect x={x + 21} y={y + 14} width={4} height={2} fill={INK} />
       <rect x={x + 8} y={y + 26} width={11} height={3} fill="#0f141c" />
+      {lit && <rect x={x + 7} y={y + 24} width={13} height={1} fill="#ffd54f" opacity="0.9" />}
     </g>
   )
 }
@@ -380,6 +479,7 @@ function BreakTable({ x, y, part }: { x: number; y: number; part: 0 | 1 }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 18 })}
       <rect
         x={part === 0 ? x + 4 : x}
         y={y + 8}
@@ -432,6 +532,7 @@ function MeetingTable({
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 20 })}
       <rect
         x={x + inset.left}
         y={y + inset.top}
@@ -510,6 +611,7 @@ function HandoutRack({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 18 })}
       <rect x={x + 5} y={y + 3} width={22} height={26} rx={1} fill={STEEL} stroke={INK} />
       {[0, 1, 2].map((i) => (
         <g key={i}>
@@ -538,6 +640,7 @@ function WaterCooler({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 17 })}
       <rect x={x + 9} y={y + 14} width={14} height={16} rx={2} fill={PAPER} stroke={INK} />
       <rect x={x + 11} y={y + 3} width={10} height={12} rx={3} fill="#4fc3f7" stroke={INK} />
       <rect x={x + 13} y={y + 5} width={3} height={7} fill="#fff" opacity="0.5" />
@@ -550,6 +653,7 @@ function Plant({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 17 })}
       <rect x={x + 10} y={y + 20} width={12} height={10} rx={1} fill="#8a5a3a" stroke={INK} />
       <rect x={x + 9} y={y + 19} width={14} height={3} fill="#a8703f" stroke={INK} />
       <ellipse cx={x + 16} cy={y + 13} rx={9} ry={7} fill="#2e8b57" stroke={INK} />
@@ -563,6 +667,7 @@ function Directory({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
+      {fixtureShadow({ x, y, w: 18 })}
       <rect x={x + 15} y={y + 18} width={2} height={11} fill={STEEL_DARK} stroke={INK} />
       <rect x={x + 10} y={y + 28} width={12} height={2} fill={STEEL_DARK} />
       <rect x={x + 5} y={y + 3} width={22} height={16} rx={1} fill="#1f2733" stroke={INK} />
@@ -671,6 +776,52 @@ function Glass({ x, y }: { x: number; y: number }) {
       <rect x={x + 3} y={y + 2} width={T - 6} height={T - 4} fill="url(#glass-sheen)" />
     </g>
   )
+}
+
+/** Foreground trim pass for extra depth and emissive accents. */
+export function renderForegroundTile(tx: number, ty: number, s: TileStates): ReactNode {
+  const g = glyphAt(tx, ty)
+  const x = tx * T
+  const y = ty * T
+  const key = `fg-${tx},${ty}`
+  if (g === '=') {
+    return (
+      <g key={key}>
+        <rect x={x} y={y + T - 7} width={T} height={1} fill="rgba(255,255,255,0.22)" />
+        <rect x={x} y={y + T - 6} width={T} height={2} fill="rgba(0,0,0,0.28)" />
+      </g>
+    )
+  }
+  if (g === 'K') {
+    return (
+      <g key={key}>
+        <rect x={x} y={y + T - 7} width={T} height={1} fill="rgba(255,255,255,0.18)" />
+        <rect x={x} y={y + T - 5} width={T} height={2} fill="rgba(0,0,0,0.34)" />
+      </g>
+    )
+  }
+  if (g === 'V' && s.vendingLit) {
+    return (
+      <g key={key} className="of-vending">
+        <rect x={x + 7} y={y + 3} width={13} height={2} fill="#ffd54f" opacity="0.8" />
+      </g>
+    )
+  }
+  if (g === 'P' && s.printer === 'printing') {
+    return (
+      <g key={key} className="of-pages">
+        <rect x={x + 8} y={y + 20} width={12} height={1} fill="#ffffff" opacity="0.85" />
+      </g>
+    )
+  }
+  if (g === 'E' && s.elevatorOpen) {
+    return (
+      <g key={key} className="of-elevator-shine">
+        <rect x={x + 4} y={y + 5} width={T - 8} height={2} fill="#ffe59b" opacity="0.72" />
+      </g>
+    )
+  }
+  return null
 }
 
 /** Renders one 32×32 tile at grid position (tx, ty). */

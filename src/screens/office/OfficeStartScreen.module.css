@@ -6,6 +6,9 @@
   gap: 12px;
   height: 100%;
   padding: 24px;
+  background:
+    radial-gradient(120% 90% at 50% 20%, rgba(255, 193, 7, 0.08), transparent 52%),
+    radial-gradient(120% 130% at 50% 60%, #121b2a, #070b12 68%);
 }
 
 .back {
@@ -35,10 +38,10 @@
 .title {
   margin: 0;
   font-family: var(--cc-font-display);
-  font-size: var(--display-lg);
+  font-size: 42px;
   letter-spacing: 0.06em;
   color: var(--cc-gold);
-  text-shadow: 0 6px 24px rgba(255, 193, 7, 0.2);
+  text-shadow: 0 8px 28px rgba(255, 193, 7, 0.25);
 }
 
 .blurb {
@@ -55,7 +58,8 @@
   width: min(400px, 100%);
   padding: 14px 16px;
   border-radius: var(--radius-md);
-  background: var(--cc-glass);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0)), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
   box-shadow: var(--cc-shadow-plate);
   color: var(--cc-text);
