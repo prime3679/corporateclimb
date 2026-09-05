@@ -13,8 +13,9 @@ import {
   type NpcId,
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
-import Headshot, { ringColorFor } from './Headshot'
+import Headshot from './Headshot'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
+import { ringColorFor } from './ringColor'
 import { TileDefs, renderForegroundTile, renderTile, type TileStates } from './tiles'
 import styles from './WorldMap.module.css'
 

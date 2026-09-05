@@ -28,9 +28,10 @@ import { Button } from '@/ui'
 import TypeBadge from '@/components/TypeBadge'
 import XpBar from '@/components/XpBar'
 import { SFX } from '@/sfx'
-import Headshot, { ringColorFor } from './Headshot'
+import Headshot from './Headshot'
 import { PartyChips, hpTone } from './PartyStrip'
 import { NPC_CAST, castForSpeaker, memberRing, memberRole, memberSprite } from './cast'
+import { ringColorFor } from './ringColor'
 import styles from './Overlays.module.css'
 
 type Act = (action: Parameters<typeof dispatchOfficeAction>[1]) => void

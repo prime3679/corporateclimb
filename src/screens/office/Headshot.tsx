@@ -1,17 +1,9 @@
 import type { CSSProperties } from 'react'
-import { TYPE_COLORS } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { headshotFocal } from '@/sprites'
-import type { MoveType } from '@/types'
 import styles from './Headshot.module.css'
 
 export type HeadshotShape = 'circle' | 'badge'
-
-/** Ring color for a member: gold for the player, primary type color otherwise. */
-export function ringColorFor(types: MoveType[], lead: boolean): string {
-  if (lead) return 'var(--cc-gold)'
-  return TYPE_COLORS[types[0]] ?? TYPE_COLORS.normal
-}
 
 /**
  * A portrait cropped to the face — the office's badge photo. One focal
