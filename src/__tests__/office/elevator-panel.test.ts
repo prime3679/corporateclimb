@@ -23,7 +23,11 @@ function at(state: OfficeState, x: number, y: number): OfficeState {
 function ride(state: OfficeState, to: FloorId): OfficeState {
   let next = dispatchOfficeAction(at(state, 3, 2), { type: 'INTERACT' }).state
   next = dispatchOfficeAction(next, { type: 'RIDE_ELEVATOR', to }).state
-  return dispatchOfficeAction(next, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+  next = dispatchOfficeAction(next, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+  if (next.overlay?.kind === 'celebration') {
+    next = dispatchOfficeAction(next, { type: 'CHOOSE', choice: 'stay' }).state
+  }
+  return next
 }
 
 describe('elevator panel (floors 1–5)', () => {

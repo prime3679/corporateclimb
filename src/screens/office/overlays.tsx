@@ -21,6 +21,13 @@ import {
   type ReceiptId,
 } from '@/content/office'
 import {
+  CELEBRATION_COUNT_MS,
+  celebrationButtons,
+  celebrationCopy,
+  celebrationStats,
+  type CelebrationScreen,
+} from '@/engine/office'
+import {
   dispatchOfficeAction,
   effectiveKit,
   inspectText,
@@ -40,7 +47,15 @@ import { SFX } from '@/sfx'
 import Headshot from './Headshot'
 import { ringColorFor } from './ringColor'
 import { PartyChips, hpTone } from './PartyStrip'
-import { NPC_CAST, castForSpeaker, memberRing, memberRole, memberSprite } from './cast'
+import {
+  NPC_CAST,
+  castForCoworker,
+  castForSpeaker,
+  formatFloorTime,
+  memberRing,
+  memberRole,
+  memberSprite,
+} from './cast'
 import styles from './Overlays.module.css'
 
 type Act = (action: Parameters<typeof dispatchOfficeAction>[1]) => void
@@ -51,6 +66,7 @@ export interface OverlayProps {
   /** Typewriter speed; 0 renders lines instantly. */
   textMsPerChar?: number
   reduceMotion?: boolean
+  onExit?: () => void
 }
 
 /* ─── hooks ─────────────────────────────────────────────── */
@@ -195,10 +211,7 @@ function Receipt({
 
 function RecruitSummary({ state, coworkerId }: { state: OfficeState; coworkerId: CoworkerId }) {
   const kit = COWORKER_KITS[coworkerId]
-  const cast =
-    coworkerId === 'cw_desk_challenger'
-      ? NPC_CAST.npc_desk_challenger
-      : NPC_CAST.npc_meeting_prepper
+  const cast = castForCoworker(coworkerId)
   return (
     <div>
       <div className={styles.recruitBlock}>
@@ -231,6 +244,7 @@ function RecruitSummary({ state, coworkerId }: { state: OfficeState; coworkerId:
 const OFFER_NODES: Partial<Record<DialogueId, CoworkerId>> = {
   dlg_gavin_offer: 'cw_desk_challenger',
   dlg_priya_offer: 'cw_meeting_prepper',
+  dlg_teddy_offer: 'cw_help_desk_intern',
 }
 
 function Dialogue({
@@ -760,6 +774,7 @@ export default function OfficeOverlays({
   onChange,
   textMsPerChar = 17,
   reduceMotion = false,
+  onExit,
 }: OverlayProps) {
   const act = useAct(state, onChange)
   const ov = state.overlay
@@ -1017,34 +1032,15 @@ export default function OfficeOverlays({
   }
 
   if (ov.kind === 'celebration') {
-    const climb = ov.screen === 'screen_floor5_complete'
     return (
       <div className={styles.layer}>
-        <div className={`premium-screen ${styles.celebration}`}>
-          <div className={styles.celebTitle}>{climb ? 'THE CLIMB' : 'FLOOR CLEAR'}</div>
-          <div className={styles.celebLine}>
-            {climb
-              ? 'Caldwell nods once. The nod is the offer. There is no letter. There is no Floor 6.'
-              : 'The badge is laminated. The elevator still goes up.'}
-          </div>
-          <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
-            {climb
-              ? 'The elevator still goes down. That is the whole building.'
-              : floorLabel(state.floorId)}
-          </div>
-          <div className={styles.actions} style={{ width: 'min(320px, 100%)' }}>
-            <Button
-              variant="primary"
-              autoFocus
-              onClick={() => {
-                SFX.menuConfirm()
-                act({ type: 'CHOOSE', choice: 'continue' })
-              }}
-            >
-              {climb ? 'The elevator still goes down' : 'Continue'}
-            </Button>
-          </div>
-        </div>
+        <CelebrationScreen
+          state={state}
+          screen={ov.screen}
+          act={act}
+          reduceMotion={reduceMotion}
+          onExit={onExit}
+        />
       </div>
     )
   }
@@ -1118,6 +1114,93 @@ function Emphasize({ text, phrase }: { text: string; phrase: string }) {
   )
 }
 
+function CelebrationScreen({
+  state,
+  screen,
+  act,
+  reduceMotion,
+  onExit,
+}: {
+  state: OfficeState
+  screen: CelebrationScreen
+  act: Act
+  reduceMotion: boolean
+  onExit?: () => void
+}) {
+  const copy = celebrationCopy(state, screen)
+  const stats = celebrationStats(state, screen)
+  const buttons = celebrationButtons(screen)
+  const assign = useCountUp(stats.assignmentsDone, CELEBRATION_COUNT_MS, reduceMotion)
+  const won = useCountUp(stats.battlesWon, CELEBRATION_COUNT_MS, reduceMotion)
+  const losses = useCountUp(stats.losses, CELEBRATION_COUNT_MS, reduceMotion)
+  const switches = useCountUp(stats.switches, CELEBRATION_COUNT_MS, reduceMotion)
+  const options = useCountUp(stats.options, CELEBRATION_COUNT_MS, reduceMotion)
+  const time = useCountUp(stats.timeMs, CELEBRATION_COUNT_MS, reduceMotion)
+
+  useEffect(() => {
+    SFX.fanfare()
+  }, [screen])
+
+  const choose = (id: string) => {
+    if (id === 'title') {
+      SFX.menuBack()
+      act({ type: 'CHOOSE', choice: 'title' })
+      onExit?.()
+      return
+    }
+    SFX.menuConfirm()
+    act({ type: 'CHOOSE', choice: id })
+  }
+
+  return (
+    <div className={`premium-screen ${styles.celebration}`}>
+      <div className={styles.celebTitle}>{copy.title}</div>
+      <div className={styles.celebLine}>{copy.body}</div>
+      <PartyChips state={state} size={64} showNames className={styles.celebParty} />
+      <div className={styles.stats} aria-live="polite">
+        <div className={styles.stat}>
+          <span>Assignments</span>
+          <span className={styles.statVal}>
+            {assign} / {stats.assignmentsTotal}
+          </span>
+        </div>
+        <div className={styles.stat}>
+          <span>Battles won</span>
+          <span className={styles.statVal}>{won}</span>
+        </div>
+        <div className={styles.stat}>
+          <span>Losses</span>
+          <span className={styles.statVal}>{losses}</span>
+        </div>
+        <div className={styles.stat}>
+          <span>Switches</span>
+          <span className={styles.statVal}>{switches}</span>
+        </div>
+        <div className={styles.stat}>
+          <span>Options earned</span>
+          <span className={styles.statVal}>
+            {options} {CURRENCY_ICON}
+          </span>
+        </div>
+        <div className={styles.stat}>
+          <span>Time on floor</span>
+          <span className={styles.statVal}>{formatFloorTime(time)}</span>
+        </div>
+      </div>
+      <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
+        {copy.dim}
+      </div>
+      <div className={`${styles.actions} ${styles.celebActions}`}>
+        {buttons.map((b, i) => (
+          <Button key={b.id} variant={b.variant} autoFocus={i === 0} onClick={() => choose(b.id)}>
+            {b.label}
+          </Button>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 /* ─── screen-level overlays ─────────────────────────────── */
 
 /** "Your team needs a minute." — full-frame after a party wipe. */
@@ -1167,42 +1250,39 @@ export function Interstitial({ state, onChange }: OverlayProps) {
   )
 }
 
-/** Full-screen elevator transfer between campaign floors. */
+/** Doors-close → fade → doors-open cab (floor-2 §8.2). Overlay on the map, not a text card. */
 export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayProps) {
-  const act = useAct(state, onChange)
   const destination = state.rideTo ?? state.floorId
-  const goingUp = floorNumber(destination) > floorNumber(state.floorId)
-  const heading = floorLabel(destination)
+  const rideKey = `${state.floorId}->${destination}`
+  const complete = useRef(() => {})
   useEffect(() => {
-    const t = window.setTimeout(
-      () => act({ type: 'COMPLETE_ELEVATOR_RIDE' }),
-      reduceMotion ? 120 : 950,
-    )
-    return () => window.clearTimeout(t)
-  }, [act, reduceMotion, state.floorId])
+    complete.current = () =>
+      onChange(dispatchOfficeAction(state, { type: 'COMPLETE_ELEVATOR_RIDE' }).state)
+  })
+  const [phase, setPhase] = useState<'close' | 'fade'>('close')
+
+  useEffect(() => {
+    if (reduceMotion) {
+      complete.current()
+      return
+    }
+    const closeT = window.setTimeout(() => setPhase('fade'), 400)
+    const doneT = window.setTimeout(() => complete.current(), 700)
+    return () => {
+      window.clearTimeout(closeT)
+      window.clearTimeout(doneT)
+    }
+  }, [rideKey, reduceMotion])
+
   return (
-    <div className={`premium-screen ${styles.celebration}`}>
-      <div className={styles.celebTitle}>ELEVATOR</div>
-      <div className={styles.celebLine}>
-        {goingUp
-          ? `Doors close, the old fluorescent hum shifts pitch, and ${heading} lights up.`
-          : `Doors close, one floor clicks by, and ${heading} comes back into view.`}
-      </div>
-      <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
-        Arriving at <b>{heading}</b>.
-      </div>
-      <div className={styles.actions} style={{ width: 'min(320px, 100%)' }}>
-        <Button
-          variant="primary"
-          autoFocus
-          onClick={() => {
-            SFX.menuConfirm()
-            act({ type: 'COMPLETE_ELEVATOR_RIDE' })
-          }}
-        >
-          Arrive · {heading}
-        </Button>
-      </div>
+    <div
+      className={`${styles.cab} ${phase === 'fade' ? styles.cabFade : styles.cabClose}`}
+      role="status"
+      aria-label={`Elevator to ${floorLabel(destination)}`}
+    >
+      <span className={`${styles.cabDoor} ${styles.cabDoorL}`} aria-hidden />
+      <span className={`${styles.cabDoor} ${styles.cabDoorR}`} aria-hidden />
+      <span className={styles.cabVeil} aria-hidden />
     </div>
   )
 }

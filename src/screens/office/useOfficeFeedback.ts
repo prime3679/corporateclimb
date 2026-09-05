@@ -10,6 +10,7 @@ import {
 } from '@/content/office'
 import {
   currentObjective,
+  destChip,
   inspectText,
   interactTarget,
   memberName,
@@ -37,10 +38,10 @@ export function useOfficeFeedback(state: OfficeState): string {
     // Objective stage advance.
     const prevObj = currentObjective(prev)
     const obj = currentObjective(state)
-    if (prevObj.text !== obj.text) {
+    if (prevObj.text !== obj.text || prevObj.destFloor !== obj.destFloor) {
       SFX.menuConfirm()
       Haptics.selection()
-      say(`Objective: ${obj.text}. ${ZONE_LABEL[obj.zone]}.`)
+      say(destChip(state, obj).live)
     }
 
     // Zone change.
@@ -163,6 +164,12 @@ export function useOfficeFeedback(state: OfficeState): string {
       say(
         `${enc.titleCard}. Win: ${enc.xp} XP, ${enc.options} Options. Lose: break room, walk back.`,
       )
+      return
+    }
+
+    if (ov.kind === 'celebration') {
+      Haptics.success()
+      say(`Floor cleared. ${ov.screen}`)
       return
     }
 

@@ -17,11 +17,12 @@ import {
   maxHpFor,
   memberName,
   currentObjective,
+  destChip,
   type OfficeState,
   type PartyMember,
 } from '@/engine/office'
 import { GameRng } from '@/engine'
-import { MOVE_MS, OFFICE_ENCOUNTERS, ZONE_LABEL, floorLabel, type Facing } from '@/content/office'
+import { MOVE_MS, OFFICE_ENCOUNTERS, floorLabel, type Facing } from '@/content/office'
 import { Haptics } from '@/platform'
 import { SFX } from '@/sfx'
 import WorldMap from './office/WorldMap'
@@ -312,13 +313,7 @@ export default function OfficeScreen({
     )
   }
 
-  if (state.screen === 'elevator_ride') {
-    return (
-      <div style={{ height: '100%', position: 'relative' }}>
-        <ElevatorRide state={state} onChange={onChange} reduceMotion={reduceMotion} />
-      </div>
-    )
-  }
+  // Cab ride keeps the map mounted: doors close over the avatar, fade, then arrive.
 
   if (state.screen === 'battle' && state.encounter && state.battle && liveView) {
     const member = state.encounter.party[state.encounter.activeIndex]
@@ -503,7 +498,8 @@ function Overworld({
   const target = interactTarget(state)
   const prompt = target ? promptText(target, state) : null
   const obj = currentObjective(state)
-  const overlayOpen = !!state.overlay && state.overlay.kind !== 'coach'
+  const overlayOpen =
+    (!!state.overlay && state.overlay.kind !== 'coach') || state.screen === 'elevator_ride'
   const verb = actVerb(prompt, state)
   const letters = lettersHeld(state)
   const holdRef = useRef<number | null>(null)
@@ -543,9 +539,13 @@ function Overworld({
             </div>
             <span
               className={styles.dest}
-              style={{ '--dest-accent': ZONE_ACCENT[obj.zone] } as CSSProperties}
+              style={
+                {
+                  '--dest-accent': destChip(state, obj).accent ?? ZONE_ACCENT[obj.zone],
+                } as CSSProperties
+              }
             >
-              → {ZONE_LABEL[obj.zone]}
+              {destChip(state, obj).label}
             </span>
           </div>
           <div key={obj.text} className={`${styles.objectiveLine} ${styles.objectiveSwap}`}>
@@ -584,11 +584,15 @@ function Overworld({
 
       <div className={styles.mapRegion}>
         <WorldMap state={state} />
+        {state.screen === 'elevator_ride' && (
+          <ElevatorRide state={state} onChange={onChange} reduceMotion={reduceMotion} />
+        )}
         <OfficeOverlays
           state={state}
           onChange={onChange}
           textMsPerChar={textMsPerChar}
           reduceMotion={reduceMotion}
+          onExit={onExit}
         />
       </div>
 

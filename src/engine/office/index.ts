@@ -32,7 +32,22 @@ export {
   loadOfficeSave,
   saveOffice,
 } from './save'
-export { currentObjective, objectiveLabel, type OfficeObjective } from './objective'
+export {
+  currentObjective,
+  destChip,
+  LANDING_DEST_ACCENT,
+  objectiveLabel,
+  type OfficeObjective,
+} from './objective'
+export {
+  CELEBRATION_COUNT_MS,
+  celebrationButtons,
+  celebrationCopy,
+  celebrationFloor,
+  celebrationStats,
+  type CelebrationButton,
+  type CelebrationScreen,
+} from './celebration'
 export { interactTarget, tryStep } from './movement'
 export {
   dismissCoworker,
