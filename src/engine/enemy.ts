@@ -60,19 +60,24 @@ export function resolveEnemy(run: RunState, phase: 1 | 2): Enemy {
         }
       : ngBase
 
-  if (phase === 2 && daily.phase2) {
-    return {
-      ...daily,
-      name: daily.phase2.name ?? daily.name,
-      emoji: daily.phase2.emoji ?? daily.emoji,
-      maxHp: daily.phase2.maxHp,
-      atk: daily.phase2.atk ?? daily.atk,
-      def: daily.phase2.def ?? daily.def,
-      types: daily.phase2.types ?? daily.types,
-      moves: daily.phase2.moves,
-    }
-  }
+  if (phase === 2 && daily.phase2) return applyPhase2(daily)
   return daily
+}
+
+/** Project an enemy (Classic or office encounter) onto its phase-2 kit. */
+export function applyPhase2(enemy: Enemy): Enemy {
+  if (!enemy.phase2) return enemy
+  return {
+    ...enemy,
+    name: enemy.phase2.name ?? enemy.name,
+    emoji: enemy.phase2.emoji ?? enemy.emoji,
+    maxHp: enemy.phase2.maxHp,
+    atk: enemy.phase2.atk ?? enemy.atk,
+    def: enemy.phase2.def ?? enemy.def,
+    types: enemy.phase2.types ?? enemy.types,
+    moves: enemy.phase2.moves,
+    taunt: enemy.phase2.taunt,
+  }
 }
 
 /** The battle-opening log line. */

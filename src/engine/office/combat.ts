@@ -150,12 +150,7 @@ export function applyOfficeSwitch(
 function finishWin(state: OfficeState): OfficeState {
   const enc = state.encounter!
   const def = OFFICE_ENCOUNTERS[enc.encounterId]
-  const rewardId =
-    enc.encounterId === 'enc_desk_challenger'
-      ? 'rwd_enc_desk_challenger'
-      : enc.encounterId === 'enc_meeting_prepper'
-        ? 'rwd_enc_meeting_prepper'
-        : 'rwd_enc_supervisor_1on1'
+  const rewardId = `rwd_${enc.encounterId}`
   let next: OfficeState = {
     ...state,
     screen: 'overworld',

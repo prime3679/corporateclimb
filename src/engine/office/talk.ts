@@ -1,5 +1,14 @@
 import type { DialogueId, EncounterId, NpcId } from '@/content/office'
-import { hasFlag, heldHandout, inParty, lettersHeld, partyHasRoom, type OfficeState } from './state'
+import {
+  hasFlag,
+  heldHandout,
+  inParty,
+  isHired,
+  keyCount,
+  lettersHeld,
+  partyHasRoom,
+  type OfficeState,
+} from './state'
 
 export function resolveNpcTalk(state: OfficeState, npc: NpcId): DialogueId {
   if (npc === 'npc_help_desk_intern') return resolveTeddy(state)
@@ -11,26 +20,49 @@ export function resolveNpcTalk(state: OfficeState, npc: NpcId): DialogueId {
   return resolveHolloway(state)
 }
 
-/* Floor 2 (docs/rpg/floor-2-design.md §2). The transfer packet is wired
-   through `filed`; compliance training, the recruit, the audit and Kessler's
-   review are Astra's (docs/rpg/floor-2-engine-hooks.md). */
-
 export function resolveTeddy(state: OfficeState): DialogueId {
   const transfer = state.assignments.asg_transfer
+  const won = state.encounters.enc_help_desk_intern === 'won'
+  const recruited = inParty(state, 'cw_help_desk_intern')
+  const hired = isHired(state, 'cw_help_desk_intern')
   if (transfer === 'not_started') return 'dlg_teddy_packet'
   if (transfer === 'accepted') return 'dlg_teddy_hint_photo'
   if (transfer === 'photo_taken') return 'dlg_teddy_hint_signature'
   if (transfer === 'signed') return 'dlg_teddy_hint_file'
-  return 'dlg_teddy_filed'
+  if (!won) {
+    if (state.lastLossEncounter === 'enc_help_desk_intern') return 'dlg_teddy_you_lost'
+    return 'dlg_teddy_filed'
+  }
+  if (hasFlag(state, 'flag_floor2_complete')) return 'dlg_teddy_after_win'
+  if (keyCount(state, 'key_employee_badge') > 0) return 'dlg_teddy_after'
+  if (state.encounters.enc_director_review === 'won') return 'dlg_teddy_badge_pending'
+  if (recruited) return 'dlg_teddy_party'
+  if (hired && partyHasRoom(state)) return 'dlg_teddy_rejoin'
+  if (hired) return 'dlg_teddy_rejoin_full'
+  if (lettersHeld(state) > 0 && partyHasRoom(state)) return 'dlg_teddy_offer'
+  if (lettersHeld(state) > 0) return 'dlg_teddy_offer_full'
+  return 'dlg_teddy_no_letter'
 }
 
-export function resolveWhitlock(_state: OfficeState): DialogueId {
-  return 'dlg_whitlock_hook'
+export function resolveWhitlock(state: OfficeState): DialogueId {
+  const audit = state.assignments.asg_audit
+  const won = state.encounters.enc_auditor === 'won'
+  if (won) return 'dlg_whitlock_after'
+  if (audit === 'complete') {
+    if (state.lastLossEncounter === 'enc_auditor') return 'dlg_whitlock_you_lost'
+    return 'dlg_whitlock_challenge'
+  }
+  if (audit === 'receipts_held') return 'dlg_whitlock_delivered'
+  if (audit === 'accepted') return 'dlg_whitlock_waiting'
+  return 'dlg_whitlock_request'
 }
 
 export function resolveKessler(state: OfficeState): DialogueId {
+  if (state.encounters.enc_director_review === 'won') return 'dlg_kessler_after'
+  if (state.lastLossEncounter === 'enc_director_review') return 'dlg_kessler_you_lost'
   if (state.assignments.asg_transfer !== 'complete') return 'dlg_kessler_early'
-  return 'dlg_kessler_teddy_pending'
+  if (state.encounters.enc_help_desk_intern !== 'won') return 'dlg_kessler_teddy_pending'
+  return 'dlg_kessler_review'
 }
 
 function resolveRenata(state: OfficeState): DialogueId {
@@ -49,6 +81,7 @@ function resolveRenata(state: OfficeState): DialogueId {
 
 function resolveRenataProgress(state: OfficeState): DialogueId {
   if (state.assignments.asg_transfer === 'photo_taken') return 'dlg_renata_transfer'
+  if (keyCount(state, 'key_employee_badge') > 0) return 'dlg_renata_f2_after'
   if (hasFlag(state, 'flag_visited_f2')) return 'dlg_renata_upstairs'
   if (hasFlag(state, 'flag_preview_complete')) return 'dlg_renata_after'
   if ((state.keyItems.key_access_badge ?? 0) > 0) return 'dlg_renata_badged'
@@ -65,8 +98,13 @@ function resolveRenataProgress(state: OfficeState): DialogueId {
 function resolveGavin(state: OfficeState): DialogueId {
   const won = state.encounters.enc_desk_challenger === 'won'
   const recruited = inParty(state, 'cw_desk_challenger')
+  const hired = isHired(state, 'cw_desk_challenger')
+  if (hasFlag(state, 'flag_floor2_complete')) return 'dlg_gavin_f2_after'
+  if (hired && !recruited && partyHasRoom(state)) return 'dlg_gavin_rejoin'
+  if (hired && !recruited) return 'dlg_gavin_rejoin_full'
   if (won && recruited && state.encounters.enc_supervisor_1on1 === 'won')
     return 'dlg_gavin_after_win'
+  if (won && recruited && hasFlag(state, 'flag_visited_f2')) return 'dlg_gavin_upstairs'
   if (won && recruited) return 'dlg_gavin_party'
   if (won && lettersHeld(state) > 0 && !recruited) return 'dlg_gavin_offer'
   if (won) return 'dlg_gavin_after'
@@ -82,7 +120,10 @@ function resolveGavin(state: OfficeState): DialogueId {
 function resolvePriya(state: OfficeState): DialogueId {
   const won = state.encounters.enc_meeting_prepper === 'won'
   const recruited = inParty(state, 'cw_meeting_prepper')
+  const hired = isHired(state, 'cw_meeting_prepper')
   const asg = state.assignments.asg_meeting_prep
+  if (hired && !recruited && partyHasRoom(state)) return 'dlg_priya_rejoin'
+  if (hired && !recruited) return 'dlg_priya_rejoin_full'
   if (won && recruited) return 'dlg_priya_party'
   if (won && lettersHeld(state) > 0 && !recruited && !partyHasRoom(state))
     return 'dlg_priya_offer_full'
@@ -98,11 +139,13 @@ function resolvePriya(state: OfficeState): DialogueId {
     if (held === 'key_handout_q2_summary') return 'dlg_priya_wrong_q2'
   }
   if (asg === 'accepted') return 'dlg_priya_waiting'
+  if (hasFlag(state, 'flag_visited_f2')) return 'dlg_priya_upstairs'
   return 'dlg_priya_request'
 }
 
 export function resolveHolloway(state: OfficeState): DialogueId {
   if (state.assignments.asg_transfer === 'photo_taken') return 'dlg_holloway_sign_transfer'
+  if (keyCount(state, 'key_employee_badge') > 0) return 'dlg_holloway_f2_after'
   if (state.assignments.asg_transfer === 'signed' || state.assignments.asg_transfer === 'filed')
     return 'dlg_holloway_upstairs'
   if (state.encounters.enc_supervisor_1on1 === 'won') return 'dlg_holloway_after'

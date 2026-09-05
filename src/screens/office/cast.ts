@@ -158,9 +158,9 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
         ? 'Pick · Handout'
         : 'Inspect · Handout rack'
     case 'poi_elevator_door':
-      return badge ? 'Ride up · Elevator' : 'Badge in · Elevator'
+      return badge || state.floorId !== 'floor_01' ? 'Elevator' : 'Badge in · Elevator'
     case 'poi_elevator_door_f2':
-      return 'Ride down · Elevator'
+      return 'Elevator'
     case 'poi_directory_sign':
       return 'Read · Directory'
     case 'poi_exit_door':
@@ -211,7 +211,10 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
       return 'Inspect · Safe'
     case 'poi_shredder':
       return 'Inspect · Shredder'
+    case 'poi_directory_sign_stub':
+      return 'Read · Directory'
   }
+  return 'Inspect'
 }
 
 export function promptVerb(text: string): string {

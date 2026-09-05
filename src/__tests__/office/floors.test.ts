@@ -30,11 +30,12 @@ function drain(state: OfficeState): OfficeState {
   return s
 }
 
-function boardAndRide(state: OfficeState): OfficeState {
+function boardAndRide(state: OfficeState, to?: 'floor_01' | 'floor_02'): OfficeState {
+  const dest = to ?? (state.floorId === 'floor_01' ? 'floor_02' : 'floor_01')
   let next = at(state, 3, 2, 'n')
   next = dispatchOfficeAction(next, { type: 'INTERACT' }).state
-  expect(next.overlay).toMatchObject({ kind: 'confirm', prompt: 'elevator' })
-  next = dispatchOfficeAction(next, { type: 'RIDE_ELEVATOR' }).state
+  expect(next.overlay).toMatchObject({ kind: 'elevator_panel' })
+  next = dispatchOfficeAction(next, { type: 'RIDE_ELEVATOR', to: dest }).state
   expect(next.screen).toBe('elevator_ride')
   return dispatchOfficeAction(next, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
 }

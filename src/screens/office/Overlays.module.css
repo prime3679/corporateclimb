@@ -960,6 +960,77 @@
   animation: none;
 }
 
+.elevList {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.elevRow {
+  display: grid;
+  grid-template-columns: 36px 1fr auto 14px;
+  align-items: center;
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px 10px;
+  text-align: left;
+  color: var(--cc-text);
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--cc-line);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+}
+
+.elevRow:focus-visible {
+  outline: 2px solid var(--cc-gold);
+  outline-offset: 2px;
+}
+
+.elevHere {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.elevLocked {
+  opacity: 0.4;
+}
+
+.elevNum {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-md);
+  line-height: 1;
+}
+
+.elevName {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-sm);
+  letter-spacing: 0.02em;
+}
+
+.elevSub {
+  font-family: var(--cc-font-body);
+  font-size: var(--body-sm);
+  color: var(--cc-text-dim);
+  justify-self: end;
+}
+
+.elevLed {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.elevLedOn {
+  background: #3dce7a;
+  box-shadow: 0 0 6px #3dce7a;
+}
+
+.elevLedOff {
+  background: #c44;
+  box-shadow: 0 0 6px #c44;
+}
+
 :global(.reduce-motion) .hpFill {
   transition: none;
 }

@@ -14,7 +14,13 @@ export {
   type Side,
   type ViewPatch,
 } from './events'
-export { actualFloorIndex, battleIntroLine, resolveEnemy, resolveNgBaseEnemy } from './enemy'
+export {
+  actualFloorIndex,
+  applyPhase2,
+  battleIntroLine,
+  resolveEnemy,
+  resolveNgBaseEnemy,
+} from './enemy'
 export {
   resolveItemUse,
   resolvePartySwitch,

@@ -10,7 +10,19 @@ export const MOVE_MS = 250
 
 export type Facing = 'n' | 'e' | 's' | 'w'
 
-export type FloorId = 'floor_01' | 'floor_02'
+export type FloorId = 'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05'
+
+export const FLOOR_IDS: readonly FloorId[] = [
+  'floor_01',
+  'floor_02',
+  'floor_03',
+  'floor_04',
+  'floor_05',
+]
+
+export function isStubFloor(floorId: FloorId): boolean {
+  return floorId === 'floor_03' || floorId === 'floor_04' || floorId === 'floor_05'
+}
 export type ZoneId =
   | 'zone_reception'
   | 'zone_desks'
@@ -115,6 +127,8 @@ export type PoiId =
   | 'poi_janitor_cart'
   | 'poi_safe'
   | 'poi_shredder'
+  // Floors 3–5 stubs (Fable replaces copy)
+  | 'poi_directory_sign_stub'
 
 export type TriggerId =
   | 'trg_first_step'

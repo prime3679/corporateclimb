@@ -178,6 +178,9 @@ export const FLOOR_REWARD_IDS: Record<FloorId, readonly RewardId[]> = {
     'rwd_enc_director_review',
     'rwd_promotion_f2',
   ],
+  floor_03: [],
+  floor_04: [],
+  floor_05: [],
 }
 
 /** Options earned from claimed `rwd_*` rows; pass a floor to read one floor's ledger only. */
