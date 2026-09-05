@@ -133,3 +133,20 @@ export const SHREDDER_COPY = {
   idle: 'A cross-cut shredder. It has eaten better receipts than yours.',
   after: 'Your receipts, as confetti. Whitlock fed them in one at a time. Lovingly.',
 }
+
+export const ROADMAP_WALL_COPY = {
+  later: 'The yellow card is gone. NOW is still empty. That is the job.',
+}
+
+export const INTAKE_BOARD_COPY = {
+  filing: 'You pin the Q4 card. A sticky appears. Initials. In pencil.',
+  later: 'The card is filed. The sticky is dry. Nico has not looked up.',
+}
+
+export const LEAVEBEHIND_COPY = {
+  later: 'The stack is one thinner. Reyes already knows.',
+}
+
+export const SIDEBOARD_COPY = {
+  later: 'The gold clip is gone. The leather looks expensive because it is.',
+}

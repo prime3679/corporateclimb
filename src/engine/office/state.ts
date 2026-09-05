@@ -72,7 +72,10 @@ export type Overlay =
   | { kind: 'interstitial'; encounterId: EncounterId }
   | { kind: 'toast'; text: string }
   | { kind: 'handout' }
-  | { kind: 'celebration' }
+  | {
+      kind: 'celebration'
+      screen: 'screen_floor3_complete' | 'screen_floor4_complete' | 'screen_floor5_complete'
+    }
   | { kind: 'elevator_panel' }
 
 export interface OfficeState extends OfficeSave {

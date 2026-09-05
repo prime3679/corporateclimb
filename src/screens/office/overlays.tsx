@@ -363,11 +363,23 @@ function Stakes({
             ? NPC_CAST.npc_auditor
             : encounterId === 'enc_director_review'
               ? NPC_CAST.npc_director
-              : NPC_CAST.npc_supervisor
+              : encounterId === 'enc_vp_product'
+                ? NPC_CAST.npc_vp_product
+                : encounterId === 'enc_vp_sales'
+                  ? NPC_CAST.npc_vp_sales
+                  : encounterId === 'enc_ceo_review'
+                    ? NPC_CAST.npc_ceo
+                    : NPC_CAST.npc_supervisor
   const eyebrow = enc.boss
     ? encounterId === 'enc_director_review'
       ? 'Operations review · Rank 5 · Boss'
-      : 'One-on-one · Rank 2 · Boss'
+      : encounterId === 'enc_vp_product'
+        ? 'Prioritization review · Rank 6 · Boss'
+        : encounterId === 'enc_vp_sales'
+          ? 'The Close · Rank 7 · Boss'
+          : encounterId === 'enc_ceo_review'
+            ? 'The Review · Rank 8 · Boss'
+            : 'One-on-one · Rank 2 · Boss'
     : encounterId === 'enc_help_desk_intern'
       ? `Compliance · Rank ${enc.rank}`
       : encounterId === 'enc_auditor'
@@ -378,6 +390,9 @@ function Stakes({
   const win: string[] = [`+${enc.xp} XP`, `+${enc.options} ${CURRENCY_ICON}`]
   if (encounterId === 'enc_supervisor_1on1') win.push('Access Badge', 'Promotion')
   if (encounterId === 'enc_director_review') win.push('Transfer approved', 'Promotion')
+  if (encounterId === 'enc_vp_product') win.push('Product Badge', 'Promotion')
+  if (encounterId === 'enc_vp_sales') win.push('Client Badge', 'Promotion')
+  if (encounterId === 'enc_ceo_review') win.push('The nod', 'Promotion')
   const offer = enc.recruit ? (letters > 0 ? 'Offer eligible' : null) : null
   const yes =
     encounterId === 'enc_help_desk_intern'
@@ -664,17 +679,19 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
       <div className={styles.elevList} role="listbox" aria-label="Elevator floors">
         {ELEVATOR_FLOORS.map((row) => {
           const current = row.id === here
-          const open = !current && canRideTo(row.id, state.keyItems)
-          const sub = current
-            ? 'You are here'
-            : !open
-              ? row.requires === 'key_employee_badge'
-                ? 'Badge required'
-                : 'Access badge required'
-              : row.id === 'floor_01'
-                ? deskRosterLine(state.hired ?? [], state.party, 'floor_01')
-                : row.id === 'floor_03' || row.id === 'floor_04' || row.id === 'floor_05'
-                  ? 'Under construction'
+          const climbHere =
+            row.id === 'floor_05' && current && state.flags.includes('flag_floor5_complete')
+          const open = (!current && canRideTo(row.id, state.keyItems)) || climbHere
+          const sub = climbHere
+            ? 'The climb'
+            : current
+              ? 'You are here'
+              : !open
+                ? row.requires === 'key_employee_badge'
+                  ? 'Badge required'
+                  : 'Access badge required'
+                : row.id === 'floor_01'
+                  ? deskRosterLine(state.hired ?? [], state.party, 'floor_01')
                   : ''
           return (
             <button
@@ -682,10 +699,10 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
               type="button"
               role="option"
               aria-selected={current}
-              disabled={current}
+              disabled={current && !climbHere}
               className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${!open && !current ? styles.elevLocked : ''}`}
               onClick={() => {
-                if (current) return
+                if (current && !climbHere) return
                 if (!open) SFX.menuBack()
                 else SFX.menuConfirm()
                 act({ type: 'CHOOSE', choice: row.id })
@@ -997,6 +1014,39 @@ export default function OfficeOverlays({
       )
     }
     return null
+  }
+
+  if (ov.kind === 'celebration') {
+    const climb = ov.screen === 'screen_floor5_complete'
+    return (
+      <div className={styles.layer}>
+        <div className={`premium-screen ${styles.celebration}`}>
+          <div className={styles.celebTitle}>{climb ? 'THE CLIMB' : 'FLOOR CLEAR'}</div>
+          <div className={styles.celebLine}>
+            {climb
+              ? 'Caldwell nods once. The nod is the offer. There is no letter. There is no Floor 6.'
+              : 'The badge is laminated. The elevator still goes up.'}
+          </div>
+          <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
+            {climb
+              ? 'The elevator still goes down. That is the whole building.'
+              : floorLabel(state.floorId)}
+          </div>
+          <div className={styles.actions} style={{ width: 'min(320px, 100%)' }}>
+            <Button
+              variant="primary"
+              autoFocus
+              onClick={() => {
+                SFX.menuConfirm()
+                act({ type: 'CHOOSE', choice: 'continue' })
+              }}
+            >
+              {climb ? 'The elevator still goes down' : 'Continue'}
+            </Button>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   if (ov.kind === 'elevator_panel') {

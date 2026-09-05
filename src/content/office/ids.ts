@@ -20,9 +20,12 @@ export const FLOOR_IDS: readonly FloorId[] = [
   'floor_05',
 ]
 
-/** Engine key: floors 3–5 until assignment reducers land. Maps are no longer empty halls. */
-export function isStubFloor(floorId: FloorId): boolean {
-  return floorId === 'floor_03' || floorId === 'floor_04' || floorId === 'floor_05'
+/**
+ * Floors 3–5 shipped assignment / encounter reducers, so nothing is a stub.
+ * Kept as a predicate so older tests and comments can still name the idea.
+ */
+export function isStubFloor(_floorId: FloorId): boolean {
+  return false
 }
 export type ZoneId =
   | 'zone_reception'
