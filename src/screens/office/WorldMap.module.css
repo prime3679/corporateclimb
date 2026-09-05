@@ -88,120 +88,6 @@
   background: radial-gradient(circle, rgba(191, 121, 255, 0.28), transparent 68%);
 }
 
-.token {
-  position: absolute;
-  width: 32px;
-  height: 32px;
-  display: grid;
-  place-items: center;
-  z-index: 4;
-  transition:
-    left 250ms linear,
-    top 250ms linear;
-}
-
-.tokenPlayer {
-  z-index: 5;
-}
-
-.tokenShadow {
-  position: absolute;
-  left: 5px;
-  right: 5px;
-  bottom: -1px;
-  height: 7px;
-  border-radius: 999px;
-  background: rgba(0, 0, 0, 0.54);
-  filter: blur(1.5px);
-}
-
-.tokenBody {
-  position: absolute;
-  bottom: 3px;
-  width: 14px;
-  height: 10px;
-  border-radius: 999px 999px 3px 3px;
-  background: linear-gradient(180deg, rgba(205, 214, 226, 0.42), rgba(64, 78, 102, 0.6));
-  box-shadow: 0 0 0 1px rgba(8, 11, 18, 0.7);
-}
-
-.tokenBadge {
-  position: relative;
-  z-index: 1;
-  transition: transform 180ms var(--cc-ease-out);
-}
-
-.tokenGloss {
-  position: absolute;
-  top: 4px;
-  left: 8px;
-  width: 10px;
-  height: 6px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.3);
-  transform: rotate(-18deg);
-  z-index: 2;
-  pointer-events: none;
-}
-
-.notch {
-  position: absolute;
-  width: 6px;
-  height: 6px;
-  border-radius: 1px;
-  z-index: 3;
-  box-shadow: 0 0 0 1px rgba(10, 13, 19, 0.95);
-}
-
-.face_n .notch {
-  top: 0;
-  left: 13px;
-}
-
-.face_s .notch {
-  bottom: 0;
-  left: 13px;
-}
-
-.face_e .notch {
-  right: 0;
-  top: 13px;
-}
-
-.face_w .notch {
-  left: 0;
-  top: 13px;
-}
-
-.face_e .tokenBadge {
-  transform: rotate(2.5deg);
-}
-
-.face_w .tokenBadge {
-  transform: rotate(-2.5deg);
-}
-
-.face_n .tokenBadge {
-  transform: translateY(-1px);
-}
-
-.face_s .tokenBadge {
-  transform: translateY(1px);
-}
-
-.phaseA .tokenBody {
-  transform: translateY(0);
-}
-
-.phaseB .tokenBody {
-  transform: translateY(1px);
-}
-
-.tokenPlayer .tokenBadge,
-.tokenPlayer .tokenBody {
-  animation: of-player-idle 1.25s ease-in-out infinite;
-}
-
 .target {
   position: absolute;
   width: 32px;
@@ -265,7 +151,7 @@
   position: absolute;
   width: 32px;
   height: 32px;
-  margin-top: -24px;
+  margin-top: -32px;
   z-index: 9;
   display: grid;
   place-items: center;
@@ -393,16 +279,6 @@
   }
   50% {
     transform: translateY(-2px);
-  }
-}
-
-@keyframes of-player-idle {
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-1px);
   }
 }
 
@@ -539,7 +415,6 @@
 }
 
 :global(.reduce-motion) .camera,
-:global(.reduce-motion) .token,
 :global(.reduce-motion) .pin {
   transition: none;
 }
@@ -559,8 +434,6 @@
 :global(.reduce-motion) .pool,
 :global(.reduce-motion) .poiFx,
 :global(.reduce-motion) .target,
-:global(.reduce-motion) .tokenPlayer .tokenBadge,
-:global(.reduce-motion) .tokenPlayer .tokenBody,
 :global(.reduce-motion) .tiles :global(.of-steam),
 :global(.reduce-motion) .tiles :global(.of-led-red),
 :global(.reduce-motion) .tiles :global(.of-led-green),
@@ -573,7 +446,6 @@
 
 @media (prefers-reduced-motion: reduce) {
   .camera,
-  .token,
   .pin {
     transition: none;
   }
@@ -593,8 +465,6 @@
   .pool,
   .poiFx,
   .target,
-  .tokenPlayer .tokenBadge,
-  .tokenPlayer .tokenBody,
   .tiles :global(.of-steam),
   .tiles :global(.of-led-red),
   .tiles :global(.of-led-green),

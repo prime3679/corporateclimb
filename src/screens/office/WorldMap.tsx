@@ -13,7 +13,8 @@ import {
   type NpcId,
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
-import Headshot, { ringColorFor } from './Headshot'
+import { ringColorFor } from './Headshot'
+import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
 import { TileDefs, renderForegroundTile, renderTile, type TileStates } from './tiles'
 import styles from './WorldMap.module.css'
@@ -95,54 +96,6 @@ const ForegroundLayer = memo(function ForegroundLayer(states: TileStates) {
   )
 })
 
-function BadgeToken({
-  spriteId,
-  ring,
-  facing,
-  x,
-  y,
-  player = false,
-  label,
-  phase,
-}: {
-  spriteId: string
-  ring: string
-  facing: Facing
-  x: number
-  y: number
-  player?: boolean
-  label: string
-  phase: number
-}) {
-  return (
-    <div
-      className={[
-        styles.token,
-        player ? styles.tokenPlayer : '',
-        styles[`face_${facing}`],
-        phase % 2 === 0 ? styles.phaseA : styles.phaseB,
-      ]
-        .filter(Boolean)
-        .join(' ')}
-      style={{ left: x * T, top: y * T }}
-      aria-label={label}
-      role="img"
-    >
-      <span className={styles.tokenShadow} aria-hidden />
-      <span className={styles.tokenBody} aria-hidden />
-      <Headshot
-        spriteId={spriteId}
-        size={28}
-        ring={ring}
-        shape="badge"
-        className={styles.tokenBadge}
-      />
-      <span className={styles.tokenGloss} aria-hidden />
-      <span className={styles.notch} style={{ background: ring }} aria-hidden />
-    </div>
-  )
-}
-
 export default function WorldMap({ state }: { state: OfficeState }) {
   const mapRef = useRef<HTMLDivElement>(null)
   const [viewH, setViewH] = useState(MAP_H)
@@ -162,7 +115,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const nearby = interactTarget(state)
   const states = tileStates(state, nearby)
   const zone = zoneAt(state.player.x, state.player.y)
-  const stepPhase = (state.player.x + state.player.y) % 2
 
   const viewRows = viewH / T
   const lookAheadX = state.player.facing === 'e' ? 0.5 : state.player.facing === 'w' ? -0.5 : 0
@@ -258,13 +210,13 @@ export default function WorldMap({ state }: { state: OfficeState }) {
             const facing = facingToward(tile, state.player) ?? tile.facing
             return (
               <div key={id}>
-                <BadgeToken
+                <OverworldActor
+                  actorId={NPC_ACTOR[id]}
                   spriteId={cast.spriteId}
                   ring={ringColorFor(cast.types, false)}
                   facing={facing}
                   x={tile.x}
                   y={tile.y}
-                  phase={stepPhase + tile.x + tile.y}
                   label={cast.name}
                 />
                 {callout === id && (
@@ -282,13 +234,13 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           },
         )}
 
-        <BadgeToken
+        <OverworldActor
+          actorId={leadActorId(lead.id)}
           spriteId={lead.spriteId}
           ring="var(--cc-gold)"
           facing={state.player.facing}
           x={state.player.x}
           y={state.player.y}
-          phase={stepPhase}
           player
           label="You"
         />

@@ -6,7 +6,8 @@ wired that freeze into the existing engine/presentation split. Do not invent a
 second combat engine or a second perk pool._
 
 Companion reading: `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.md`
-(ledger and combat numbers), `CLAUDE.md` (Classic tower).
+(ledger and combat numbers), `docs/rpg/fidelity-bar.md` (walk-cycle follow-up to
+the #67 presentation rebuild), `CLAUDE.md` (Classic tower).
 
 ## Ownership — Astra vs Fable
 
