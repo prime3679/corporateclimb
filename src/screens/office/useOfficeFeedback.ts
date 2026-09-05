@@ -149,6 +149,10 @@ export function useOfficeFeedback(state: OfficeState): string {
         SFX.glassDoor()
         Haptics.impact('medium')
         say("Director's office. Kessler's review starts when you step in.")
+      } else if (ov.prompt === 'send_to_desk') {
+        SFX.menuSelect()
+        Haptics.selection()
+        say('Send this coworker to their desk?')
       } else {
         SFX.menuSelect()
         Haptics.selection()
@@ -173,10 +177,19 @@ export function useOfficeFeedback(state: OfficeState): string {
       return
     }
 
+    if (ov.kind === 'pause') {
+      if (ov.reason === 'badge_print') {
+        SFX.printerJam()
+        Haptics.selection()
+        say('Printing your employee badge.')
+      }
+      return
+    }
+
     if (ov.kind === 'elevator_panel') {
       SFX.badgeSwipe()
       Haptics.selection()
-      say('Elevator. Pick a floor.')
+      say('Elevator. Pick a floor. Arrow keys or 1 through 5.')
       return
     }
 

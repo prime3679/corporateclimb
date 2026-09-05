@@ -2,6 +2,7 @@ import { inBounds, isKnownFloorId } from '@/content/office'
 import {
   coworkersInParty,
   fromOfficeSave,
+  mergeVendingStock,
   toOfficeSave,
   type OfficeSave,
   type OfficeState,
@@ -27,12 +28,14 @@ export function migrateOfficeSave(
     return null
   if (raw.version !== 1 && raw.version !== 2) return null
   const hired = raw.hired ?? coworkersFromUnknown(raw.party)
+  const save = raw as OfficeSave
   return {
-    ...(raw as OfficeSave),
+    ...save,
     version: 2,
     hired,
     bench: raw.bench ?? {},
     stats: { rides: 0, battlesWon: 0, losses: 0, switches: 0, msOnFloor: 0, ...raw.stats },
+    vendingStock: mergeVendingStock(save.vendingStock, save.run.shopStock),
   }
 }
 

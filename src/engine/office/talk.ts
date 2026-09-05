@@ -125,6 +125,13 @@ export function resolveTeddy(state: OfficeState): DialogueId {
 export function resolveWhitlock(state: OfficeState): DialogueId {
   const audit = state.assignments.asg_audit
   const won = state.encounters.enc_auditor === 'won'
+  if (
+    lettersHeld(state) > 0 &&
+    (won || audit === 'complete') &&
+    !hasFlag(state, 'flag_whitlock_recruit_seen')
+  ) {
+    return 'dlg_whitlock_recruit'
+  }
   if (won) return 'dlg_whitlock_after'
   if (audit === 'complete') {
     if (state.lastLossEncounter === 'enc_auditor') return 'dlg_whitlock_you_lost'
@@ -159,6 +166,9 @@ function resolveRenata(state: OfficeState): DialogueId {
 
 function resolveRenataProgress(state: OfficeState): DialogueId {
   if (state.assignments.asg_transfer === 'photo_taken') return 'dlg_renata_transfer'
+  if (state.assignments.asg_audit === 'accepted' && keyCount(state, 'key_receipt_roll') === 0) {
+    return 'dlg_renata_audit'
+  }
   if (keyCount(state, 'key_employee_badge') > 0) return 'dlg_renata_f2_after'
   if (hasFlag(state, 'flag_visited_f2')) return 'dlg_renata_upstairs'
   if (hasFlag(state, 'flag_preview_complete')) return 'dlg_renata_after'

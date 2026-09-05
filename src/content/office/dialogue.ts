@@ -676,7 +676,7 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     speaker: 'kessler',
     name: 'Kessler',
     lines: [
-      "Badge printer's at the help desk. Then the elevator. Floor 3 exists; nobody's mapped it.",
+      "Badge printer's at the help desk. Then the elevator. Floors 3 through 5 are a climb. I mapped them. You walk them.",
     ],
   },
   // ── Floor 1 cast once Floor 2 exists (§2.5) ──

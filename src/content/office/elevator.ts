@@ -44,13 +44,19 @@ export interface ElevatorDenyLine {
 }
 
 /**
- * Locked 3+ rows: first tap plays the inspect that names that destination.
- * `poi_elevator_door_f5` is the green “no 6” line, not a lockout.
+ * Locked 3–5 rows share the employee-badge deny. The panel does not yet
+ * tighten 4/5 to product/client, so per-floor "Sales/Exec above your grade"
+ * lines were a lie.
  */
+const EMPLOYEE_DENY: ElevatorDenyLine = {
+  flag: 'flag_reader_denied_f2',
+  poiId: 'poi_elevator_door_f2',
+}
+
 const ELEVATOR_DENY: Partial<Record<FloorId, ElevatorDenyLine>> = {
-  floor_03: { flag: 'flag_reader_denied_f2', poiId: 'poi_elevator_door_f2' },
-  floor_04: { flag: 'flag_reader_denied_f3', poiId: 'poi_elevator_door_f3' },
-  floor_05: { flag: 'flag_reader_denied_f4', poiId: 'poi_elevator_door_f4' },
+  floor_03: EMPLOYEE_DENY,
+  floor_04: EMPLOYEE_DENY,
+  floor_05: EMPLOYEE_DENY,
 }
 
 export function elevatorDenyFor(to: FloorId): ElevatorDenyLine | null {

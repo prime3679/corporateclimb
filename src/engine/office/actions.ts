@@ -53,10 +53,12 @@ import {
   inParty,
   keyCount,
   lettersHeld,
+  mergeVendingStock,
   partyHasRoom,
   pushOverlay,
   rewardClaimed,
   supervisorGateOpen,
+  vendingStockForFloor,
   withFlag,
   withKey,
   type OfficeState,
@@ -81,6 +83,7 @@ export type OfficeAction =
   | { type: 'OPEN_TEAM' }
   | { type: 'CLOSE_TEAM' }
   | { type: 'MAKE_ROOM' }
+  | { type: 'REQUEST_DISMISS'; slot: number }
   | { type: 'DISMISS_MEMBER'; slot: number }
   | { type: 'REJOIN'; coworkerId: CoworkerId }
   | { type: 'OPEN_SWITCH' }
@@ -147,6 +150,8 @@ function apply(state: OfficeState, action: OfficeAction, rng: Rng): OfficeDispat
       return done(closeTeam(state))
     case 'MAKE_ROOM':
       return done(makeRoom(state))
+    case 'REQUEST_DISMISS':
+      return done(requestDismiss(state, action.slot))
     case 'DISMISS_MEMBER':
       return done(dismissMember(state, action.slot))
     case 'REJOIN':
@@ -394,7 +399,7 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
   if (id === 'poi_elevator_door_f2') return handleElevatorPoi(state)
   if (id === 'poi_break_counter_f2')
     return pushOverlay(state, { kind: 'confirm', prompt: 'take_five' })
-  if (id === 'poi_vending_machine_f2') return { ...state, screen: 'vending' }
+  if (id === 'poi_vending_machine_f2') return openVending(state)
   if (id === 'poi_directory_sign_f2')
     return pushOverlay(state, { kind: 'document', docId: 'directory' })
   if (id === 'poi_photo_booth') return handlePhotoBooth(state)
@@ -432,7 +437,7 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
     id === 'poi_vending_machine_f4' ||
     id === 'poi_vending_machine_f5'
   )
-    return { ...state, screen: 'vending' }
+    return openVending(state)
   if (
     id === 'poi_directory_sign_f3' ||
     id === 'poi_directory_sign_f4' ||
@@ -441,8 +446,10 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
     return pushOverlay(state, { kind: 'document', docId: 'directory' })
   if (id === 'poi_roadmap_wall') return handleRoadmapWall(state)
   if (id === 'poi_intake_board') return handleIntakeBoard(state)
-  if (id === 'poi_pipeline_board' || id === 'poi_leavebehind') return handleLeavebehindPickup(state)
+  if (id === 'poi_pipeline_board') return handleLeavebehindPickup(state, 'poi_pipeline_board')
+  if (id === 'poi_leavebehind') return handleLeavebehindPickup(state, 'poi_leavebehind')
   if (id === 'poi_sideboard') return handleSideboard(state)
+  if (id === 'poi_supply_cabinet_upper') return handleCabinetUpper(state)
   return inspect(state, POI_INSPECT[id])
 }
 
@@ -497,6 +504,15 @@ function handleCabinetF2(state: OfficeState): OfficeState {
   const key = 'poi_supply_cabinet_f2:opened'
   if (state.firedTriggers.includes(key)) return inspect(state, CABINET_F2_COPY.later)
   return inspect({ ...state, firedTriggers: [...state.firedTriggers, key] }, CABINET_F2_COPY.first)
+}
+
+function handleCabinetUpper(state: OfficeState): OfficeState {
+  const key = 'poi_supply_cabinet_upper:opened'
+  if (state.firedTriggers.includes(key)) return inspect(state, POI_INSPECT.poi_supply_cabinet_upper)
+  return inspect(
+    { ...state, firedTriggers: [...state.firedTriggers, key] },
+    POI_INSPECT.poi_supply_cabinet_upper,
+  )
 }
 
 function inspect(state: OfficeState, text: string): OfficeState {
@@ -573,9 +589,18 @@ function handleBadgePrinter(state: OfficeState): OfficeState {
     return inspect(state, BADGE_PRINTER_COPY.done)
   }
   return enqueueOverlays(state, [
-    { kind: 'dialogue', nodeId: `inspect:${BADGE_PRINTER_COPY.printing}`, line: 0 },
+    { kind: 'pause', reason: 'badge_print' },
     { kind: 'receipt', receiptId: 'rcpt_employee_badge' },
   ])
+}
+
+function openVending(state: OfficeState): OfficeState {
+  const stock = (state.vendingStock ?? mergeVendingStock(null, state.run.shopStock))[state.floorId]
+  return {
+    ...state,
+    screen: 'vending',
+    run: { ...state.run, shopStock: [...(stock ?? vendingStockForFloor(state.floorId))] },
+  }
 }
 
 function handleFloor1Vending(state: OfficeState): OfficeState {
@@ -589,7 +614,7 @@ function handleFloor1Vending(state: OfficeState): OfficeState {
       [{ kind: 'toast', text: 'Got: Receipt Roll (2.3 m)' }],
     )
   }
-  return { ...state, screen: 'vending' }
+  return openVending(state)
 }
 
 function handleRoadmapWall(state: OfficeState): OfficeState {
@@ -644,7 +669,10 @@ function fileRoadmap(state: OfficeState, fromBoard: boolean): OfficeState {
   ])
 }
 
-function handleLeavebehindPickup(state: OfficeState): OfficeState {
+function handleLeavebehindPickup(
+  state: OfficeState,
+  id: 'poi_pipeline_board' | 'poi_leavebehind',
+): OfficeState {
   if (
     state.assignments.asg_leavebehind === 'accepted' &&
     keyCount(state, 'key_leavebehind') === 0
@@ -659,9 +687,12 @@ function handleLeavebehindPickup(state: OfficeState): OfficeState {
     )
   }
   if (state.assignments.asg_leavebehind === 'not_started') {
-    return inspect(state, POI_INSPECT.poi_leavebehind)
+    return inspect(state, POI_INSPECT[id])
   }
-  return inspect(state, LEAVEBEHIND_COPY.later)
+  return inspect(
+    state,
+    id === 'poi_pipeline_board' ? POI_INSPECT.poi_pipeline_board : LEAVEBEHIND_COPY.later,
+  )
 }
 
 function deliverLeavebehind(state: OfficeState): OfficeState {
@@ -723,7 +754,7 @@ function fileBoardPacket(state: OfficeState): OfficeState {
 function handleAdvance(state: OfficeState): OfficeState {
   const ov = state.overlay
   if (!ov) return state
-  if (ov.kind === 'toast' || ov.kind === 'coach' || ov.kind === 'document')
+  if (ov.kind === 'toast' || ov.kind === 'coach' || ov.kind === 'document' || ov.kind === 'pause')
     return closeOverlay(maybeCoachMove(state, ov))
   if (ov.kind === 'interstitial') {
     const next = closeOverlay(state)
@@ -778,6 +809,7 @@ function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
     return next
   }
   if (id === 'dlg_teddy_beaten') return teddyOfferFollowup(state)
+  if (id === 'dlg_whitlock_recruit') return withFlag(state, 'flag_whitlock_recruit_seen')
   if (id === 'dlg_whitlock_delivered') {
     if (state.assignments.asg_audit !== 'receipts_held' || rewardClaimed(state, 'rwd_asg_audit')) {
       return pushOverlay(state, { kind: 'dialogue', nodeId: 'dlg_whitlock_challenge', line: 0 })
@@ -910,6 +942,10 @@ function handleChoose(state: OfficeState, choice: string): OfficeState {
     return state
   }
   if (ov?.kind === 'confirm') {
+    if (ov.prompt === 'send_to_desk') {
+      if (choice === 'yes' || choice === 'send') return dismissMember(state, ov.slot)
+      return closeOverlay(state)
+    }
     if (choice === 'yes' || choice === 'take_five' || choice === 'step_in' || choice === 'ride') {
       if (ov.prompt === 'take_five') return takeFive(closeOverlay(state))
       if (ov.prompt === 'door') return doorStepIn(state)
@@ -1023,7 +1059,7 @@ function handleChoose(state: OfficeState, choice: string): OfficeState {
 }
 
 function handleClose(state: OfficeState, rng: Rng): OfficeState {
-  if (state.screen === 'vending') return { ...state, screen: 'overworld' }
+  if (state.screen === 'vending') return closeVending(state)
   const ov = state.overlay
   if (!ov) return state
   if (ov.kind === 'receipt') {
@@ -1204,13 +1240,28 @@ function takeFive(state: OfficeState): OfficeState {
   ])
 }
 
+function writeVendingStock(state: OfficeState, shopStock: ItemId[]): OfficeState {
+  const stock = mergeVendingStock(state.vendingStock, state.run.shopStock)
+  return {
+    ...state,
+    vendingStock: { ...stock, [state.floorId]: [...shopStock] },
+    run: { ...state.run, shopStock: [...shopStock] },
+  }
+}
+
+function closeVending(state: OfficeState): OfficeState {
+  const next = writeVendingStock(state, state.run.shopStock ?? [])
+  return { ...next, screen: 'overworld' }
+}
+
 function buyVending(state: OfficeState, itemId: ItemId): OfficeState {
   const stock = state.run.shopStock ?? []
   const idx = stock.indexOf(itemId)
   if (idx < 0) return state
   const price = shopPrice(ITEMS[itemId].price, state.run.perks, state.run.floor, state.run.relics)
   if (state.run.stockOptions < price || state.run.inventory.length >= 4) return state
-  return { ...state, run: buyShopItem(state.run, idx) }
+  const run = buyShopItem(state.run, idx)
+  return writeVendingStock({ ...state, run }, run.shopStock ?? [])
 }
 
 function pickHandout(state: OfficeState, itemId: KeyItemId): OfficeState {
@@ -1400,22 +1451,42 @@ function deskToast(id: CoworkerId): string {
   return `${COWORKER_NAME[id]}'s at ${desk.pronoun} desk. Floor ${floorNumber(desk.floorId)}.`
 }
 
+function teamOverlay(state: OfficeState): Extract<Overlay, { kind: 'team' }> | null {
+  if (state.overlay?.kind === 'team') return state.overlay
+  return (
+    state.overlayQueue.find((ov): ov is Extract<Overlay, { kind: 'team' }> => ov.kind === 'team') ??
+    null
+  )
+}
+
+function requestDismiss(state: OfficeState, slot: number): OfficeState {
+  const member = state.party[slot]
+  if (!member || member.def.kind !== 'coworker') return state
+  if (state.overlay?.kind !== 'team') return state
+  return {
+    ...state,
+    overlay: { kind: 'confirm', prompt: 'send_to_desk', slot },
+    overlayQueue: [state.overlay, ...state.overlayQueue],
+  }
+}
+
 function dismissMember(state: OfficeState, slot: number): OfficeState {
   const member = state.party[slot]
   if (!member || member.def.kind !== 'coworker') return state
   const id = member.def.id
   const next = dismissCoworker(state, slot)
   const toast = { kind: 'toast' as const, text: deskToast(id) }
-  if (state.overlay?.kind === 'team' && state.overlay.returnRecruit) {
+  const team = teamOverlay(state)
+  if (team?.returnRecruit) {
     return enqueueOverlays({ ...next, overlay: null, overlayQueue: [] }, [
       toast,
-      { kind: 'recruit', coworkerId: state.overlay.returnRecruit },
+      { kind: 'recruit', coworkerId: team.returnRecruit },
     ])
   }
-  if (state.overlay?.kind === 'team') {
+  if (team) {
     return enqueueOverlays({ ...next, overlay: null, overlayQueue: [] }, [
       toast,
-      { kind: 'team', mode: state.overlay.mode },
+      { kind: 'team', mode: team.mode },
     ])
   }
   return enqueueOverlays({ ...next, overlay: null, overlayQueue: next.overlayQueue }, [toast])

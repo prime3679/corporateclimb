@@ -17,7 +17,7 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_supervisor_door: "Holloway's one-on-one starts when you step in. It doesn't stop.",
   // Floor 2 (docs/rpg/floor-2-design.md §2.4) — first-state lines; state-keyed copy is below.
   poi_elevator_door_f2:
-    'The reader blinks red. Floor 3 is above your grade. It says so, in a beep.',
+    'The reader blinks red. Floors 3–5 are above your grade. It says so, in a beep.',
   poi_directory_sign_f2:
     'FLOOR 2 — OPERATIONS. Help desk: through the glass. People Ops: far right.',
   poi_photo_booth: 'A badge photo booth. The curtain is the colour of a mistake.',
@@ -43,7 +43,7 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_directory_sign_stub:
     'Unmapped floor. Elevator: you are standing at it. Fable fills the rest.',
   // Floors 3–5 (docs/rpg/floor-3-5-design.md)
-  poi_elevator_door_f3: 'The reader blinks red. Sales is above your grade. It says so, in a beep.',
+  poi_elevator_door_f3: 'The reader is green. Employee badge. Sales is a button. So is Exec.',
   poi_directory_sign_f3: 'FLOOR 3 — PRODUCT. War room: through the glass. Intake: far right.',
   poi_roadmap_wall: 'A wall of cards. NOW is empty. LATER is a novel. ICEBOX has your name on it.',
   poi_intake_board: 'A research board. The stickies are colour-coded by how tired Nico is.',
@@ -56,7 +56,7 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_break_table_f3: 'A pastry box. The note says FOR THE Q4 REVIEW. The box is empty.',
   poi_quincy_desk:
     'Nameplate: QUINCY, VP PRODUCT. The Now column on his monitor is a blinking cursor.',
-  poi_elevator_door_f4: 'The reader blinks red. Exec is above your grade. It says so, in a beep.',
+  poi_elevator_door_f4: 'The reader is green. Employee badge. Exec is a button.',
   poi_directory_sign_f4: 'FLOOR 4 — SALES. Pipeline: through the glass. Client: far right.',
   poi_pipeline_board: 'A pipeline. Everything is Closing. Nothing is Closed. The maths is hopeful.',
   poi_leavebehind: 'A stack of one-pagers. The number at the bottom is optimistic.',
@@ -81,6 +81,8 @@ export const POI_INSPECT: Record<PoiId, string> = {
   poi_board_table: 'A table that has heard worse presentations than yours. It is not impressed.',
   poi_caldwell_desk:
     'Nameplate: CALDWELL, CHIEF EXECUTIVE. No computer. A notepad. One line, blank.',
+  poi_supply_cabinet_upper:
+    'Grey cabinet. The same one. Someone wheeled it between floors. Nobody restocked it.',
 }
 
 export const PRINTER_COPY = {
