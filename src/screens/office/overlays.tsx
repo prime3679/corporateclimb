@@ -1409,6 +1409,7 @@ export function CoachMark({
   const copy = COACH_COPY[id]
   return (
     <div
+      id={id}
       className={[styles.coach, pointer === 'down' ? styles.coachDown : styles.coachUp, className]
         .filter(Boolean)
         .join(' ')}
