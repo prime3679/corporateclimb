@@ -257,35 +257,38 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           />
         )}
 
-        {(Object.entries(npcTiles) as [NpcId, { x: number; y: number; facing: Facing } | undefined][]).map(
-          ([id, tile]) => {
-            if (!tile) return null
-            const cast = NPC_CAST[id]
-            const facing = facingToward(tile, state.player) ?? tile.facing
-            return (
-              <div key={id}>
-                <OverworldActor
-                  actorId={NPC_ACTOR[id]}
-                  ring={ringColorFor(cast.types, false)}
-                  facing={facing}
-                  x={tile.x}
-                  y={tile.y}
-                  label={cast.name}
-                />
-                {callout === id && (
-                  <span
-                    key={dialogueKey}
-                    className={styles.callout}
-                    style={{ left: tile.x * T, top: tile.y * T }}
-                    aria-hidden
-                  >
-                    !
-                  </span>
-                )}
-              </div>
-            )
-          },
-        )}
+        {(
+          Object.entries(npcTiles) as [
+            NpcId,
+            { x: number; y: number; facing: Facing } | undefined,
+          ][]
+        ).map(([id, tile]) => {
+          if (!tile) return null
+          const cast = NPC_CAST[id]
+          const facing = facingToward(tile, state.player) ?? tile.facing
+          return (
+            <div key={id}>
+              <OverworldActor
+                actorId={NPC_ACTOR[id]}
+                ring={ringColorFor(cast.types, false)}
+                facing={facing}
+                x={tile.x}
+                y={tile.y}
+                label={cast.name}
+              />
+              {callout === id && (
+                <span
+                  key={dialogueKey}
+                  className={styles.callout}
+                  style={{ left: tile.x * T, top: tile.y * T }}
+                  aria-hidden
+                >
+                  !
+                </span>
+              )}
+            </div>
+          )
+        })}
 
         <OverworldActor
           actorId={leadActorId(lead.id)}

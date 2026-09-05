@@ -938,11 +938,7 @@ export function Interstitial({ state, onChange }: OverlayProps) {
 }
 
 /** Full-screen elevator transfer between campaign floors. */
-export function ElevatorRide({
-  state,
-  onChange,
-  reduceMotion = false,
-}: OverlayProps) {
+export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayProps) {
   const act = useAct(state, onChange)
   const destination = elevatorDestination(state.floorId)
   const goingUp = destination === 'floor_02'

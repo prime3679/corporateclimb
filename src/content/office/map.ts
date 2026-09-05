@@ -73,7 +73,10 @@ const FLOOR_ELEVATOR_ARRIVAL: Record<FloorId, SpawnPoint> = {
   floor_02: { x: 3, y: 2, facing: 's' },
 }
 
-const FLOOR_ELEVATOR_BOARDING: Record<FloorId, ReadonlyArray<{ x: number; y: number; facing: Facing }>> = {
+const FLOOR_ELEVATOR_BOARDING: Record<
+  FloorId,
+  ReadonlyArray<{ x: number; y: number; facing: Facing }>
+> = {
   floor_01: [
     { x: 2, y: 2, facing: 'n' },
     { x: 3, y: 2, facing: 'n' },

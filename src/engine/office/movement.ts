@@ -33,7 +33,9 @@ export function tryStep(state: OfficeState, dir: Facing): { state: OfficeState; 
 }
 
 export function occupiesNpc(state: OfficeState, x: number, y: number): boolean {
-  return Object.values(npcTilesForFloor(state.floorId)).some((tile) => tile && tile.x === x && tile.y === y)
+  return Object.values(npcTilesForFloor(state.floorId)).some(
+    (tile) => tile && tile.x === x && tile.y === y,
+  )
 }
 
 export function interactTarget(state: OfficeState): InteractTarget | null {

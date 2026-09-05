@@ -315,11 +315,7 @@ export default function OfficeScreen({
   if (state.screen === 'elevator_ride') {
     return (
       <div style={{ height: '100%', position: 'relative' }}>
-        <ElevatorRide
-          state={state}
-          onChange={onChange}
-          reduceMotion={reduceMotion}
-        />
+        <ElevatorRide state={state} onChange={onChange} reduceMotion={reduceMotion} />
       </div>
     )
   }
@@ -541,9 +537,9 @@ function Overworld({
         <div className={styles.objective} aria-label="Objective">
           <div className={styles.objectiveHead}>
             <div className={styles.eyebrow}>
-                {state.floorId === 'floor_02' || state.flags.includes('flag_preview_complete')
-                  ? floorLabel(state.floorId)
-                  : 'Objective'}
+              {state.floorId === 'floor_02' || state.flags.includes('flag_preview_complete')
+                ? floorLabel(state.floorId)
+                : 'Objective'}
             </div>
             <span
               className={styles.dest}
