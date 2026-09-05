@@ -2,6 +2,7 @@ import type { MoveType } from '@/types'
 import {
   OFFICE_ENCOUNTERS,
   SPEAKER_SPRITE,
+  floorLabel,
   ZONE_LABEL,
   type DialogueId,
   type InteractTarget,
@@ -23,7 +24,7 @@ export function formatFloorTime(ms: number): string {
 /** "Floor 1 · Team of 2 · 📈 28 · 11:42 in" — the title/start summary line. */
 export function campaignSummary(save: OfficeSave): string {
   return [
-    'Floor 1',
+    floorLabel(save.floorId),
     `Team of ${save.party.length}`,
     `${CURRENCY_ICON} ${save.run.stockOptions}`,
     `${formatFloorTime(save.stats.msOnFloor)} in`,
@@ -63,6 +64,12 @@ export const NPC_CAST: Record<NpcId, CastEntry> = {
     spriteId: SPEAKER_SPRITE.holloway,
     types: OFFICE_ENCOUNTERS.enc_supervisor_1on1.types,
   },
+  npc_floor2_contractor: {
+    name: 'Callie',
+    role: 'Facilities Pilot',
+    spriteId: SPEAKER_SPRITE.callie,
+    types: ['strategy'],
+  },
 }
 
 const SPEAKER_NPC: Record<Exclude<SpeakerId, null>, NpcId> = {
@@ -70,6 +77,7 @@ const SPEAKER_NPC: Record<Exclude<SpeakerId, null>, NpcId> = {
   gavin: 'npc_desk_challenger',
   priya: 'npc_meeting_prepper',
   holloway: 'npc_supervisor',
+  callie: 'npc_floor2_contractor',
 }
 
 /** Lines shouted across the room carry no headshot but still name the speaker. */
@@ -126,7 +134,8 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
         ? 'Pick · Handout'
         : 'Inspect · Handout rack'
     case 'poi_elevator_door':
-      return badge ? 'Ride · Elevator' : 'Badge in · Elevator'
+      if (state.floorId === 'floor_02') return 'Ride down · Elevator'
+      return badge ? 'Ride up · Elevator' : 'Badge in · Elevator'
     case 'poi_directory_sign':
       return 'Read · Directory'
     case 'poi_exit_door':

@@ -60,6 +60,29 @@ describe('office save isolation', () => {
     expect(loaded?.screen).toBe('promotion')
   })
 
+  it('reloads floor, tile, and facing when saved on Floor 2', () => {
+    let s = dispatchOfficeAction(newOfficeCampaign(PM), { type: 'ACK_RECEIPT' }).state
+    s = {
+      ...s,
+      overlay: null,
+      overlayQueue: [],
+      keyItems: { ...s.keyItems, key_access_badge: 1 },
+      player: { x: 3, y: 2, facing: 'n' },
+    }
+    s = dispatchOfficeAction(s, { type: 'RIDE_ELEVATOR' }).state
+    s = dispatchOfficeAction(s, { type: 'COMPLETE_ELEVATOR_RIDE' }).state
+    s = {
+      ...s,
+      overlay: null,
+      overlayQueue: [],
+      player: { x: 8, y: 5, facing: 'w' },
+    }
+    saveOffice(toOfficeSave(s))
+    const loaded = loadOffice()
+    expect(loaded?.floorId).toBe('floor_02')
+    expect(loaded?.player).toEqual({ x: 8, y: 5, facing: 'w' })
+  })
+
   it('dispatchOfficeAction is a pure reducer and never writes either save key', () => {
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
     expect(localStorage.getItem(OFFICE_SAVE_KEY)).toBeNull()

@@ -1,6 +1,6 @@
 import type { DialogueId } from './ids'
 
-export type SpeakerId = 'renata' | 'gavin' | 'priya' | 'holloway' | null
+export type SpeakerId = 'renata' | 'gavin' | 'priya' | 'holloway' | 'callie' | null
 
 export interface DialogueChoice {
   id: string
@@ -84,14 +84,14 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Renata',
     lines: [
       "Look at you. Badged. Elevator's top left. It goes to Floor 2.",
-      "Floor 2 isn't finished. Take that up with the people who build floors.",
+      "It's mostly a temporary pod for now, but the loop works. That's still a win.",
     ],
   },
   dlg_renata_after: {
     id: 'dlg_renata_after',
     speaker: 'renata',
     name: 'Renata',
-    lines: ['Back already? Floor 2 will be there when it exists.'],
+    lines: ['Back already? Floor 2 has folding tables and ambition.'],
   },
   dlg_gavin_busy: {
     id: 'dlg_gavin_busy',
@@ -369,6 +369,21 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Holloway',
     lines: ["Elevator's behind me. Reader's on the right. It beeps. Everything here beeps."],
   },
+  dlg_callie_floor2_intro: {
+    id: 'dlg_callie_floor2_intro',
+    speaker: 'callie',
+    name: 'Callie',
+    lines: [
+      "Welcome to Floor 2. It's a stub, but it's ours.",
+      'I run facilities pilots up here. Elevator down is live whenever you want to backtrack.',
+    ],
+  },
+  dlg_callie_floor2_repeat: {
+    id: 'dlg_callie_floor2_repeat',
+    speaker: 'callie',
+    name: 'Callie',
+    lines: ['Still wiring this floor together. If you need supplies, Floor 1 is one ride away.'],
+  },
 }
 
 export const SPEAKER_SPRITE: Record<
@@ -379,4 +394,5 @@ export const SPEAKER_SPRITE: Record<
   gavin: 'overachiever',
   priya: 'scrum',
   holloway: 'manager',
+  callie: 'recruiter',
 }

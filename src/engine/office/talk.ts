@@ -2,10 +2,17 @@ import type { DialogueId, EncounterId, NpcId } from '@/content/office'
 import { hasFlag, heldHandout, inParty, lettersHeld, partyHasRoom, type OfficeState } from './state'
 
 export function resolveNpcTalk(state: OfficeState, npc: NpcId): DialogueId {
+  if (npc === 'npc_floor2_contractor') return resolveCallie(state)
   if (npc === 'npc_receptionist') return resolveRenata(state)
   if (npc === 'npc_desk_challenger') return resolveGavin(state)
   if (npc === 'npc_meeting_prepper') return resolvePriya(state)
   return resolveHolloway(state)
+}
+
+function resolveCallie(state: OfficeState): DialogueId {
+  return hasFlag(state, 'flag_floor2_briefed')
+    ? 'dlg_callie_floor2_repeat'
+    : 'dlg_callie_floor2_intro'
 }
 
 function resolveRenata(state: OfficeState): DialogueId {

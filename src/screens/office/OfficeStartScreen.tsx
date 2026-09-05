@@ -33,10 +33,11 @@ export default function OfficeStartScreen({
         ‹ Title
       </button>
 
-      <div className={styles.eyebrow}>Preview · Floor 1</div>
+      <div className={styles.eyebrow}>Campaign · Floors 1–2</div>
       <h1 className={styles.title}>THE OFFICE</h1>
       <p className={styles.blurb}>
-        Reception, desks, a printer, and a one-on-one that does not end early.
+        Reception, desks, a printer, a one-on-one that does not end early, and a playable Floor 2
+        stub.
       </p>
 
       {save && (

@@ -21,12 +21,12 @@ import {
   type PartyMember,
 } from '@/engine/office'
 import { GameRng } from '@/engine'
-import { MOVE_MS, OFFICE_ENCOUNTERS, ZONE_LABEL, type Facing } from '@/content/office'
+import { MOVE_MS, OFFICE_ENCOUNTERS, ZONE_LABEL, floorLabel, type Facing } from '@/content/office'
 import { Haptics } from '@/platform'
 import { SFX } from '@/sfx'
 import WorldMap from './office/WorldMap'
 import PartyStrip, { hpTone } from './office/PartyStrip'
-import OfficeOverlays, { Celebration, CoachMark, Interstitial } from './office/overlays'
+import OfficeOverlays, { CoachMark, ElevatorRide, Interstitial } from './office/overlays'
 import Headshot from './office/Headshot'
 import { ZONE_ACCENT, memberRing, memberSprite, promptText, promptVerb } from './office/cast'
 import { useDeferredWallet, useOfficeFeedback } from './office/useOfficeFeedback'
@@ -312,13 +312,12 @@ export default function OfficeScreen({
     )
   }
 
-  if (state.screen === 'preview_complete') {
+  if (state.screen === 'elevator_ride') {
     return (
       <div style={{ height: '100%', position: 'relative' }}>
-        <Celebration
+        <ElevatorRide
           state={state}
           onChange={onChange}
-          onTitle={onExit}
           reduceMotion={reduceMotion}
         />
       </div>
@@ -542,7 +541,9 @@ function Overworld({
         <div className={styles.objective} aria-label="Objective">
           <div className={styles.objectiveHead}>
             <div className={styles.eyebrow}>
-              {state.flags.includes('flag_preview_complete') ? 'Floor 1' : 'Objective'}
+                {state.floorId === 'floor_02' || state.flags.includes('flag_preview_complete')
+                  ? floorLabel(state.floorId)
+                  : 'Objective'}
             </div>
             <span
               className={styles.dest}

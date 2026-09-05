@@ -5,11 +5,12 @@ import type { BattleState, RunState } from '../state'
 import {
   COWORKER_KITS,
   PARTY_MAX,
-  SPAWN,
+  spawnForFloor,
   type AssignmentId,
   type CoworkerId,
   type EncounterId,
   type Facing,
+  type FloorId,
   type KeyItemId,
   type PartySlot,
   type ReceiptId,
@@ -39,7 +40,7 @@ export interface OfficeSave {
   version: 1
   run: RunState
   party: PartyMember[]
-  floorId: 'floor_01'
+  floorId: FloorId
   player: { x: number; y: number; facing: Facing }
   assignments: Record<AssignmentId, string>
   encounters: Record<EncounterId, 'open' | 'won'>
@@ -50,7 +51,7 @@ export interface OfficeSave {
   stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number }
 }
 
-export type OfficeScreenId = 'overworld' | 'battle' | 'promotion' | 'preview_complete' | 'vending'
+export type OfficeScreenId = 'overworld' | 'battle' | 'promotion' | 'vending' | 'elevator_ride'
 
 export type Overlay =
   | { kind: 'dialogue'; nodeId: string; line: number }
@@ -102,7 +103,7 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     run,
     party: [makeLead(cls)],
     floorId: 'floor_01',
-    player: { ...SPAWN },
+    player: spawnForFloor('floor_01'),
     assignments: { asg_printer: 'not_started', asg_meeting_prep: 'not_started' },
     encounters: {
       enc_desk_challenger: 'open',
@@ -133,7 +134,7 @@ export function toOfficeSave(state: OfficeState): OfficeSave {
       pp: state.party[0]?.pp ?? state.run.pp,
     },
     party: state.party,
-    floorId: 'floor_01',
+    floorId: state.floorId,
     player: state.player,
     assignments: state.assignments,
     encounters: state.encounters,

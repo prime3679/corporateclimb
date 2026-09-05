@@ -4,7 +4,7 @@ import { resolveItemUse, resolvePartySwitch, resolvePlayerMove, type TurnContext
 import type { Rng } from '../rng'
 import type { BattleEvent } from '../events'
 import { ENCOUNTER_RECEIPT, OFFICE_ENCOUNTERS, type EncounterId } from '@/content/office'
-import { DEFEAT_RESPAWN } from '@/content/office'
+import { defeatRespawnForFloor } from '@/content/office'
 import { applyActivePostBattleHeal, applyOfficeXp, effectiveKit, restoreParty } from './party'
 import {
   enqueueOverlays,
@@ -185,6 +185,7 @@ function finishWin(state: OfficeState): OfficeState {
 
 function finishWipe(state: OfficeState): OfficeState {
   const enc = state.encounter!
+  const respawn = defeatRespawnForFloor(state.floorId)
   return {
     ...restoreParty({
       ...state,
@@ -193,7 +194,7 @@ function finishWipe(state: OfficeState): OfficeState {
       encounter: null,
       benchOpen: false,
       lastLossEncounter: enc.encounterId,
-      player: { ...DEFEAT_RESPAWN },
+      player: respawn,
       stats: { ...state.stats, losses: state.stats.losses + 1 },
     }),
     overlay: { kind: 'interstitial', encounterId: enc.encounterId },
