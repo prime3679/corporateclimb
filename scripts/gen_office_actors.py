@@ -69,6 +69,22 @@ def mirror(block: list[str]) -> list[str]:
     return [ln[::-1] for ln in block]
 
 
+def hairline_shadow(head: list[str]) -> list[str]:
+    """Skin directly under the fringe takes the hair's shadow."""
+    out = []
+    for r, ln in enumerate(head):
+        if r == 0:
+            out.append(ln)
+            continue
+        above = head[r - 1]
+        chars = list(ln)
+        for c, ch in enumerate(chars):
+            if ch == 'k' and c < len(above) and above[c] in 'HhG':
+                chars[c] = 'K'
+        out.append(''.join(chars))
+    return out
+
+
 class Frame:
     """One 32x40 cell. Layers are pasted in order; `outline=True` inks the
     4-neighbour border of the layer over anything already drawn."""
@@ -1676,6 +1692,7 @@ def compose(actor: Actor, facing: str, frame: str) -> Frame:
     (lx, ly), leg_tpl = legs[frame]
 
     head_xy, head_tpl = actor.head[facing]
+    head_tpl = hairline_shadow(head_tpl)
     torso_xy, torso_tpl = actor.torso[facing]
     props = actor.props.get(facing, [])
 
