@@ -543,12 +543,15 @@ function Overworld({
     <div className={`${styles.screen} ${sceneFx === 'battle-out' ? styles.sceneBattleOut : ''}`}>
       {sceneFx === 'battle-out' && <span className={styles.sceneVeil} aria-hidden />}
       <div className={styles.hud}>
-        <div className={styles.objective} aria-label="Objective">
+        <div
+          className={`${styles.objective} ${state.overlay?.kind === 'coach' && state.overlay.id === 'coach_pin' ? styles.objectiveCoach : ''}`}
+          aria-label="Objective"
+        >
           <div className={styles.objectiveHead}>
             <div className={styles.eyebrow}>
               {state.floorId !== 'floor_01' || state.flags.includes('flag_preview_complete')
                 ? floorLabel(state.floorId)
-                : 'Objective'}
+                : 'Floor 1 · of 5'}
             </div>
             <span
               className={styles.dest}
@@ -695,6 +698,21 @@ function Overworld({
       {state.overlay?.kind === 'coach' && state.overlay.id === 'coach_interact' && (
         <CoachMark
           id="coach_interact"
+          className={styles.coachInteract}
+          onDismiss={() => act({ type: 'ADVANCE' })}
+        />
+      )}
+      {state.overlay?.kind === 'coach' && state.overlay.id === 'coach_pin' && (
+        <CoachMark
+          id="coach_pin"
+          pointer="up"
+          className={styles.coachPin}
+          onDismiss={() => act({ type: 'ADVANCE' })}
+        />
+      )}
+      {state.overlay?.kind === 'coach' && state.overlay.id === 'coach_elevator' && (
+        <CoachMark
+          id="coach_elevator"
           className={styles.coachInteract}
           onDismiss={() => act({ type: 'ADVANCE' })}
         />

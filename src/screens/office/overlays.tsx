@@ -1377,6 +1377,23 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
   )
 }
 
+const COACH_COPY: Record<
+  | 'coach_move'
+  | 'coach_interact'
+  | 'coach_pin'
+  | 'coach_elevator'
+  | 'coach_switch'
+  | 'coach_roster',
+  { key: string; rest: string }
+> = {
+  coach_move: { key: 'MOVE', rest: 'arrows, WASD, or the pad.' },
+  coach_interact: { key: 'TALK', rest: 'E or tap ACT.' },
+  coach_pin: { key: 'PIN', rest: 'gold chip. That is your next desk.' },
+  coach_elevator: { key: 'RIDE', rest: 'face the doors, then E.' },
+  coach_switch: { key: 'SWITCH', rest: 'send in the next person. Costs your turn.' },
+  coach_roster: { key: 'TEAM', rest: 'three seats. Sending someone back is free.' },
+}
+
 /** Gold-bordered callout that dies on the action it teaches. */
 export function CoachMark({
   id,
@@ -1384,42 +1401,30 @@ export function CoachMark({
   className,
   pointer = 'down',
 }: {
-  id: 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster'
+  id: keyof typeof COACH_COPY
   onDismiss: () => void
   className?: string
   pointer?: 'up' | 'down'
 }) {
-  const copy =
-    id === 'coach_move' ? (
-      <>
-        <span className={styles.coachKey}>MOVE</span> — arrows, WASD, or the pad. Renata is
-        watching.
-      </>
-    ) : id === 'coach_interact' ? (
-      <>
-        <span className={styles.coachKey}>TALK</span> — press E or tap ACT when someone's in front
-        of you.
-      </>
-    ) : id === 'coach_roster' ? (
-      <>
-        <span className={styles.coachKey}>TEAM</span> — three seats. Sending someone to their desk
-        is free. So is bringing them back.
-      </>
-    ) : (
-      <>
-        <span className={styles.coachKey}>SWITCH</span> — send in the next person. It costs your
-        turn; they take the next hit.
-      </>
-    )
+  const copy = COACH_COPY[id]
   return (
     <div
+      id={id}
       className={[styles.coach, pointer === 'down' ? styles.coachDown : styles.coachUp, className]
         .filter(Boolean)
         .join(' ')}
       role="status"
+      tabIndex={0}
+      aria-label={`${copy.key}. ${copy.rest}`}
       onClick={onDismiss}
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault()
+          onDismiss()
+        }
+      }}
     >
-      {copy}
+      <span className={styles.coachKey}>{copy.key}</span> — {copy.rest}
     </div>
   )
 }

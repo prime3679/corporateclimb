@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { CURRENCY_ICON } from '@/data'
 import { loadOfficeSave, memberName, type OfficeSave } from '@/engine/office'
 import { Button } from '@/ui'
@@ -27,6 +27,22 @@ export default function OfficeStartScreen({
   const [confirmErase, setConfirmErase] = useState(false)
   const corrupt = hasSave && !save
 
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== 'Escape') return
+      e.preventDefault()
+      if (confirmErase) {
+        SFX.menuBack()
+        setConfirmErase(false)
+        return
+      }
+      SFX.menuBack()
+      onBack()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [confirmErase, onBack])
+
   return (
     <div className={`premium-screen ${styles.screen}`}>
       <button type="button" className={styles.back} onClick={onBack} aria-label="Back to title">
@@ -36,8 +52,7 @@ export default function OfficeStartScreen({
       <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
       <h1 className={styles.title}>THE OFFICE</h1>
       <p className={styles.blurb}>
-        Five floors. Reception through Exec. Print the badge they keep reprinting, file what nobody
-        wants to file, and sit the review that does not end early.
+        Five floors. Reception to the board. The badge they handed you is a visitor badge.
       </p>
 
       {save && (

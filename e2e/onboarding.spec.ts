@@ -13,6 +13,22 @@ import { GAME_VIEWPORT, tapToBattle } from './helpers'
  */
 test.use({ viewport: GAME_VIEWPORT })
 
+const SHOTS = '/opt/cursor/artifacts/screenshots'
+
+async function shot(page: Page, name: string) {
+  try {
+    await page.screenshot({ path: `${SHOTS}/${name}.png`, fullPage: true })
+  } catch {
+    /* artifact dir is optional in CI */
+  }
+}
+
+/** One tile at a time — OfficeScreen's key handler closes over React state. */
+async function step(page: Page, key: 'ArrowLeft' | 'ArrowRight' | 'ArrowUp' | 'ArrowDown') {
+  await page.keyboard.press(key)
+  await page.waitForTimeout(320)
+}
+
 /** A buffed v7-format PM save with canonical enemy resolution. */
 function v7Save(floor: number) {
   return {
@@ -66,6 +82,110 @@ async function resumeAtFloor(page: Page, floor: number, opts: { fresh: boolean }
   await tapToBattle(page)
   await page.getByRole('button', { name: 'FIGHT' }).waitFor({ timeout: 15_000 })
 }
+
+async function muteAndClear(page: Page) {
+  await page.goto('/')
+  await page.evaluate(() => {
+    localStorage.clear()
+    localStorage.setItem(
+      'corporate-climb-settings',
+      JSON.stringify({ textSpeed: 'instant', musicVolume: 0, sfxVolume: 0 }),
+    )
+  })
+  await page.reload()
+}
+
+test('office first-run: title → role → Floor 1 coaches without a start card', async ({ page }) => {
+  test.setTimeout(90_000)
+  await muteAndClear(page)
+
+  await expect(page.getByText('CAMPAIGN · FLOORS 1–5')).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeVisible()
+  await shot(page, '01-title-the-office')
+
+  await page.getByRole('button', { name: 'THE OFFICE' }).click()
+  await expect(page.getByText('YOUR ROLE · FLOORS 1–5')).toBeVisible({ timeout: 10_000 })
+  await expect(
+    page.getByText('Reception to the board. Five floors. One badge at a time.'),
+  ).toBeVisible()
+  await expect(page.getByText('SELECT CAREER ARCHETYPE')).toBeVisible()
+  await expect(page.getByRole('button', { name: 'NEW CAMPAIGN' })).toHaveCount(0)
+  await shot(page, '02-role-select-floors-1-5')
+
+  await page.getByRole('button', { name: 'ACCEPT OFFER' }).click()
+  await expect(page.getByText('SIGNING BONUS')).toBeVisible({ timeout: 10_000 })
+  await shot(page, '03-signing-bonus')
+  await page.getByRole('button', { name: 'File it' }).click()
+
+  await expect(page.locator('#coach_move')).toBeVisible()
+  await expect(page.getByText('Floor 1 · of 5')).toBeVisible()
+  await expect(page.getByLabel('Objective')).toContainText('Look around')
+  await shot(page, '04-floor1-move-coach')
+
+  await step(page, 'ArrowLeft')
+  await expect(page.getByText('New hire. Front desk. Now.')).toBeVisible({ timeout: 10_000 })
+  await shot(page, '05-renata-callout')
+  await page.keyboard.press('Enter')
+  await expect(page.locator('#coach_pin')).toBeVisible()
+  await expect(page.getByLabel('Objective')).toContainText('Talk to Renata')
+  await shot(page, '06-pin-coach')
+
+  await page.locator('#coach_pin').click()
+  // Desk at x=7–9 blocks the spawn row; go around to (9,16) and face north.
+  await step(page, 'ArrowLeft')
+  await step(page, 'ArrowDown')
+  await step(page, 'ArrowLeft')
+  await step(page, 'ArrowUp')
+  await expect(page.getByText('Talk · Renata').first()).toBeVisible({ timeout: 10_000 })
+  await expect(page.locator('#coach_interact')).toBeVisible()
+  await shot(page, '07-renata-talk-prompt')
+
+  await page.keyboard.press('e')
+  await expect(page.getByText('You have the look. Hopeful. Badge-less.')).toBeVisible({
+    timeout: 10_000,
+  })
+  await shot(page, '08-renata-first-beat')
+})
+
+test('office onboarding is a keyboard path from title to role accept', async ({ page }) => {
+  test.setTimeout(60_000)
+  await muteAndClear(page)
+
+  await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'THE OFFICE' }).focus()
+  await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeFocused()
+  await page.keyboard.press('Enter')
+
+  await expect(page.getByText('YOUR ROLE · FLOORS 1–5')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.press('ArrowRight')
+  await expect(page.getByRole('radio', { name: 'Senior Engineer' })).toHaveAttribute(
+    'aria-checked',
+    'true',
+  )
+  await page.keyboard.press('Enter')
+  await expect(page.getByText('SIGNING BONUS')).toBeVisible({ timeout: 10_000 })
+})
+
+test('office Continue vs New campaign erase confirm stays clear', async ({ page }) => {
+  test.setTimeout(60_000)
+  await muteAndClear(page)
+
+  await page.getByRole('button', { name: 'THE OFFICE' }).click()
+  await page.getByRole('button', { name: 'ACCEPT OFFER' }).click()
+  await expect(page.getByText('SIGNING BONUS')).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'File it' }).click()
+  await page.getByRole('button', { name: 'Title' }).click()
+
+  await page.getByRole('button', { name: 'THE OFFICE' }).click()
+  await expect(page.getByRole('heading', { name: 'THE OFFICE' })).toBeVisible()
+  await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible()
+  await page.getByRole('button', { name: 'NEW CAMPAIGN' }).click()
+  await expect(page.getByRole('dialog', { name: 'Erase campaign?' })).toBeVisible()
+  await expect(page.getByText('The team goes back to being coworkers.')).toBeVisible()
+  await page.getByRole('button', { name: 'Keep it' }).click()
+  await expect(page.getByRole('button', { name: 'CONTINUE' })).toBeVisible()
+  await expect(page.getByRole('dialog', { name: 'Erase campaign?' })).toHaveCount(0)
+})
 
 test('coach-mark waits for a battle where a super-effective move exists', async ({ page }) => {
   test.setTimeout(120_000)

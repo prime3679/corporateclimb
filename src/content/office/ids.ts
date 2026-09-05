@@ -304,6 +304,8 @@ export type FlagId =
   | 'flag_switch_coached'
   | 'flag_move_coached'
   | 'flag_interact_coached'
+  | 'flag_pin_coached'
+  | 'flag_elevator_coached'
   | 'flag_preview_complete'
   | 'flag_renata_recruit_hint'
   // Floor 2
@@ -322,7 +324,13 @@ export type FlagId =
   | 'flag_visited_f5'
   | 'flag_floor5_complete'
 
-export type CoachId = 'coach_move' | 'coach_interact' | 'coach_switch' | 'coach_roster'
+export type CoachId =
+  | 'coach_move'
+  | 'coach_interact'
+  | 'coach_pin'
+  | 'coach_elevator'
+  | 'coach_switch'
+  | 'coach_roster'
 
 export type DialogueId =
   | 'dlg_renata_callout'

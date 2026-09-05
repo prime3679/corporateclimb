@@ -384,6 +384,7 @@ export default function TitleScreen({
           }}
         >
           <span
+            id="office-campaign-label"
             className="t-display"
             style={{
               fontSize: 'var(--display-2xs)',
@@ -393,7 +394,13 @@ export default function TitleScreen({
           >
             CAMPAIGN · FLOORS 1–5
           </span>
-          <Button variant="accent" size="md" onClick={onOffice} style={{ minWidth: 210 }}>
+          <Button
+            variant="accent"
+            size="md"
+            onClick={onOffice}
+            style={{ minWidth: 210 }}
+            aria-describedby="office-campaign-label"
+          >
             THE OFFICE
           </Button>
           {officeStatus && (

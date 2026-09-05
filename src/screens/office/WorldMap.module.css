@@ -327,6 +327,24 @@
   animation: of-pop 140ms var(--cc-ease-out);
 }
 
+.nearbyCoach {
+  animation:
+    of-pop 140ms var(--cc-ease-out),
+    of-coach-pulse 700ms ease-in-out 2;
+}
+
+@keyframes of-coach-pulse {
+  0%,
+  100% {
+    box-shadow: var(--cc-shadow-plate);
+  }
+  50% {
+    box-shadow:
+      0 0 0 4px color-mix(in srgb, var(--cc-gold) 45%, transparent),
+      var(--cc-shadow-plate);
+  }
+}
+
 .nearby::after {
   content: '';
   position: absolute;
@@ -443,6 +461,7 @@
 
 :global(.reduce-motion) .pin,
 :global(.reduce-motion) .chevron,
+:global(.reduce-motion) .nearbyCoach,
 :global(.reduce-motion) .nearby,
 :global(.reduce-motion) .pool,
 :global(.reduce-motion) .poiFx,
@@ -468,6 +487,7 @@
 
   .pin,
   .chevron,
+  .nearbyCoach,
   .nearby,
   .pool,
   .poiFx,
