@@ -48,9 +48,9 @@ export function TileDefs() {
           height="8"
           patternUnits="userSpaceOnUse"
         >
-          <rect width="8" height="8" fill="#141b27" />
-          <rect width="8" height="8" fill={ZONE_ACCENT[zone]} opacity="0.11" />
-          <rect x="3" y="3" width="2" height="2" fill={ZONE_ACCENT[zone]} opacity="0.22" />
+          <rect width="8" height="8" fill="#1a2231" />
+          <rect width="8" height="8" fill={ZONE_ACCENT[zone]} opacity="0.13" />
+          <rect x="3" y="3" width="2" height="2" fill={ZONE_ACCENT[zone]} opacity="0.26" />
         </pattern>
       ))}
       <linearGradient id="glass-sheen" x1="0" y1="0" x2="1" y2="1">
@@ -210,10 +210,16 @@ function Chair({ x, y }: { x: number; y: number }) {
   return (
     <g>
       <Carpet x={x} y={y} />
-      <rect x={x + 8} y={y + 6} width={16} height={5} rx={2} fill="#3a4658" stroke={INK} />
-      <rect x={x + 7} y={y + 11} width={18} height={12} rx={3} fill="#2b3442" stroke={INK} />
-      <rect x={x + 15} y={y + 23} width={2} height={4} fill={STEEL_DARK} />
-      <rect x={x + 10} y={y + 27} width={12} height={2} rx={1} fill={STEEL_DARK} />
+      <rect x={x + 10} y={y + 22} width={12} height={5} rx={1} fill={STEEL_DARK} stroke={INK} />
+      <circle cx={x + 16} cy={y + 17} r={8} fill="#34405a" stroke={INK} />
+      <path
+        d={`M${x + 8} ${y + 14} a 8 8 0 0 1 16 0`}
+        fill="none"
+        stroke="#4a5a7a"
+        strokeWidth="4"
+        strokeLinecap="round"
+      />
+      <path d={`M${x + 8} ${y + 14} a 8 8 0 0 1 16 0`} fill="none" stroke={INK} strokeWidth="1" />
     </g>
   )
 }

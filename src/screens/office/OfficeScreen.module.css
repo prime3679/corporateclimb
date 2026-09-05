@@ -22,10 +22,12 @@
 
 .objective {
   display: flex;
-  align-items: center;
-  gap: 10px;
+  flex-direction: column;
+  gap: 3px;
   min-height: 44px;
-  padding: 6px 10px 6px 12px;
+  /* The global SOUND / SET chrome owns the top-right corner. */
+  margin-right: 124px;
+  padding: 6px 10px 7px 12px;
   border-radius: var(--radius-md);
   background: var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
@@ -33,9 +35,11 @@
   box-shadow: var(--cc-shadow-plate);
 }
 
-.objectiveText {
-  flex: 1 1 auto;
-  min-width: 0;
+.objectiveHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .eyebrow {
@@ -48,14 +52,12 @@
 }
 
 .objectiveLine {
-  margin-top: 2px;
   font-family: var(--cc-font-body);
   font-size: var(--body-md);
   font-weight: 600;
-  line-height: 1.2;
+  line-height: 1.25;
   color: var(--cc-text);
-  white-space: nowrap;
-  overflow: hidden;
+  overflow-wrap: anywhere;
 }
 
 .objectiveSwap {
@@ -67,7 +69,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 5px 9px 5px 8px;
+  padding: 3px 8px 3px 7px;
   border-radius: 6px;
   background: color-mix(in srgb, var(--dest-accent) 16%, transparent);
   border: 1px solid color-mix(in srgb, var(--dest-accent) 55%, transparent);
@@ -152,8 +154,8 @@
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  height: 200px;
-  padding-top: 4px;
+  height: 204px;
+  padding-top: 26px;
 }
 
 .ctlDim {
@@ -352,13 +354,13 @@
 
 .legend {
   position: absolute;
-  left: 50%;
-  bottom: 6px;
-  transform: translateX(-50%);
+  left: 0;
+  right: 0;
+  top: 0;
   display: none;
-  flex-direction: column;
   align-items: center;
-  gap: 4px;
+  justify-content: space-between;
+  gap: 12px;
   pointer-events: none;
 }
 
@@ -369,6 +371,7 @@
 }
 
 .legendNearby {
+  min-height: 20px;
   font-family: var(--cc-font-body);
   font-size: var(--body-md);
   font-weight: 600;
@@ -398,13 +401,15 @@
 
 /* ── coach anchors ── */
 .coachMove {
+  --coach-pointer: 89px; /* the D-pad's ▲ */
   left: 12px;
-  bottom: 214px;
+  bottom: 192px;
+  width: 288px;
 }
 
 .coachInteract {
   right: 12px;
-  bottom: 214px;
+  bottom: 192px;
 }
 
 .coachSwitch {
@@ -500,6 +505,7 @@
 }
 
 .benchHp {
+  display: block;
   height: 4px;
   margin-top: 5px;
   border-radius: 2px;
@@ -508,8 +514,14 @@
 }
 
 .benchHpFill {
+  display: block;
   height: 100%;
   border-radius: 2px;
+}
+
+.benchName,
+.benchMeta {
+  display: block;
 }
 
 .high {

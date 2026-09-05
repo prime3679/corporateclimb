@@ -470,6 +470,7 @@
 
 .memberRowEmpty {
   align-items: center;
+  min-height: 76px;
 }
 
 .memberName {
@@ -504,6 +505,7 @@
 }
 
 .hpTrack {
+  display: block;
   flex: 1;
   height: 8px;
   border-radius: 4px;
@@ -513,6 +515,7 @@
 }
 
 .hpFill {
+  display: block;
   height: 100%;
   border-radius: 4px;
   transition: width var(--cc-dur-drain) var(--cc-ease-out);
@@ -572,6 +575,7 @@
 }
 
 .ppTrack {
+  display: block;
   height: 3px;
   border-radius: 2px;
   background: rgba(0, 0, 0, 0.45);
@@ -579,6 +583,7 @@
 }
 
 .ppFill {
+  display: block;
   height: 100%;
   background: var(--cc-info);
 }
@@ -756,13 +761,13 @@
 }
 
 .coachDown::after {
-  left: 50%;
+  left: var(--coach-pointer, 50%);
   bottom: -7px;
   transform: translateX(-50%) rotate(45deg);
 }
 
 .coachUp::after {
-  left: 50%;
+  left: var(--coach-pointer, 50%);
   top: -7px;
   transform: translateX(-50%) rotate(-135deg);
 }

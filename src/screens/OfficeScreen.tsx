@@ -28,7 +28,7 @@ import WorldMap from './office/WorldMap'
 import PartyStrip, { hpTone } from './office/PartyStrip'
 import OfficeOverlays, { Celebration, CoachMark, Interstitial } from './office/overlays'
 import Headshot from './office/Headshot'
-import { ZONE_ACCENT, memberRing, memberSprite } from './office/cast'
+import { ZONE_ACCENT, memberRing, memberSprite, promptText, promptVerb } from './office/cast'
 import { useDeferredWallet, useOfficeFeedback } from './office/useOfficeFeedback'
 import styles from './office/OfficeScreen.module.css'
 
@@ -36,16 +36,13 @@ const OFFICE_OLD = { floor: 0, title: 'New Hire' }
 const OFFICE_NEW = { floor: 1, title: 'Cleared Probation' }
 
 /** ACT's label becomes the verb of the faced prompt so the thumb knows first. */
-function actVerb(label: string | null, state: OfficeState): string {
-  if (state.overlay) {
+function actVerb(prompt: string | null, state: OfficeState): string {
+  if (state.overlay && state.overlay.kind !== 'coach') {
     if (state.overlay.kind === 'dialogue') return 'Next'
     return 'OK'
   }
-  if (!label) return 'Act'
-  if (label === 'Elevator') return keyCount(state, 'key_access_badge') > 0 ? 'Ride' : 'Badge in'
-  if (label === 'Take five') return 'Take five'
-  const verb = label.split(' · ')[0].split(' ')[0]
-  return verb
+  if (!prompt) return 'Act'
+  return promptVerb(prompt)
 }
 
 export default function OfficeScreen({
@@ -469,10 +466,11 @@ function Overworld({
   announce: string
   wallet: { shown: number; pulse: boolean }
 }) {
-  const prompt = interactTarget(state)
+  const target = interactTarget(state)
+  const prompt = target ? promptText(target, state) : null
   const obj = currentObjective(state)
   const overlayOpen = !!state.overlay && state.overlay.kind !== 'coach'
-  const verb = actVerb(prompt?.label ?? null, state)
+  const verb = actVerb(prompt, state)
   const letters = lettersHeld(state)
   const holdRef = useRef<number | null>(null)
   const [held, setHeld] = useState<Facing | null>(null)
@@ -496,20 +494,20 @@ function Overworld({
     <div className={styles.screen}>
       <div className={styles.hud}>
         <div className={styles.objective} aria-label="Objective">
-          <div className={styles.objectiveText}>
+          <div className={styles.objectiveHead}>
             <div className={styles.eyebrow}>
               {state.flags.includes('flag_preview_complete') ? 'Floor 1' : 'Objective'}
             </div>
-            <div key={obj.text} className={`${styles.objectiveLine} ${styles.objectiveSwap}`}>
-              {obj.text}
-            </div>
+            <span
+              className={styles.dest}
+              style={{ '--dest-accent': ZONE_ACCENT[obj.zone] } as CSSProperties}
+            >
+              → {ZONE_LABEL[obj.zone]}
+            </span>
           </div>
-          <span
-            className={styles.dest}
-            style={{ '--dest-accent': ZONE_ACCENT[obj.zone] } as CSSProperties}
-          >
-            → {ZONE_LABEL[obj.zone]}
-          </span>
+          <div key={obj.text} className={`${styles.objectiveLine} ${styles.objectiveSwap}`}>
+            {obj.text}
+          </div>
         </div>
         <div className={styles.hudRow}>
           <PartyStrip state={state} />
@@ -587,9 +585,9 @@ function Overworld({
 
         <div className={styles.legend} aria-hidden>
           <span className={styles.legendNearby}>
-            {prompt ? (
+            {prompt && !overlayOpen ? (
               <>
-                <span className={styles.kbd}>E</span> · {prompt.label}
+                <span className={styles.kbd}>E</span> · {prompt}
               </>
             ) : (
               ' '
@@ -622,7 +620,7 @@ function Overworld({
             </button>
             <button
               type="button"
-              className={`${styles.act} ${!prompt && !state.overlay ? styles.actIdle : ''}`}
+              className={`${styles.act} ${!prompt && !overlayOpen ? styles.actIdle : ''}`}
               aria-label={verb}
               onClick={() => {
                 Haptics.selection()

@@ -536,7 +536,6 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
             act({ type: 'CLOSE_TEAM' })
           }}
           aria-label="Close team panel"
-          autoFocus
         >
           ✕ Close
         </button>
@@ -556,10 +555,8 @@ function TeamPanel({ state, act }: { state: OfficeState; act: Act }) {
         ))}
       </div>
       <div className={styles.teamFoot}>
-        <div className={styles.teamFootLine}>
-          <span>
-            Team level {state.run.level} · XP {state.run.xp}/{state.run.xpToNext}
-          </span>
+        <div className={styles.sectionLabel} style={{ marginTop: 0, marginBottom: 6 }}>
+          Team level
         </div>
         <XpBar xp={state.run.xp} xpToNext={state.run.xpToNext} level={state.run.level} />
         {state.run.perks.length > 0 ? (

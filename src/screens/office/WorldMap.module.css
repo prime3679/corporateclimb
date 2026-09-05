@@ -194,6 +194,19 @@
   pointer-events: none;
 }
 
+.zoneChipYield {
+  opacity: 0;
+  animation: none;
+}
+
+.led {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 1px rgba(10, 13, 19, 0.9);
+}
+
 .edge {
   position: absolute;
   z-index: 6;

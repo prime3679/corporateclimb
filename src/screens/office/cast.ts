@@ -4,6 +4,7 @@ import {
   SPEAKER_SPRITE,
   ZONE_LABEL,
   type DialogueId,
+  type InteractTarget,
   type NpcId,
   type SpeakerId,
   type ZoneId,
@@ -98,6 +99,49 @@ export function memberRing(member: PartyMember): string {
 export function memberRole(member: PartyMember): string {
   if (member.def.kind === 'lead') return kitFor(member).name
   return member.def.id === 'cw_desk_challenger' ? 'Senior Associate' : 'Ops'
+}
+
+/** `hud_nearby` copy per design §10.4: "Verb · Object", state-aware. */
+export function promptText(target: InteractTarget, state: OfficeSave): string {
+  if (target.kind === 'npc') return `Talk · ${NPC_CAST[target.id].name}`
+  const badge = (state.keyItems.key_access_badge ?? 0) > 0
+  const prep = state.assignments.asg_meeting_prep
+  switch (target.id) {
+    case 'poi_reception_desk':
+      return 'Talk · Renata'
+    case 'poi_printer':
+      return state.assignments.asg_printer === 'toner_collected'
+        ? 'Install toner · Printer'
+        : 'Inspect · Printer'
+    case 'poi_supply_cabinet':
+      return 'Open · Supply cabinet'
+    case 'poi_break_counter':
+      return 'Take five · Coffee counter'
+    case 'poi_vending_machine':
+      return 'Buy · Vending'
+    case 'poi_agenda':
+      return 'Read · Agenda'
+    case 'poi_handout_rack':
+      return prep === 'accepted' || prep === 'handout_held'
+        ? 'Pick · Handout'
+        : 'Inspect · Handout rack'
+    case 'poi_elevator_door':
+      return badge ? 'Ride · Elevator' : 'Badge in · Elevator'
+    case 'poi_directory_sign':
+      return 'Read · Directory'
+    case 'poi_exit_door':
+      return 'Inspect · Exit'
+    case 'poi_water_cooler':
+      return 'Inspect · Water cooler'
+    case 'poi_break_table':
+      return 'Inspect · Break table'
+    case 'poi_supervisor_door':
+      return 'Inspect · Glass door'
+  }
+}
+
+export function promptVerb(text: string): string {
+  return text.split(' · ')[0]
 }
 
 /** Zone accents (one per room) — the carpet tint, chip bar and destination chip color. */

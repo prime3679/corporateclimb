@@ -1,8 +1,15 @@
 import { useEffect, useRef, useState } from 'react'
 import { OFFICE_ENCOUNTERS, POI_INSPECT, RECEIPTS, ZONE_LABEL, zoneAt } from '@/content/office'
-import { currentObjective, inspectText, memberName, type OfficeState } from '@/engine/office'
+import {
+  currentObjective,
+  inspectText,
+  interactTarget,
+  memberName,
+  type OfficeState,
+} from '@/engine/office'
 import { Haptics } from '@/platform'
 import { SFX } from '@/sfx'
+import { promptText } from './cast'
 
 /**
  * The §12 feedback matrix, driven by state diffs so the engine stays pure:
@@ -33,6 +40,15 @@ export function useOfficeFeedback(state: OfficeState): string {
     const zone = zoneAt(state.player.x, state.player.y)
     if (prevZone !== zone && state.screen === 'overworld') {
       say(`Entering: ${ZONE_LABEL[zone]}.`)
+    }
+
+    // Interact available.
+    if (state.screen === 'overworld' && !state.overlay) {
+      const target = interactTarget(state)
+      const prevTarget = prev.overlay ? null : interactTarget(prev)
+      if (target && (!prevTarget || prevTarget.id !== target.id)) {
+        say(`Nearby: ${promptText(target, state).replace(' · ', ', ')}. Press E.`)
+      }
     }
 
     // Recruit joined.

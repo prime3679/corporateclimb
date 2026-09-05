@@ -1,4 +1,4 @@
-import { useLayoutEffect, useMemo, useRef, useState, type CSSProperties } from 'react'
+import { memo, useLayoutEffect, useRef, useState, type CSSProperties } from 'react'
 import {
   DIALOGUE,
   MAP_HEIGHT,
@@ -14,7 +14,7 @@ import {
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
 import Headshot, { ringColorFor } from './Headshot'
-import { NPC_CAST, ZONE_ACCENT, castForSpeaker } from './cast'
+import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
 import { TileDefs, renderTile, type TileStates } from './tiles'
 import styles from './WorldMap.module.css'
 
@@ -53,6 +53,27 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
     elevatorOpen: false,
   }
 }
+
+/** The static tile layer; only re-renders when a tile state flips (props are primitives). */
+const TileLayer = memo(function TileLayer(states: TileStates) {
+  const tiles = []
+  for (let y = 0; y < MAP_HEIGHT; y++) {
+    for (let x = 0; x < MAP_WIDTH; x++) tiles.push(renderTile(x, y, states))
+  }
+  return (
+    <svg
+      className={styles.tiles}
+      width={MAP_W}
+      height={MAP_H}
+      viewBox={`0 0 ${MAP_W} ${MAP_H}`}
+      shapeRendering="crispEdges"
+      aria-hidden
+    >
+      <TileDefs />
+      {tiles}
+    </svg>
+  )
+})
 
 /** Badge token: the character as their lanyard photo, notched toward their facing. */
 function BadgeToken({
@@ -108,16 +129,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
 
   const obj = currentObjective(state)
   const nearby = interactTarget(state)
-  // The tile layer only re-renders when a tile state actually flips.
-  const statesKey = JSON.stringify(tileStates(state, nearby))
-  const tiles = useMemo(() => {
-    const s = JSON.parse(statesKey) as TileStates
-    const out = []
-    for (let y = 0; y < MAP_HEIGHT; y++) {
-      for (let x = 0; x < MAP_WIDTH; x++) out.push(renderTile(x, y, s))
-    }
-    return out
-  }, [statesKey])
+  const states = tileStates(state, nearby)
 
   const viewRows = viewH / T
   const camX = Math.max(
@@ -146,6 +158,21 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   }
   const outlineTile = nearby ? (nearby.kind === 'npc' ? NPC_TILE[nearby.id] : ahead) : null
 
+  const cardOpen = !!ov && ov.kind !== 'coach'
+  const nearbyLeft = nearby
+    ? Math.max(4, Math.min(VIEW_W - 4, ((outlineTile?.x ?? ahead.x) - camX) * T + T / 2))
+    : 0
+  const nearbyTop = nearby ? Math.max(30, ((outlineTile?.y ?? ahead.y) - camY) * T - 6) : 0
+  // The prompt chip wins the top-left corner; the zone chip yields while it is there.
+  const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
+  const elevatorDot =
+    nearby?.kind === 'poi' && nearby.id === 'poi_elevator_door'
+      ? states.readerGreen
+        ? 'var(--cc-heal)'
+        : 'var(--cc-danger)'
+      : null
+  const pinHidden =
+    callout !== null && NPC_TILE[callout].x === obj.pin.x && NPC_TILE[callout].y === obj.pin.y
   const pinOffLeft = obj.pin.x < camX
   const pinOffRight = obj.pin.x >= camX + VIEWPORT_TILES_X
   const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, (obj.pin.y - camY) * T))
@@ -163,17 +190,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         className={styles.camera}
         style={{ transform: `translate(${-camX * T}px, ${-camY * T}px)` }}
       >
-        <svg
-          className={styles.tiles}
-          width={MAP_W}
-          height={MAP_H}
-          viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-          shapeRendering="crispEdges"
-          aria-hidden
-        >
-          <TileDefs />
-          {tiles}
-        </svg>
+        <TileLayer {...states} />
 
         {outlineTile && (
           <div
@@ -222,16 +239,22 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           label="You"
         />
 
-        <span
-          className={styles.pin}
-          style={{ left: obj.pin.x * T, top: obj.pin.y * T }}
-          aria-hidden
-        >
-          ?
-        </span>
+        {!pinHidden && (
+          <span
+            className={styles.pin}
+            style={{ left: obj.pin.x * T, top: obj.pin.y * T }}
+            aria-hidden
+          >
+            ?
+          </span>
+        )}
       </div>
 
-      <div key={zone} className={styles.zoneChip} role="status">
+      <div
+        key={zone}
+        className={`${styles.zoneChip} ${zoneChipYields ? styles.zoneChipYield : ''}`}
+        role="status"
+      >
         {ZONE_LABEL[zone]}
       </div>
 
@@ -246,18 +269,12 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         </div>
       )}
 
-      {nearby && (
-        <div
-          className={styles.nearby}
-          style={{
-            left: Math.max(
-              4,
-              Math.min(VIEW_W - 4, ((outlineTile?.x ?? ahead.x) - camX) * T + T / 2),
-            ),
-            top: Math.max(30, ((outlineTile?.y ?? ahead.y) - camY) * T - 6),
-          }}
-        >
-          {nearby.label}
+      {nearby && !cardOpen && (
+        <div className={styles.nearby} style={{ left: nearbyLeft, top: nearbyTop }}>
+          {elevatorDot && (
+            <span className={styles.led} style={{ background: elevatorDot }} aria-hidden />
+          )}
+          {promptText(nearby, state)}
         </div>
       )}
     </div>
