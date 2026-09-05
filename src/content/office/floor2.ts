@@ -1,12 +1,10 @@
-// Frozen Floor 2 content — names match docs/rpg/floor-2-design.md §14.
+// Frozen Floor 2 content — names match docs/rpg/floor-2-design.md §12.
 //
-// Tables only. This module is intentionally NOT re-exported from the office
-// barrel: Astra wires it through the multi-floor reducer
-// (docs/rpg/floor-2-engine-hooks.md). Until then it is the paper map the
-// design doc and src/__tests__/office/floor2-map.test.ts are checked against,
-// so a coordinate can never drift between the doc, the art and the engine.
+// Tables only. map.ts keys these under `floor_02`; the paper-playtest test
+// (src/__tests__/office/floor2-map.test.ts) checks the doc, the art and the
+// engine against the same coordinates so none of them can drift.
 
-import type { Facing } from './ids'
+import type { Facing, NpcId, PoiId, ZoneId } from './ids'
 
 export const FLOOR_2_ID = 'floor_02' as const
 
@@ -44,6 +42,12 @@ export function floor2IsSolid(x: number, y: number): boolean {
   return FLOOR_2_SOLID_GLYPHS.has(floor2GlyphAt(x, y))
 }
 
+export const FLOOR_2_DIRECTORY_TEXT = [
+  'FLOOR 2 — OPERATIONS. Help desk: through the glass. People Ops: far right.',
+  'Director: down the hall, left. Facilities: middle. Finance: right.',
+  "Elevator: you're standing at it.",
+]
+
 /** Same shaft as Floor 1: E at (2,1)/(3,1), reader at (4,1). Arrival mirrors POST_CELEBRATION. */
 export const FLOOR_2_ARRIVAL = { x: 3, y: 2, facing: 's' as Facing }
 export const FLOOR_2_DEFEAT_RESPAWN = { x: 11, y: 11, facing: 'n' as Facing }
@@ -51,7 +55,8 @@ export const FLOOR_2_DOOR_STEP_IN = { x: 3, y: 10, facing: 's' as Facing }
 export const FLOOR_2_DOOR_STEP_BACK = { x: 3, y: 8, facing: 'n' as Facing }
 export const FLOOR_2_DIRECTOR_DOOR = { x: 3, y: 9 }
 
-export type Floor2ZoneId =
+export type Floor2ZoneId = Extract<
+  ZoneId,
   | 'zone_landing'
   | 'zone_it'
   | 'zone_people'
@@ -59,6 +64,7 @@ export type Floor2ZoneId =
   | 'zone_facilities'
   | 'zone_finance'
   | 'zone_hall_f2'
+>
 
 export const FLOOR_2_ZONE_LABEL: Record<Floor2ZoneId, string> = {
   zone_landing: 'LANDING',
@@ -102,7 +108,7 @@ export function floor2ZoneAt(x: number, y: number): Floor2ZoneId {
   return 'zone_hall_f2'
 }
 
-export type Floor2NpcId = 'npc_help_desk_intern' | 'npc_auditor' | 'npc_director'
+export type Floor2NpcId = Extract<NpcId, 'npc_help_desk_intern' | 'npc_auditor' | 'npc_director'>
 
 export const FLOOR_2_NPC_GLYPH: Record<Floor2NpcId, string> = {
   npc_help_desk_intern: '5',
@@ -140,7 +146,8 @@ export const FLOOR_2_NPC_SIGHT: Record<Floor2NpcId, { x: number; y: number }[]> 
   ],
 }
 
-export type Floor2PoiId =
+export type Floor2PoiId = Extract<
+  PoiId,
   | 'poi_elevator_door_f2'
   | 'poi_directory_sign_f2'
   | 'poi_photo_booth'
@@ -160,6 +167,7 @@ export type Floor2PoiId =
   | 'poi_janitor_cart'
   | 'poi_safe'
   | 'poi_shredder'
+>
 
 export type Floor2InteractTarget =
   | { kind: 'npc'; id: Floor2NpcId; label: string }

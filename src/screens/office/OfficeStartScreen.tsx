@@ -36,8 +36,8 @@ export default function OfficeStartScreen({
       <div className={styles.eyebrow}>Campaign · Floors 1–2</div>
       <h1 className={styles.title}>THE OFFICE</h1>
       <p className={styles.blurb}>
-        Reception, desks, a printer, a one-on-one that does not end early, and a playable Floor 2
-        stub.
+        Reception, desks, a printer, a one-on-one that does not end early — and upstairs,
+        Operations, where the badge you were given turns out to be a visitor badge.
       </p>
 
       {save && (

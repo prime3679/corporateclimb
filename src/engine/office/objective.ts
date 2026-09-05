@@ -7,23 +7,49 @@ export interface OfficeObjective {
   pin: { x: number; y: number }
 }
 
-export function currentObjective(state: OfficeSave): OfficeObjective {
-  if (state.floorId === 'floor_02') {
-    if (!state.flags.includes('flag_floor2_briefed')) {
-      return { text: 'Meet Callie', zone: 'zone_hall', pin: { x: 8, y: 2 } }
-    }
-    return {
-      text: 'Ride the elevator back to Floor 1',
-      zone: 'zone_elevator',
-      pin: { x: 3, y: 1 },
-    }
+/** Elevator doors are the same tiles on every floor; the pin for a cross-floor target sits on them. */
+const ELEVATOR_PIN = { x: 3, y: 1 }
+
+/**
+ * Floor 2 objectives (docs/rpg/floor-2-design.md §4.1). The transfer packet
+ * runs to `filed`; from there Teddy's compliance training is the next beat.
+ */
+function floor2Objective(state: OfficeSave): OfficeObjective | null {
+  const transfer = state.assignments.asg_transfer
+  const onFloor2 = state.floorId === 'floor_02'
+  if (transfer === 'accepted') {
+    return onFloor2
+      ? { text: 'Take a badge photo', zone: 'zone_it', pin: { x: 12, y: 1 } }
+      : { text: 'Take a badge photo (Floor 2)', zone: 'zone_elevator', pin: ELEVATOR_PIN }
   }
-  if (state.flags.includes('flag_preview_complete') && state.floorId === 'floor_01') {
-    return {
-      text: 'Floor 2 is open · Ride up anytime',
-      zone: 'zone_elevator',
-      pin: { x: 3, y: 1 },
-    }
+  if (transfer === 'photo_taken') {
+    return onFloor2
+      ? { text: "Get Holloway's signature (Floor 1)", zone: 'zone_landing', pin: ELEVATOR_PIN }
+      : { text: "Get Holloway's signature", zone: 'zone_elevator', pin: { x: 6, y: 3 } }
+  }
+  if (transfer === 'signed') {
+    return onFloor2
+      ? { text: 'File the packet at People Ops', zone: 'zone_people', pin: { x: 18, y: 3 } }
+      : {
+          text: 'File the packet at People Ops (Floor 2)',
+          zone: 'zone_elevator',
+          pin: ELEVATOR_PIN,
+        }
+  }
+  if (transfer === 'filed' || transfer === 'complete') {
+    return onFloor2
+      ? { text: 'Report back to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
+      : { text: 'Report back to Teddy (Floor 2)', zone: 'zone_elevator', pin: ELEVATOR_PIN }
+  }
+  if (onFloor2) return { text: 'Talk to Teddy', zone: 'zone_it', pin: { x: 9, y: 3 } }
+  return null
+}
+
+export function currentObjective(state: OfficeSave): OfficeObjective {
+  const floor2 = floor2Objective(state)
+  if (floor2) return floor2
+  if (state.flags.includes('flag_preview_complete')) {
+    return { text: 'Take the elevator to Floor 2', zone: 'zone_elevator', pin: ELEVATOR_PIN }
   }
   if (keyCount(state, 'key_access_badge') > 0) {
     return { text: 'Take the elevator to Floor 2', zone: 'zone_elevator', pin: { x: 3, y: 1 } }

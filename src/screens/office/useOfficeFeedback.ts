@@ -48,8 +48,8 @@ export function useOfficeFeedback(state: OfficeState): string {
     const prevZone = zoneAt(prev.player.x, prev.player.y, prev.floorId)
     const zone = zoneAt(state.player.x, state.player.y, state.floorId)
     if (prevZone !== zone && state.screen === 'overworld') {
-      if (zone === 'zone_break') SFX.coffee()
-      else if (zone === 'zone_elevator') SFX.badgeSwipe()
+      if (zone === 'zone_break' || zone === 'zone_facilities') SFX.coffee()
+      else if (zone === 'zone_elevator' || zone === 'zone_landing') SFX.badgeSwipe()
       say(`Entering: ${ZONE_LABEL[zone]}.`)
     }
 

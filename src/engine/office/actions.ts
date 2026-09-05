@@ -7,6 +7,7 @@ import type { BattleEvent } from '../events'
 import type { ItemId, PerkId } from '@/types'
 import {
   CABINET_COPY,
+  CABINET_F2_COPY,
   canUseElevator,
   DIALOGUE,
   elevatorArrivalForFloor,
@@ -15,8 +16,12 @@ import {
   floorLabel,
   HANDOUT_CHOICES,
   HANDOUT_PICK_LINE,
+  PEOPLE_TRAY_COPY,
+  PHOTO_BOOTH_COPY,
   POI_INSPECT,
   PRINTER_COPY,
+  BADGE_PRINTER_COPY,
+  SHREDDER_COPY,
   type DialogueId,
   type EncounterId,
   type Facing,
@@ -179,7 +184,7 @@ function handleMove(state: OfficeState, dir: Facing): OfficeState {
 }
 
 function maybeFirstStep(state: OfficeState): OfficeState {
-  if (state.floorId !== 'floor_01') return state
+  if (state.floorId === 'floor_02') return maybeFirstStepFloor2(state)
   if (state.firedTriggers.includes('trg_first_step:spawn')) {
     return withFlag(state, 'flag_move_coached')
   }
@@ -192,6 +197,17 @@ function maybeFirstStep(state: OfficeState): OfficeState {
       'flag_greeted',
     ),
     [{ kind: 'dialogue', nodeId: 'dlg_renata_callout', line: 0 }],
+  )
+}
+
+function maybeFirstStepFloor2(state: OfficeState): OfficeState {
+  if (state.firedTriggers.includes('trg_first_step_f2:arrival')) return state
+  return enqueueOverlays(
+    withFlag(
+      { ...state, firedTriggers: [...state.firedTriggers, 'trg_first_step_f2:arrival'] },
+      'flag_visited_f2',
+    ),
+    [{ kind: 'dialogue', nodeId: 'dlg_teddy_callout', line: 0 }],
   )
 }
 
@@ -213,13 +229,12 @@ function afterMove(state: OfficeState): OfficeState {
     return pushOverlay(next, { kind: 'confirm', prompt: 'elevator' })
   }
 
-  if (next.floorId !== 'floor_01') return next
-
   const npc = sightlineNpc(next)
   if (npc) {
     const node = sightDialogue(next, npc)
     if (node) {
-      const key = `trg_sight_${npc}:${next.assignments.asg_printer}:${next.assignments.asg_meeting_prep}:${next.encounters.enc_desk_challenger}`
+      const a = next.assignments
+      const key = `trg_sight_${npc}:${a.asg_printer}:${a.asg_meeting_prep}:${next.encounters.enc_desk_challenger}:${a.asg_transfer}:${a.asg_audit}`
       if (!next.firedTriggers.includes(key)) {
         next = { ...next, firedTriggers: [...next.firedTriggers, key] }
         if (node === 'dlg_gavin_callout') {
@@ -298,7 +313,77 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
     }
     return inspect(state, POI_INSPECT.poi_supervisor_door)
   }
+  // Floor 2 (docs/rpg/floor-2-design.md §2.4)
+  if (id === 'poi_elevator_door_f2') return handleElevatorPoi(state)
+  if (id === 'poi_break_counter_f2')
+    return pushOverlay(state, { kind: 'confirm', prompt: 'take_five' })
+  if (id === 'poi_vending_machine_f2') return { ...state, screen: 'vending' }
+  if (id === 'poi_directory_sign_f2')
+    return pushOverlay(state, { kind: 'document', docId: 'directory' })
+  if (id === 'poi_photo_booth') return handlePhotoBooth(state)
+  if (id === 'poi_people_tray') return handlePeopleTray(state)
+  if (id === 'poi_badge_printer') return inspect(state, BADGE_PRINTER_COPY.locked)
+  if (id === 'poi_supply_cabinet_f2') return handleCabinetF2(state)
+  if (id === 'poi_shredder') {
+    return inspect(
+      state,
+      state.assignments.asg_audit === 'complete' ? SHREDDER_COPY.after : SHREDDER_COPY.idle,
+    )
+  }
   return inspect(state, POI_INSPECT[id])
+}
+
+/** Transfer packet, step 1: the booth fires on two and prints the only copy. */
+function handlePhotoBooth(state: OfficeState): OfficeState {
+  const stage = state.assignments.asg_transfer
+  if (stage === 'accepted') {
+    return enqueueOverlays(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_transfer: 'photo_taken' } },
+        'key_badge_photo',
+        1,
+      ),
+      [
+        { kind: 'dialogue', nodeId: `inspect:${PHOTO_BOOTH_COPY.countdown}`, line: 0 },
+        { kind: 'dialogue', nodeId: `inspect:${PHOTO_BOOTH_COPY.printed}`, line: 0 },
+        { kind: 'toast', text: 'Got: Badge Photo (eyes closed)' },
+      ],
+    )
+  }
+  if (stage === 'not_started') return inspect(state, PHOTO_BOOTH_COPY.not_started)
+  return inspect(state, PHOTO_BOOTH_COPY.later)
+}
+
+/** Transfer packet, step 3: People Ops is a tray. It pays +12 and one Offer Letter, once. */
+function handlePeopleTray(state: OfficeState): OfficeState {
+  const stage = state.assignments.asg_transfer
+  if (stage === 'signed') {
+    if (rewardClaimed(state, 'rwd_asg_transfer')) return state
+    let next: OfficeState = {
+      ...state,
+      assignments: { ...state.assignments, asg_transfer: 'filed' },
+      run: { ...state.run, stockOptions: state.run.stockOptions + 12 },
+      rewardsClaimed: [...state.rewardsClaimed, 'rwd_asg_transfer'],
+    }
+    next = withKey(next, 'key_badge_photo', -keyCount(next, 'key_badge_photo'))
+    next = withKey(next, 'key_transfer_form', -keyCount(next, 'key_transfer_form'))
+    next = withKey(next, 'key_offer_letter', 1)
+    return enqueueOverlays(next, [
+      { kind: 'dialogue', nodeId: `inspect:${PEOPLE_TRAY_COPY.filing}`, line: 0 },
+      { kind: 'dialogue', nodeId: `inspect:${PEOPLE_TRAY_COPY.letter}`, line: 0 },
+      { kind: 'receipt', receiptId: 'rcpt_transfer_filed' },
+    ])
+  }
+  if (stage === 'not_started') return inspect(state, PEOPLE_TRAY_COPY.not_started)
+  if (stage === 'accepted' || stage === 'photo_taken')
+    return inspect(state, PEOPLE_TRAY_COPY.waiting)
+  return inspect(state, PEOPLE_TRAY_COPY.later)
+}
+
+function handleCabinetF2(state: OfficeState): OfficeState {
+  const key = 'poi_supply_cabinet_f2:opened'
+  if (state.firedTriggers.includes(key)) return inspect(state, CABINET_F2_COPY.later)
+  return inspect({ ...state, firedTriggers: [...state.firedTriggers, key] }, CABINET_F2_COPY.first)
 }
 
 function inspect(state: OfficeState, text: string): OfficeState {
@@ -398,8 +483,24 @@ function maybeCoachMove(state: OfficeState, ov: Overlay): OfficeState {
 }
 
 function finishDialogue(state: OfficeState, id: DialogueId): OfficeState {
-  if (id === 'dlg_callie_floor2_intro') {
-    return withFlag(state, 'flag_floor2_briefed')
+  // Floor 2 transfer packet (design §4.1). Compliance training onward is Astra's.
+  if (id === 'dlg_teddy_packet') {
+    return { ...state, assignments: { ...state.assignments, asg_transfer: 'accepted' } }
+  }
+  if (id === 'dlg_holloway_sign_transfer') {
+    if (state.assignments.asg_transfer !== 'photo_taken') return state
+    return pushOverlay(
+      withKey(
+        { ...state, assignments: { ...state.assignments, asg_transfer: 'signed' } },
+        'key_transfer_form',
+        1,
+      ),
+      { kind: 'toast', text: 'Got: Transfer Form (signed)' },
+    )
+  }
+  if (id === 'dlg_teddy_filed') {
+    if (state.assignments.asg_transfer !== 'filed') return state
+    return { ...state, assignments: { ...state.assignments, asg_transfer: 'complete' } }
   }
   if (id === 'dlg_renata_ticket') {
     return { ...state, assignments: { ...state.assignments, asg_printer: 'accepted' } }

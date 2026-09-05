@@ -1,6 +1,14 @@
 import type { DialogueId } from './ids'
 
-export type SpeakerId = 'renata' | 'gavin' | 'priya' | 'holloway' | 'callie' | null
+export type SpeakerId =
+  | 'renata'
+  | 'gavin'
+  | 'priya'
+  | 'holloway'
+  | 'teddy'
+  | 'whitlock'
+  | 'kessler'
+  | null
 
 export interface DialogueChoice {
   id: string
@@ -84,14 +92,16 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Renata',
     lines: [
       "Look at you. Badged. Elevator's top left. It goes to Floor 2.",
-      "It's mostly a temporary pod for now, but the loop works. That's still a win.",
+      "Floor 2 is Operations. They run the building. They'll tell you.",
     ],
   },
   dlg_renata_after: {
     id: 'dlg_renata_after',
     speaker: 'renata',
     name: 'Renata',
-    lines: ['Back already? Floor 2 has folding tables and ambition.'],
+    lines: [
+      'Back down before going up? Take the elevator. Operations sends everyone down once anyway.',
+    ],
   },
   dlg_gavin_busy: {
     id: 'dlg_gavin_busy',
@@ -369,30 +379,404 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Holloway',
     lines: ["Elevator's behind me. Reader's on the right. It beeps. Everything here beeps."],
   },
-  dlg_callie_floor2_intro: {
-    id: 'dlg_callie_floor2_intro',
-    speaker: 'callie',
-    name: 'Callie',
+  // ── Floor 2 — Teddy, IT Help Desk (docs/rpg/floor-2-design.md §2.1) ──
+  dlg_teddy_callout: {
+    id: 'dlg_teddy_callout',
+    speaker: null,
+    name: '',
+    lines: ['Visitor badge. On two. Bold.'],
+  },
+  dlg_teddy_packet: {
+    id: 'dlg_teddy_packet',
+    speaker: 'teddy',
+    name: 'Teddy',
     lines: [
-      "Welcome to Floor 2. It's a stub, but it's ours.",
-      'I run facilities pilots up here. Elevator down is live whenever you want to backtrack.',
+      'Help desk. Also badges. Also HR this week; People Ops is self-service and the self is me.',
+      "Your badge is a visitor badge. Holloway laminated a visitor badge. That's very Floor 1.",
+      "A real one needs a transfer packet: a photo, and your manager's signature. Booth's behind me.",
     ],
   },
-  dlg_callie_floor2_repeat: {
-    id: 'dlg_callie_floor2_repeat',
-    speaker: 'callie',
-    name: 'Callie',
-    lines: ['Still wiring this floor together. If you need supplies, Floor 1 is one ride away.'],
+  dlg_teddy_hint_photo: {
+    id: 'dlg_teddy_hint_photo',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      "Booth's the red curtain. It counts down from three and fires on two. Everyone's does.",
+    ],
+  },
+  dlg_teddy_hint_signature: {
+    id: 'dlg_teddy_hint_signature',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      "Now the signature. Holloway. Floor 1. Elevator's where you left it.",
+      'Finance is asking about you too. Whitlock, down the hall, right. Do everything downstairs in one trip.',
+    ],
+  },
+  dlg_teddy_hint_file: {
+    id: 'dlg_teddy_hint_file',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      'Signed? Drop the packet in the People Ops tray. Through the glass, right. The tray has a face.',
+    ],
+  },
+  dlg_teddy_filed: {
+    id: 'dlg_teddy_filed',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      'Filed. That makes you a transfer, which means I run you through compliance.',
+      "Module one of one. It's interactive. I'm the interactive.",
+    ],
+  },
+  dlg_teddy_declined: {
+    id: 'dlg_teddy_declined',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["Later works. The module doesn't go anywhere. Neither do I."],
+  },
+  dlg_teddy_you_lost: {
+    id: 'dlg_teddy_you_lost',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      'Facilities has the good coffee machine. Nobody downstairs knows. Take five, come back.',
+    ],
+  },
+  dlg_teddy_beaten: {
+    id: 'dlg_teddy_beaten',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      "Passed. You passed. I've never passed anyone; the module is usually me losing on purpose.",
+    ],
+  },
+  dlg_teddy_offer: {
+    id: 'dlg_teddy_offer',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      'Is that a pre-signed offer letter. From the tray. That I filed.',
+      'Yes. Take me. Fourteen months on rotation. Rotations are three.',
+    ],
+    choices: [
+      { id: 'extend', label: 'Extend the offer' },
+      { id: 'not_yet', label: 'Not yet', safe: true },
+    ],
+  },
+  dlg_teddy_offer_full: {
+    id: 'dlg_teddy_offer_full',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      "You've got three. That's the whole elevator.",
+      "Send someone back to their desk and I'm in. They keep the desk. Everyone keeps the desk.",
+    ],
+    choices: [
+      { id: 'make_room', label: 'Make room' },
+      { id: 'not_yet', label: 'Not yet', safe: true },
+    ],
+  },
+  dlg_teddy_offer_declined: {
+    id: 'dlg_teddy_offer_declined',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["Sure. I'll be here. Ticket's open. My tickets stay open."],
+  },
+  dlg_teddy_joined: {
+    id: 'dlg_teddy_joined',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: [
+      "Team. I'll keep the desk too; that's how it works here. Gavin explained it in a ticket.",
+      "Switch me in when someone's on fire. I do restarts.",
+    ],
+  },
+  dlg_teddy_rejoin: {
+    id: 'dlg_teddy_rejoin',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ['Back on the team? Sure. I never logged off.'],
+  },
+  dlg_teddy_rejoin_full: {
+    id: 'dlg_teddy_rejoin_full',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["Three's three. Send someone to their desk first. Not a metaphor; we have desks."],
+  },
+  dlg_teddy_party: {
+    id: 'dlg_teddy_party',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["Teammate. Also the help desk. The queue doesn't know I left."],
+  },
+  dlg_teddy_no_letter: {
+    id: 'dlg_teddy_no_letter',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["No letters left? HR prints two a quarter. It's a long quarter."],
+  },
+  dlg_teddy_badge_pending: {
+    id: 'dlg_teddy_badge_pending',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["He signed? Printer's next to my desk. It jams on the photo. Everyone's does."],
+  },
+  dlg_teddy_after: {
+    id: 'dlg_teddy_after',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ['Employee badge. Level two. Mine says INTERN and expires never.'],
+  },
+  dlg_teddy_after_win: {
+    id: 'dlg_teddy_after_win',
+    speaker: 'teddy',
+    name: 'Teddy',
+    lines: ["We passed Kessler. It's going on my rotation review. Which is also me."],
+  },
+  // ── Floor 2 — Whitlock, External Auditor (§2.2). `{n}` is the Floor 1 ledger total. ──
+  dlg_whitlock_hook: {
+    id: 'dlg_whitlock_hook',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ['You. Floor 1. {n} Options earned on a floor with one vending machine. Stand there.'],
+  },
+  dlg_whitlock_request: {
+    id: 'dlg_whitlock_request',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: [
+      "I'm external. I don't work here; I count here. Your machine downstairs prints receipts.",
+      "Bring me the roll. All of it. Then we'll talk about your ledger.",
+    ],
+    choices: [
+      { id: 'take_it_on', label: 'Take it on' },
+      { id: 'pass', label: 'Pass', safe: true },
+    ],
+  },
+  dlg_whitlock_pass: {
+    id: 'dlg_whitlock_pass',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ['Declining an audit is also a data point. Noted. In pencil.'],
+  },
+  dlg_whitlock_waiting: {
+    id: 'dlg_whitlock_waiting',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: [
+      'Floor 1. Break room. Vending machine. It has a button that says RECEIPT. Nobody has pressed it.',
+    ],
+  },
+  dlg_whitlock_delivered: {
+    id: 'dlg_whitlock_delivered',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: [
+      "Two point three metres. Espresso. Espresso. A side hustle. I have questions; they're rhetorical.",
+      'Reconciled. Reimbursed.',
+    ],
+  },
+  dlg_whitlock_challenge: {
+    id: 'dlg_whitlock_challenge',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ["Now the ledger. {n} Options earned on Floor 1. I'd like to see the work."],
+    choices: [
+      { id: 'open_books', label: 'Open the books' },
+      { id: 'not_today', label: 'Not today', safe: true },
+    ],
+  },
+  dlg_whitlock_declined: {
+    id: 'dlg_whitlock_declined',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ["Not today. Audits don't end. They pause."],
+  },
+  dlg_whitlock_you_lost: {
+    id: 'dlg_whitlock_you_lost',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ["Facilities. Take five. I'll be here; I bill by the hour."],
+  },
+  dlg_whitlock_beaten: {
+    id: 'dlg_whitlock_beaten',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ['…The numbers hold.', "Initialled. In pencil. I don't do pen for anyone."],
+  },
+  dlg_whitlock_recruit: {
+    id: 'dlg_whitlock_recruit',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ["An offer letter? I don't work here. Legally, that's the point of me."],
+  },
+  dlg_whitlock_after: {
+    id: 'dlg_whitlock_after',
+    speaker: 'whitlock',
+    name: 'Whitlock',
+    lines: ["Audit's closed. Your receipts are confetti now. Compliant confetti."],
+  },
+  // ── Floor 2 — Kessler, Director of Operations (§2.3) ──
+  dlg_kessler_early: {
+    id: 'dlg_kessler_early',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      "Transfer's not filed. Or Teddy hasn't cleared you. Or both. Operations runs on 'or both'.",
+    ],
+  },
+  dlg_kessler_teddy_pending: {
+    id: 'dlg_kessler_teddy_pending',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      "Packet's filed. Compliance isn't. Teddy runs it. Yes, the intern. It's his fourteenth month; he's senior.",
+    ],
+  },
+  dlg_kessler_review: {
+    id: 'dlg_kessler_review',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      "Stand. Everyone stands here; it keeps reviews short. This one won't be.",
+      'Teddy passed you, which means Teddy lost. Interesting.',
+      "This is your operations review. There's no rescheduling.",
+    ],
+    choices: [{ id: 'begin', label: 'Begin' }],
+  },
+  dlg_kessler_you_lost: {
+    id: 'dlg_kessler_you_lost',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      "Facilities. All of you. Reschedule with Teddy; he owns a calendar he isn't allowed to edit.",
+    ],
+  },
+  dlg_kessler_beaten: {
+    id: 'dlg_kessler_beaten',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      '…Fine. Aligned.',
+      "Signed. Transfer approved. Teddy prints the badge; I don't touch the printer. It's a policy about me.",
+    ],
+  },
+  dlg_kessler_after: {
+    id: 'dlg_kessler_after',
+    speaker: 'kessler',
+    name: 'Kessler',
+    lines: [
+      "Badge printer's at the help desk. Then the elevator. Floor 3 exists; nobody's mapped it.",
+    ],
+  },
+  // ── Floor 1 cast once Floor 2 exists (§2.5) ──
+  dlg_renata_transfer: {
+    id: 'dlg_renata_transfer',
+    speaker: 'renata',
+    name: 'Renata',
+    lines: ['Transfer form? Holloway. Elevator lobby. She signs anything you hold still enough.'],
+  },
+  dlg_renata_audit: {
+    id: 'dlg_renata_audit',
+    speaker: 'renata',
+    name: 'Renata',
+    lines: [
+      "The vending machine prints receipts? Since when. Since always? Don't tell Whitlock about the cake.",
+    ],
+  },
+  dlg_renata_upstairs: {
+    id: 'dlg_renata_upstairs',
+    speaker: 'renata',
+    name: 'Renata',
+    lines: ["How's up there? Don't tell me. I like it here. The plants are real."],
+  },
+  dlg_renata_f2_after: {
+    id: 'dlg_renata_f2_after',
+    speaker: 'renata',
+    name: 'Renata',
+    lines: [
+      "Employee badge. A real one. You're still my new hire. That's forever; it's on a spreadsheet.",
+    ],
+  },
+  dlg_gavin_upstairs: {
+    id: 'dlg_gavin_upstairs',
+    speaker: 'gavin',
+    name: 'Gavin',
+    lines: ['Operations. They have the good coffee and no personality. Balanced.'],
+  },
+  dlg_gavin_rejoin: {
+    id: 'dlg_gavin_rejoin',
+    speaker: 'gavin',
+    name: 'Gavin',
+    lines: ["Back? Fine. I kept the seat warm. It's a chair; they're always warm."],
+  },
+  dlg_gavin_rejoin_full: {
+    id: 'dlg_gavin_rejoin_full',
+    speaker: 'gavin',
+    name: 'Gavin',
+    lines: [
+      "Three's three. I'm not going to be the fourth chair. I've seen how the fourth chair is treated.",
+    ],
+  },
+  dlg_gavin_f2_after: {
+    id: 'dlg_gavin_f2_after',
+    speaker: 'gavin',
+    name: 'Gavin',
+    lines: ["Permanent. Great. I've been permanent for nine years. It's mostly a chair."],
+  },
+  dlg_priya_upstairs: {
+    id: 'dlg_priya_upstairs',
+    speaker: 'priya',
+    name: 'Priya',
+    lines: ['You went up. Without a handout. Brave.'],
+  },
+  dlg_priya_rejoin: {
+    id: 'dlg_priya_rejoin',
+    speaker: 'priya',
+    name: 'Priya',
+    lines: ['Back on the team? I never updated the calendar. I knew.'],
+  },
+  dlg_priya_rejoin_full: {
+    id: 'dlg_priya_rejoin_full',
+    speaker: 'priya',
+    name: 'Priya',
+    lines: ['Full team. Send someone to their desk first. Send Gavin. Hypothetically.'],
+  },
+  dlg_holloway_sign_transfer: {
+    id: 'dlg_holloway_sign_transfer',
+    speaker: 'holloway',
+    name: 'Holloway',
+    lines: [
+      'A transfer form. To Operations. Kessler.',
+      "He'll make you stand too. He learned it from me. He'll say he didn't.",
+      "Signed. Don't tell him I read it.",
+    ],
+  },
+  dlg_holloway_upstairs: {
+    id: 'dlg_holloway_upstairs',
+    speaker: 'holloway',
+    name: 'Holloway',
+    lines: ['Kessler counts. Bring everyone. Then bring the count.'],
+  },
+  dlg_holloway_f2_after: {
+    id: 'dlg_holloway_f2_after',
+    speaker: 'holloway',
+    name: 'Holloway',
+    lines: ["Permanent. Congratulations. I'm still interim. Four years. It's a lifestyle."],
   },
 }
 
 export const SPEAKER_SPRITE: Record<
   Exclude<SpeakerId, null>,
-  'recruiter' | 'overachiever' | 'scrum' | 'manager'
+  'recruiter' | 'overachiever' | 'scrum' | 'manager' | 'intern' | 'boss' | 'vp'
 > = {
   renata: 'recruiter',
   gavin: 'overachiever',
   priya: 'scrum',
   holloway: 'manager',
-  callie: 'recruiter',
+  teddy: 'intern',
+  whitlock: 'boss',
+  kessler: 'vp',
 }

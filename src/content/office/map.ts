@@ -1,5 +1,16 @@
 import type { Facing, FloorId, NpcId, PoiId, ZoneId } from './ids'
 import { MAP_HEIGHT, MAP_WIDTH } from './ids'
+import {
+  FLOOR_2_ARRIVAL,
+  FLOOR_2_ART,
+  FLOOR_2_DEFEAT_RESPAWN,
+  FLOOR_2_INTERACT_SPOTS,
+  FLOOR_2_NPC_SIGHT,
+  FLOOR_2_NPC_TILE,
+  FLOOR_2_SOLID_GLYPHS,
+  FLOOR_2_ZONE_LABEL,
+  floor2ZoneAt,
+} from './floor2'
 
 type SpawnPoint = { x: number; y: number; facing: Facing }
 type TilePoint = { x: number; y: number }
@@ -25,26 +36,7 @@ const FLOOR_01_ART = [
   '############X###########',
 ] as const
 
-const FLOOR_02_ART = [
-  '########################',
-  '#.EER...............p..#',
-  '#......................#',
-  '#......c...............#',
-  '#......KKK....p........#',
-  '#......................#',
-  '#.........p............#',
-  '#......................#',
-  '#..........D...........#',
-  '#......................#',
-  '#.............c........#',
-  '#......................#',
-  '#...........p..........#',
-  '#......................#',
-  '#....p.................#',
-  '#......................#',
-  '#......................#',
-  '########################',
-] as const
+const FLOOR_02_ART = FLOOR_2_ART
 
 export const FLOOR_ART_BY_ID: Record<FloorId, readonly string[]> = {
   floor_01: FLOOR_01_ART,
@@ -54,23 +46,29 @@ export const FLOOR_ART_BY_ID: Record<FloorId, readonly string[]> = {
 // Back-compat exports for Floor 1 tests/callers.
 export const FLOOR_ART = FLOOR_ART_BY_ID.floor_01
 
-const SOLID_GLYPHS = new Set('#XERTAHc=PSKVtwip1234'.split(''))
+const FLOOR_01_SOLID_GLYPHS = new Set('#XERTAHc=PSKVtwip1234'.split(''))
+
+const SOLID_GLYPHS_BY_FLOOR: Record<FloorId, Set<string>> = {
+  floor_01: FLOOR_01_SOLID_GLYPHS,
+  floor_02: FLOOR_2_SOLID_GLYPHS,
+}
 
 export type TileGlyph = string
 
 const FLOOR_SPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 12, y: 15, facing: 'n' },
-  floor_02: { x: 3, y: 2, facing: 's' },
+  floor_02: FLOOR_2_ARRIVAL,
 }
 
 const FLOOR_DEFEAT_RESPAWN: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 19, y: 8, facing: 'n' },
-  floor_02: { x: 7, y: 5, facing: 'n' },
+  floor_02: FLOOR_2_DEFEAT_RESPAWN,
 }
 
+// One shaft: the elevator is the same three tiles on every floor.
 const FLOOR_ELEVATOR_ARRIVAL: Record<FloorId, SpawnPoint> = {
   floor_01: { x: 3, y: 2, facing: 's' },
-  floor_02: { x: 3, y: 2, facing: 's' },
+  floor_02: FLOOR_2_ARRIVAL,
 }
 
 const FLOOR_ELEVATOR_BOARDING: Record<
@@ -99,6 +97,7 @@ export const ZONE_LABEL: Record<ZoneId, string> = {
   zone_meeting: 'MEETING ROOM',
   zone_elevator: 'ELEVATOR LOBBY',
   zone_hall: 'HALL',
+  ...FLOOR_2_ZONE_LABEL,
 }
 
 export function floorLabel(floorId: FloorId): string {
@@ -151,7 +150,7 @@ export function inBounds(x: number, y: number): boolean {
 }
 
 export function isSolid(x: number, y: number, floorId: FloorId = 'floor_01'): boolean {
-  return SOLID_GLYPHS.has(glyphAt(x, y, floorId))
+  return SOLID_GLYPHS_BY_FLOOR[floorId].has(glyphAt(x, y, floorId))
 }
 
 function zoneAtFloor1(x: number, y: number): ZoneId {
@@ -163,13 +162,8 @@ function zoneAtFloor1(x: number, y: number): ZoneId {
   return 'zone_hall'
 }
 
-function zoneAtFloor2(x: number, y: number): ZoneId {
-  if (x >= 1 && x <= 9 && y >= 1 && y <= 5) return 'zone_elevator'
-  return 'zone_hall'
-}
-
 export function zoneAt(x: number, y: number, floorId: FloorId = 'floor_01'): ZoneId {
-  return floorId === 'floor_01' ? zoneAtFloor1(x, y) : zoneAtFloor2(x, y)
+  return floorId === 'floor_01' ? zoneAtFloor1(x, y) : floor2ZoneAt(x, y)
 }
 
 export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>> = {
@@ -179,9 +173,7 @@ export const FLOOR_NPC_TILE: Record<FloorId, Partial<Record<NpcId, SpawnPoint>>>
     npc_meeting_prepper: { x: 13, y: 2, facing: 's' },
     npc_supervisor: { x: 6, y: 3, facing: 'e' },
   },
-  floor_02: {
-    npc_floor2_contractor: { x: 8, y: 2, facing: 's' },
-  },
+  floor_02: FLOOR_2_NPC_TILE,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -209,7 +201,7 @@ export const FLOOR_NPC_SIGHT: Record<FloorId, Partial<Record<NpcId, TilePoint[]>
       { x: 9, y: 3 },
     ],
   },
-  floor_02: {},
+  floor_02: FLOOR_2_NPC_SIGHT,
 }
 
 // Back-compat exports for Floor 1 tests/callers.
@@ -292,17 +284,7 @@ const FLOOR_01_INTERACT_SPOTS: InteractSpot[] = [
   poiSpot(17, 10, 's', 'poi_break_table', 'Inspect'),
 ]
 
-const FLOOR_02_INTERACT_SPOTS: InteractSpot[] = [
-  npcSpot(8, 3, 'n', 'npc_floor2_contractor', 'Callie'),
-  npcSpot(7, 2, 'e', 'npc_floor2_contractor', 'Callie'),
-  npcSpot(9, 2, 'w', 'npc_floor2_contractor', 'Callie'),
-  poiSpot(7, 5, 'n', 'poi_break_counter', 'Take five'),
-  poiSpot(8, 5, 'n', 'poi_break_counter', 'Take five'),
-  poiSpot(9, 5, 'n', 'poi_break_counter', 'Take five'),
-  poiSpot(2, 2, 'n', 'poi_elevator_door', 'Elevator'),
-  poiSpot(3, 2, 'n', 'poi_elevator_door', 'Elevator'),
-  poiSpot(4, 2, 'n', 'poi_elevator_door', 'Elevator'),
-]
+const FLOOR_02_INTERACT_SPOTS: InteractSpot[] = FLOOR_2_INTERACT_SPOTS
 
 export const FLOOR_INTERACT_SPOTS: Record<FloorId, InteractSpot[]> = {
   floor_01: FLOOR_01_INTERACT_SPOTS,

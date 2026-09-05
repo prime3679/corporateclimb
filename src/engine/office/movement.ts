@@ -58,7 +58,9 @@ export function interactTarget(state: OfficeState): InteractTarget | null {
         npc_desk_challenger: 'Gavin',
         npc_meeting_prepper: 'Priya',
         npc_supervisor: 'Holloway',
-        npc_floor2_contractor: 'Callie',
+        npc_help_desk_intern: 'Teddy',
+        npc_auditor: 'Whitlock',
+        npc_director: 'Kessler',
       }
       return { kind: 'npc', id, label: `Talk · ${names[id]}` }
     }
