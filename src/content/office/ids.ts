@@ -311,6 +311,8 @@ export type FlagId =
   | 'flag_roster_coached'
   | 'flag_reader_denied_f2'
   // Floors 3–5
+  | 'flag_reader_denied_f3'
+  | 'flag_reader_denied_f4'
   | 'flag_visited_f3'
   | 'flag_floor3_complete'
   | 'flag_visited_f4'

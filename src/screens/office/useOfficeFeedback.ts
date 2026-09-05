@@ -199,7 +199,9 @@ export function useOfficeFeedback(state: OfficeState): string {
       const inspect = inspectText(ov.nodeId)
       if (
         inspect === POI_INSPECT.poi_elevator_door ||
-        inspect === POI_INSPECT.poi_elevator_door_f2
+        inspect === POI_INSPECT.poi_elevator_door_f2 ||
+        inspect === POI_INSPECT.poi_elevator_door_f3 ||
+        inspect === POI_INSPECT.poi_elevator_door_f4
       ) {
         SFX.eventBad()
         Haptics.warning()

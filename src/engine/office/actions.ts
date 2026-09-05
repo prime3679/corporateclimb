@@ -12,6 +12,7 @@ import {
   COWORKER_NAME,
   canOpenElevatorPanel,
   canRideTo,
+  elevatorDenyFor,
   DIALOGUE,
   elevatorArrivalForFloor,
   elevatorBoardingSpotsForFloor,
@@ -1264,16 +1265,15 @@ function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
   }
   if (to === state.floorId) return state
   if (!canRideTo(to, state.keyItems)) {
-    if (to === 'floor_03' || to === 'floor_04' || to === 'floor_05') {
-      const first = !state.flags.includes('flag_reader_denied_f2')
-      const flagged = withFlag(state, 'flag_reader_denied_f2')
-      if (!first) return flagged
-      return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
-        { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT.poi_elevator_door_f2}`, line: 0 },
-        { kind: 'elevator_panel' },
-      ])
-    }
-    return state
+    const deny = elevatorDenyFor(to)
+    if (!deny) return state
+    const first = !state.flags.includes(deny.flag)
+    const flagged = withFlag(state, deny.flag)
+    if (!first) return flagged
+    return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
+      { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT[deny.poiId]}`, line: 0 },
+      { kind: 'elevator_panel' },
+    ])
   }
   return rideElevator(state, to)
 }
