@@ -89,11 +89,13 @@ import {
   clearOfficeSave,
   hasOfficeSave,
   loadOffice,
+  loadOfficeSave,
   newOfficeCampaign,
   saveOffice,
   type OfficeState,
 } from './engine/office'
 import OfficeStartScreen from './screens/office/OfficeStartScreen'
+import { campaignSummary } from './screens/office/cast'
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
@@ -821,6 +823,10 @@ export default function CorporateClimb() {
               SFX.menuSelect()
               setScreen(hasOfficeSave() ? 'officeStart' : 'officeClassSelect')
             }}
+            officeStatus={(() => {
+              const save = loadOfficeSave()
+              return save ? campaignSummary(save) : undefined
+            })()}
           />
         )}
         {screen === 'officeStart' && (
@@ -863,6 +869,8 @@ export default function CorporateClimb() {
             onExit={() => {
               setScreen('title')
             }}
+            textMsPerChar={TEXT_SPEED_MS[settings.textSpeed]}
+            reduceMotion={settings.reduceMotion}
           />
         )}
         {screen === 'codex' && <CodexScreen onBack={() => setScreen('title')} />}

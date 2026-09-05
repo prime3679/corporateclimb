@@ -1,0 +1,113 @@
+.strip {
+  display: flex;
+  align-items: center;
+}
+
+.row {
+  --chip-size: 54px;
+  display: flex;
+  gap: 6px;
+}
+
+.chip {
+  position: relative;
+  width: var(--chip-size);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 3px 0 2px;
+  border-radius: var(--radius-sm);
+}
+
+.active::after {
+  content: '';
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  bottom: -3px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--cc-gold);
+}
+
+.portrait {
+  position: relative;
+  display: inline-flex;
+}
+
+.hpNum,
+.outTag {
+  position: absolute;
+  right: -6px;
+  bottom: -4px;
+  padding: 1px 4px;
+  border-radius: 4px;
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: 0.04em;
+  line-height: 1.1;
+  color: var(--cc-text);
+  background: rgba(10, 13, 19, 0.96);
+  border: 1px solid var(--cc-line-strong);
+}
+
+.outTag {
+  color: var(--cc-text-2);
+  border-color: var(--cc-danger);
+}
+
+.track {
+  display: block;
+  width: calc(var(--chip-size) - 12px);
+  height: 3px;
+  border-radius: 2px;
+  background: rgba(0, 0, 0, 0.45);
+  overflow: hidden;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  transition: width var(--cc-dur-drain) var(--cc-ease-out);
+}
+
+.high {
+  background: var(--cc-hp-high-2);
+}
+.mid {
+  background: var(--cc-hp-mid);
+}
+.low {
+  background: var(--cc-hp-low-2);
+}
+
+.empty {
+  display: inline-grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px dotted var(--cc-line-strong);
+  color: var(--cc-text-faint);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-sm);
+  line-height: 1;
+}
+
+.emptyHot {
+  border-style: dashed;
+  border-color: var(--cc-gold);
+  color: var(--cc-gold);
+  box-shadow: 0 0 0 3px rgba(255, 193, 7, 0.18);
+}
+
+.name {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-chip);
+  color: var(--cc-text-2);
+}
+
+:global(.reduce-motion) .fill {
+  transition: none;
+}

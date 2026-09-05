@@ -1,61 +1,401 @@
 .map {
+  --zone-accent: var(--cc-gold);
   position: relative;
   overflow: hidden;
-  width: 100%;
-  height: 448px;
-  border: 1px solid var(--cc-line);
-  background: var(--cc-surface-1);
+  width: 448px;
+  height: 100%;
+  min-height: 320px;
+  border: 1px solid var(--cc-line-strong);
+  border-radius: var(--radius-md);
+  background: #0e131c;
+  box-shadow:
+    inset 0 0 0 1px rgba(0, 0, 0, 0.5),
+    var(--cc-shadow-plate);
+  isolation: isolate;
 }
 
-.grid {
+/* Soft room lighting: a warm pool near the top, vignette at the edges. */
+.map::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  border-radius: inherit;
+  background:
+    radial-gradient(120% 60% at 50% -10%, rgba(255, 224, 150, 0.08), transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.45) 100%);
+}
+
+.camera {
   position: absolute;
   top: 0;
-  display: grid;
-  grid-template-columns: repeat(24, 32px);
-  grid-template-rows: repeat(18, 32px);
+  left: 0;
   will-change: transform;
+  transition: transform 250ms linear;
 }
 
-.tile {
-  width: 32px;
-  height: 32px;
-  box-sizing: border-box;
-  border: 1px solid rgba(5, 7, 13, 0.18);
-  image-rendering: pixelated;
+.tiles {
+  display: block;
 }
 
+/* ── Badge tokens ── */
 .token {
   position: absolute;
-  width: 28px;
-  height: 28px;
-  margin: 2px;
-  border-radius: 6px;
-  border: 2px solid var(--cc-gold);
-  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35);
+  width: 32px;
+  height: 32px;
   display: grid;
   place-items: center;
-  font-size: 9px;
-  font-family: var(--font-display);
-  color: var(--cc-on-accent);
-  background: var(--cc-surface-3);
-  z-index: 2;
+  z-index: 3;
+  transition:
+    left 250ms linear,
+    top 250ms linear;
+}
+
+.tokenPlayer {
+  z-index: 4;
+}
+
+.tokenBadge {
+  position: relative;
+  z-index: 1;
+  transition: transform 160ms var(--cc-ease-out);
+}
+
+.tokenShadow {
+  position: absolute;
+  left: 6px;
+  right: 6px;
+  bottom: -1px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  filter: blur(1.5px);
 }
 
 .notch {
   position: absolute;
   width: 6px;
   height: 6px;
-  background: var(--cc-gold);
+  border-radius: 1px;
+  z-index: 2;
+  box-shadow: 0 0 0 1px rgba(10, 13, 19, 0.95);
+}
+
+/* Facing: a 6-px notch on the ring edge plus a 2° tilt toward that side. */
+.face_n .notch {
+  top: 0;
+  left: 13px;
+}
+.face_s .notch {
+  bottom: 0;
+  left: 13px;
+}
+.face_e .notch {
+  right: 0;
+  top: 13px;
+}
+.face_w .notch {
+  left: 0;
+  top: 13px;
+}
+.face_e .tokenBadge {
+  transform: rotate(2deg);
+}
+.face_w .tokenBadge {
+  transform: rotate(-2deg);
+}
+.face_n .tokenBadge {
+  transform: translateY(-1px);
+}
+.face_s .tokenBadge {
+  transform: translateY(1px);
+}
+
+.tokenPlayer .tokenBadge {
+  animation: of-idle 2.6s ease-in-out infinite;
+}
+
+/* ── Markers ── */
+.target {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  z-index: 2;
+  border: 1px solid var(--cc-gold);
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(255, 193, 7, 0.25);
+  pointer-events: none;
 }
 
 .pin {
   position: absolute;
-  width: 10px;
-  height: 10px;
-  margin: 11px;
-  border-radius: 50%;
-  background: var(--cc-gold);
-  box-shadow: 0 0 0 3px rgba(255, 211, 77, 0.35);
-  z-index: 3;
+  width: 32px;
+  height: 32px;
+  margin-top: -26px;
+  z-index: 5;
+  display: grid;
+  place-items: center;
+  font-family: var(--cc-font-display);
+  font-size: 14px;
+  line-height: 1;
+  color: var(--cc-gold);
+  text-shadow:
+    0 1px 0 rgba(10, 13, 19, 1),
+    0 -1px 0 rgba(10, 13, 19, 1),
+    1px 0 0 rgba(10, 13, 19, 1),
+    -1px 0 0 rgba(10, 13, 19, 1),
+    0 3px 6px rgba(0, 0, 0, 0.6);
   pointer-events: none;
+  animation: of-bob 1.4s ease-in-out infinite;
+  transition:
+    left 250ms var(--cc-ease-out),
+    top 250ms var(--cc-ease-out);
+}
+
+.callout {
+  position: absolute;
+  width: 32px;
+  height: 32px;
+  margin-top: -24px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  font-family: var(--cc-font-display);
+  font-size: 18px;
+  color: var(--cc-gold);
+  text-shadow:
+    0 1px 0 rgba(10, 13, 19, 1),
+    0 -1px 0 rgba(10, 13, 19, 1),
+    1px 0 0 rgba(10, 13, 19, 1),
+    -1px 0 0 rgba(10, 13, 19, 1);
+  animation: of-callout 900ms var(--cc-ease-pop) both;
+  pointer-events: none;
+}
+
+/* ── HUD over the map ── */
+.zoneChip {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  z-index: 6;
+  padding: 5px 10px 5px 12px;
+  border-left: var(--cc-accent-bar) solid var(--zone-accent);
+  border-radius: 4px;
+  background: var(--cc-glass);
+  box-shadow: var(--cc-shadow-plate);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: var(--cc-track-label);
+  text-transform: uppercase;
+  color: var(--cc-text);
+  opacity: 0.6;
+  animation: of-zone 2s var(--cc-ease-out) both;
+  pointer-events: none;
+}
+
+.edge {
+  position: absolute;
+  z-index: 6;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  pointer-events: none;
+}
+
+.edgeLeft {
+  left: 4px;
+}
+.edgeRight {
+  right: 4px;
+}
+
+.chevron {
+  font-family: var(--cc-font-display);
+  font-size: 24px;
+  line-height: 1;
+  color: var(--cc-gold);
+  text-shadow: 0 0 8px rgba(255, 193, 7, 0.5);
+  animation: of-nudge 1s ease-in-out infinite;
+}
+
+.edgeZone {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-chip);
+  color: var(--cc-text-2);
+  text-shadow: 0 1px 0 rgba(10, 13, 19, 1);
+}
+
+.nearby {
+  position: absolute;
+  z-index: 7;
+  transform: translate(-50%, -100%);
+  height: 28px;
+  padding: 0 10px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+  border-radius: 6px;
+  background: var(--cc-glass);
+  border: 1px solid var(--cc-line-strong);
+  box-shadow: var(--cc-shadow-plate);
+  font-family: var(--cc-font-body);
+  font-size: var(--body-sm);
+  font-weight: 600;
+  color: var(--cc-text);
+  pointer-events: none;
+  animation: of-pop 140ms var(--cc-ease-out);
+}
+
+.nearby::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 7px;
+  height: 7px;
+  transform: translateX(-50%) rotate(45deg);
+  background: var(--cc-glass);
+  border-right: 1px solid var(--cc-line-strong);
+  border-bottom: 1px solid var(--cc-line-strong);
+}
+
+/* ── Motion ── */
+@keyframes of-bob {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+@keyframes of-idle {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+@keyframes of-pop {
+  from {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+@keyframes of-zone {
+  0%,
+  80% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.6;
+  }
+}
+@keyframes of-callout {
+  0% {
+    transform: scale(0.5);
+    opacity: 0;
+  }
+  25%,
+  70% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1) translateY(-4px);
+    opacity: 0;
+  }
+}
+@keyframes of-nudge {
+  0%,
+  100% {
+    transform: translateX(0);
+  }
+  50% {
+    transform: translateX(3px);
+  }
+}
+@keyframes of-steam {
+  0% {
+    opacity: 0.2;
+    transform: translateY(0);
+  }
+  50% {
+    opacity: 0.7;
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}
+@keyframes of-led {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.tiles :global(.of-steam) {
+  animation: of-steam 1.6s ease-out infinite;
+}
+.tiles :global(.of-led-red) {
+  animation: of-led 1.2s steps(2) infinite;
+}
+.tiles :global(.of-pages) {
+  animation: of-bob 1.2s ease-in-out infinite;
+}
+
+:global(.reduce-motion) .camera,
+:global(.reduce-motion) .token,
+:global(.reduce-motion) .pin {
+  transition: none;
+}
+:global(.reduce-motion) .zoneChip {
+  animation: none;
+  opacity: 0.85;
+}
+:global(.reduce-motion) .callout {
+  animation: of-callout 900ms steps(1) both;
+}
+:global(.reduce-motion) .pin,
+:global(.reduce-motion) .chevron,
+:global(.reduce-motion) .nearby,
+:global(.reduce-motion) .tokenPlayer .tokenBadge,
+:global(.reduce-motion) .tiles :global(.of-steam),
+:global(.reduce-motion) .tiles :global(.of-led-red),
+:global(.reduce-motion) .tiles :global(.of-pages) {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .camera,
+  .token,
+  .pin {
+    transition: none;
+  }
+  .zoneChip {
+    animation: none;
+    opacity: 0.85;
+  }
+  .callout {
+    animation: of-callout 900ms steps(1) both;
+  }
+  .pin,
+  .chevron,
+  .nearby,
+  .tokenPlayer .tokenBadge,
+  .tiles :global(.of-steam),
+  .tiles :global(.of-led-red),
+  .tiles :global(.of-pages) {
+    animation: none;
+  }
 }
