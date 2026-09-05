@@ -50,10 +50,11 @@ interface OfficeSave {
 }
 ```
 
-`dispatchOfficeAction(state, action, rng?)` is the single mutation entry. Every
-overworld change (including recruit and the Holloway perk-offer roll) writes
-`corporate-climb-office-save`. Classic `SAVE_KEY` is never read or written by
-this path.
+`dispatchOfficeAction(state, action, rng?)` is a **pure reducer**. It never
+reads or writes `localStorage`. Persistence lives at the UI boundary: after an
+overworld / promotion / vending change, `CorporateClimb` writes
+`corporate-climb-office-save` v1. Mid-battle states are not persisted. Classic
+`SAVE_KEY` (`corporate-climb-save`) is never read or written by this path.
 
 ## 3. Party
 

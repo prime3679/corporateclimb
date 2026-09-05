@@ -856,7 +856,10 @@ export default function CorporateClimb() {
         {screen === 'office' && office && (
           <OfficeScreen
             state={office}
-            onChange={setOffice}
+            onChange={(next) => {
+              setOffice(next)
+              if (next.screen !== 'battle') saveOffice(next)
+            }}
             onExit={() => {
               setScreen('title')
             }}

@@ -23,7 +23,6 @@ import {
 import { applyOfficeSwitch, applyOfficeTurn, shouldCoachSwitch, startEncounter } from './combat'
 import { interactTarget, sightlineNpc, tryStep } from './movement'
 import { recruitCoworker, restoreParty } from './party'
-import { saveOffice } from './save'
 import {
   closeOverlay,
   enqueueOverlays,
@@ -76,14 +75,13 @@ export interface OfficeDispatchResult {
 
 const rngDefault: Rng = () => Math.random()
 
+/** Pure reducer. Persistence is the UI's job (`saveOffice` after overworld dispatch). */
 export function dispatchOfficeAction(
   state: OfficeState,
   action: OfficeAction,
   rng: Rng = rngDefault,
 ): OfficeDispatchResult {
-  const result = apply(state, action, rng)
-  if (result.state.screen !== 'battle') saveOffice(result.state)
-  return result
+  return apply(state, action, rng)
 }
 
 function done(state: OfficeState, events: BattleEvent[] = []): OfficeDispatchResult {

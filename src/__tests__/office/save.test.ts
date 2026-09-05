@@ -60,11 +60,15 @@ describe('office save isolation', () => {
     expect(loaded?.screen).toBe('promotion')
   })
 
-  it('dispatching overworld actions does not write the Classic key', () => {
+  it('dispatchOfficeAction is a pure reducer and never writes either save key', () => {
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
+    expect(localStorage.getItem(OFFICE_SAVE_KEY)).toBeNull()
     let s = newOfficeCampaign(PM)
     s = dispatchOfficeAction(s, { type: 'ACK_RECEIPT' }).state
-    dispatchOfficeAction(s, { type: 'MOVE', dir: 'w' })
+    s = dispatchOfficeAction(s, { type: 'MOVE', dir: 'w' }).state
+    expect(localStorage.getItem(SAVE_KEY)).toBeNull()
+    expect(localStorage.getItem(OFFICE_SAVE_KEY)).toBeNull()
+    saveOffice(s)
     expect(localStorage.getItem(SAVE_KEY)).toBeNull()
     expect(localStorage.getItem(OFFICE_SAVE_KEY)).toBeTruthy()
   })
