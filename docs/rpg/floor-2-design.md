@@ -1,8 +1,8 @@
 # The Office — Floor 2: Operations (Design)
 
-_Status: design freeze for the second floor, revision 2 — rebased onto Astra's multi-floor loop
-([PR #71](https://github.com/prime3679/corporateclimb/pull/71)), whose Floor 2 stub (Callie, a
-blank map, a take-five) this branch replaces with the frozen map, cast and IDs below. Owner: Fable
+_Status: design freeze for the second floor, revision 2 — on top of Astra's multi-floor loop
+([PR #71](https://github.com/prime3679/corporateclimb/pull/71), now on `main`), whose Floor 2 stub
+(Callie, a blank map, a take-five) this branch replaces with the frozen map, cast and IDs below. Owner: Fable
 (experience, content, wording, pacing, art). Implementation: Astra
 (`docs/rpg/floor-2-engine-hooks.md`, which now opens with what is already wired on this branch).
 Everything marked **FROZEN** is an ID or value code will be written against; change it here first,

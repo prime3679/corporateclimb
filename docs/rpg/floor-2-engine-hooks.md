@@ -7,8 +7,8 @@ if a name here disagrees with those, those win._
 
 ## 0. Where this branch stands
 
-`feat/office-floor-2-design` is rebased on [PR #71](https://github.com/prime3679/corporateclimb/pull/71)
-(`cursor/office-multi-floor-849d`) and replaces its Floor 2 stub. Already wired, under the frozen
+`feat/office-floor-2-design` sits on `main` after [PR #71](https://github.com/prime3679/corporateclimb/pull/71)
+(the multi-floor loop) and replaces its Floor 2 stub. Already wired, under the frozen
 ids, with `floors.test.ts` tracing it:
 
 - **Content**: `FloorId`, all Floor 2 zones / NPCs / encounters / coworker / assignments / key
