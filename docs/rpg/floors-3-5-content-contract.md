@@ -4,6 +4,11 @@ Astra shipped walkable stub maps so the 5-floor elevator works. Fable replaces
 art, copy, NPCs and props **without changing engine keys**. Frozen Floor 1 / 2
 ids and maps stay put.
 
+**Status:** Floors 3–5 maps now live in `floor3.ts` / `floor4.ts` / `floor5.ts`
+and are keyed under `floor_0N` in `map.ts`. `floorStubs.ts` stays for
+`STUB_BOARDING`, `STUB_DIRECTORY_TEXT`, and engine tests. `isStubFloor` is still
+true for 03/04/05 (assignment reducers have not landed).
+
 ## File layout
 
 | What                         | Where                                                                      |
@@ -62,8 +67,9 @@ For each floor, replace the stub’s empty hall with:
 6. **Tileset cells** for new glyphs, registered in the atlas
 7. **Optional:** encounters, dialogue, assignments, rewards — tables only; Astra wires the reducer if a fight / recruit / key is required
 
-Until those land, stubs stay walkable, the elevator arrives, and the directory
-says the floor is unmapped.
+Those tables have landed. Stubs remain walkable as a fallback export; the
+elevator still arrives on the shared shaft, and each floor's directory copy
+replaces `STUB_DIRECTORY_TEXT` in the panel.
 
 ## Gates
 

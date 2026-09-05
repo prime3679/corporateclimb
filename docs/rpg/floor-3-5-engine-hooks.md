@@ -8,43 +8,52 @@ are in the design doc §8 and in `src/content/office/floor3.ts` /
 
 ## 0. Where this branch stands
 
-`cursor/office-floors-3-5-design-f696` sits on `feat/office-floor-2-design`
-(`#72`). Already wired, under the frozen ids:
+`cursor/office-floors-3-5-design-f696` sits on Astra's 5-floor spine
+(`cursor/office-five-floor-spine-d719`, `#73`), which itself sits on
+`feat/office-floor-2-design` (`#72`). Already wired, under the frozen ids:
 
 - **Content**: `FloorId` includes `floor_03` / `floor_04` / `floor_05`; zones,
   NPCs, encounters, assignments, key items, POIs, triggers, rewards, receipts,
   flags and dialogue ids in `ids.ts`; every node in `dialogue.ts`;
   `OFFICE_ENCOUNTERS` + `RECEIPTS` + `REWARD_*` rows (Caldwell's `phase2` is
-  present but inert until Floor 2 hooks §5 lands); `floor3.ts` / `floor4.ts` /
-  `floor5.ts` keyed under those ids in `map.ts`.
+  declared); `floor3.ts` / `floor4.ts` / `floor5.ts` keyed under those ids in
+  `map.ts`, replacing the walkable stubs. Shaft / arrival / boarding stay put.
+  `isStubFloor` remains true for 3–5 so first-step / Renata skip / "Look around"
+  stay until assignment reducers land. `poi_directory_sign_stub` is kept.
 - **Renderer**: `tiles.tsx` draws the three maps (floors, rugs, decor, the four
   new props, reused take-five / desks / meeting table). Actor sheets and
   `NPC_ACTOR` entries exist. Dialogue / party cards reuse house portraits via
   new `spriteId` keys.
-- **Reducer**: first-state talk lines resolve so a debug `floorId` can walk
-  and talk. Assignment state machines, sightline first-steps, badges, panel
-  rows and celebrations are **not** wired.
+- **Panel / save**: `#73` shipped `ELEVATOR_FLOORS` in `elevator.ts`,
+  `RIDE_ELEVATOR { to }` / `COMPLETE_ELEVATOR_RIDE`, and office save v2
+  (`hired`, `bench`, `stats.rides`). `elevatorDestination` is the deprecated
+  1⇄2 toggle — do not restore a 3→2 / 4→3 chain.
+- **Reducer**: first-state talk lines resolve so a ridden `floorId` can walk
+  and talk. Assignment state machines, sightline first-steps, badge grants on
+  receipts, and celebrations are **not** wired.
 
-`elevatorDestination` still toggles Floor 1 ↔ Floor 2. Do not change that
-toggle until the panel exists — Floor 1/2 tests depend on it.
-
-## 1. Elevator panel (completes Floor 2 hooks §2)
+## 1. Elevator panel (shipped on `#73`)
 
 ```
 ELEVATOR_FLOORS = [
-  { id: 'floor_05', number: 5, name: 'EXEC',       requires: 'key_client_badge' },
-  { id: 'floor_04', number: 4, name: 'SALES',      requires: 'key_product_badge' },
+  { id: 'floor_05', number: 5, name: 'EXEC',       requires: 'key_employee_badge' },
+  { id: 'floor_04', number: 4, name: 'SALES',      requires: 'key_employee_badge' },
   { id: 'floor_03', number: 3, name: 'PRODUCT',    requires: 'key_employee_badge' },
   { id: 'floor_02', number: 2, name: 'OPERATIONS', requires: 'key_access_badge' },
   { id: 'floor_01', number: 1, name: 'YOUR TEAM',  requires: null },
 ]
 ```
 
-`act_ride(to)` sets `floorId`, `player = elevatorArrivalForFloor(to)` (always
-`(3,2)` south), saves. Missing key keeps the panel open and beeps. After
-Caldwell, the Floor 5 row rides to `screen_floor5_complete`, not a sixth floor.
+Do not tighten Floors 3–5 `requires` to product / client badges yet —
+`canRideTo('floor_05', { key_employee_badge: 1 })` must stay true. When a later
+floor needs a new key, add `requires` on `ELEVATOR_FLOORS`. Do not invent a
+second elevator.
 
-Content already exports `ELEVATOR_PANEL` from `src/content/office/map.ts`.
+`RIDE_ELEVATOR { to }` → `COMPLETE_ELEVATOR_RIDE` sets `floorId`,
+`player = elevatorArrivalForFloor(to)` (always `(3,2)` south), increments
+`stats.rides`, saves. Missing key keeps the panel open and beeps. After
+Caldwell, the Floor 5 row should ride to `screen_floor5_complete`, not a sixth
+floor.
 
 ## 2. Assignment reducers
 
@@ -72,10 +81,10 @@ product; Floor 4: client; Floor 5: climb complete).
 
 ## 4. Save
 
-Add the three assignment keys, three encounter keys and six flags to the
-existing office save (v2 if Floor 2's migration has landed; otherwise default
-them in `fromOfficeSave` the way Floor 2 keys already default). Classic
-`corporate-climb-save` is never read or written.
+Office save is already v2 on `#73`. `FRESH_ASSIGNMENTS` / `FRESH_ENCOUNTERS`
+include the Floor 3–5 keys; default missing flags in `fromOfficeSave` the way
+Floor 2 keys already default. Classic `corporate-climb-save` is never read or
+written.
 
 `isKnownFloorId` already accepts 3–5. `loadOfficeSave` will resume a debug
 save parked on those floors.
