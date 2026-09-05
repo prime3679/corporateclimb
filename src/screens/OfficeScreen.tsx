@@ -537,7 +537,7 @@ function Overworld({
         <div className={styles.objective} aria-label="Objective">
           <div className={styles.objectiveHead}>
             <div className={styles.eyebrow}>
-              {state.floorId === 'floor_02' || state.flags.includes('flag_preview_complete')
+              {state.floorId !== 'floor_01' || state.flags.includes('flag_preview_complete')
                 ? floorLabel(state.floorId)
                 : 'Objective'}
             </div>

@@ -8,6 +8,14 @@ export type SpeakerId =
   | 'teddy'
   | 'whitlock'
   | 'kessler'
+  | 'sloane'
+  | 'nico'
+  | 'quincy'
+  | 'harper'
+  | 'reyes'
+  | 'ashford'
+  | 'marlowe'
+  | 'caldwell'
   | null
 
 export interface DialogueChoice {
@@ -766,12 +774,332 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Holloway',
     lines: ["Permanent. Congratulations. I'm still interim. Four years. It's a lifestyle."],
   },
+  // ── Floor 3 — Sloane ──
+  dlg_sloane_callout: {
+    id: 'dlg_sloane_callout',
+    speaker: null,
+    name: '',
+    lines: ['New badge. War room. The card is already late.'],
+  },
+  dlg_sloane_brief: {
+    id: 'dlg_sloane_brief',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: [
+      "Q4 is a card on that wall. Legal won't look at it until Research initials it.",
+      "Nico has been sitting on the findings since the last re-org. That's a compliment. Mostly.",
+      'Pull the card. Get the initials. Then Quincy will sequence you.',
+    ],
+  },
+  dlg_sloane_hint_card: {
+    id: 'dlg_sloane_hint_card',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: ['The wall. The yellow one. It says NOW in a font that is lying.'],
+  },
+  dlg_sloane_hint_nico: {
+    id: 'dlg_sloane_hint_nico',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: ["You're holding the quarter. Nico is through the glass. Right."],
+  },
+  dlg_sloane_filed: {
+    id: 'dlg_sloane_filed',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: [
+      'Initials. In pencil. Nico is consistent.',
+      "Quincy is downstairs. He doesn't ship. He sequences. Go be a column.",
+    ],
+  },
+  dlg_sloane_after: {
+    id: 'dlg_sloane_after',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: ['The card is in Now. It will be in Later by Friday. That is the job.'],
+  },
+  dlg_sloane_after_win: {
+    id: 'dlg_sloane_after_win',
+    speaker: 'sloane',
+    name: 'Sloane',
+    lines: ["He moved you to Now. Don't get comfortable. Now is a hallway."],
+  },
+  dlg_nico_hook: {
+    id: 'dlg_nico_hook',
+    speaker: 'nico',
+    name: 'Nico',
+    lines: ['If that is a card, it wants a sticky. If it is a feeling, it can wait.'],
+  },
+  dlg_nico_waiting: {
+    id: 'dlg_nico_waiting',
+    speaker: 'nico',
+    name: 'Nico',
+    lines: ['The board takes cards. I take findings. One of those is here.'],
+  },
+  dlg_nico_initialled: {
+    id: 'dlg_nico_initialled',
+    speaker: 'nico',
+    name: 'Nico',
+    lines: [
+      'Sample size: everyone who would talk to me. Confidence: a shrug.',
+      'Initialled. In pencil. Ink is a commitment.',
+    ],
+  },
+  dlg_nico_after: {
+    id: 'dlg_nico_after',
+    speaker: 'nico',
+    name: 'Nico',
+    lines: ['The findings have not changed. The column has. That is called alignment.'],
+  },
+  dlg_quincy_early: {
+    id: 'dlg_quincy_early',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: ['The card is not initialled. I do not review vapour. Sloane knows.'],
+  },
+  dlg_quincy_sloane_pending: {
+    id: 'dlg_quincy_sloane_pending',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: ['Sloane will tell me when Now is ready. Sloane has not told me.'],
+  },
+  dlg_quincy_review: {
+    id: 'dlg_quincy_review',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: [
+      'Prioritization. We will put you in a column.',
+      'There is no leaving the board. There is only Later.',
+    ],
+    choices: [{ id: 'begin', label: 'Begin review' }],
+  },
+  dlg_quincy_you_lost: {
+    id: 'dlg_quincy_you_lost',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: ['Icebox. Coffee is the good machine. Come back when you are a feature.'],
+  },
+  dlg_quincy_beaten: {
+    id: 'dlg_quincy_beaten',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: [
+      'Now. The column had been empty since April.',
+      'Sales is upstairs. They will say this quarter. They always say this quarter.',
+    ],
+  },
+  dlg_quincy_after: {
+    id: 'dlg_quincy_after',
+    speaker: 'quincy',
+    name: 'Quincy',
+    lines: ['You are sequenced. Try not to add scope on the way up.'],
+  },
+  // ── Floor 4 — Harper ──
+  dlg_harper_callout: {
+    id: 'dlg_harper_callout',
+    speaker: null,
+    name: '',
+    lines: ['Hey. If you can hear me you can close. Pipeline. Now.'],
+  },
+  dlg_harper_brief: {
+    id: 'dlg_harper_brief',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: [
+      'The leave-behind is theoretically on the board and actually in a stack Reyes was reprinting.',
+      'Pull it. Walk it over. Then Ashford does The Close. He does not lose. He reframes.',
+    ],
+  },
+  dlg_harper_hint_deck: {
+    id: 'dlg_harper_hint_deck',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: ['Board or stand. Same one-pager. The number at the bottom is optimistic.'],
+  },
+  dlg_harper_hint_reyes: {
+    id: 'dlg_harper_hint_reyes',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: ["You're holding the quarter. Reyes is through the glass. Don't make him chase you."],
+  },
+  dlg_harper_filed: {
+    id: 'dlg_harper_filed',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: ['Delivered. Ashford is downstairs. If you can hear the flute, you are late.'],
+  },
+  dlg_harper_after: {
+    id: 'dlg_harper_after',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: ['The number is the number until Friday. Then it is a different number.'],
+  },
+  dlg_harper_after_win: {
+    id: 'dlg_harper_after_win',
+    speaker: 'harper',
+    name: 'Harper',
+    lines: ['He put the flute down. It was empty the whole time. You knew. I knew. He knew.'],
+  },
+  dlg_reyes_hook: {
+    id: 'dlg_reyes_hook',
+    speaker: 'reyes',
+    name: 'Reyes',
+    lines: ['If that is the leave-behind, I already reprinted it. If it is not, it will be.'],
+  },
+  dlg_reyes_waiting: {
+    id: 'dlg_reyes_waiting',
+    speaker: 'reyes',
+    name: 'Reyes',
+    lines: ['The stand is for clients. You are holding one. The maths is not hard.'],
+  },
+  dlg_reyes_delivered: {
+    id: 'dlg_reyes_delivered',
+    speaker: 'reyes',
+    name: 'Reyes',
+    lines: [
+      'I will say we aligned. I will not say on what.',
+      'Ashford is the south floor. The Close is not a metaphor.',
+    ],
+  },
+  dlg_reyes_after: {
+    id: 'dlg_reyes_after',
+    speaker: 'reyes',
+    name: 'Reyes',
+    lines: ['The client has not seen it. That is why it still works.'],
+  },
+  dlg_ashford_early: {
+    id: 'dlg_ashford_early',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: ['No leave-behind, no Close. Harper knows. Harper always knows.'],
+  },
+  dlg_ashford_harper_pending: {
+    id: 'dlg_ashford_harper_pending',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: ['Harper will send you when the paper is real. The paper is not real.'],
+  },
+  dlg_ashford_close: {
+    id: 'dlg_ashford_close',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: [
+      'The Close. This quarter. There is no next quarter in this room.',
+      "You can reframe or you can lose. Those are the same sentence, later.",
+    ],
+    choices: [{ id: 'begin', label: 'Begin the close' }],
+  },
+  dlg_ashford_you_lost: {
+    id: 'dlg_ashford_you_lost',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: ['Verbal only. Coffee. Come back when you can discount yourself.'],
+  },
+  dlg_ashford_beaten: {
+    id: 'dlg_ashford_beaten',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: [
+      'Closed. The flute was empty the whole time.',
+      'Exec is upstairs. Marlowe has the calendar. Caldwell has the nod.',
+    ],
+  },
+  dlg_ashford_after: {
+    id: 'dlg_ashford_after',
+    speaker: 'ashford',
+    name: 'Ashford',
+    lines: ['The number landed. Do not ask which number. The Close does not do that.'],
+  },
+  // ── Floor 5 — Marlowe ──
+  dlg_marlowe_callout: {
+    id: 'dlg_marlowe_callout',
+    speaker: null,
+    name: '',
+    lines: ['You are not on the calendar. The packet is. Sideboard.'],
+  },
+  dlg_marlowe_brief: {
+    id: 'dlg_marlowe_brief',
+    speaker: 'marlowe',
+    name: 'Marlowe',
+    lines: [
+      "Caldwell reviews people who arrive with the packet. The packet lives on the sideboard.",
+      'That is where board packets live. I do not make the rules. I enforce the furniture.',
+      'Bring it here. Then the door downstairs means something.',
+    ],
+  },
+  dlg_marlowe_hint_packet: {
+    id: 'dlg_marlowe_hint_packet',
+    speaker: 'marlowe',
+    name: 'Marlowe',
+    lines: ['Sideboard. Leather. The one that looks expensive because it is.'],
+  },
+  dlg_marlowe_filed: {
+    id: 'dlg_marlowe_filed',
+    speaker: 'marlowe',
+    name: 'Marlowe',
+    lines: [
+      'Filed. You are on the calendar. The calendar is now.',
+      'Caldwell is downstairs. He will take it offline. That is the compliment.',
+    ],
+  },
+  dlg_marlowe_after: {
+    id: 'dlg_marlowe_after',
+    speaker: 'marlowe',
+    name: 'Marlowe',
+    lines: ['The packet is in the book. The book does not come back out.'],
+  },
+  dlg_marlowe_after_win: {
+    id: 'dlg_marlowe_after_win',
+    speaker: 'marlowe',
+    name: 'Marlowe',
+    lines: ['He nodded. There is no letter. There is no Floor 6. That was the offer.'],
+  },
+  dlg_caldwell_early: {
+    id: 'dlg_caldwell_early',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: ['Marlowe has the calendar. The calendar does not have you.'],
+  },
+  dlg_caldwell_packet_pending: {
+    id: 'dlg_caldwell_packet_pending',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: ['The packet is not in the book. I review the book.'],
+  },
+  dlg_caldwell_review: {
+    id: 'dlg_caldwell_review',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: [
+      'The review. Five floors. The printer, the packet, the card, the close.',
+      'There is no Floor 6. There is a nod. Begin.',
+    ],
+    choices: [{ id: 'begin', label: 'Begin the review' }],
+  },
+  dlg_caldwell_you_lost: {
+    id: 'dlg_caldwell_you_lost',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: ['Offline, for now. The machine downstairs. Come back when you can take a note.'],
+  },
+  dlg_caldwell_beaten: {
+    id: 'dlg_caldwell_beaten',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: [
+      'A nod. The nod is the offer. There is no letter. There is no Floor 6.',
+      'The elevator still goes down. That is the whole building.',
+    ],
+  },
+  dlg_caldwell_after: {
+    id: 'dlg_caldwell_after',
+    speaker: 'caldwell',
+    name: 'Caldwell',
+    lines: ['You have the nod. Try not to add a floor on the way out.'],
+  },
 }
 
-export const SPEAKER_SPRITE: Record<
-  Exclude<SpeakerId, null>,
-  'recruiter' | 'overachiever' | 'scrum' | 'manager' | 'intern' | 'boss' | 'vp'
-> = {
+export const SPEAKER_SPRITE: Record<Exclude<SpeakerId, null>, string> = {
   renata: 'recruiter',
   gavin: 'overachiever',
   priya: 'scrum',
@@ -779,4 +1107,13 @@ export const SPEAKER_SPRITE: Record<
   teddy: 'intern',
   whitlock: 'boss',
   kessler: 'vp',
+  // House portraits, new keys — stand-ins until a Floor 3–5 commission.
+  sloane: 'sloane',
+  nico: 'nico',
+  quincy: 'quincy',
+  harper: 'harper',
+  reyes: 'reyes',
+  ashford: 'ashford',
+  marlowe: 'marlowe',
+  caldwell: 'caldwell',
 }

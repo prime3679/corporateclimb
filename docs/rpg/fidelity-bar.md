@@ -124,6 +124,18 @@ vertical doorway, Operations signage and the help-desk / People Ops / Facilities
 director props. Three new walk sheets (`teddy`, `kessler`, `whitlock`) use the same rig and
 are registered in `ACTOR_IDS` and `NPC_ACTOR`.
 
+### Floors 3–5 art (`cursor/office-floors-3-5-design`)
+
+Same pipeline, same families. Floor 1 and Floor 2 atlas indices stay bit-identical;
+new cells append after `btable_f2_r` (`docs/rpg/floor-3-5-design.md` §7). The sheet
+grows to **272×1250** (195 cells): six department floors (war cork, intake lilac,
+product slate, pipeline terracotta, client sand, board plush), three 3-tile hall
+plaques, five room signs, three nameplates, three directories, and four props
+(roadmap wall, intake board, pipeline board, walnut sideboard). Take-five, desks,
+chairs, plants, elevator, reader, sofa, exec desk and the Floor 1 meeting table
+are reused. Eight walk sheets (`sloane`, `nico`, `quincy`, `harper`, `reyes`,
+`ashford`, `marlowe`, `caldwell`) use the Floor 1/2 rig.
+
 ## What stays frozen
 
 - Office reducer, party projection, `corporate-climb-office-save` v1

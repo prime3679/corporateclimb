@@ -1,6 +1,9 @@
 import type { MoveType } from '@/types'
 import {
   FLOOR_2_ZONE_ACCENT,
+  FLOOR_3_ZONE_ACCENT,
+  FLOOR_4_ZONE_ACCENT,
+  FLOOR_5_ZONE_ACCENT,
   OFFICE_ENCOUNTERS,
   SPEAKER_SPRITE,
   floorLabel,
@@ -84,6 +87,54 @@ export const NPC_CAST: Record<NpcId, CastEntry> = {
     spriteId: SPEAKER_SPRITE.kessler,
     types: OFFICE_ENCOUNTERS.enc_director_review.types,
   },
+  npc_staff_pm: {
+    name: 'Sloane',
+    role: 'Staff PM',
+    spriteId: SPEAKER_SPRITE.sloane,
+    types: ['strategy'],
+  },
+  npc_researcher: {
+    name: 'Nico',
+    role: 'Research',
+    spriteId: SPEAKER_SPRITE.nico,
+    types: ['analytics'],
+  },
+  npc_vp_product: {
+    name: 'Quincy',
+    role: 'VP of Product',
+    spriteId: SPEAKER_SPRITE.quincy,
+    types: OFFICE_ENCOUNTERS.enc_vp_product.types,
+  },
+  npc_account_exec: {
+    name: 'Harper',
+    role: 'Account Exec',
+    spriteId: SPEAKER_SPRITE.harper,
+    types: ['influence'],
+  },
+  npc_client_success: {
+    name: 'Reyes',
+    role: 'Client Success',
+    spriteId: SPEAKER_SPRITE.reyes,
+    types: ['influence'],
+  },
+  npc_vp_sales: {
+    name: 'Ashford',
+    role: 'VP of Sales',
+    spriteId: SPEAKER_SPRITE.ashford,
+    types: OFFICE_ENCOUNTERS.enc_vp_sales.types,
+  },
+  npc_exec_assistant: {
+    name: 'Marlowe',
+    role: 'EA',
+    spriteId: SPEAKER_SPRITE.marlowe,
+    types: ['normal'],
+  },
+  npc_ceo: {
+    name: 'Caldwell',
+    role: 'Chief Executive',
+    spriteId: SPEAKER_SPRITE.caldwell,
+    types: OFFICE_ENCOUNTERS.enc_ceo_review.types,
+  },
 }
 
 const SPEAKER_NPC: Record<Exclude<SpeakerId, null>, NpcId> = {
@@ -94,12 +145,23 @@ const SPEAKER_NPC: Record<Exclude<SpeakerId, null>, NpcId> = {
   teddy: 'npc_help_desk_intern',
   whitlock: 'npc_auditor',
   kessler: 'npc_director',
+  sloane: 'npc_staff_pm',
+  nico: 'npc_researcher',
+  quincy: 'npc_vp_product',
+  harper: 'npc_account_exec',
+  reyes: 'npc_client_success',
+  ashford: 'npc_vp_sales',
+  marlowe: 'npc_exec_assistant',
+  caldwell: 'npc_ceo',
 }
 
 /** Lines shouted across the room carry no headshot but still name the speaker. */
 const ACROSS_THE_ROOM: Partial<Record<DialogueId, SpeakerId>> = {
   dlg_renata_callout: 'renata',
   dlg_teddy_callout: 'teddy',
+  dlg_sloane_callout: 'sloane',
+  dlg_harper_callout: 'harper',
+  dlg_marlowe_callout: 'marlowe',
 }
 
 export function castForSpeaker(
@@ -213,6 +275,60 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
       return 'Inspect · Shredder'
     case 'poi_directory_sign_stub':
       return 'Read · Directory'
+    case 'poi_elevator_door_f3':
+    case 'poi_elevator_door_f4':
+    case 'poi_elevator_door_f5':
+      return 'Elevator'
+    case 'poi_directory_sign_f3':
+    case 'poi_directory_sign_f4':
+    case 'poi_directory_sign_f5':
+      return 'Read · Directory'
+    case 'poi_roadmap_wall':
+      return state.assignments.asg_roadmap === 'accepted' ? 'Pull · Q4 card' : 'Inspect · Roadmap'
+    case 'poi_intake_board':
+      return state.assignments.asg_roadmap === 'card_held' ? 'File · Intake' : 'Inspect · Intake'
+    case 'poi_war_desk':
+      return 'Inspect · War desk'
+    case 'poi_filing_f3':
+      return 'Inspect · Filing'
+    case 'poi_quincy_desk':
+      return 'Inspect · Desk'
+    case 'poi_pipeline_board':
+      return state.assignments.asg_leavebehind === 'accepted'
+        ? 'Pull · Leave-behind'
+        : 'Inspect · Pipeline'
+    case 'poi_leavebehind':
+      return state.assignments.asg_leavebehind === 'accepted'
+        ? 'Take · Leave-behind'
+        : 'Inspect · Leave-behind'
+    case 'poi_pipeline_desk':
+      return 'Inspect · Pipeline desk'
+    case 'poi_ashford_desk':
+      return 'Inspect · Desk'
+    case 'poi_sideboard':
+      return state.assignments.asg_board_packet === 'accepted'
+        ? 'Take · Board packet'
+        : 'Inspect · Sideboard'
+    case 'poi_board_table':
+      return 'Inspect · Board table'
+    case 'poi_caldwell_desk':
+      return 'Inspect · Desk'
+    case 'poi_water_cooler_f3':
+    case 'poi_water_cooler_f4':
+    case 'poi_water_cooler_f5':
+      return 'Inspect · Water cooler'
+    case 'poi_break_counter_f3':
+    case 'poi_break_counter_f4':
+    case 'poi_break_counter_f5':
+      return 'Take five · Coffee counter'
+    case 'poi_vending_machine_f3':
+    case 'poi_vending_machine_f4':
+    case 'poi_vending_machine_f5':
+      return 'Buy · Vending'
+    case 'poi_break_table_f3':
+    case 'poi_break_table_f4':
+    case 'poi_break_table_f5':
+      return 'Inspect · Break table'
   }
   return 'Inspect'
 }
@@ -230,6 +346,9 @@ export const ZONE_ACCENT: Record<ZoneId, string> = {
   zone_elevator: '#e0844d',
   zone_hall: '#8b98a8',
   ...FLOOR_2_ZONE_ACCENT,
+  ...FLOOR_3_ZONE_ACCENT,
+  ...FLOOR_4_ZONE_ACCENT,
+  ...FLOOR_5_ZONE_ACCENT,
 }
 
 export { ZONE_LABEL }

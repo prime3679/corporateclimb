@@ -48,23 +48,38 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
   const printer = state.assignments.asg_printer
   const zone = zoneAt(state.player.x, state.player.y, state.floorId)
   const ov = state.overlay
-  const onFloor2 = state.floorId === 'floor_02'
   const badge =
-    state.floorId === 'floor_01'
-      ? state.keyItems.key_access_badge
-      : state.keyItems.key_employee_badge
+    state.floorId === 'floor_05'
+      ? state.flags.includes('flag_floor5_complete')
+        ? 1
+        : 0
+      : state.floorId === 'floor_04'
+        ? state.keyItems.key_client_badge
+        : state.floorId === 'floor_03'
+          ? state.keyItems.key_product_badge
+          : state.floorId === 'floor_02'
+            ? state.keyItems.key_employee_badge
+            : state.keyItems.key_access_badge
   return {
     printer: printer === 'installed' ? 'printing' : printer === 'complete' ? 'working' : 'error',
-    cabinetOpen: onFloor2
-      ? state.firedTriggers.includes('poi_supply_cabinet_f2:opened')
-      : printer !== 'not_started' && printer !== 'accepted',
+    cabinetOpen:
+      state.floorId === 'floor_02'
+        ? state.firedTriggers.includes('poi_supply_cabinet_f2:opened')
+        : printer !== 'not_started' && printer !== 'accepted',
     counterSteaming:
       zone === 'zone_break' ||
       zone === 'zone_facilities' ||
+      zone === 'zone_product' ||
+      zone === 'zone_sales' ||
+      zone === 'zone_board' ||
       (ov?.kind === 'toast' && ov.text.startsWith('You take five')),
     vendingLit:
       nearby?.kind === 'poi' &&
-      (nearby.id === 'poi_vending_machine' || nearby.id === 'poi_vending_machine_f2'),
+      (nearby.id === 'poi_vending_machine' ||
+        nearby.id === 'poi_vending_machine_f2' ||
+        nearby.id === 'poi_vending_machine_f3' ||
+        nearby.id === 'poi_vending_machine_f4' ||
+        nearby.id === 'poi_vending_machine_f5'),
     readerGreen: (badge ?? 0) > 0,
     elevatorOpen:
       ov?.kind === 'elevator_panel' || (ov?.kind === 'confirm' && ov.prompt === 'elevator'),
@@ -96,9 +111,26 @@ const LIGHT_POOLS: Record<OfficeState['floorId'], { className: string; style: CS
     { className: styles.poolBreak, style: { left: 270, top: 330 } },
     { className: styles.poolBreak, style: { left: 520, top: 330, width: 220 } },
   ],
-  floor_03: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
-  floor_04: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
-  floor_05: [{ className: styles.poolElevator, style: { left: 20, top: 40, width: 220 } }],
+  floor_03: [
+    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
+    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
+    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
+    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
+    { className: styles.poolReception, style: { left: 480, top: 330, width: 240, height: 170 } },
+  ],
+  floor_04: [
+    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
+    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
+    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
+    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
+    { className: styles.poolReception, style: { left: 480, top: 330, width: 240, height: 170 } },
+  ],
+  floor_05: [
+    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
+    { className: styles.poolMeeting, style: { left: 230, top: 30, width: 420 } },
+    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
+    { className: styles.poolReception, style: { left: 350, top: 330, width: 320, height: 180 } },
+  ],
 }
 
 /* ── sprite-sheet layers ────────────────────────────────────
