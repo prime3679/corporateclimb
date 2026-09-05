@@ -79,6 +79,9 @@ export default function OverworldActor({
         {
           left: x * TILE_SIZE,
           top: y * TILE_SIZE - (40 - TILE_SIZE),
+          // Shares the props' z range (tiles.rowZ) so tall furniture on the
+          // row below draws over the body and furniture above sits behind it.
+          zIndex: 10 + y * 2 + 1,
           '--walk-ms': `${MOVE_MS}ms`,
           '--actor-ring': ring,
         } as CSSProperties

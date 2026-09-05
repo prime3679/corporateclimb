@@ -16,7 +16,8 @@ import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/en
 import { ringColorFor } from './ringColor'
 import OverworldActor, { NPC_ACTOR, leadActorId } from './OverworldActor'
 import { NPC_CAST, ZONE_ACCENT, castForSpeaker, promptText } from './cast'
-import { TileDefs, renderForegroundTile, renderTile, type TileStates } from './tiles'
+import { atlasOffset, floorCells, propCells, rowZ, type Sprite, type TileStates } from './tiles'
+import { TILE_SHEET_H, TILE_SHEET_URL, TILE_SHEET_W } from './tileAtlas'
 import styles from './WorldMap.module.css'
 
 const T = TILE_SIZE
@@ -55,44 +56,51 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
   }
 }
 
-/** Static tile pass. */
-const TileLayer = memo(function TileLayer(states: TileStates) {
-  const tiles = []
-  for (let y = 0; y < MAP_HEIGHT; y++) {
-    for (let x = 0; x < MAP_WIDTH; x++) tiles.push(renderTile(x, y, states))
-  }
+/** Inline vars for one sprite-sheet cell; `.cell` in the CSS module reads them. */
+function cellStyle(sprite: Sprite, extra?: CSSProperties): CSSProperties {
+  const { bx, by } = atlasOffset(sprite.name)
+  return {
+    '--bx': `${bx}px`,
+    '--by': `${by}px`,
+    '--period': `${sprite.periodMs ?? 0}ms`,
+    ...extra,
+  } as CSSProperties
+}
+
+function frameClass(sprite: Sprite): string {
+  return sprite.frames && sprite.frames > 1 ? styles.frames2 : ''
+}
+
+/** Static floor pass: floors, rugs, wall autotiles, wall shadows, doorways, decor. */
+const FloorLayer = memo(function FloorLayer() {
   return (
-    <svg
-      className={styles.tiles}
-      width={MAP_W}
-      height={MAP_H}
-      viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-      shapeRendering="crispEdges"
-      aria-hidden
-    >
-      <TileDefs />
-      {tiles}
-    </svg>
+    <div className={styles.floor} style={{ width: MAP_W, height: MAP_H }} aria-hidden>
+      {floorCells().map((cell) =>
+        cell.layers.map((sprite, i) => (
+          <span
+            key={`${cell.x},${cell.y},${i}`}
+            className={styles.cell}
+            style={cellStyle(sprite, { left: cell.x * T, top: cell.y * T - (48 - T) })}
+          />
+        )),
+      )}
+    </div>
   )
 })
 
-/** Foreground trim pass for desk/counter depth and emissive accents. */
-const ForegroundLayer = memo(function ForegroundLayer(states: TileStates) {
-  const tiles = []
-  for (let y = 0; y < MAP_HEIGHT; y++) {
-    for (let x = 0; x < MAP_WIDTH; x++) tiles.push(renderForegroundTile(x, y, states))
-  }
+/** Props with a footprint. Row-sorted with the actors so tall furniture occludes. */
+const PropLayer = memo(function PropLayer(states: TileStates) {
   return (
-    <svg
-      className={styles.foreground}
-      width={MAP_W}
-      height={MAP_H}
-      viewBox={`0 0 ${MAP_W} ${MAP_H}`}
-      shapeRendering="crispEdges"
-      aria-hidden
-    >
-      {tiles}
-    </svg>
+    <>
+      {propCells(states).map(({ x, y, sprite }) => (
+        <span
+          key={`${x},${y}`}
+          className={`${styles.cell} ${styles.prop} ${frameClass(sprite)}`}
+          style={cellStyle(sprite, { left: x * T, top: y * T - (48 - T), zIndex: rowZ(y) })}
+          aria-hidden
+        />
+      ))}
+    </>
   )
 })
 
@@ -175,18 +183,27 @@ export default function WorldMap({ state }: { state: OfficeState }) {
       ref={mapRef}
       className={styles.map}
       aria-label="Floor 1 office map"
-      style={{ '--zone-accent': ZONE_ACCENT[zone] } as CSSProperties}
+      style={
+        {
+          '--zone-accent': ZONE_ACCENT[zone],
+          '--tile-sheet': `url(${TILE_SHEET_URL})`,
+          '--sheet-w': `${TILE_SHEET_W}px`,
+          '--sheet-h': `${TILE_SHEET_H}px`,
+        } as CSSProperties
+      }
     >
       <div
         className={styles.camera}
         style={{ transform: `translate(${-camX * T}px, ${-camY * T}px)` }}
       >
-        <TileLayer {...states} />
+        <FloorLayer />
+        <PropLayer {...states} />
         <div className={styles.lightPools} aria-hidden>
           <span className={`${styles.pool} ${styles.poolElevator}`} />
           <span className={`${styles.pool} ${styles.poolDesks}`} />
           <span className={`${styles.pool} ${styles.poolBreak}`} />
           <span className={`${styles.pool} ${styles.poolMeeting}`} />
+          <span className={`${styles.pool} ${styles.poolReception}`} />
         </div>
 
         {outlineTile && (
@@ -252,8 +269,6 @@ export default function WorldMap({ state }: { state: OfficeState }) {
             <span className={styles.pinBeam} />?
           </span>
         )}
-
-        <ForegroundLayer {...states} />
       </div>
 
       <div
