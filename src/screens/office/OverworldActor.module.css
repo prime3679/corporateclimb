@@ -34,6 +34,10 @@
   image-rendering: pixelated;
   image-rendering: crisp-edges;
   background-position-x: 0;
+  /* Own compositor layer: rasterised at device scale with nearest sampling.
+     Left inside the camera layer, the Stage's fractional scale bilinear-
+     filters the 1px art into mush. */
+  will-change: transform;
 }
 
 .face_s .sheet {
