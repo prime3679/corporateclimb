@@ -9,6 +9,7 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:smoke": "playwright test",
+    "demo:office": "node scripts/record-office-demo.mjs",
     "lint": "eslint src",
     "format": "prettier --write .",
     "format:check": "prettier --check ."
