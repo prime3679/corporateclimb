@@ -10,7 +10,12 @@
 
 export type ClassicTrack = 'title' | 'battle' | 'boss' | 'event'
 export type OfficeTrack =
-  'officeTitle' | 'officeFloor1' | 'officeFloor2' | 'officeFloor3' | 'officeFloor4' | 'officeExec'
+  | 'officeTitle'
+  | 'officeFloor1'
+  | 'officeFloor2'
+  | 'officeFloor3'
+  | 'officeFloor4'
+  | 'officeExec'
 export type TrackName = ClassicTrack | OfficeTrack
 
 /** Classic tower beds. Filenames are a contract — do not retarget these keys. */

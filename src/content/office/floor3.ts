@@ -142,7 +142,8 @@ export type Floor3PoiId = Extract<
 >
 
 export type Floor3InteractTarget =
-  { kind: 'npc'; id: Floor3NpcId; label: string } | { kind: 'poi'; id: Floor3PoiId; label: string }
+  | { kind: 'npc'; id: Floor3NpcId; label: string }
+  | { kind: 'poi'; id: Floor3PoiId; label: string }
 
 export interface Floor3InteractSpot {
   x: number

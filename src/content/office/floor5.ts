@@ -123,7 +123,8 @@ export type Floor5PoiId = Extract<
 >
 
 export type Floor5InteractTarget =
-  { kind: 'npc'; id: Floor5NpcId; label: string } | { kind: 'poi'; id: Floor5PoiId; label: string }
+  | { kind: 'npc'; id: Floor5NpcId; label: string }
+  | { kind: 'poi'; id: Floor5PoiId; label: string }
 
 export interface Floor5InteractSpot {
   x: number
