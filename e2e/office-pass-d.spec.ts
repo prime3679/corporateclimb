@@ -136,6 +136,114 @@ test('Floor 1 and Product machines keep distinct SKUs and titles', async ({ page
   await expect(page.getByText('Side Hustle')).toHaveCount(0)
 })
 
+test('Sales and Exec machines keep distinct SKUs and titles', async ({ page }) => {
+  test.setTimeout(45_000)
+  const f4 = baseSave()
+  f4.floorId = 'floor_04'
+  f4.player = { x: 21, y: 16, facing: 'e' }
+  f4.flags.push(
+    'flag_preview_complete',
+    'flag_visited_f2',
+    'flag_floor2_complete',
+    'flag_visited_f4',
+  )
+  await continueOffice(page, f4)
+  await expect(page.getByText('Floor 4 · of 5')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.press('e')
+  await expect(page.getByText('VENDING · SALES')).toBeVisible({ timeout: 8_000 })
+  await expect(page.getByText('Reply-All Grenade')).toBeVisible()
+  await expect(page.getByText('Noise-Cancelling')).toHaveCount(0)
+  await expect(page.getByText('Side Hustle')).toHaveCount(0)
+  await page.getByRole('button', { name: /BACK TO WORK/ }).click()
+
+  const f5 = baseSave()
+  f5.floorId = 'floor_05'
+  f5.player = { x: 21, y: 16, facing: 'e' }
+  f5.flags.push(
+    'flag_preview_complete',
+    'flag_visited_f2',
+    'flag_floor2_complete',
+    'flag_visited_f5',
+  )
+  await continueOffice(page, f5)
+  await expect(page.getByText('Floor 5 · of 5')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.press('e')
+  await expect(page.getByText('VENDING · EXEC')).toBeVisible({ timeout: 8_000 })
+  await expect(page.getByText('Forward to Legal')).toBeVisible()
+  await expect(page.getByText('Reply-All Grenade')).toHaveCount(0)
+  await expect(page.getByText('THE COMPANY STORE')).toHaveCount(0)
+})
+
+test('Floor 2 lockers stay locked until the safe combo, then empty on purpose', async ({
+  page,
+}) => {
+  test.setTimeout(45_000)
+  const f2 = baseSave()
+  f2.floorId = 'floor_02'
+  f2.player = { x: 9, y: 12, facing: 'w' }
+  f2.flags.push('flag_preview_complete', 'flag_visited_f2')
+  await continueOffice(page, f2)
+  await expect(page.getByText('Floor 2 · of 5')).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('Try combo · Lockers', { exact: true })).toHaveCount(0)
+  await page.keyboard.press('e')
+  await expect(page.getByText(/combination is on a sticky note on the safe/i)).toBeVisible({
+    timeout: 8_000,
+  })
+  await page.keyboard.press('e')
+
+  const atSafe = structuredClone(f2)
+  atSafe.player = { x: 21, y: 10, facing: 'e' }
+  await continueOffice(page, atSafe)
+  await expect(page.getByText('Floor 2 · of 5')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.press('e')
+  await expect(page.getByText(/combination is on a sticky note\. On the safe/i)).toBeVisible({
+    timeout: 8_000,
+  })
+  await page.keyboard.press('e')
+
+  const atLockers = structuredClone(atSafe)
+  atLockers.player = { x: 9, y: 12, facing: 'w' }
+  atLockers.firedTriggers = ['side:safe_read']
+  await continueOffice(page, atLockers)
+  await expect(page.getByText('Try combo · Lockers', { exact: true })).toBeVisible({
+    timeout: 8_000,
+  })
+  await page.keyboard.press('e')
+  await expect(page.getByText(/SEE SAFE/)).toBeVisible({ timeout: 8_000 })
+  await page.keyboard.press('e')
+  await expect(
+    page.getByRole('status').filter({ hasText: 'Got: Nothing. On purpose.' }),
+  ).toBeVisible({ timeout: 8_000 })
+  await page.keyboard.press('e')
+  await expect(page.getByText('Floor 2 · of 5')).toBeVisible({ timeout: 8_000 })
+  await expect(page.getByText('Work ticket')).toBeVisible()
+})
+
+test('Floor 5 elevator lists 1–5 and has no Floor 6', async ({ page }) => {
+  test.setTimeout(45_000)
+  const f5 = baseSave()
+  f5.floorId = 'floor_05'
+  f5.player = { x: 3, y: 2, facing: 'n' }
+  f5.flags.push(
+    'flag_preview_complete',
+    'flag_visited_f2',
+    'flag_floor2_complete',
+    'flag_visited_f5',
+    'flag_floor5_complete',
+  )
+  f5.encounters.enc_ceo_review = 'won'
+  await continueOffice(page, f5)
+  await expect(page.getByText('Floor 5 · of 5')).toBeVisible({ timeout: 10_000 })
+  await page.keyboard.press('e')
+  await expect(page.getByRole('option', { name: '5 EXEC The climb' })).toBeVisible({
+    timeout: 8_000,
+  })
+  await expect(page.getByRole('option', { name: /1 YOUR TEAM/ })).toBeVisible()
+  await expect(page.getByRole('option', { name: /4 SALES/ })).toBeVisible()
+  await expect(page.getByText(/Floor 6|FLOOR 6|\b6\b.*EXEC/i)).toHaveCount(0)
+  await expect(page.getByRole('option', { name: /6 / })).toHaveCount(0)
+})
+
 test('Floor 5 Exec row after the nod opens THE CLIMB ledger at 78 / 78', async ({ page }) => {
   test.setTimeout(45_000)
   const f5 = baseSave()
@@ -160,10 +268,13 @@ test('Floor 5 Exec row after the nod opens THE CLIMB ledger at 78 / 78', async (
   await page.keyboard.press('5')
   await expect(page.getByRole('dialog', { name: 'THE CLIMB' })).toBeVisible({ timeout: 8_000 })
   await expect(page.getByText('Work ticket')).toBeHidden()
+  await expect(page.getByRole('group', { name: 'Move' })).toBeHidden()
+  await expect(page.getByRole('button', { name: 'Team' })).toBeHidden()
   await expect(page.getByText('THE NOD', { exact: true })).toBeVisible()
   await expect(page.getByText('THE CLIMB', { exact: true })).toBeVisible()
   await expect(page.getByText('78 / 78')).toBeVisible({ timeout: 3_000 })
   await expect(page.getByText('Full ledger')).toBeVisible()
   await expect(page.getByText('BOARD PACKET — FILED')).toBeVisible()
   await expect(page.getByText('THE REVIEW — NODDED')).toBeVisible()
+  await page.screenshot({ path: 'test-results/pass-d-the-nod.png', fullPage: true })
 })
