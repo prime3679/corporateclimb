@@ -229,11 +229,35 @@ async function openTitle(page) {
   await sleep(400)
 }
 
-async function continueOffice(page) {
+async function continueOffice(page, { linger = 700 } = {}) {
   await page.locator('button', { hasText: 'THE OFFICE' }).click()
   await page.locator('button', { hasText: 'CONTINUE' }).waitFor({ timeout: 10_000 })
-  await sleep(700)
+  await sleep(linger)
   await page.locator('button', { hasText: 'CONTINUE' }).click()
+}
+
+/** Hide the title/continue hop so injected-save clips fade in on the floor. */
+async function veilUntil(page, ready) {
+  await page.addInitScript(() => {
+    const apply = () => {
+      if (window.__demoUnveil || document.getElementById('demo-veil')) return
+      const s = document.createElement('style')
+      s.id = 'demo-veil'
+      s.textContent = 'html{background:#0b0d14!important}#root{opacity:0!important}'
+      document.documentElement.appendChild(s)
+    }
+    apply()
+    document.addEventListener('DOMContentLoaded', apply)
+  })
+  await ready()
+  await page.evaluate(() => {
+    window.__demoUnveil = true
+    document.querySelectorAll('#demo-veil').forEach((el) => el.remove())
+    const s = document.createElement('style')
+    s.textContent = '#root{transition:opacity 480ms ease}'
+    document.head.appendChild(s)
+  })
+  await sleep(520)
 }
 
 async function recordClip(browser, name, play) {
@@ -316,13 +340,14 @@ async function clipShaft(page) {
       ],
     }),
   })
-  await openTitle(page)
-  await sleep(400)
-  await continueOffice(page)
-  await page
-    .getByText('Floor 1 · of 5')
-    .or(page.getByText('YOUR TEAM'))
-    .waitFor({ timeout: 12_000 })
+  await veilUntil(page, async () => {
+    await openTitle(page)
+    await continueOffice(page, { linger: 200 })
+    await page
+      .getByText('Floor 1 · of 5')
+      .or(page.getByText('YOUR TEAM'))
+      .waitFor({ timeout: 12_000 })
+  })
   await sleep(900)
   await page.keyboard.press('e')
   await page.getByRole('listbox', { name: 'Elevator floors' }).waitFor({ timeout: 8_000 })
@@ -370,18 +395,24 @@ async function clipCombat(page) {
       stats: { battlesWon: 3, losses: 0, switches: 1, msOnFloor: 90000, rides: 1 },
     }),
   })
-  await openTitle(page)
-  await continueOffice(page)
-  await page.getByText('Talk · Teddy').first().waitFor({ timeout: 12_000 })
+  await veilUntil(page, async () => {
+    await openTitle(page)
+    await continueOffice(page, { linger: 200 })
+    await page.getByText('Talk · Teddy').first().waitFor({ timeout: 12_000 })
+  })
   await sleep(700)
   await page.keyboard.press('e')
   await page.getByText('Filed. That makes you a transfer').waitFor({ timeout: 10_000 })
   await beatLine(page, { typeMs: 600, hold: 1200, advance: true })
-  await beatLine(page, { typeMs: 600, hold: 1300, advance: true })
-  await page.getByText('Begin training').waitFor({ timeout: 8_000 })
-  await sleep(1100)
-  await page.locator('button', { hasText: 'Begin training' }).click()
-  await page.locator('[data-testid="move-button"]').first().waitFor({ timeout: 12_000 })
+  await beatLine(page, { typeMs: 700, hold: 1400, advance: true })
+  const stakes = page.locator('button', { hasText: 'Begin training' })
+  const moveBtn = page.locator('[data-testid="move-button"]').first()
+  await Promise.race([stakes.waitFor({ timeout: 8_000 }), moveBtn.waitFor({ timeout: 8_000 })])
+  if (await stakes.isVisible().catch(() => false)) {
+    await sleep(1200)
+    await stakes.click()
+  }
+  await moveBtn.waitFor({ timeout: 12_000 })
   await page.getByText('FLOOR').waitFor()
   await sleep(2000)
   const move = page.locator('[data-testid="move-button"]').first()
@@ -417,8 +448,11 @@ async function clipExec(page) {
       stats: { battlesWon: 7, losses: 1, switches: 2, msOnFloor: 40000, rides: 4 },
     }),
   })
-  await openTitle(page)
-  await continueOffice(page)
+  await veilUntil(page, async () => {
+    await openTitle(page)
+    await continueOffice(page, { linger: 200 })
+    await page.getByText('Floor 5').waitFor({ timeout: 12_000 })
+  })
   await sleep(1000)
   await page.keyboard.press('ArrowDown')
   await page.getByText('You are not on the calendar.').waitFor({ timeout: 10_000 })
@@ -443,14 +477,15 @@ async function clipExec(page) {
   await sleep(1600)
 }
 
-async function toMp4(webm, mp4) {
-  await sh('ffmpeg', [
-    '-y',
+async function toMp4(webm, mp4, startSec = 0) {
+  const args = ['-y']
+  if (startSec > 0) args.push('-ss', startSec.toFixed(2))
+  args.push(
     '-i',
     webm,
     '-an',
     '-vf',
-    `scale=${OUT.width}:${OUT.height}:force_original_aspect_ratio=decrease,pad=${OUT.width}:${OUT.height}:(ow-iw)/2:(oh-ih)/2:color=0x0b0d14,fps=30`,
+    `scale=${OUT.width}:${OUT.height}:force_original_aspect_ratio=decrease,pad=${OUT.width}:${OUT.height}:(ow-iw)/2:(oh-ih)/2:color=0x0b0d14,fps=30,fade=t=in:st=0:d=0.35`,
     '-c:v',
     'libx264',
     '-pix_fmt',
@@ -460,13 +495,14 @@ async function toMp4(webm, mp4) {
     '-preset',
     'medium',
     mp4,
-  ])
+  )
+  await sh('ffmpeg', args)
 }
 
 async function titleCard(file, lines, seconds) {
   const [eyebrow, title, sub] = lines
   const draw = [
-    `drawtext=fontfile=${FONT_BODY}:text='${eyebrow}':fontcolor=0xefc14a:fontsize=22:letter_spacing=8:x=(w-text_w)/2:y=h/2-92`,
+    `drawtext=fontfile=${FONT_BODY}:text='${eyebrow}':fontcolor=0xefc14a:fontsize=22:x=(w-text_w)/2:y=h/2-92`,
     `drawtext=fontfile=${FONT_DISPLAY}:text='${title}':fontcolor=0xf4efe4:fontsize=72:x=(w-text_w)/2:y=h/2-48`,
     `drawtext=fontfile=${FONT_BODY}:text='${sub}':fontcolor=0xb8c0ce:fontsize=26:x=(w-text_w)/2:y=h/2+48`,
   ].join(',')
@@ -598,25 +634,33 @@ async function ensureServer() {
 }
 
 async function main() {
-  await rm(WORK, { recursive: true, force: true })
+  const stitchOnly = process.argv.includes('--stitch-only')
+  if (!stitchOnly) await rm(WORK, { recursive: true, force: true })
   await mkdir(CLIPS, { recursive: true })
   await mkdir('/opt/cursor/artifacts', { recursive: true })
-  const server = await ensureServer()
+  const server = stitchOnly ? null : await ensureServer()
 
-  const browser = await chromium.launch({
-    headless: true,
-    args: ['--disable-dev-shm-usage', '--autoplay-policy=no-user-gesture-required'],
-  })
+  let w1 = path.join(WORK, '01-arrival.webm')
+  let w2 = path.join(WORK, '02-shaft.webm')
+  let w3 = path.join(WORK, '03-combat.webm')
+  let w4 = path.join(WORK, '04-exec.webm')
 
-  console.log('clip 1 · arrival')
-  const w1 = await recordClip(browser, '01-arrival', clipArrival)
-  console.log('clip 2 · shaft')
-  const w2 = await recordClip(browser, '02-shaft', clipShaft)
-  console.log('clip 3 · combat')
-  const w3 = await recordClip(browser, '03-combat', clipCombat)
-  console.log('clip 4 · exec')
-  const w4 = await recordClip(browser, '04-exec', clipExec)
-  await browser.close()
+  if (!stitchOnly) {
+    const browser = await chromium.launch({
+      headless: true,
+      args: ['--disable-dev-shm-usage', '--autoplay-policy=no-user-gesture-required'],
+    })
+
+    console.log('clip 1 · arrival')
+    w1 = await recordClip(browser, '01-arrival', clipArrival)
+    console.log('clip 2 · shaft')
+    w2 = await recordClip(browser, '02-shaft', clipShaft)
+    console.log('clip 3 · combat')
+    w3 = await recordClip(browser, '03-combat', clipCombat)
+    console.log('clip 4 · exec')
+    w4 = await recordClip(browser, '04-exec', clipExec)
+    await browser.close()
+  }
 
   const p0 = path.join(WORK, '00-title.mp4')
   const p5 = path.join(WORK, '05-end.mp4')
@@ -627,10 +671,15 @@ async function main() {
 
   await titleCard(
     p0,
-    ['CORPORATE CLIMB', 'THE OFFICE', 'Floors 1–5  ·  Reception to the board'],
+    ['CORPORATE CLIMB', 'THE OFFICE', 'Floors 1-5  ·  Reception to the board'],
     3.2,
   )
-  await Promise.all([toMp4(w1, m1), toMp4(w2, m2), toMp4(w3, m3), toMp4(w4, m4)])
+  await Promise.all([
+    toMp4(w1, m1, 0.15),
+    toMp4(w2, m2, 1.55),
+    toMp4(w3, m3, 1.55),
+    toMp4(w4, m4, 1.45),
+  ])
   await titleCard(
     p5,
     ['THE OFFICE', 'There is no Floor 6.', 'Five floors. One badge at a time.'],
