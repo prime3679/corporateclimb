@@ -33,6 +33,10 @@ enters THE OFFICE.
 Office battles keep the floor bed. Sequencer hooks are unchanged; the
 campaign flag remaps hit/win onto the Office samples.
 
+`e2e/office-audio.spec.ts` pins the live facade: shared title stays
+`title`, THE OFFICE plays `officeTitle`, Floor 1 / 2 / 5 pick their own
+beds, Classic battle stays `battle`.
+
 ## Classic — unbroken
 
 `CLASSIC_TRACKS` still points at:
