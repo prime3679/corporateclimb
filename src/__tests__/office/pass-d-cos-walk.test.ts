@@ -101,8 +101,9 @@ function openVending(
 describe('CoS cold playtest — fresh save 1→5', () => {
   it('clears the required route to THE NOD with no Floor 6, distinct machines, and the F2 locker beat', () => {
     expect(OFFICE_FLOOR_COUNT).toBe(5)
-    expect(ELEVATOR_FLOORS.map((r) => r.number)).toEqual([5, 4, 3, 2, 1])
-    expect(ELEVATOR_FLOORS.some((r) => r.number === 6)).toBe(false)
+    const cabNumbers: number[] = ELEVATOR_FLOORS.map((r) => r.number)
+    expect(cabNumbers).toEqual([5, 4, 3, 2, 1])
+    expect(cabNumbers).not.toContain(6)
     expect(isKnownFloorId('floor_06' as never)).toBe(false)
 
     let s = start()
