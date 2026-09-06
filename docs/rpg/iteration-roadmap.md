@@ -39,9 +39,10 @@ skip A to chase D.
 
 ## Current stack (as of 2026-09-06)
 
-Tip `main` includes Pass D `#91` and demo `#90` (`9d352b6`). Pass E stacks
-on that tip: dedicated F3/F4 beds, combat duck, hall contrast. Do not remount
-the closed `#72`–`#78` stack. Do not add a Floor 6.
+Tip `main` includes Pass D `#91` and demo `#90` (`9d352b6`). Pass E (Astra)
+stacks on that tip: dedicated F3/F4 beds and combat duck. Visual Should-fix
+(glass / hall contrast) is a separate Fable lane. Do not remount the closed
+`#72`–`#78` stack. Do not add a Floor 6.
 
 ## Immediate next (after tip playtest)
 

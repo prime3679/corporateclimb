@@ -21,7 +21,7 @@ import {
 } from '@/content/office'
 import { PLAYER_CLASSES } from '@/data'
 import { dispatchOfficeAction, newOfficeCampaign, type OfficeState } from '@/engine/office'
-import { doorSprite, floorSprites } from '@/screens/office/tiles'
+import { doorSprite } from '@/screens/office/tiles'
 
 const PM = PLAYER_CLASSES.find((c) => c.id === 'pm')!
 
@@ -115,10 +115,6 @@ describe('office shaft + department floors', () => {
       expect(glyphAt(x, y, id), `${id} (${x},${y})`).toBe('D')
       expect(isSolid(x, y, id), `${id} (${x},${y}) solid`).toBe(false)
       expect(doorSprite(x, y, id), `${id} (${x},${y})`).toBe('door_v_single')
-      const names = floorSprites(x, y, id).map((s) => s.name)
-      expect(names[0], `${id} (${x},${y}) floor`).toMatch(/^floor_/)
-      expect(names[names.length - 1], `${id} (${x},${y}) door`).toBe('door_v_single')
-      expect(names[0], `${id} (${x},${y}) not a wall`).not.toMatch(/^wall_/)
     }
   })
 

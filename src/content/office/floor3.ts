@@ -69,7 +69,7 @@ export const FLOOR_3_ZONE_ACCENT: Record<Floor3ZoneId, string> = {
   zone_war: '#c47a3a',
   zone_intake: '#8a6bb8',
   zone_product: '#5a6a9a',
-  zone_hall_f3: '#6a7aaa',
+  zone_hall_f3: '#8b98a8',
 }
 
 export const FLOOR_3_ZONE_FLOOR: Record<Floor3ZoneId, string> = {

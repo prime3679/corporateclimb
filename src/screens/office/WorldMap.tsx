@@ -169,29 +169,18 @@ function frameClass(sprite: Sprite): string {
   return sprite.frames && sprite.frames > 1 ? styles.frames2 : ''
 }
 
-/** Static floor pass: floors, rugs, wall autotiles, wall shadows, doorways, decor.
- *  Door sprites paint last so a one-tile glass opening is not covered by the
- *  south wall's 16px upward overflow (that was reading as a solid wall). */
+/** Static floor pass: floors, rugs, wall autotiles, wall shadows, doorways, decor. */
 const FloorLayer = memo(function FloorLayer({ floorId }: { floorId: OfficeState['floorId'] }) {
-  const cells = floorCells(floorId)
-  const paint = (cell: (typeof cells)[number], sprite: Sprite, i: number) => (
-    <span
-      key={`${cell.x},${cell.y},${i}`}
-      className={`${styles.cell} ${styles.full}`}
-      style={cellStyle(sprite, 0, { left: cell.x * T, top: cell.y * T - OVERFLOW })}
-    />
-  )
   return (
     <div className={styles.floor} style={{ width: MAP_W, height: MAP_H }} aria-hidden>
-      {cells.map((cell) =>
-        cell.layers.map((sprite, i) =>
-          sprite.name.startsWith('door_') ? null : paint(cell, sprite, i),
-        ),
-      )}
-      {cells.map((cell) =>
-        cell.layers.map((sprite, i) =>
-          sprite.name.startsWith('door_') ? paint(cell, sprite, i) : null,
-        ),
+      {floorCells(floorId).map((cell) =>
+        cell.layers.map((sprite, i) => (
+          <span
+            key={`${cell.x},${cell.y},${i}`}
+            className={`${styles.cell} ${styles.full}`}
+            style={cellStyle(sprite, 0, { left: cell.x * T, top: cell.y * T - OVERFLOW })}
+          />
+        )),
       )}
     </div>
   )

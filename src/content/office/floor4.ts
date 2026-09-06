@@ -64,7 +64,7 @@ export const FLOOR_4_ZONE_ACCENT: Record<Floor4ZoneId, string> = {
   zone_pipeline: '#d45a3a',
   zone_client: '#c4a05a',
   zone_sales: '#8a3a4a',
-  zone_hall_f4: '#c45a3a',
+  zone_hall_f4: '#8b98a8',
 }
 
 export const FLOOR_4_ZONE_FLOOR: Record<Floor4ZoneId, string> = {

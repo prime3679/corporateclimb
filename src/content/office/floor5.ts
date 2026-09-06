@@ -62,7 +62,7 @@ export const FLOOR_5_ZONE_ACCENT: Record<Floor5ZoneId, string> = {
   zone_landing: '#e0844d',
   zone_ante: '#6a5a48',
   zone_board: '#2a2438',
-  zone_hall_f5: '#6a5a48',
+  zone_hall_f5: '#8b98a8',
 }
 
 export const FLOOR_5_ZONE_FLOOR: Record<Floor5ZoneId, string> = {
