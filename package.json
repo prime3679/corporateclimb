@@ -11,7 +11,8 @@
     "test:smoke": "playwright test",
     "lint": "eslint src",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "demo:office": "node scripts/office-demo.mjs"
   },
   "dependencies": {
     "@fontsource/anton": "^5.2.7",
