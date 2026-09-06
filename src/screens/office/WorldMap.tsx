@@ -120,23 +120,23 @@ const LIGHT_POOLS: Record<OfficeState['floorId'], { className: string; style: CS
   ],
   floor_03: [
     { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
-    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
+    { className: styles.poolWar, style: { left: 230, top: 30, width: 220 } },
+    { className: styles.poolIntake, style: { left: 500, top: 40, width: 240 } },
     { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolReception, style: { left: 480, top: 330, width: 240, height: 170 } },
+    { className: styles.poolProduct, style: { left: 480, top: 330, width: 240, height: 170 } },
   ],
   floor_04: [
     { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
-    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
+    { className: styles.poolPipeline, style: { left: 230, top: 30, width: 220 } },
+    { className: styles.poolClient, style: { left: 500, top: 40, width: 240 } },
     { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolReception, style: { left: 480, top: 330, width: 240, height: 170 } },
+    { className: styles.poolSales, style: { left: 480, top: 330, width: 240, height: 170 } },
   ],
   floor_05: [
     { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolMeeting, style: { left: 230, top: 30, width: 420 } },
+    { className: styles.poolAnte, style: { left: 230, top: 30, width: 420 } },
     { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolReception, style: { left: 350, top: 330, width: 320, height: 180 } },
+    { className: styles.poolExec, style: { left: 350, top: 330, width: 320, height: 180 } },
   ],
 }
 

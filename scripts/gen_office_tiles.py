@@ -2070,26 +2070,36 @@ def floor_finance() -> Cell:
 
 
 def door_v_single() -> Cell:
-    """A one-tile opening in a vertical wall: both jamb posts, leaves folded."""
+    """A one-tile opening in a vertical wall: both jamb posts, leaves folded.
+
+    The middle stays mostly empty so the floor under a `D` reads as walkable.
+    A full-height steel track here looks like a wall — keep only a dashed
+    guide and a south threshold plate.
+    """
     c = Cell()
-    c.vline(14, 0, 32, TRACK_DARK)
-    c.rect(15, 0, 3, 32, TRACK)
-    c.vline(15, 0, 32, STEEL_LIT)
-    c.vline(18, 0, 32, TRACK_DARK)
-    for y in range(2, 32, 6):
-        c.put(16, y, TRACK_DARK)
-    for y0 in (0, 24):
-        c.rect(13, y0, 7, 8, STEEL_DARK)
-        c.rect(14, y0, 5, 8, STEEL)
-        c.vline(14, y0, 8, STEEL_LIT)
-        c.frame(12, y0 - 1, 9, 10, INK)
-        c.blend_rect(20, y0 + 1, 7, 6, GLASS)
-        c.hline(20, y0 + 1, 7, GLASS_EDGE)
-        c.hline(20, y0 + 6, 7, GLASS_EDGE)
-        c.vline(26, y0 + 1, 6, GLASS_EDGE)
-        c.frame(20, y0, 8, 8, INK)
-        c.put(21, y0 + 2, GLASS_LIT)
-        c.put(22, y0 + 2, GLASS_LIT)
+    # dashed floor-track ghost (not a wall): every third pixel, low alpha
+    for y in range(6, 27):
+        if y % 3 == 0:
+            c.put(15, y, hexc('#b9c3cf', 80))
+            c.put(16, y, hexc('#c2cbd6', 64))
+    # threshold plate — you walk across this
+    c.hline(5, 29, 22, STEEL_LIT)
+    c.hline(5, 30, 22, TRACK)
+    c.hline(5, 31, 22, TRACK_DARK)
+    # thin jamb posts north and south (4px, not 8)
+    for y0 in (0, 28):
+        c.rect(13, y0, 6, 4, STEEL_DARK)
+        c.rect(14, y0, 4, 4, STEEL)
+        c.vline(14, y0, 4, STEEL_LIT)
+        c.frame(12, y0 - 1, 8, 6, INK)
+        # glass leaf folded east, transparent enough to read as open
+        c.blend_rect(19, y0, 8, 5, hexc('#a8d8ff', 48))
+        c.hline(19, y0, 8, hexc('#8fc6f0', 150))
+        c.hline(19, y0 + 4, 8, hexc('#8fc6f0', 150))
+        c.vline(26, y0, 5, hexc('#8fc6f0', 170))
+        c.put(20, y0 + 1, GLASS_LIT)
+        c.put(21, y0 + 1, GLASS_LIT)
+        c.vline(24, y0 + 1, 2, STEEL_DARK)
     return c
 
 
@@ -2901,12 +2911,19 @@ def build_floor2() -> None:
 # ===========================================================================
 
 FLOORS_F35 = {
-    'war': (hexc('#6a4a32'), hexc('#7d5a3e'), hexc('#563a28')),
-    'intake': (hexc('#5a4a6e'), hexc('#6a5a80'), hexc('#4a3c5c')),
-    'product': (hexc('#3a4a68'), hexc('#46587a'), hexc('#2e3c56')),
-    'pipeline': (hexc('#6a3a32'), hexc('#7d4a3e'), hexc('#562e28')),
-    'client': (hexc('#6a5a3a'), hexc('#7d6c48'), hexc('#56482e')),
-    'board': (hexc('#2a2438'), hexc('#3a3450'), hexc('#1c1828')),
+    # Punched so Product / Sales / Exec read instantly vs each other and vs
+    # the shared navy `floor_hall` (docs/rpg/iteration-roadmap.md Pass B).
+    'war': (hexc('#7a5230'), hexc('#916240'), hexc('#5e3e24')),
+    'intake': (hexc('#6a4a82'), hexc('#7e5a98'), hexc('#54386a')),
+    'product': (hexc('#2a3e6e'), hexc('#3a5290'), hexc('#1e2e56')),
+    'pipeline': (hexc('#8a3a28'), hexc('#a44a34'), hexc('#6a2a1e')),
+    'client': (hexc('#8a6a38'), hexc('#a48448'), hexc('#6a5228')),
+    'board': (hexc('#1a1428'), hexc('#2e2448'), hexc('#100e1c')),
+    'sales': (hexc('#6a2438'), hexc('#8a3048'), hexc('#4e1828')),
+    'ante': (hexc('#4a3a2c'), hexc('#5c4a38'), hexc('#382c20')),
+    'hall_f3': (hexc('#3a4a62'), hexc('#465872'), hexc('#2e3c50')),
+    'hall_f4': (hexc('#5a4248'), hexc('#6a5058'), hexc('#483438')),
+    'hall_f5': (hexc('#2a2838'), hexc('#3a3648'), hexc('#1c1a26')),
 }
 
 CORK_F3 = hexc('#c4a06a')
@@ -2956,7 +2973,7 @@ def floor_intake() -> Cell:
 
 
 def floor_product() -> Cell:
-    """Slate-blue carpet tiles, 8px, alternating pile."""
+    """Indigo carpet tiles, 8px, alternating pile — Product south floor."""
     base, lit, dark = FLOORS_F35['product']
     c = Cell()
     floor_base(c, base)
@@ -3007,7 +3024,7 @@ def floor_client() -> Cell:
 
 
 def floor_board() -> Cell:
-    """Near-black plush with a gold fleck — the boardroom."""
+    """Near-black plum plush with a gold fleck — the boardroom."""
     base, lit, dark = FLOORS_F35['board']
     c = Cell()
     floor_base(c, base)
@@ -3018,6 +3035,55 @@ def floor_board() -> Cell:
             elif (x * 3 + y * 5) % 23 == 0:
                 c.put(x, y, GOLD_DARK)
             elif (x + y) % 7 == 3 and x % 2 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_sales() -> Cell:
+    """Wine diamond carpet — Sales south floor. Not Product slate."""
+    base, lit, dark = FLOORS_F35['sales']
+    c = Cell()
+    floor_base(c, base)
+    for qy in range(2):
+        for qx in range(2):
+            ox, oy = qx * 16, qy * 16
+            for i in range(16):
+                for j in range(16):
+                    d = abs(i - 7) + abs(j - 7)
+                    if d == 6:
+                        c.put(ox + i, oy + j, lit)
+                    elif d == 3:
+                        c.put(ox + i, oy + j, dark)
+            c.hline(ox, oy, 16, dark)
+            c.vline(ox, oy, 16, dark)
+    return c
+
+
+def floor_ante() -> Cell:
+    """Walnut herringbone — Floor 5 antechamber, not the F2 director plush."""
+    base, lit, dark = FLOORS_F35['ante']
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            band = (x + y * 2) % 8
+            if band == 0:
+                c.put(x, y, lit)
+            elif band == 4 and y % 2 == 0:
+                c.put(x, y, dark)
+    return c
+
+
+def floor_hall_dept(kind: str) -> Cell:
+    """Same fleck weave as `floor_hall`, tinted per department floor."""
+    base, lit, dark = FLOORS_F35[kind]
+    c = Cell()
+    floor_base(c, base)
+    for y in range(32):
+        for x in range(32):
+            if (x + y * 2) % 8 == 0:
+                c.put(x, y, lit)
+            elif (x + y * 2 + 4) % 8 == 0 and y % 2 == 1:
                 c.put(x, y, dark)
     return c
 
@@ -3187,6 +3253,16 @@ def build_floor35() -> None:
     register('intake_board', intake_board())
     register('pipeline_board', pipeline_board())
     register('sideboard', sideboard())
+    # Append-only Pass E cells — existing F3–5 indices stay put.
+    register('floor_sales', floor_sales())
+    register('floor_ante', floor_ante())
+    register('floor_hall_f3', floor_hall_dept('hall_f3'))
+    register('floor_hall_f4', floor_hall_dept('hall_f4'))
+    register('floor_hall_f5', floor_hall_dept('hall_f5'))
+    # One-row runners for F4 red / F5 gold (F2 only shipped navy `tb*`).
+    for part in ('tbl', 'tb', 'tbr'):
+        register(f'rug_red_{part}', rug_patch(RUG_RED, part))
+        register(f'rug_gold_{part}', rug_patch(RUG_GOLD, part))
 
 
 # ---------------------------------------------------------------------------

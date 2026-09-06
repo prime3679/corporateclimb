@@ -99,6 +99,14 @@ export type SpriteId =
   | 'boss'
   | 'eng'
   | 'design'
+  | 'sloane'
+  | 'nico'
+  | 'quincy'
+  | 'harper'
+  | 'reyes'
+  | 'ashford'
+  | 'marlowe'
+  | 'caldwell'
 
 export interface EnemyMove {
   name: string

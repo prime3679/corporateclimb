@@ -198,3 +198,48 @@ describe('prop pass', () => {
     expect(new Set(cells.map((c) => `${c.x},${c.y}`)).size).toBe(cells.length)
   })
 })
+
+describe('Pass E contrast + glass openings', () => {
+  it('paints F2–5 (6,3) glass as floor plus door_v_single, never a wall', () => {
+    for (const id of ['floor_02', 'floor_03', 'floor_04', 'floor_05'] as const) {
+      if (id === 'floor_05') {
+        const names = floorSprites(6, 3, id).map((s) => s.name)
+        expect(names[0]).toMatch(/^floor_/)
+        expect(names).toContain('door_v_single')
+        expect(names[0]).not.toMatch(/^wall_/)
+        continue
+      }
+      for (const x of [6, 14]) {
+        const names = floorSprites(x, 3, id).map((s) => s.name)
+        expect(names[0], `${id} (${x},3)`).toMatch(/^floor_/)
+        expect(names, `${id} (${x},3)`).toContain('door_v_single')
+        expect(names[0], `${id} (${x},3)`).not.toMatch(/^wall_/)
+      }
+    }
+  })
+
+  it('registers distinct Product / Sales / Exec / hall cells', () => {
+    for (const name of [
+      'floor_product',
+      'floor_sales',
+      'floor_board',
+      'floor_ante',
+      'floor_hall_f3',
+      'floor_hall_f4',
+      'floor_hall_f5',
+      'floor_hall',
+    ] as const) {
+      expect(TILE_ATLAS[name], name).toBeDefined()
+    }
+    const keys = [
+      TILE_ATLAS.floor_product,
+      TILE_ATLAS.floor_sales,
+      TILE_ATLAS.floor_board,
+      TILE_ATLAS.floor_hall,
+      TILE_ATLAS.floor_hall_f3,
+      TILE_ATLAS.floor_hall_f4,
+      TILE_ATLAS.floor_hall_f5,
+    ].map(([c, r]) => `${c},${r}`)
+    expect(new Set(keys).size).toBe(keys.length)
+  })
+})

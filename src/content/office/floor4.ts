@@ -71,8 +71,8 @@ export const FLOOR_4_ZONE_FLOOR: Record<Floor4ZoneId, string> = {
   zone_landing: 'floor_elevator',
   zone_pipeline: 'floor_pipeline',
   zone_client: 'floor_client',
-  zone_sales: 'floor_product',
-  zone_hall_f4: 'floor_hall',
+  zone_sales: 'floor_sales',
+  zone_hall_f4: 'floor_hall_f4',
 }
 
 export function floor4ZoneAt(x: number, y: number): Floor4ZoneId {
@@ -255,7 +255,7 @@ export const FLOOR_4_RUGS: {
   kind: 'red' | 'gold' | 'navy'
 }[] = [
   { x0: 2, y0: 2, x1: 4, y1: 3, kind: 'red' },
-  { x0: 1, y0: 8, x1: 21, y1: 8, kind: 'navy' },
+  { x0: 1, y0: 8, x1: 21, y1: 8, kind: 'red' },
   { x0: 16, y0: 11, x1: 20, y1: 13, kind: 'gold' },
 ]
 

@@ -156,6 +156,64 @@
   background: radial-gradient(circle, rgba(255, 224, 170, 0.9), transparent 70%);
 }
 
+/* Floors 3–5 department pools — hue is the floor identity, not a second tileset. */
+.poolWar {
+  left: 230px;
+  top: 30px;
+  background: radial-gradient(circle, rgba(255, 186, 120, 0.88), transparent 70%);
+}
+
+.poolIntake {
+  left: 500px;
+  top: 40px;
+  width: 220px;
+  background: radial-gradient(circle, rgba(210, 176, 255, 0.88), transparent 68%);
+}
+
+.poolProduct {
+  left: 480px;
+  top: 330px;
+  width: 240px;
+  height: 170px;
+  background: radial-gradient(circle, rgba(120, 168, 255, 0.9), transparent 70%);
+}
+
+.poolPipeline {
+  left: 230px;
+  top: 30px;
+  background: radial-gradient(circle, rgba(255, 140, 96, 0.88), transparent 70%);
+}
+
+.poolClient {
+  left: 500px;
+  top: 40px;
+  width: 220px;
+  background: radial-gradient(circle, rgba(255, 214, 130, 0.86), transparent 68%);
+}
+
+.poolSales {
+  left: 480px;
+  top: 330px;
+  width: 240px;
+  height: 170px;
+  background: radial-gradient(circle, rgba(255, 96, 128, 0.88), transparent 70%);
+}
+
+.poolAnte {
+  left: 230px;
+  top: 30px;
+  width: 420px;
+  background: radial-gradient(circle, rgba(210, 176, 130, 0.78), transparent 68%);
+}
+
+.poolExec {
+  left: 350px;
+  top: 330px;
+  width: 320px;
+  height: 180px;
+  background: radial-gradient(circle, rgba(232, 206, 120, 0.72), transparent 70%);
+}
+
 .target {
   position: absolute;
   width: 32px;

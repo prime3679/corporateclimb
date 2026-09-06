@@ -1107,7 +1107,7 @@ export const SPEAKER_SPRITE: Record<Exclude<SpeakerId, null>, string> = {
   teddy: 'intern',
   whitlock: 'boss',
   kessler: 'vp',
-  // House portraits, new keys — stand-ins until a Floor 3–5 commission.
+  // Unique 512px portraits (same Headshot crop as Floors 1–2).
   sloane: 'sloane',
   nico: 'nico',
   quincy: 'quincy',

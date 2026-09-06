@@ -77,7 +77,7 @@ export const FLOOR_3_ZONE_FLOOR: Record<Floor3ZoneId, string> = {
   zone_war: 'floor_war',
   zone_intake: 'floor_intake',
   zone_product: 'floor_product',
-  zone_hall_f3: 'floor_hall',
+  zone_hall_f3: 'floor_hall_f3',
 }
 
 export function floor3ZoneAt(x: number, y: number): Floor3ZoneId {

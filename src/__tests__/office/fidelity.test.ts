@@ -1,12 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
   DIALOGUE,
+  OFFICE_ENCOUNTERS,
   OFFICE_FLOOR_COUNT,
   POI_INSPECT,
   hudFloorEyebrow,
   officeBattleChrome,
 } from '@/content/office'
-import { headshotFocal } from '@/sprites'
+import { buildSpriteUrls, headshotFocal } from '@/sprites'
 import { PLAYER_CLASSES } from '@/data'
 import {
   OFFICE_VENDING_STOCK_UPPER,
@@ -197,16 +198,48 @@ describe('Office should-fix fidelity', () => {
     expect(destChip(s).label).toBe('▲ → FLOOR 5')
   })
 
-  it('crops intern / vp / boss and Floor 3–5 stand-ins to a real headshot focal', () => {
+  it('crops intern / vp / boss and Floor 3–5 portraits to a real headshot focal', () => {
     const missing = headshotFocal('no-such-sprite')
     expect(headshotFocal('intern')).not.toEqual(missing)
     expect(headshotFocal('vp')).not.toEqual(missing)
     expect(headshotFocal('boss')).not.toEqual(missing)
-    expect(headshotFocal('reyes')).toEqual(headshotFocal('intern'))
-    expect(headshotFocal('quincy')).toEqual(headshotFocal('vp'))
-    expect(headshotFocal('caldwell')).toEqual(headshotFocal('boss'))
-    expect(headshotFocal('sloane')).toEqual(headshotFocal('product_manager'))
-    expect(headshotFocal('harper')).toEqual(headshotFocal('recruiter'))
+    for (const id of [
+      'sloane',
+      'nico',
+      'quincy',
+      'harper',
+      'reyes',
+      'ashford',
+      'marlowe',
+      'caldwell',
+    ] as const) {
+      expect(headshotFocal(id), id).not.toEqual(missing)
+    }
+    // Unique faces — no more house-portrait aliases.
+    expect(headshotFocal('reyes')).not.toEqual(headshotFocal('intern'))
+    expect(headshotFocal('quincy')).not.toEqual(headshotFocal('vp'))
+    expect(headshotFocal('caldwell')).not.toEqual(headshotFocal('boss'))
+    expect(headshotFocal('sloane')).not.toEqual(headshotFocal('product_manager'))
+    expect(headshotFocal('harper')).not.toEqual(headshotFocal('recruiter'))
+    const urls = buildSpriteUrls()
+    for (const id of [
+      'sloane',
+      'nico',
+      'quincy',
+      'harper',
+      'reyes',
+      'ashford',
+      'marlowe',
+      'caldwell',
+    ] as const) {
+      expect(urls[id], id).toBeTruthy()
+      expect(urls[id], id).not.toEqual(urls.product_manager)
+      expect(urls[id], id).not.toEqual(urls.vp)
+      expect(urls[id], id).not.toEqual(urls.boss)
+    }
+    expect(OFFICE_ENCOUNTERS.enc_vp_product.spriteId).toBe('quincy')
+    expect(OFFICE_ENCOUNTERS.enc_vp_sales.spriteId).toBe('ashford')
+    expect(OFFICE_ENCOUNTERS.enc_ceo_review.spriteId).toBe('caldwell')
   })
 
   it('shows Office combat chrome as FLOOR n/5, never Classic rank / 30', () => {

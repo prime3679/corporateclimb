@@ -111,5 +111,5 @@ pins sit on the current floor's elevator doors, same as Floor 2.
 
 - Rename or move any Floor 1 / Floor 2 frozen id.
 - Add a sixth floor, a fourth party seat, or a new combat resolver.
-- Treat the house-portrait stand-ins as final Headshot art (Fable's next
-  portrait pass).
+- Treat the F3–5 Headshot portraits as a second portrait system. They use the
+  same `sprites.ts` / `Headshot` crop as Floors 1–2.
