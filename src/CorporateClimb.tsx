@@ -267,21 +267,26 @@ export default function CorporateClimb() {
   // title / floor loops — never the Classic lobby wallpaper.
   const floor = run?.floor ?? 0
   const officeFloorId = office?.floorId
+  const officeScene = office?.screen
   useEffect(() => {
     const officeScreens =
       screen === 'officeStart' || screen === 'officeClassSelect' || screen === 'office'
     SFX.setCampaign(officeScreens ? 'office' : 'classic')
 
     if (screen === 'officeStart' || screen === 'officeClassSelect') {
+      Music.unduckCombat()
       Music.playOfficeTitle()
       return
     }
     if (screen === 'office') {
+      if (officeScene === 'battle') Music.duckCombat()
+      else Music.unduckCombat()
       if (officeFloorId) Music.playOfficeFloor(officeFloorId)
       else Music.playOfficeTitle()
       return
     }
 
+    Music.unduckCombat()
     switch (screen) {
       case 'title':
       case 'classSelect':
@@ -304,7 +309,7 @@ export default function CorporateClimb() {
         Music.stop()
         break
     }
-  }, [screen, floor, officeFloorId])
+  }, [screen, floor, officeFloorId, officeScene])
 
   // ─── Battle outcome flows ──────────────────────────────────
   const handleWin = useCallback(

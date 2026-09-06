@@ -69,7 +69,7 @@ export const FLOOR_3_ZONE_ACCENT: Record<Floor3ZoneId, string> = {
   zone_war: '#c47a3a',
   zone_intake: '#8a6bb8',
   zone_product: '#5a6a9a',
-  zone_hall_f3: '#8b98a8',
+  zone_hall_f3: '#6a7aaa',
 }
 
 export const FLOOR_3_ZONE_FLOOR: Record<Floor3ZoneId, string> = {
@@ -142,8 +142,7 @@ export type Floor3PoiId = Extract<
 >
 
 export type Floor3InteractTarget =
-  | { kind: 'npc'; id: Floor3NpcId; label: string }
-  | { kind: 'poi'; id: Floor3PoiId; label: string }
+  { kind: 'npc'; id: Floor3NpcId; label: string } | { kind: 'poi'; id: Floor3PoiId; label: string }
 
 export interface Floor3InteractSpot {
   x: number

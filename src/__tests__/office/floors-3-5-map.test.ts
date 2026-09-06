@@ -14,6 +14,7 @@ import {
   FLOOR_3_RUGS,
   FLOOR_3_SOLID_GLYPHS,
   FLOOR_3_WALL_DECOR,
+  FLOOR_3_ZONE_ACCENT,
   FLOOR_3_ZONE_FLOOR,
   FLOOR_3_ZONE_LABEL,
   floor3GlyphAt,
@@ -34,6 +35,7 @@ import {
   FLOOR_4_RUGS,
   FLOOR_4_SOLID_GLYPHS,
   FLOOR_4_WALL_DECOR,
+  FLOOR_4_ZONE_ACCENT,
   FLOOR_4_ZONE_FLOOR,
   FLOOR_4_ZONE_LABEL,
   floor4GlyphAt,
@@ -54,6 +56,7 @@ import {
   FLOOR_5_RUGS,
   FLOOR_5_SOLID_GLYPHS,
   FLOOR_5_WALL_DECOR,
+  FLOOR_5_ZONE_ACCENT,
   FLOOR_5_ZONE_FLOOR,
   FLOOR_5_ZONE_LABEL,
   floor5GlyphAt,
@@ -345,6 +348,24 @@ describe('Floors 3–5 — shared plate', () => {
     expect(floor3ZoneAt(3, 2)).toBe('zone_landing')
     expect(floor4ZoneAt(3, 2)).toBe('zone_landing')
     expect(floor5ZoneAt(3, 2)).toBe('zone_landing')
+  })
+
+  it('paints Product / Sales / Exec halls from distinct department floors', () => {
+    expect(FLOOR_3_ZONE_FLOOR.zone_hall_f3).toBe('floor_product')
+    expect(FLOOR_4_ZONE_FLOOR.zone_hall_f4).toBe('floor_pipeline')
+    expect(FLOOR_5_ZONE_FLOOR.zone_hall_f5).toBe('floor_director')
+    expect(
+      new Set([
+        FLOOR_3_ZONE_FLOOR.zone_hall_f3,
+        FLOOR_4_ZONE_FLOOR.zone_hall_f4,
+        FLOOR_5_ZONE_FLOOR.zone_hall_f5,
+      ]).size,
+    ).toBe(3)
+    expect(FLOOR_3_ZONE_ACCENT.zone_hall_f3).not.toBe(FLOOR_4_ZONE_ACCENT.zone_hall_f4)
+    expect(FLOOR_4_ZONE_ACCENT.zone_hall_f4).not.toBe(FLOOR_5_ZONE_ACCENT.zone_hall_f5)
+    expect(FLOOR_3_ZONE_ACCENT.zone_hall_f3).not.toBe('#8b98a8')
+    expect(FLOOR_4_ZONE_ACCENT.zone_hall_f4).not.toBe('#8b98a8')
+    expect(FLOOR_5_ZONE_ACCENT.zone_hall_f5).not.toBe('#8b98a8')
   })
 })
 
