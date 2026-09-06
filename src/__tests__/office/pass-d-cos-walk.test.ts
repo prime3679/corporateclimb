@@ -4,10 +4,10 @@ import {
   ELEVATOR_FLOORS,
   OFFICE_FLOOR_COUNT,
   OFFICE_VENDING_STOCK_BY_FLOOR,
+  POI_INSPECT,
   SIDE_LOCKERS_OPEN,
   SIDE_SAFE_READ,
   canRideTo,
-  isKnownFloorId,
   vendingFlavor,
 } from '@/content/office'
 import {
@@ -101,10 +101,16 @@ function openVending(
 describe('CoS cold playtest — fresh save 1→5', () => {
   it('clears the required route to THE NOD with no Floor 6, distinct machines, and the F2 locker beat', () => {
     expect(OFFICE_FLOOR_COUNT).toBe(5)
-    const cabNumbers: number[] = ELEVATOR_FLOORS.map((r) => r.number)
-    expect(cabNumbers).toEqual([5, 4, 3, 2, 1])
-    expect(cabNumbers).not.toContain(6)
-    expect(isKnownFloorId('floor_06' as never)).toBe(false)
+    expect(ELEVATOR_FLOORS).toHaveLength(OFFICE_FLOOR_COUNT)
+    expect(ELEVATOR_FLOORS.map((r) => r.id)).toEqual([
+      'floor_05',
+      'floor_04',
+      'floor_03',
+      'floor_02',
+      'floor_01',
+    ])
+    expect(ELEVATOR_FLOORS.map((r) => r.number)).toEqual([5, 4, 3, 2, 1])
+    expect(POI_INSPECT.poi_elevator_door_f5).toContain('There is no 6.')
 
     let s = start()
     expect(s.floorId).toBe('floor_01')
