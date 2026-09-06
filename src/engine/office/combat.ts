@@ -197,6 +197,31 @@ function finishWipe(state: OfficeState): OfficeState {
   }
 }
 
+/** Presentation hold: win/wipe stay on the battle screen until the sequencer finishes. */
+export function officeBattleOutcome(
+  prev: OfficeState,
+  next: OfficeState,
+): 'win' | 'wipe' | 'ongoing' {
+  if (prev.screen !== 'battle') return 'ongoing'
+  if (next.stats.battlesWon > prev.stats.battlesWon) return 'win'
+  if (next.overlay?.kind === 'interstitial') return 'wipe'
+  return 'ongoing'
+}
+
+/** Full-frame sting after the faint beat. Classic never sees this. */
+export function officeVictoryStinger(encounterId: EncounterId): {
+  kicker: string
+  name: string
+  card: string
+} {
+  const enc = OFFICE_ENCOUNTERS[encounterId]
+  return {
+    kicker: enc.boss ? 'REVIEW CLOSED' : 'CLEARED',
+    name: enc.name,
+    card: enc.titleCard,
+  }
+}
+
 export function shouldCoachSwitch(state: OfficeState): boolean {
   if (state.flags.includes('flag_switch_coached')) return false
   if (!state.encounter || !state.battle || state.battle.phase !== 'player') return false

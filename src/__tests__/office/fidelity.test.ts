@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { DIALOGUE, OFFICE_FLOOR_COUNT, POI_INSPECT, officeBattleChrome } from '@/content/office'
+import {
+  DIALOGUE,
+  OFFICE_FLOOR_COUNT,
+  POI_INSPECT,
+  hudFloorEyebrow,
+  officeBattleChrome,
+} from '@/content/office'
 import { headshotFocal } from '@/sprites'
 import { PLAYER_CLASSES } from '@/data'
 import {
@@ -208,6 +214,7 @@ describe('Office should-fix fidelity', () => {
     expect(officeBattleChrome('floor_01')).toEqual({ floor: 1, floorTotal: 5 })
     expect(officeBattleChrome('floor_03')).toEqual({ floor: 3, floorTotal: 5 })
     expect(officeBattleChrome('floor_05')).toEqual({ floor: 5, floorTotal: 5 })
+    expect(hudFloorEyebrow('floor_02')).toBe('Floor 2 · of 5')
   })
 
   it('shows distinct HUD chips for visitor / employee / product / client badges', () => {

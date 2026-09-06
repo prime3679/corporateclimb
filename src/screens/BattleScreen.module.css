@@ -95,6 +95,27 @@
   text-shadow: 0 0 10px rgba(255, 213, 79, 0.22);
 }
 
+.turnBanner {
+  position: absolute;
+  top: 52px;
+  left: 50%;
+  z-index: 5;
+  transform: translateX(-50%);
+  padding: 5px 12px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 213, 79, 0.55);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.2), rgba(10, 13, 19, 0.88));
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-gold-bright);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 8px 18px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
 .cardGrid {
   display: grid;
   grid-template-columns: 1fr 1fr;

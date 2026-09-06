@@ -45,7 +45,7 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
     name: 'Renata',
     lines: [
       'You have the look. Hopeful. Badge-less.',
-      "Floor 1: reception, desks, break room, meeting room, elevator. That's the whole world for now.",
+      'Floor 1: reception, desks, break room, meeting room, elevator. Five floors. You start at the bottom.',
       "Your first ticket is already late. The desk-pit printer is down. Toner's in the grey cabinet in the break room.",
       'Fix it, then come back so I can close the ticket.',
     ],

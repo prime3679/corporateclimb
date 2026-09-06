@@ -119,7 +119,7 @@ test('office first-run: title → role → Floor 1 coaches without a start card'
 
   await expect(page.locator('#coach_move')).toBeVisible()
   await expect(page.getByText('Floor 1 · of 5')).toBeVisible()
-  await expect(page.getByLabel('Objective')).toContainText('Look around')
+  await expect(page.getByLabel('Objective')).toContainText('Talk to Renata')
   await shot(page, '04-floor1-move-coach')
 
   await step(page, 'ArrowLeft')

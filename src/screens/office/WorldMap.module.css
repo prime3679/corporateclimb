@@ -190,9 +190,10 @@
   display: grid;
   place-items: center;
   font-family: var(--cc-font-display);
-  font-size: 14px;
+  font-size: 16px;
   line-height: 1;
-  color: var(--cc-gold);
+  color: var(--cc-gold-bright);
+  filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.45));
   text-shadow:
     0 1px 0 rgba(10, 13, 19, 1),
     0 -1px 0 rgba(10, 13, 19, 1),

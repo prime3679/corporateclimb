@@ -38,6 +38,76 @@
   animation: of-scene-out 480ms var(--cc-ease-out) both;
 }
 
+.reviewPlate {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 16;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 5px 12px 6px;
+  border-radius: 7px;
+  background: rgba(8, 11, 16, 0.82);
+  border: 1px solid rgba(255, 213, 79, 0.35);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.4);
+  pointer-events: none;
+}
+
+.reviewCard {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-wide);
+  color: var(--cc-gold-bright);
+}
+
+.reviewOpp {
+  font-family: var(--cc-font-body);
+  font-size: var(--body-sm);
+  color: var(--cc-text-2);
+}
+
+.winStinger {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  background:
+    radial-gradient(70% 50% at 50% 42%, rgba(255, 213, 79, 0.2), transparent 62%),
+    rgba(6, 8, 12, 0.78);
+  animation: of-stinger 220ms var(--cc-ease-out) both;
+  pointer-events: none;
+}
+
+.winKicker {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: var(--cc-track-wide);
+  color: var(--cc-gold-bright);
+}
+
+.winTitle {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xl);
+  line-height: 0.92;
+  color: var(--cc-gold);
+  text-shadow: 0 8px 28px rgba(255, 193, 7, 0.28);
+}
+
+.winCard {
+  font-family: var(--cc-font-body);
+  font-size: var(--body-md);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cc-text-2);
+}
+
 /* ── hud_top ── */
 .hud {
   display: flex;
@@ -59,6 +129,22 @@
   border: 1px solid var(--cc-line-strong);
   border-left: var(--cc-accent-bar) solid var(--cc-gold);
   box-shadow: var(--cc-shadow-plate);
+}
+
+.ticket {
+  padding-top: 5px;
+  background:
+    linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 28%),
+    color-mix(in srgb, var(--cc-glass) 90%, var(--cc-gold) 10%);
+}
+
+.ticketKicker {
+  font-family: var(--cc-font-display);
+  font-size: 9px;
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-gold-bright);
+  margin-bottom: 1px;
 }
 
 .objectiveHead {
@@ -686,11 +772,23 @@
   }
 }
 
+@keyframes of-stinger {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
 :global(.reduce-motion) .objectiveSwap,
 :global(.reduce-motion) .walletPulse,
 :global(.reduce-motion) .bench,
 :global(.reduce-motion) .sceneVeil,
-:global(.reduce-motion) .objectiveCoach {
+:global(.reduce-motion) .objectiveCoach,
+:global(.reduce-motion) .winStinger {
   animation: none;
 }
 
@@ -699,7 +797,8 @@
   .walletPulse,
   .bench,
   .sceneVeil,
-  .objectiveCoach {
+  .objectiveCoach,
+  .winStinger {
     animation: none;
   }
 }

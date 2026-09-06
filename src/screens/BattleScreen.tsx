@@ -56,6 +56,8 @@ export default function BattleScreen({
   showHint,
   onHintDismiss,
   onSwitch,
+  turnBanner,
+  commandHint = 'TAP A MOVE • HOLD THE LADDER',
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -95,6 +97,10 @@ export default function BattleScreen({
   showHint?: boolean
   onHintDismiss?: () => void
   onSwitch?: () => void
+  /** Office-only: whose turn it is. Classic omits this. */
+  turnBanner?: string
+  /** Office passes a climb-specific hint; Classic keeps the ladder line. */
+  commandHint?: string
 }) {
   const act = getAct(floor)
   const sc = getScene(act, Math.min(floor % 10, 4))
@@ -285,6 +291,12 @@ export default function BattleScreen({
           )}
         </div>
 
+        {turnBanner && (
+          <div className={styles.turnBanner} role="status" aria-live="polite">
+            {turnBanner}
+          </div>
+        )}
+
         {damagePopups.map((p) => (
           <DamageNumber key={p.id} popup={p} />
         ))}
@@ -364,7 +376,7 @@ export default function BattleScreen({
                 </button>
               </div>
             )}
-            <div className={styles.commandHint}>TAP A MOVE • HOLD THE LADDER</div>
+            <div className={styles.commandHint}>{commandHint}</div>
             {/* Mode tabs */}
             <div className={styles.tabs}>
               <button

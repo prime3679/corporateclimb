@@ -50,6 +50,7 @@ describe('SFX facade', () => {
       'elevatorUp',
       'elevatorDown',
       'printerJam',
+      'printerDone',
       'glassDoor',
     ] as const
     for (const m of methods) {

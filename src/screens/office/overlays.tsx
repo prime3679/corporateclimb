@@ -7,9 +7,13 @@ import {
   COWORKER_NAME,
   DIALOGUE,
   ELEVATOR_FLOORS,
+  ELEVATOR_RIDE,
   FLOOR_DIRECTORY_TEXT,
   canRideTo,
   deskRosterLine,
+  elevatorRidePlan,
+  elevatorRideTicks,
+  elevatorRowFor,
   floorLabel,
   floorNumber,
   HANDOUT_CHOICES,
@@ -24,6 +28,7 @@ import {
   CELEBRATION_COUNT_MS,
   celebrationButtons,
   celebrationCopy,
+  celebrationKicker,
   celebrationStats,
   type CelebrationScreen,
 } from '@/engine/office'
@@ -711,70 +716,81 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
         e.preventDefault()
         const row = ELEVATOR_FLOORS.find((r) => String(r.number) === e.key)
         if (row) {
-          SFX.menuConfirm()
+          const locked = row.id !== here && !canRideTo(row.id, state.keyItems)
+          if (locked) SFX.eventBad()
+          else SFX.menuConfirm()
           act({ type: 'CHOOSE', choice: row.id })
         }
       }
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [act, focusIdx])
+  }, [act, focusIdx, here, state.keyItems])
+  const hereRow = elevatorRowFor(here)
   return (
     <Scrim tight>
-      <div className={styles.eyebrow}>Elevator</div>
-      <div ref={listRef} className={styles.elevList} role="listbox" aria-label="Elevator floors">
-        {ELEVATOR_FLOORS.map((row) => {
-          const current = row.id === here
-          const climbHere =
-            row.id === 'floor_05' && current && state.flags.includes('flag_floor5_complete')
-          const open = (!current && canRideTo(row.id, state.keyItems)) || climbHere
-          const sub = climbHere
-            ? 'The climb'
-            : current
-              ? 'You are here'
-              : !open
-                ? row.requires === 'key_employee_badge'
-                  ? 'Badge required'
-                  : 'Access badge required'
-                : row.id === 'floor_01'
-                  ? deskRosterLine(state.hired ?? [], state.party, 'floor_01')
-                  : ''
-          return (
-            <button
-              key={row.id}
-              type="button"
-              role="option"
-              aria-selected={current}
-              disabled={current && !climbHere}
-              className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${!open && !current ? styles.elevLocked : ''}`}
-              onClick={() => {
-                if (current && !climbHere) return
-                if (!open) SFX.menuBack()
-                else SFX.menuConfirm()
-                act({ type: 'CHOOSE', choice: row.id })
-              }}
-            >
-              <span className={styles.elevNum}>{row.number}</span>
-              <span className={styles.elevName}>{row.name}</span>
-              <span className={styles.elevSub}>{sub}</span>
-              <span
-                className={`${styles.elevLed} ${open || current ? styles.elevLedOn : styles.elevLedOff}`}
-                aria-hidden
-              />
-            </button>
-          )
-        })}
-      </div>
-      <div className={`${styles.actions} ${styles.actionsEnd}`}>
-        <Button
-          variant="secondary"
-          onClick={() => {
-            SFX.menuBack()
-            act({ type: 'CHOOSE', choice: 'stay' })
-          }}
-        >
-          Stay
-        </Button>
+      <div className={styles.cabPanel}>
+        <div className={styles.cabPlaque}>
+          <div className={styles.eyebrow}>Cab · Select floor</div>
+          <div className={styles.cabHereLine}>
+            Floor {hereRow.number}
+            <span className={styles.cabHereName}>{hereRow.name}</span>
+          </div>
+        </div>
+        <div ref={listRef} className={styles.elevList} role="listbox" aria-label="Elevator floors">
+          {ELEVATOR_FLOORS.map((row) => {
+            const current = row.id === here
+            const climbHere =
+              row.id === 'floor_05' && current && state.flags.includes('flag_floor5_complete')
+            const open = (!current && canRideTo(row.id, state.keyItems)) || climbHere
+            const sub = climbHere
+              ? 'The climb'
+              : current
+                ? 'You are here'
+                : !open
+                  ? row.requires === 'key_employee_badge'
+                    ? 'Badge required'
+                    : 'Access badge required'
+                  : row.id === 'floor_01'
+                    ? deskRosterLine(state.hired ?? [], state.party, 'floor_01')
+                    : ''
+            return (
+              <button
+                key={row.id}
+                type="button"
+                role="option"
+                aria-selected={current}
+                disabled={current && !climbHere}
+                className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${!open && !current ? styles.elevLocked : ''}`}
+                onClick={() => {
+                  if (current && !climbHere) return
+                  if (!open) SFX.eventBad()
+                  else SFX.menuConfirm()
+                  act({ type: 'CHOOSE', choice: row.id })
+                }}
+              >
+                <span className={styles.elevNum}>{row.number}</span>
+                <span className={styles.elevName}>{row.name}</span>
+                <span className={styles.elevSub}>{sub}</span>
+                <span
+                  className={`${styles.elevLed} ${open || current ? styles.elevLedOn : styles.elevLedOff}`}
+                  aria-hidden
+                />
+              </button>
+            )
+          })}
+        </div>
+        <div className={`${styles.actions} ${styles.actionsEnd}`}>
+          <Button
+            variant="secondary"
+            onClick={() => {
+              SFX.menuBack()
+              act({ type: 'CHOOSE', choice: 'stay' })
+            }}
+          >
+            Stay
+          </Button>
+        </div>
       </div>
     </Scrim>
   )
@@ -1227,10 +1243,6 @@ function CelebrationScreen({
   const options = useCountUp(stats.options, CELEBRATION_COUNT_MS, reduceMotion)
   const time = useCountUp(stats.timeMs, CELEBRATION_COUNT_MS, reduceMotion)
 
-  useEffect(() => {
-    SFX.fanfare()
-  }, [screen])
-
   const choose = (id: string) => {
     if (id === 'title') {
       SFX.menuBack()
@@ -1242,8 +1254,33 @@ function CelebrationScreen({
     act({ type: 'CHOOSE', choice: id })
   }
 
+  // Fanfare lives in useOfficeFeedback so the live region and the sting fire once.
+
+  const floorN = floorNumber(stats.floorId)
+  const kicker = celebrationKicker(screen)
+  const tone =
+    floorN === 2
+      ? styles.celebF2
+      : floorN === 3
+        ? styles.celebF3
+        : floorN === 4
+          ? styles.celebF4
+          : floorN === 5
+            ? styles.celebF5
+            : styles.celebF1
+
   return (
-    <div className={`premium-screen ${styles.celebration}`}>
+    <div
+      className={`premium-screen ${styles.celebration} ${tone}`}
+      role="dialog"
+      aria-label={copy.title}
+    >
+      <span className={styles.celebWash} aria-hidden />
+      <span className={styles.celebSweep} aria-hidden />
+      <span className={styles.celebMark} aria-hidden>
+        {floorN}
+      </span>
+      <div className={styles.celebKicker}>{kicker}</div>
       <div className={styles.celebTitle}>{copy.title}</div>
       <div className={styles.celebLine}>{copy.body}</div>
       <PartyChips state={state} size={64} showNames className={styles.celebParty} />
@@ -1340,36 +1377,60 @@ export function Interstitial({ state, onChange }: OverlayProps) {
   )
 }
 
-/** Doors-close → fade → doors-open cab (floor-2 §8.2). Overlay on the map, not a text card. */
+/** Doors close → travel readout → fade. Overlay on the map, not a text card. */
 export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayProps) {
   const destination = state.rideTo ?? state.floorId
   const rideKey = `${state.floorId}->${destination}`
+  const plan = elevatorRidePlan(state.floorId, destination)
   const complete = useRef(() => {})
   useEffect(() => {
     complete.current = () =>
       onChange(dispatchOfficeAction(state, { type: 'COMPLETE_ELEVATOR_RIDE' }).state)
   })
-  const [phase, setPhase] = useState<'close' | 'fade'>('close')
+  const [phase, setPhase] = useState<'close' | 'travel' | 'fade'>('close')
+  const [shownFloor, setShownFloor] = useState(plan.fromNumber)
 
   useEffect(() => {
     if (reduceMotion) {
       complete.current()
       return
     }
-    const closeT = window.setTimeout(() => setPhase('fade'), 400)
-    const doneT = window.setTimeout(() => complete.current(), 700)
-    return () => {
-      window.clearTimeout(closeT)
-      window.clearTimeout(doneT)
+    const timers: number[] = []
+    timers.push(window.setTimeout(() => setPhase('travel'), ELEVATOR_RIDE.closeMs))
+    for (const tick of elevatorRideTicks(state.floorId, destination)) {
+      timers.push(
+        window.setTimeout(() => {
+          setShownFloor(tick.floor)
+          SFX.badgeSwipe()
+        }, tick.at),
+      )
     }
-  }, [rideKey, reduceMotion])
+    timers.push(
+      window.setTimeout(() => setPhase('fade'), ELEVATOR_RIDE.closeMs + ELEVATOR_RIDE.travelMs),
+    )
+    timers.push(
+      window.setTimeout(
+        () => complete.current(),
+        ELEVATOR_RIDE.closeMs + ELEVATOR_RIDE.travelMs + ELEVATOR_RIDE.fadeMs,
+      ),
+    )
+    return () => {
+      for (const id of timers) window.clearTimeout(id)
+    }
+  }, [rideKey, reduceMotion, destination, state.floorId])
 
   return (
     <div
-      className={`${styles.cab} ${phase === 'fade' ? styles.cabFade : styles.cabClose}`}
+      className={`${styles.cab} ${styles.cabClose} ${phase === 'travel' ? styles.cabTravel : ''} ${phase === 'fade' ? styles.cabFade : ''}`}
       role="status"
       aria-label={`Elevator to ${floorLabel(destination)}`}
     >
+      <span className={styles.cabWell} aria-hidden />
+      <div className={styles.cabDisplay}>
+        <span className={styles.cabGlyph}>{plan.up ? '▲' : '▼'}</span>
+        <span className={styles.cabFloorNum}>{shownFloor}</span>
+        <span className={styles.cabDestName}>{plan.destName}</span>
+      </div>
       <span className={`${styles.cabDoor} ${styles.cabDoorL}`} aria-hidden />
       <span className={`${styles.cabDoor} ${styles.cabDoorR}`} aria-hidden />
       <span className={styles.cabVeil} aria-hidden />
@@ -1377,7 +1438,7 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
   )
 }
 
-const COACH_COPY: Record<
+export const COACH_COPY: Record<
   | 'coach_move'
   | 'coach_interact'
   | 'coach_pin'
@@ -1388,7 +1449,7 @@ const COACH_COPY: Record<
 > = {
   coach_move: { key: 'MOVE', rest: 'arrows, WASD, or the pad.' },
   coach_interact: { key: 'TALK', rest: 'E or tap ACT.' },
-  coach_pin: { key: 'PIN', rest: 'gold chip. That is your next desk.' },
+  coach_pin: { key: 'PIN', rest: 'gold chip. That is your next stop.' },
   coach_elevator: { key: 'RIDE', rest: 'face the doors, then E.' },
   coach_switch: { key: 'SWITCH', rest: 'send in the next person. Costs your turn.' },
   coach_roster: { key: 'TEAM', rest: 'three seats. Sending someone back is free.' },
@@ -1424,7 +1485,8 @@ export function CoachMark({
         }
       }}
     >
-      <span className={styles.coachKey}>{copy.key}</span> — {copy.rest}
+      <span className={styles.coachKey}>{copy.key}</span>
+      <span className={styles.coachRest}>{copy.rest}</span>
     </div>
   )
 }

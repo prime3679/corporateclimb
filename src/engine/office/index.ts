@@ -49,6 +49,8 @@ export {
   celebrationButtons,
   celebrationCopy,
   celebrationFloor,
+  celebrationKicker,
+  celebrationLive,
   celebrationStats,
   type CelebrationButton,
   type CelebrationScreen,
@@ -62,7 +64,13 @@ export {
   rejoinCoworker,
   restoreParty,
 } from './party'
-export { encounterIntro, shouldCoachSwitch, startEncounter } from './combat'
+export {
+  encounterIntro,
+  officeBattleOutcome,
+  officeVictoryStinger,
+  shouldCoachSwitch,
+  startEncounter,
+} from './combat'
 export {
   dispatchOfficeAction,
   inspectText,

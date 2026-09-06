@@ -4,6 +4,7 @@ import {
   FLOOR_4_LEDGER_MAX,
   FLOOR_5_LEDGER_MAX,
   FLOOR_LEDGER_MAX,
+  elevatorRowFor,
   floorNumber,
   ledgerOptionsEarned,
   type AssignmentId,
@@ -18,7 +19,7 @@ export type CelebrationScreen =
   | 'screen_floor4_complete'
   | 'screen_floor5_complete'
 
-export const CELEBRATION_COUNT_MS = 600
+export const CELEBRATION_COUNT_MS = 1100
 
 const FLOOR_ASSIGNMENTS: Record<FloorId, readonly AssignmentId[]> = {
   floor_01: ['asg_printer', 'asg_meeting_prep'],
@@ -93,6 +94,18 @@ export function celebrationCopy(
     body: 'Caldwell nods once. The nod is the offer. There is no letter. There is no Floor 6.',
     dim: 'The elevator still goes down. That is the whole building.',
   }
+}
+
+/** Live-region line — titles, never raw `screen_*` ids. */
+export function celebrationLive(state: OfficeState, screen: CelebrationScreen): string {
+  const copy = celebrationCopy(state, screen)
+  return `${copy.title}. ${copy.body}`
+}
+
+/** Eyebrow over the celebration title — department, not a screen id. */
+export function celebrationKicker(screen: CelebrationScreen): string {
+  const dept = elevatorRowFor(celebrationFloor(screen)).name
+  return screen === 'screen_floor5_complete' ? `${dept} · THE BUILDING` : `${dept} · CLEARED`
 }
 
 export function celebrationStats(state: OfficeState, screen: CelebrationScreen) {
