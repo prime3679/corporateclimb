@@ -16,6 +16,8 @@ import {
   memberName,
   currentObjective,
   destChip,
+  officeBattleOutcome,
+  officeVictoryStinger,
   type OfficeState,
   type PartyMember,
 } from '@/engine/office'
@@ -23,8 +25,10 @@ import { GameRng } from '@/engine'
 import {
   MOVE_MS,
   OFFICE_ENCOUNTERS,
-  floorLabel,
+  hudFloorEyebrow,
   officeBattleChrome,
+  officeBattleLabels,
+  officeBattleRoom,
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
@@ -74,6 +78,9 @@ export default function OfficeScreen({
   const [busy, setBusy] = useState(false)
   const [battleMode, setBattleMode] = useState<'fight' | 'items'>('fight')
   const [sceneFx, setSceneFx] = useState<'battle-in' | 'battle-out' | null>(null)
+  const [stinger, setStinger] = useState<{ kicker: string; name: string; card: string } | null>(
+    null,
+  )
   const busyRef = useRef(false)
   const prevScreenRef = useRef(state.screen)
   const [sequencer] = useState(() => new Sequencer((mutate) => setView((v) => (v ? mutate(v) : v))))
@@ -255,7 +262,13 @@ export default function OfficeScreen({
     setBusy(true)
     const rng = new GameRng(state.run.rngState)
     const result = dispatchOfficeAction(state, action, rng.next)
-    onChange(withTime({ ...result.state, run: { ...result.state.run, rngState: rng.serialize() } }))
+    const next = withTime({
+      ...result.state,
+      run: { ...result.state.run, rngState: rng.serialize() },
+    })
+    const outcome = officeBattleOutcome(state, result.state)
+    const hold = outcome === 'win' || outcome === 'wipe'
+    if (!hold) onChange(next)
     if (result.events.length) {
       if (!view && state.encounter && state.battle) {
         setView(
@@ -268,11 +281,21 @@ export default function OfficeScreen({
       }
       const ok = await sequencer.play(result.events)
       if (!ok) {
+        if (hold) onChange(next)
         busyRef.current = false
         setBusy(false)
+        if (result.state.screen !== 'battle') setView(null)
         return
       }
     }
+    if (outcome === 'win' && state.encounter) {
+      const sting = officeVictoryStinger(state.encounter.encounterId)
+      setStinger(sting)
+      SFX.victory()
+      if (!reduceMotion) await new Promise((r) => setTimeout(r, 980))
+      setStinger(null)
+    }
+    if (hold) onChange(next)
     busyRef.current = false
     setBusy(false)
     if (result.state.screen !== 'battle') setView(null)
@@ -331,6 +354,8 @@ export default function OfficeScreen({
     const player = effectiveKit(state, member)
     const enemy = OFFICE_ENCOUNTERS[state.encounter.encounterId]
     const battleFloor = officeBattleChrome(state.floorId)
+    const battleRoom = officeBattleRoom(state.floorId)
+    const battleLabels = officeBattleLabels(state.encounter.encounterId)
     const forced = state.battle.phase === 'switch_required'
     const showBench = state.benchOpen || forced
     const turn = busy || state.battle.phase !== 'player' || showBench ? 'wait' : 'player'
@@ -338,10 +363,21 @@ export default function OfficeScreen({
     const firstStanding = bench.findIndex((m, i) => i !== state.encounter!.activeIndex && m.hp > 0)
     return (
       <div
-        className={`${styles.sceneStage} ${sceneFx === 'battle-in' ? styles.sceneBattleIn : ''}`}
-        style={{ height: '100%', position: 'relative' }}
+        className={`${styles.sceneStage} ${styles.reviewChamber} ${sceneFx === 'battle-in' ? styles.sceneBattleIn : ''}`}
+        style={
+          {
+            height: '100%',
+            position: 'relative',
+            '--review-tint': battleRoom.palette.accent,
+          } as CSSProperties
+        }
       >
         {sceneFx === 'battle-in' && <span className={styles.sceneVeil} aria-hidden />}
+        {(liveView.shake || liveView.typeFlash) && <span className={styles.hitRim} aria-hidden />}
+        <div className={styles.reviewPlate} aria-hidden>
+          <span className={styles.reviewCard}>{enemy.titleCard}</span>
+          <span className={styles.reviewOpp}>{enemy.name}</span>
+        </div>
         <BattleScreen
           player={player}
           enemy={enemy}
@@ -372,6 +408,19 @@ export default function OfficeScreen({
           stockOptions={state.run.stockOptions}
           onTextTap={() => sequencer.skip()}
           textMsPerChar={textMsPerChar}
+          turnBanner={
+            showBench
+              ? undefined
+              : turn === 'player'
+                ? 'YOUR MOVE'
+                : busy
+                  ? undefined
+                  : 'THEIR MOVE'
+          }
+          commandHint="YOUR MOVE • KEYS 1–4"
+          chrome={battleLabels}
+          scenePalette={battleRoom.palette}
+          sceneAct={battleRoom.act}
           onSwitch={
             bench.filter((m) => m.hp > 0).length >= 2
               ? () => {
@@ -452,6 +501,14 @@ export default function OfficeScreen({
             className={styles.coachSwitch}
             onDismiss={() => act({ type: 'ADVANCE' })}
           />
+        )}
+        {stinger && (
+          <div className={styles.winStinger} role="status" aria-live="assertive">
+            <span className={styles.winBar} aria-hidden />
+            <span className={styles.winStamp}>{stinger.kicker}</span>
+            <span className={styles.winTitle}>{stinger.name}</span>
+            <span className={styles.winCard}>{stinger.card}</span>
+          </div>
         )}
         <OfficeOverlays
           state={state}
@@ -544,15 +601,12 @@ function Overworld({
       {sceneFx === 'battle-out' && <span className={styles.sceneVeil} aria-hidden />}
       <div className={styles.hud}>
         <div
-          className={`${styles.objective} ${state.overlay?.kind === 'coach' && state.overlay.id === 'coach_pin' ? styles.objectiveCoach : ''}`}
+          className={`${styles.objective} ${styles.ticket} ${state.overlay?.kind === 'coach' && state.overlay.id === 'coach_pin' ? styles.objectiveCoach : ''}`}
           aria-label="Objective"
         >
+          <div className={styles.ticketKicker}>Work ticket</div>
           <div className={styles.objectiveHead}>
-            <div className={styles.eyebrow}>
-              {state.floorId !== 'floor_01' || state.flags.includes('flag_preview_complete')
-                ? floorLabel(state.floorId)
-                : 'Floor 1 · of 5'}
-            </div>
+            <div className={styles.eyebrow}>{hudFloorEyebrow(state.floorId)}</div>
             <span
               className={styles.dest}
               style={

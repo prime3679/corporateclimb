@@ -377,10 +377,7 @@ export function currentObjective(state: OfficeSave): OfficeObjective {
   if (state.assignments.asg_printer === 'accepted') {
     return { text: 'Get toner from the supply cabinet', zone: 'zone_break', pin: { x: 15, y: 8 } }
   }
-  if (state.flags.includes('flag_greeted')) {
-    return { text: 'Talk to Renata', zone: 'zone_reception', pin: { x: 8, y: 14 } }
-  }
-  return { text: 'Look around', zone: 'zone_reception', pin: { x: 8, y: 14 } }
+  return { text: 'Talk to Renata', zone: 'zone_reception', pin: { x: 8, y: 14 } }
 }
 
 export function destChip(

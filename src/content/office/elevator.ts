@@ -15,6 +15,57 @@ export interface ElevatorFloorRow {
 /** The Office campaign is five floors. Combat chrome must not show Classic's 30. */
 export const OFFICE_FLOOR_COUNT = 5
 
+/** Cab ride beats. Presentation owns the timers; the reducer completes on the last beat. */
+export const ELEVATOR_RIDE = {
+  openMs: 240,
+  closeMs: 480,
+  travelMs: 920,
+  arriveMs: 380,
+  fadeMs: 420,
+} as const
+
+export function elevatorRideTotalMs(): number {
+  return (
+    ELEVATOR_RIDE.openMs +
+    ELEVATOR_RIDE.closeMs +
+    ELEVATOR_RIDE.travelMs +
+    ELEVATOR_RIDE.arriveMs +
+    ELEVATOR_RIDE.fadeMs
+  )
+}
+
+export function elevatorRidePlan(from: FloorId, to: FloorId) {
+  const fromNumber = floorNumber(from)
+  const toNumber = floorNumber(to)
+  return {
+    fromNumber,
+    toNumber,
+    destName: elevatorRowFor(to).name,
+    up: toNumber >= fromNumber,
+    steps: Math.abs(toNumber - fromNumber),
+  }
+}
+
+/** When the cab display should flip to each floor on the way. */
+export function elevatorRideTicks(
+  from: FloorId,
+  to: FloorId,
+): ReadonlyArray<{ at: number; floor: 1 | 2 | 3 | 4 | 5 }> {
+  const plan = elevatorRidePlan(from, to)
+  if (plan.steps === 0) return []
+  const dir = plan.up ? 1 : -1
+  return Array.from({ length: plan.steps }, (_, i) => {
+    const step = i + 1
+    return {
+      at:
+        ELEVATOR_RIDE.openMs +
+        ELEVATOR_RIDE.closeMs +
+        Math.round((ELEVATOR_RIDE.travelMs * step) / plan.steps),
+      floor: (plan.fromNumber + dir * step) as 1 | 2 | 3 | 4 | 5,
+    }
+  })
+}
+
 export const ELEVATOR_FLOORS: readonly ElevatorFloorRow[] = [
   { id: 'floor_05', number: 5, name: 'EXEC', requires: 'key_employee_badge' },
   { id: 'floor_04', number: 4, name: 'SALES', requires: 'key_employee_badge' },
@@ -78,6 +129,11 @@ export function floorNumber(floorId: FloorId): 1 | 2 | 3 | 4 | 5 {
 /** Battle HUD: `FLOOR 3/5`, never Classic `FLOOR 7/30` from encounter rank. */
 export function officeBattleChrome(floorId: FloorId): { floor: 1 | 2 | 3 | 4 | 5; floorTotal: 5 } {
   return { floor: floorNumber(floorId), floorTotal: OFFICE_FLOOR_COUNT }
+}
+
+/** Overworld objective eyebrow — always `Floor N · of 5`, matching the first-run coach. */
+export function hudFloorEyebrow(floorId: FloorId): string {
+  return `Floor ${floorNumber(floorId)} · of ${OFFICE_FLOOR_COUNT}`
 }
 
 export function deskRosterLine(

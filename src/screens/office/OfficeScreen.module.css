@@ -38,6 +38,135 @@
   animation: of-scene-out 480ms var(--cc-ease-out) both;
 }
 
+.reviewChamber {
+  --review-tint: var(--cc-gold);
+}
+
+.reviewChamber::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 2px color-mix(in srgb, var(--review-tint) 42%, transparent),
+    inset 0 80px 90px rgba(0, 0, 0, 0.22);
+}
+
+.hitRim {
+  position: absolute;
+  inset: 0;
+  z-index: 17;
+  pointer-events: none;
+  box-shadow:
+    inset 0 0 0 3px color-mix(in srgb, var(--review-tint) 85%, #fff 10%),
+    inset 0 0 48px color-mix(in srgb, var(--review-tint) 35%, transparent);
+  animation: of-hit-rim 220ms var(--cc-ease-out) both;
+}
+
+.reviewPlate {
+  position: absolute;
+  top: 8px;
+  left: 50%;
+  z-index: 16;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 16px 7px;
+  border-radius: 7px;
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--review-tint) 22%, transparent),
+      transparent 70%
+    ),
+    rgba(8, 11, 16, 0.88);
+  border: 1px solid color-mix(in srgb, var(--review-tint) 55%, transparent);
+  box-shadow:
+    0 0 0 1px rgba(0, 0, 0, 0.45),
+    0 10px 24px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
+}
+
+.reviewCard {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-wide);
+  color: var(--cc-gold-bright);
+}
+
+.reviewOpp {
+  font-family: var(--cc-font-body);
+  font-size: var(--body-sm);
+  color: var(--cc-text-2);
+}
+
+.winStinger {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background:
+    radial-gradient(
+      70% 50% at 50% 42%,
+      color-mix(in srgb, var(--review-tint) 28%, transparent),
+      transparent 62%
+    ),
+    rgba(6, 8, 12, 0.82);
+  animation: of-stinger 260ms var(--cc-ease-out) both;
+  pointer-events: none;
+}
+
+.winBar {
+  position: absolute;
+  left: 12%;
+  right: 12%;
+  top: 46%;
+  height: 2px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--review-tint) 90%, #fff),
+    transparent
+  );
+  animation: of-win-bar 420ms var(--cc-ease-out) both;
+}
+
+.winStamp {
+  padding: 5px 12px 4px;
+  border: 2px solid color-mix(in srgb, var(--review-tint) 85%, #fff);
+  border-radius: 4px;
+  transform: rotate(-8deg);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: var(--cc-track-wide);
+  color: color-mix(in srgb, var(--review-tint) 80%, #fff);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.35);
+  animation: of-stamp 320ms cubic-bezier(0.2, 1.2, 0.35, 1) 40ms both;
+}
+
+.winTitle {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xl);
+  line-height: 0.92;
+  color: var(--cc-gold);
+  text-shadow: 0 8px 28px rgba(255, 193, 7, 0.28);
+}
+
+.winCard {
+  font-family: var(--cc-font-body);
+  font-size: var(--body-md);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--cc-text-2);
+}
+
 /* ── hud_top ── */
 .hud {
   display: flex;
@@ -59,6 +188,36 @@
   border: 1px solid var(--cc-line-strong);
   border-left: var(--cc-accent-bar) solid var(--cc-gold);
   box-shadow: var(--cc-shadow-plate);
+}
+
+.ticket {
+  position: relative;
+  padding-top: 5px;
+  padding-left: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 213, 79, 0.12), transparent 28%),
+    color-mix(in srgb, var(--cc-glass) 90%, var(--cc-gold) 10%);
+}
+
+.ticket::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 8px;
+  background: radial-gradient(circle at 4px 6px, transparent 2.5px, rgba(255, 213, 79, 0.35) 2.6px)
+    0 0 / 8px 12px;
+  opacity: 0.7;
+}
+
+.ticketKicker {
+  font-family: var(--cc-font-display);
+  font-size: 9px;
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-gold-bright);
+  margin-bottom: 1px;
 }
 
 .objectiveHead {
@@ -686,11 +845,57 @@
   }
 }
 
+@keyframes of-stinger {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes of-hit-rim {
+  from {
+    opacity: 1;
+  }
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes of-win-bar {
+  from {
+    transform: scaleX(0.2);
+    opacity: 0;
+  }
+  to {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+}
+
+@keyframes of-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-18deg) scale(1.35);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-8deg) scale(1);
+  }
+}
+
 :global(.reduce-motion) .objectiveSwap,
 :global(.reduce-motion) .walletPulse,
 :global(.reduce-motion) .bench,
 :global(.reduce-motion) .sceneVeil,
-:global(.reduce-motion) .objectiveCoach {
+:global(.reduce-motion) .objectiveCoach,
+:global(.reduce-motion) .winStinger,
+:global(.reduce-motion) .hitRim,
+:global(.reduce-motion) .winBar,
+:global(.reduce-motion) .winStamp {
   animation: none;
 }
 
@@ -699,7 +904,11 @@
   .walletPulse,
   .bench,
   .sceneVeil,
-  .objectiveCoach {
+  .objectiveCoach,
+  .winStinger,
+  .hitRim,
+  .winBar,
+  .winStamp {
     animation: none;
   }
 }

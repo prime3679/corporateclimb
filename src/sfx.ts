@@ -301,6 +301,12 @@ export const SFX = {
     playSample('printerJam', 0.8)
   },
 
+  /** Badge printer (or any print job) finishing — stamp, then the grant. */
+  printerDone() {
+    playSample('stamp', 0.85)
+    window.setTimeout(() => playSample('cash', 0.75), 220)
+  },
+
   glassDoor() {
     playSample('glassDoor', 0.75)
   },

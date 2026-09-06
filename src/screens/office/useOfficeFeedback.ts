@@ -10,6 +10,7 @@ import {
   zoneAt,
 } from '@/content/office'
 import {
+  celebrationLive,
   currentObjective,
   destChip,
   inspectText,
@@ -115,6 +116,8 @@ export function useOfficeFeedback(state: OfficeState): string {
       if (ov.receiptId === 'rcpt_printer_online') {
         SFX.printerJam()
         window.setTimeout(() => SFX.coin(), 420)
+      } else if (ov.receiptId === 'rcpt_employee_badge') {
+        SFX.printerDone()
       } else {
         SFX.coin()
       }
@@ -175,8 +178,9 @@ export function useOfficeFeedback(state: OfficeState): string {
     }
 
     if (ov.kind === 'celebration') {
+      SFX.fanfare()
       Haptics.success()
-      say(`Floor cleared. ${ov.screen}`)
+      say(celebrationLive(state, ov.screen))
       return
     }
 
