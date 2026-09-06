@@ -128,13 +128,34 @@ are registered in `ACTOR_IDS` and `NPC_ACTOR`.
 
 Same pipeline, same families. Floor 1 and Floor 2 atlas indices stay bit-identical;
 new cells append after `btable_f2_r` (`docs/rpg/floor-3-5-design.md` §7). The sheet
-grows to **272×1250** (195 cells): six department floors (war cork, intake lilac,
-product slate, pipeline terracotta, client sand, board plush), three 3-tile hall
+grows to **272×1250** (195 cells) on the design branch, then **272×1300**
+(206 cells) after Pass E appends `floor_sales` / `floor_ante` / `floor_hall_f3–5`
+and one-row red/gold runners.
+Original six department floors (war cork, intake lilac, product slate, pipeline
+terracotta, client sand, board plush), three 3-tile hall
 plaques, five room signs, three nameplates, three directories, and four props
 (roadmap wall, intake board, pipeline board, walnut sideboard). Take-five, desks,
 chairs, plants, elevator, reader, sofa, exec desk and the Floor 1 meeting table
 are reused. Eight walk sheets (`sloane`, `nico`, `quincy`, `harper`, `reyes`,
 `ashford`, `marlowe`, `caldwell`) use the Floor 1/2 rig.
+
+### Pass E — F3–5 contrast + portraits
+
+Presentation follow-up. Does not touch Office audio, Classic, or frozen IDs.
+
+- **Glass:** `door_v_single` at `(6,3)` / `(14,3)` is an opening — thin jambs,
+  folded glass, dashed track, south threshold. The middle stays empty so the
+  floor under the `D` shows through.
+- **Floors:** Sales no longer reuses Product slate. New cells (appended):
+  `floor_sales`, `floor_ante`, `floor_hall_f3` / `_f4` / `_f5`. Existing F3–5
+  floor pixels are punched so indigo / wine / plum read instantly vs the F1
+  navy hall. F4 hall runner is red; F5 runner is gold. Light pools tint per
+  department.
+- **Portraits:** unique 512px WebP for the eight F3–5 faces. Same `Headshot`
+  focal contract. Encounter kits for Quincy / Ashford / Caldwell use those
+  keys. Floor 1–2 house portraits were already unique and stay put.
+- **Stub copy:** live maps still do not place `poi_directory_sign_stub` or
+  `STUB_DIRECTORY_TEXT`. The leftover inspect id stays for save compat.
 
 ## What stays frozen
 

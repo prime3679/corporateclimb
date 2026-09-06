@@ -59,8 +59,8 @@ do not treat this list as already triaged.
 
 **Should-fix (Pass B / C)**
 
-- [ ] Glass at `(6,3)` / `(14,3)` reads as openings; Product / Sales / Exec contrast vs hall.
-- [ ] Actor sheets + Headshot stand-ins; no leftover stub copy (`poi_directory_sign_stub`, `STUB_DIRECTORY_TEXT` on live maps).
+- [x] Glass at `(6,3)` / `(14,3)` reads as openings; Product / Sales / Exec contrast vs hall.
+- [x] Actor sheets + Headshot portraits for F3–5 cast; no leftover stub copy (`poi_directory_sign_stub`, `STUB_DIRECTORY_TEXT` on live maps).
 - [ ] `currentObjective` F5→F4→F3→F2→F1; cross-floor pins on the current elevator doors.
 - [ ] Elevator: current floor inert (“You are here”); locked row beeps and stays open; ride 2→3→4→5 and 5→1.
 - [ ] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
@@ -69,7 +69,7 @@ do not treat this list as already triaged.
 **Nice later (Pass D)**
 
 - [x] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
-- [ ] Portrait commission (still Fable; stand-ins stay). §12 / §13 / §19 device sign-off.
+- [x] F3–5 Headshot portraits shipped (Sloane / Nico / Quincy / Harper / Reyes / Ashford / Marlowe / Caldwell). Floor 1–2 house portraits already unique. §12 / §13 / §19 device sign-off still open.
 
 ## Do not
 

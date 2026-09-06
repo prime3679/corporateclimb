@@ -11,6 +11,14 @@ import vp from './assets/characters/npcs/vp.webp'
 import boss from './assets/characters/npcs/boss.webp'
 import eng from './assets/characters/player/eng.webp'
 import design from './assets/characters/player/design.webp'
+import sloane from './assets/characters/npcs/sloane.webp'
+import nico from './assets/characters/npcs/nico.webp'
+import quincy from './assets/characters/npcs/quincy.webp'
+import harper from './assets/characters/npcs/harper.webp'
+import reyes from './assets/characters/npcs/reyes.webp'
+import ashford from './assets/characters/npcs/ashford.webp'
+import marlowe from './assets/characters/npcs/marlowe.webp'
+import caldwell from './assets/characters/npcs/caldwell.webp'
 
 const SPRITES: Record<string, string> = {
   product_manager: productManager,
@@ -23,15 +31,14 @@ const SPRITES: Record<string, string> = {
   boss,
   eng,
   design,
-  // Floor 3–5 stand-ins (unique keys, house portraits) until a commission.
-  sloane: productManager,
-  nico: design,
-  quincy: vp,
-  harper: recruiter,
-  reyes: intern,
-  ashford: overachiever,
-  marlowe: scrum,
-  caldwell: boss,
+  sloane,
+  nico,
+  quincy,
+  harper,
+  reyes,
+  ashford,
+  marlowe,
+  caldwell,
 }
 
 export function buildSpriteUrls(): Record<string, string> {
@@ -60,21 +67,16 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   boss: { x: 0.5, y: 0.125, zoom: 3.05 },
   eng: { x: 0.435, y: 0.12, zoom: 3.2 },
   design: { x: 0.49, y: 0.11, zoom: 3.2 },
-}
-
-/** Floor 3–5 stand-in keys share the house portrait they alias. */
-const HEADSHOT_FOCAL_ALIAS: Record<string, keyof typeof HEADSHOT_FOCALS> = {
-  sloane: 'product_manager',
-  nico: 'design',
-  quincy: 'vp',
-  harper: 'recruiter',
-  reyes: 'intern',
-  ashford: 'overachiever',
-  marlowe: 'scrum',
-  caldwell: 'boss',
+  sloane: { x: 0.47, y: 0.12, zoom: 3.2 },
+  nico: { x: 0.5, y: 0.12, zoom: 3.15 },
+  quincy: { x: 0.48, y: 0.115, zoom: 3.15 },
+  harper: { x: 0.48, y: 0.12, zoom: 3.15 },
+  reyes: { x: 0.495, y: 0.118, zoom: 3.18 },
+  ashford: { x: 0.51, y: 0.115, zoom: 3.15 },
+  marlowe: { x: 0.53, y: 0.12, zoom: 3.2 },
+  caldwell: { x: 0.51, y: 0.12, zoom: 3.1 },
 }
 
 export function headshotFocal(spriteId: string): HeadshotFocal {
-  const resolved = HEADSHOT_FOCAL_ALIAS[spriteId] ?? spriteId
-  return HEADSHOT_FOCALS[resolved] ?? DEFAULT_FOCAL
+  return HEADSHOT_FOCALS[spriteId] ?? DEFAULT_FOCAL
 }

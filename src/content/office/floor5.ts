@@ -67,9 +67,9 @@ export const FLOOR_5_ZONE_ACCENT: Record<Floor5ZoneId, string> = {
 
 export const FLOOR_5_ZONE_FLOOR: Record<Floor5ZoneId, string> = {
   zone_landing: 'floor_elevator',
-  zone_ante: 'floor_director',
+  zone_ante: 'floor_ante',
   zone_board: 'floor_board',
-  zone_hall_f5: 'floor_hall',
+  zone_hall_f5: 'floor_hall_f5',
 }
 
 export function floor5ZoneAt(x: number, y: number): Floor5ZoneId {
@@ -234,7 +234,7 @@ export const FLOOR_5_RUGS: {
   kind: 'red' | 'gold' | 'navy'
 }[] = [
   { x0: 2, y0: 2, x1: 4, y1: 3, kind: 'red' },
-  { x0: 1, y0: 8, x1: 21, y1: 8, kind: 'navy' },
+  { x0: 1, y0: 8, x1: 21, y1: 8, kind: 'gold' },
   { x0: 11, y0: 11, x1: 20, y1: 13, kind: 'gold' },
 ]
 

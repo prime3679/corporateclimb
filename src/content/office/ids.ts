@@ -176,7 +176,7 @@ export type PoiId =
   | 'poi_janitor_cart'
   | 'poi_safe'
   | 'poi_shredder'
-  // Floors 3–5 stubs (kept so Astra inspect / tests stay valid)
+  // Leftover inspect id — never placed on live maps. Keep for save compat.
   | 'poi_directory_sign_stub'
   // Floor 3
   | 'poi_elevator_door_f3'

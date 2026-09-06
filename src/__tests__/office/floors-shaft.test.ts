@@ -1,8 +1,13 @@
 import { describe, expect, it } from 'vitest'
 import {
+  FLOOR_3_ZONE_FLOOR,
+  FLOOR_4_ZONE_FLOOR,
+  FLOOR_5_ZONE_FLOOR,
   FLOOR_ART_BY_ID,
   FLOOR_DIRECTORY_TEXT,
   FLOOR_IDS,
+  FLOOR_INTERACT_SPOTS,
+  POI_INSPECT,
   STUB_ART,
   STUB_DIRECTORY_TEXT,
   elevatorArrivalForFloor,
@@ -68,7 +73,32 @@ describe('office shaft + department floors', () => {
       expect(FLOOR_ART_BY_ID[id]).not.toEqual(STUB_ART)
       expect(FLOOR_DIRECTORY_TEXT[id]).not.toEqual(STUB_DIRECTORY_TEXT)
       expect(FLOOR_DIRECTORY_TEXT[id].join(' ')).not.toMatch(/Unmapped floor|Fable fills/)
+      const placed = FLOOR_INTERACT_SPOTS[id].map((s) =>
+        s.target.kind === 'poi' ? s.target.id : '',
+      )
+      expect(placed).not.toContain('poi_directory_sign_stub')
     }
+    expect(POI_INSPECT.poi_directory_sign_stub).toMatch(/Unmapped floor/)
+  })
+
+  it('gives Product / Sales / Exec distinct floors vs each other and the F1 hall', () => {
+    expect(FLOOR_3_ZONE_FLOOR.zone_product).toBe('floor_product')
+    expect(FLOOR_4_ZONE_FLOOR.zone_sales).toBe('floor_sales')
+    expect(FLOOR_5_ZONE_FLOOR.zone_board).toBe('floor_board')
+    expect(FLOOR_3_ZONE_FLOOR.zone_hall_f3).toBe('floor_hall_f3')
+    expect(FLOOR_4_ZONE_FLOOR.zone_hall_f4).toBe('floor_hall_f4')
+    expect(FLOOR_5_ZONE_FLOOR.zone_hall_f5).toBe('floor_hall_f5')
+    expect(FLOOR_5_ZONE_FLOOR.zone_ante).toBe('floor_ante')
+    const cells = [
+      FLOOR_3_ZONE_FLOOR.zone_product,
+      FLOOR_4_ZONE_FLOOR.zone_sales,
+      FLOOR_5_ZONE_FLOOR.zone_board,
+      FLOOR_3_ZONE_FLOOR.zone_hall_f3,
+      FLOOR_4_ZONE_FLOOR.zone_hall_f4,
+      FLOOR_5_ZONE_FLOOR.zone_hall_f5,
+      'floor_hall',
+    ]
+    expect(new Set(cells).size).toBe(cells.length)
   })
 
   it('reads (6,3) / (14,3) glass as walkable openings', () => {

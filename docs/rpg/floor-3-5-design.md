@@ -129,7 +129,7 @@ Solid set: `# E R i p w = c K V t S L d f W N 8 9 y`. Walkable: `.` `D` `@`.
 | `zone_landing` | x1–5, y1–5      | LANDING  | `#e0844d` | `floor_elevator` |
 | `zone_war`     | x7–13, y1–5     | WAR ROOM | `#c47a3a` | `floor_war`      |
 | `zone_intake`  | x15–22, y1–5    | INTAKE   | `#8a6bb8` | `floor_intake`   |
-| `zone_hall_f3` | y7–8 + doorways | HALL     | `#8b98a8` | `floor_hall`     |
+| `zone_hall_f3` | y7–8 + doorways | HALL     | `#8b98a8` | `floor_hall_f3`  |
 | `zone_product` | x1–22, y10–16   | PRODUCT  | `#5a6a9a` | `floor_product`  |
 
 Rugs: red `(2–4, 2–3)`, navy runner row 8 `x1–21`, gold under Quincy `(16–20, 11–13)`.
@@ -215,12 +215,11 @@ handout-rack cell (the leave-behind stand).
 | `zone_landing`  | x1–5, y1–5      | LANDING  | `#e0844d` | `floor_elevator` |
 | `zone_pipeline` | x7–13, y1–5     | PIPELINE | `#d45a3a` | `floor_pipeline` |
 | `zone_client`   | x15–22, y1–5    | CLIENT   | `#c4a05a` | `floor_client`   |
-| `zone_hall_f4`  | y7–8 + doorways | HALL     | `#8b98a8` | `floor_hall`     |
-| `zone_sales`    | x1–22, y10–16   | SALES    | `#8a3a4a` | `floor_product`  |
+| `zone_hall_f4`  | y7–8 + doorways | HALL     | `#8b98a8` | `floor_hall_f4`  |
+| `zone_sales`    | x1–22, y10–16   | SALES    | `#8a3a4a` | `floor_sales`    |
 
-`floor_product` is reused on purpose: the south plate is the building's, dressed
-with sales signage. Rugs: red elevator, navy hall, gold under Ashford
-`(16–20, 11–13)`.
+Pass E: Sales no longer reuses Product slate — wine diamond vs indigo tiles.
+Rugs: red elevator, **red** hall runner, gold under Ashford `(16–20, 11–13)`.
 
 ### 3.3 Cast
 
@@ -292,13 +291,13 @@ table. Two NPCs (tighter than 3).
 | Zone id        | Interior        | Label       | Accent    | Floor cell       |
 | -------------- | --------------- | ----------- | --------- | ---------------- |
 | `zone_landing` | x1–5, y1–5      | LANDING     | `#e0844d` | `floor_elevator` |
-| `zone_ante`    | x7–22, y1–5     | ANTECHAMBER | `#6a5a48` | `floor_director` |
-| `zone_hall_f5` | y7–8 + doorways | HALL        | `#8b98a8` | `floor_hall`     |
+| `zone_ante`    | x7–22, y1–5     | ANTECHAMBER | `#6a5a48` | `floor_ante`     |
+| `zone_hall_f5` | y7–8 + doorways | HALL        | `#8b98a8` | `floor_hall_f5`  |
 | `zone_board`   | x1–22, y10–16   | BOARDROOM   | `#2a2438` | `floor_board`    |
 
-`zone_ante` reuses Floor 2's charcoal director carpet — the waiting room is the
-expensive carpet you are not supposed to stand on for long. Rugs: red elevator,
-navy hall, gold under the board table + Caldwell `(11–20, 11–13)`.
+Pass E: ante is walnut herringbone (`floor_ante`), not the F2 director plush.
+Rugs: red elevator, **gold** hall runner, gold under the board table + Caldwell
+`(11–20, 11–13)`.
 
 ### 4.3 Cast
 
@@ -409,12 +408,13 @@ clocks, vents, pinboards, whiteboards, Floor 2 gold/navy rug parts.
 | Floors | `floor_war`, `floor_intake`, `floor_product`, `floor_pipeline`, `floor_client`, `floor_board`                                                                                                             |
 | Decor  | `plaque_product_l/m/r`, `plaque_sales_l/m/r`, `plaque_exec_l/m/r`, `sign_war`, `sign_intake`, `sign_pipeline`, `sign_client`, `sign_board`, `nameplate_quincy`, `nameplate_ashford`, `nameplate_caldwell` |
 | Props  | `directory_f3`, `directory_f4`, `directory_f5`, `roadmap_wall`, `intake_board`, `pipeline_board`, `sideboard`                                                                                             |
+| Pass E | `floor_sales`, `floor_ante`, `floor_hall_f3`, `floor_hall_f4`, `floor_hall_f5` (appended; F1/F2/F3–5 prior indices stay)                                                                                  |
 | Actors | `sloane`, `nico`, `quincy`, `harper`, `reyes`, `ashford`, `marlowe`, `caldwell`                                                                                                                           |
 
-Walk sheets use the Floor 1 chibi rig. Dialogue / party cards reuse existing
-512px portraits as stand-ins (new `spriteId` keys pointing at the house
-files) until a portrait commission — Floor 2 already spent `intern` / `vp` /
-`boss`. Map bodies are unique.
+Walk sheets use the Floor 1 chibi rig. Dialogue / party / battle cards use
+unique 512px portraits (`src/assets/characters/npcs/{sloane,nico,quincy,
+harper,reyes,ashford,marlowe,caldwell}.webp`) through the same `Headshot`
+crop as Floors 1–2. Map bodies stay on the walk sheets.
 
 ---
 
