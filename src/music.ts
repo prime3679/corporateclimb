@@ -241,3 +241,11 @@ export const Music = {
     return currentTrack
   },
 }
+
+/** Playwright / debug read of the selected bed. Not a gameplay API. */
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, '__CC_MUSIC_TRACK', {
+    get: () => currentTrack,
+    configurable: true,
+  })
+}
