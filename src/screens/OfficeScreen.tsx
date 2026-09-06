@@ -292,6 +292,7 @@ export default function OfficeScreen({
       const sting = officeVictoryStinger(state.encounter.encounterId)
       setStinger(sting)
       SFX.victory()
+      SFX.stampCleared()
       if (!reduceMotion) await new Promise((r) => setTimeout(r, 980))
       setStinger(null)
     }

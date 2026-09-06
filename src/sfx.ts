@@ -9,6 +9,7 @@
 // test/non-browser contexts.
 
 let _volume = 1
+let _campaign: 'classic' | 'office' = 'classic'
 
 const SAMPLES = {
   uiHover: '/audio/sfx_ui_hover.mp3',
@@ -36,6 +37,13 @@ const SAMPLES = {
   record: '/audio/sting_new_record.mp3',
   multiplier: '/audio/sting_bonus_multiplier.mp3',
   executiveWarning: '/audio/sting_executive_warning.mp3',
+  elevatorOpen: '/audio/sfx_elevator_door_open.mp3',
+  elevatorClose: '/audio/sfx_elevator_door_close.mp3',
+  elevatorChime: '/audio/sfx_elevator_arrive_chime.mp3',
+  officeHit: '/audio/sfx_office_hit.mp3',
+  officeWin: '/audio/sfx_office_win.mp3',
+  clearedStamp: '/audio/sting_cleared_stamp.mp3',
+  theNodStamp: '/audio/sting_the_nod_stamp.mp3',
 } as const
 
 type SampleName = keyof typeof SAMPLES
@@ -150,6 +158,15 @@ export const SFX = {
     return _volume
   },
 
+  get campaign() {
+    return _campaign
+  },
+
+  /** Classic keeps the Act-1 samples; Office remaps hit/win through the same hooks. */
+  setCampaign(campaign: 'classic' | 'office') {
+    _campaign = campaign
+  },
+
   /** Sound-effect volume 0..1. 0 silences all SFX. */
   setVolume(volume: number) {
     _volume = Math.min(1, Math.max(0, volume))
@@ -189,11 +206,11 @@ export const SFX = {
   },
 
   hit() {
-    playSample('reviewHit', 0.95)
+    playSample(_campaign === 'office' ? 'officeHit' : 'reviewHit', 0.95)
   },
 
   critHit() {
-    playSample('reviewHit', 1)
+    playSample(_campaign === 'office' ? 'officeHit' : 'reviewHit', 1)
     window.setTimeout(() => playSample('comboTick', 0.9), 80)
   },
 
@@ -212,7 +229,7 @@ export const SFX = {
 
   // Progression
   victory() {
-    playSample('promotion', 0.9)
+    playSample(_campaign === 'office' ? 'officeWin' : 'promotion', 0.9)
   },
 
   levelUp() {
@@ -295,6 +312,28 @@ export const SFX = {
 
   elevatorDown() {
     playSample('elevatorDown', 0.85)
+  },
+
+  elevatorOpen() {
+    playSample('elevatorOpen', 0.88)
+  },
+
+  elevatorClose() {
+    playSample('elevatorClose', 0.88)
+  },
+
+  elevatorChime() {
+    playSample('elevatorChime', 0.9)
+  },
+
+  /** CLEARED rubber-stamp (floor celebrations + spar wins). */
+  stampCleared() {
+    playSample('clearedStamp', 1)
+  },
+
+  /** THE NOD — Floor 5 celebration only. */
+  stampTheNod() {
+    playSample('theNodStamp', 1)
   },
 
   printerJam() {

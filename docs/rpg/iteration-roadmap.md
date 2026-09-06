@@ -67,7 +67,8 @@ do not treat this list as already triaged.
 - [ ] Actor sheets + Headshot stand-ins; no leftover stub copy (`poi_directory_sign_stub`, `STUB_DIRECTORY_TEXT` on live maps).
 - [ ] `currentObjective` F5→F4→F3→F2→F1; cross-floor pins on the current elevator doors.
 - [ ] Elevator: current floor inert (“You are here”); locked row beeps and stays open; ride 2→3→4→5 and 5→1.
-- [ ] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); SFX / light pools per floor.
+- [ ] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
+- [x] Office audio (title / F1 / Operations / Exec beds + cab + CLEARED/THE NOD + combat hit/win) — `docs/rpg/office-audio.md`. F3/F4 dedicated beds and combat duck still deferred.
 
 **Nice later (Pass D)**
 

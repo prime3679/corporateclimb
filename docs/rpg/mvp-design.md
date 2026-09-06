@@ -1267,13 +1267,14 @@ that never changes); an unstyled default button or panel; text overflow, ellipsi
 any card at the smallest supported viewport; a blank empty state from §10.13; a placeholder string
 (`TODO`, `Lorem`, `??`); a transition that hard-cuts where §13 specifies a fade.
 
-### 14.4 Deferred with approval (audio)
+### 14.4 Audio (Office beds shipped; duck still deferred)
 
-Two music tracks are specified but may ship after the first playtest with Adrian's sign-off: an
-overworld loop (calm, sparse, office-hum register) and a boss variant (same loop, added pulse). Until
-they exist, the current title loop plays as the overworld loop and the battle cue is unchanged —
-the §13 duck/fade points are implemented against whatever track is present. All SFX cue points in
-§12 are **not** deferrable; every one is an existing method.
+Office no longer borrows the Classic Act-1 lobby bed. Live hooks play distinct
+title / Floor 1 / Operations / Exec loops plus cab and stamp stingers. See
+`docs/rpg/office-audio.md` for the file list, Classic isolation, and what is
+still deferred (combat duck, F3/F4 dedicated beds, wipe low-pass). All SFX cue
+points in §12 remain existing `SFX` methods — Office remaps hit/win through
+`SFX.setCampaign('office')` instead of forking the sequencer.
 
 ---
 

@@ -8,7 +8,8 @@ second combat engine or a second perk pool._
 Companion reading: `docs/rpg/iteration-roadmap.md` (Fable / Astra / CoS loop),
 `docs/rpg/mvp-design.md` (content freeze), `docs/rpg/balance.md`
 (ledger and combat numbers), `docs/rpg/fidelity-bar.md` (walk-cycle follow-up to
-the #67 presentation rebuild), `CLAUDE.md` (Classic tower). Floor 2 is designed in
+the #67 presentation rebuild), `docs/rpg/office-audio.md` (Office beds vs Classic),
+`CLAUDE.md` (Classic tower). Floor 2 is designed in
 `docs/rpg/floor-2-design.md`; the engine work it asks for (multi-floor state, elevator
 destinations, badges, roster, encounter phase 2) is listed in
 `docs/rpg/floor-2-engine-hooks.md`. Floors 3–5 (the 5-floor climb) are designed in
@@ -52,13 +53,14 @@ later polish, not a merge gate for this PR.
 
 ## 1. Split
 
-| Layer        | Path                                                    | Owns                                                                                                            |
-| ------------ | ------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
-| Content      | `src/content/office/*`                                  | Frozen IDs, the 24×18 map, dialogue nodes, encounter kits, POI copy, reward ledger. Tables and lookups only.    |
-| Engine       | `src/engine/office/*`                                   | `OfficeState`, `dispatchOfficeAction`, party, movement, dialogue effects, save I/O, encounter projection.       |
-| Combat       | existing `src/engine/turn.ts`                           | Damage, statuses, items, enemy AI. Office passes an `EncounterContext` projection; it does not fork a resolver. |
-| Presentation | `src/screens/OfficeScreen.tsx` + `src/screens/office/*` | Map, overlays, party strip. Reuses `BattleScreen`, `ClassSelect`, `PromotionScreen`, `ShopScreen`.              |
-| Art          | `scripts/gen_office_*.py` → `public/office/*`           | Hand-authored pixel sheets (actors, tileset + generated `tileAtlas.ts`). See `fidelity-bar.md`.                 |
+| Layer        | Path                                                                          | Owns                                                                                                            |
+| ------------ | ----------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Content      | `src/content/office/*`                                                        | Frozen IDs, the 24×18 map, dialogue nodes, encounter kits, POI copy, reward ledger. Tables and lookups only.    |
+| Engine       | `src/engine/office/*`                                                         | `OfficeState`, `dispatchOfficeAction`, party, movement, dialogue effects, save I/O, encounter projection.       |
+| Combat       | existing `src/engine/turn.ts`                                                 | Damage, statuses, items, enemy AI. Office passes an `EncounterContext` projection; it does not fork a resolver. |
+| Presentation | `src/screens/OfficeScreen.tsx` + `src/screens/office/*`                       | Map, overlays, party strip. Reuses `BattleScreen`, `ClassSelect`, `PromotionScreen`, `ShopScreen`.              |
+| Art          | `scripts/gen_office_*.py` → `public/office/*`                                 | Hand-authored pixel sheets (actors, tileset + generated `tileAtlas.ts`). See `fidelity-bar.md`.                 |
+| Audio        | `scripts/gen_office_audio.py` → `public/audio/music_office_*` + Office stings | Distinct Office beds/stingers. Classic `CLASSIC_TRACKS` stay on the Act-1 files. See `office-audio.md`.         |
 
 Classic (`corporate-climb-save`, `ENEMY_POOLS`, `BASE_PERK_POOL`, `simulation.test.ts`)
 is untouched. Office enemies never enter `ENEMY_POOLS`. Office campaigns always

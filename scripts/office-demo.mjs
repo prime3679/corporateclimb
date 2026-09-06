@@ -11,7 +11,9 @@ import path from 'node:path'
 const BASE = process.env.DEMO_URL || 'http://127.0.0.1:4173'
 const OUT_DIR = '/opt/cursor/artifacts'
 const FONT = '/usr/share/fonts/truetype/macos/Inter-Bold.ttf'
-const MUSIC = path.resolve('public/audio/music_executive_floor_luxury_predator.mp3')
+// Office title bed — not Classic lobby / exec. Re-record after the audio
+// PR so the trailer matches the live mix (in-game beds + cab + stamps).
+const MUSIC = path.resolve('public/audio/music_office_title_after_hours.mp3')
 
 const ASSIGNMENTS = {
   asg_printer: 'not_started',
