@@ -175,7 +175,10 @@ async function resumeOffice(page, next) {
   await page.getByRole('button', { name: 'CONTINUE' }).waitFor({ timeout: 10_000 })
   await hold(page, 450)
   await page.getByRole('button', { name: 'CONTINUE' }).click()
-  await page.getByText(/Floor \d · of 5/).waitFor({ timeout: 15_000 })
+  await page
+    .getByText(/Floor \d · of 5/)
+    .first()
+    .waitFor({ timeout: 15_000 })
   await hold(page, 700)
 }
 
@@ -351,7 +354,10 @@ async function main() {
       .getByRole('button', { name: /Bring it|Begin/i })
       .last()
       .click()
-    await page.getByText(/FLOOR\s+1\/5/).waitFor({ timeout: 12_000 })
+    await page
+      .getByText(/FLOOR\s+1\/5/)
+      .first()
+      .waitFor({ timeout: 12_000 })
     await hold(page, 1100)
     await seen(page, /YOUR MOVE|SPAR|PROVE IT/, 4000)
     for (let i = 0; i < 10; i++) {
