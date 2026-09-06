@@ -366,6 +366,10 @@ describe('Floors 3–5 — shared plate', () => {
     expect(FLOOR_3_ZONE_ACCENT.zone_hall_f3).not.toBe('#8b98a8')
     expect(FLOOR_4_ZONE_ACCENT.zone_hall_f4).not.toBe('#8b98a8')
     expect(FLOOR_5_ZONE_ACCENT.zone_hall_f5).not.toBe('#8b98a8')
+    const hallRug = (rugs: typeof FLOOR_3_RUGS) => rugs.find((r) => r.x0 === 1 && r.x1 === 21)
+    expect(hallRug(FLOOR_3_RUGS)).toMatchObject({ y0: 8, y1: 8, kind: 'navy' })
+    expect(hallRug(FLOOR_4_RUGS)).toMatchObject({ y0: 7, y1: 8, kind: 'gold' })
+    expect(hallRug(FLOOR_5_RUGS)).toMatchObject({ y0: 7, y1: 8, kind: 'red' })
   })
 })
 
