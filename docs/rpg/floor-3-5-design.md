@@ -360,9 +360,11 @@ boss as a premium override (same rule as Holloway / Kessler).
 
 `FLOOR_3_LEDGER_MAX = 54`, `FLOOR_4_LEDGER_MAX = 64`, `FLOOR_5_LEDGER_MAX = 78`.
 
-Vending on each south floor reuses Floor 2's Facilities stock
-(`espresso` ×2, `pto_day`, `standing_desk`) until Astra's per-floor stock
-table lands. Take-five is free and full-party, same as 1 and 2.
+Vending on each south floor is its own machine (`OFFICE_VENDING_STOCK_BY_FLOOR`):
+Product (`espresso`, `noise_cancelling`, `mentors_advice`, `standing_desk`),
+Sales (`espresso`, `networking_card`, `linkedin_endorsement`, `reply_all_grenade`),
+Exec (`espresso`, `pto_day`, `reorg_memo`, `forward_to_legal`). Take-five is
+free and full-party, same as 1 and 2. Ledger maxima stay **54 / 64 / 78**.
 
 ---
 

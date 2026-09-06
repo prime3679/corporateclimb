@@ -155,7 +155,9 @@ Office save is v2 (`hired`, `bench`, `stats.rides`). v1 loads through
 ## 5. Economy and promotion
 
 The floor ledger is the `rwd_*` ids in `docs/rpg/balance.md`. Celebration
-“Options earned” sums only those claimed ids (max 65).
+“Options earned” sums only those claimed ids (Floor 1 max 65; Floor 2 max 90;
+Floors 3–5 max 54 / 64 / 78). The celebration plate prints `earned / max`
+and the earning rows; 0-Option promotion ids stay off the plate.
 
 `BASE_PERK_POOL` is unchanged. Holloway’s win rolls `rollPerkOffer(run.perks,
 rng, BASE_PERK_POOL)` into `pendingPerkOffer` and saves before
@@ -164,9 +166,11 @@ rng, BASE_PERK_POOL)` into `pendingPerkOffer` and saves before
 `rcpt_promotion_signing_bonus`. That +60 is not a `rwd_*` row and must not
 appear in the celebration total.
 
-Vending is the existing shop math at floor 0 (`shopPrice`, `buyShopItem`) with
-stock `espresso` ×2 and `side_hustle` ×1 stored on `run.shopStock`. Wellness
-Day is not sold.
+Vending is the existing shop math at floor 0 (`shopPrice`, `buyShopItem`).
+`vendingStock[floorId]` is the source of truth; `run.shopStock` is the machine
+currently open. Floor 1 stays `espresso` ×2 + `side_hustle`. Floor 2 stays
+Operations (`espresso` ×2, `pto_day`, `standing_desk`). Floors 3–5 have their
+own SKU lists in `OFFICE_VENDING_STOCK_BY_FLOOR`. Wellness Day is not sold.
 
 ## 6. Screens
 

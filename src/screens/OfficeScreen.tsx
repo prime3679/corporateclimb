@@ -29,6 +29,7 @@ import {
   officeBattleChrome,
   officeBattleLabels,
   officeBattleRoom,
+  vendingFlavor,
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
@@ -320,13 +321,15 @@ export default function OfficeScreen({
   }
 
   if (state.screen === 'vending') {
+    const machine = vendingFlavor(state.floorId, state.run.shopStock ?? [])
     return (
       <ShopScreen
         run={state.run}
         maxHp={effectiveKit(state, state.party[0]).maxHp}
         inventoryFull={state.run.inventory.length >= 4}
         hideWellness
-        title="VENDING"
+        title={machine.title}
+        subtitle={machine.subtitle}
         onBuyItem={(idx) => {
           const id = state.run.shopStock?.[idx]
           if (!id) return

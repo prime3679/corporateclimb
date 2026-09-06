@@ -18,6 +18,7 @@ export default function ShopScreen({
   onLeave,
   hideWellness = false,
   title,
+  subtitle,
 }: {
   run: RunState
   maxHp: number
@@ -27,6 +28,8 @@ export default function ShopScreen({
   onLeave: () => void
   hideWellness?: boolean
   title?: string
+  /** Office vending flavor. Classic Company Store keeps the payroll line. */
+  subtitle?: string
 }) {
   const stock = run.shopStock ?? []
   // The engine helper folds in the Re-Org surcharge (Budget Scrutiny).
@@ -121,9 +124,10 @@ export default function ShopScreen({
         className="t-body"
         style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
       >
-        {title === 'VENDING'
-          ? 'Accepts Stock Options. Nobody asked how.'
-          : 'Payroll-approved supplies. Exit through the gift shop.'}
+        {subtitle ??
+          (title === 'VENDING'
+            ? 'Accepts Stock Options. Nobody asked how.'
+            : 'Payroll-approved supplies. Exit through the gift shop.')}
       </div>
 
       <Panel variant="glass" style={{ padding: '8px 16px', borderColor: 'rgba(255,211,77,.24)' }}>

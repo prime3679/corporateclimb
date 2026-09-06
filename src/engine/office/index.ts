@@ -50,6 +50,7 @@ export {
   celebrationCopy,
   celebrationFloor,
   celebrationKicker,
+  celebrationLedger,
   celebrationLive,
   celebrationStats,
   type CelebrationButton,

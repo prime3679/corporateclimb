@@ -37,16 +37,12 @@ Do not merge a draft that skipped step 3.
 A pass is done when CoS’s cold playtest of that pass’s bar is green. Do not
 skip A to chase D.
 
-## Current stack (as of 2026-09-05)
+## Current stack (as of 2026-09-06)
 
-`#72` Floor 2 art → `#73` 5-floor spine → `#74` F3–5 art → `#75` F3–5 hooks
-→ `#77` Fable must-fix → squash-landed on `main` as `#78`
-([`7b153bd`](https://github.com/prime3679/corporateclimb/commit/7b153bd95e0e58911a220faf47403b62b83a2b1a)).
-Roadmap text itself landed as `#80`
-([`5e81cb9`](https://github.com/prime3679/corporateclimb/commit/5e81cb90325cbe6d7b042adb8c6c67fd3d594b84)).
-
-Tip is `main`. Do not remount the closed stack. Next work is Pass A cold
-playtest and Should-fix tickets against this tip.
+Tip `main` includes Pass C feel `#86` (`0c4f781`) and Office audio `#89`
+(`e73376b`). Pass D depth (this draft) stacks on that tip: per-floor vending,
+optional side POIs, ledger plate 54 / 64 / 78, celebration polish. Do not
+remount the closed `#72`–`#78` stack. Do not add a Floor 6.
 
 ## Immediate next (after tip playtest)
 
@@ -72,8 +68,8 @@ do not treat this list as already triaged.
 
 **Nice later (Pass D)**
 
-- [ ] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
-- [ ] Portrait commission; celebration polish; §12 / §13 / §19.
+- [x] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
+- [ ] Portrait commission (still Fable; stand-ins stay). §12 / §13 / §19 device sign-off.
 
 ## Do not
 

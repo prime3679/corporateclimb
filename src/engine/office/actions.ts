@@ -33,6 +33,8 @@ import {
   SIDEBOARD_COPY,
   BADGE_PRINTER_COPY,
   SHREDDER_COPY,
+  resolveSidePoi,
+  type SidePoiResult,
   type CoworkerId,
   type DialogueId,
   type EncounterId,
@@ -435,9 +437,6 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
   if (id === 'poi_directory_sign')
     return pushOverlay(state, { kind: 'document', docId: 'directory' })
   if (id === 'poi_elevator_door') return handleElevatorPoi(state)
-  if (id === 'poi_exit_door') return inspect(state, POI_INSPECT.poi_exit_door)
-  if (id === 'poi_water_cooler') return inspect(state, POI_INSPECT.poi_water_cooler)
-  if (id === 'poi_break_table') return inspect(state, POI_INSPECT.poi_break_table)
   if (id === 'poi_supervisor_door') {
     if (supervisorGateOpen(state) && state.encounters.enc_supervisor_1on1 !== 'won') {
       return pushOverlay(state, { kind: 'confirm', prompt: 'door' })
@@ -499,7 +498,21 @@ function handlePoi(state: OfficeState, id: PoiId): OfficeState {
   if (id === 'poi_leavebehind') return handleLeavebehindPickup(state, 'poi_leavebehind')
   if (id === 'poi_sideboard') return handleSideboard(state)
   if (id === 'poi_supply_cabinet_upper') return handleCabinetUpper(state)
+  const side = resolveSidePoi(state, id)
+  if (side) return applySidePoi(state, side)
   return inspect(state, POI_INSPECT[id])
+}
+
+function applySidePoi(state: OfficeState, side: SidePoiResult): OfficeState {
+  const next =
+    side.trigger && !state.firedTriggers.includes(side.trigger)
+      ? { ...state, firedTriggers: [...state.firedTriggers, side.trigger] }
+      : state
+  if (!side.toast) return inspect(next, side.text)
+  return enqueueOverlays(next, [
+    { kind: 'dialogue', nodeId: `inspect:${side.text}`, line: 0 },
+    { kind: 'toast', text: side.toast },
+  ])
 }
 
 /** Transfer packet, step 1: the booth fires on two and prints the only copy. */
