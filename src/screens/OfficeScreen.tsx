@@ -29,6 +29,7 @@ import {
   officeBattleChrome,
   officeBattleLabels,
   officeBattleRoom,
+  vendingFlavor,
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
@@ -320,13 +321,15 @@ export default function OfficeScreen({
   }
 
   if (state.screen === 'vending') {
+    const machine = vendingFlavor(state.floorId, state.run.shopStock ?? [])
     return (
       <ShopScreen
         run={state.run}
         maxHp={effectiveKit(state, state.party[0]).maxHp}
         inventoryFull={state.run.inventory.length >= 4}
         hideWellness
-        title="VENDING"
+        title={machine.title}
+        subtitle={machine.subtitle}
         onBuyItem={(idx) => {
           const id = state.run.shopStock?.[idx]
           if (!id) return
@@ -571,6 +574,7 @@ function Overworld({
   const obj = currentObjective(state)
   const overlayOpen =
     (!!state.overlay && state.overlay.kind !== 'coach') || state.screen === 'elevator_ride'
+  const celebrating = state.overlay?.kind === 'celebration'
   const verb = actVerb(prompt, state)
   const chips = hudKeyChips(state)
   const holdRef = useRef<number | null>(null)
@@ -598,9 +602,11 @@ function Overworld({
   }
 
   return (
-    <div className={`${styles.screen} ${sceneFx === 'battle-out' ? styles.sceneBattleOut : ''}`}>
+    <div
+      className={`${styles.screen} ${sceneFx === 'battle-out' ? styles.sceneBattleOut : ''} ${celebrating ? styles.screenCeleb : ''}`}
+    >
       {sceneFx === 'battle-out' && <span className={styles.sceneVeil} aria-hidden />}
-      <div className={styles.hud}>
+      <div className={`${styles.hud} ${celebrating ? styles.chromeHidden : ''}`}>
         <div
           className={`${styles.objective} ${styles.ticket} ${state.overlay?.kind === 'coach' && state.overlay.id === 'coach_pin' ? styles.objectiveCoach : ''}`}
           aria-label="Objective"
@@ -659,7 +665,7 @@ function Overworld({
         />
       </div>
 
-      <div className={styles.ctl}>
+      <div className={`${styles.ctl} ${celebrating ? styles.chromeHidden : ''}`}>
         <div
           className={`${styles.dpad} ${overlayOpen ? styles.ctlDim : ''}`}
           aria-label="Move"

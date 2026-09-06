@@ -885,19 +885,20 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
-  padding: 28px 24px;
+  gap: 10px;
+  padding: 22px 20px 18px;
   text-align: center;
   color: var(--cc-text);
   pointer-events: auto;
-  overflow: hidden;
+  overflow: hidden auto;
   isolation: isolate;
 }
 
 .celebWash,
 .celebSweep,
 .celebMark,
-.celebSparks {
+.celebSparks,
+.celebSkyline {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -929,8 +930,46 @@
   font-family: var(--cc-font-display);
   font-size: min(42vw, 220px);
   line-height: 0.8;
-  color: rgba(255, 213, 79, 0.07);
+  color: color-mix(in srgb, var(--celeb-tint, #ffd54f) 12%, transparent);
   letter-spacing: -0.04em;
+}
+
+.celebSkyline {
+  z-index: 0;
+  opacity: 0;
+  background:
+    linear-gradient(180deg, transparent 58%, rgba(0, 0, 0, 0.35) 100%),
+    repeating-linear-gradient(
+      90deg,
+      transparent 0 18px,
+      color-mix(in srgb, var(--celeb-tint, #ffd54f) 16%, transparent) 18px 28px,
+      transparent 28px 46px,
+      color-mix(in srgb, var(--celeb-tint, #ffd54f) 10%, transparent) 46px 54px
+    );
+  clip-path: polygon(
+    0 100%,
+    0 72%,
+    8% 72%,
+    8% 58%,
+    16% 58%,
+    16% 68%,
+    24% 68%,
+    24% 50%,
+    34% 50%,
+    34% 64%,
+    44% 64%,
+    44% 46%,
+    56% 46%,
+    56% 62%,
+    66% 62%,
+    66% 52%,
+    76% 52%,
+    76% 70%,
+    86% 70%,
+    86% 56%,
+    100% 56%,
+    100% 100%
+  );
 }
 
 .celebKicker,
@@ -938,6 +977,8 @@
 .celebLine,
 .celebParty,
 .stats,
+.ledger,
+.celebClimb,
 .celebActions,
 .celebLetterhead,
 .celebStamp,
@@ -1028,6 +1069,19 @@
   --celeb-tint: #d4af37;
 }
 
+.celebF5 .celebSkyline {
+  opacity: 1;
+}
+
+.celebF5 .celebStamp {
+  top: 10%;
+  right: 8%;
+  padding: 8px 14px 7px;
+  font-size: var(--display-sm);
+  letter-spacing: 0.22em;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--celeb-tint) 35%, transparent);
+}
+
 .celebF2 .celebWash,
 .celebF3 .celebWash,
 .celebF4 .celebWash,
@@ -1052,14 +1106,97 @@
 .stats {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 8px 24px;
+  gap: 6px 20px;
   width: min(380px, 100%);
-  margin-top: 6px;
-  padding: 12px 14px;
+  margin-top: 2px;
+  padding: 10px 12px;
   border-radius: var(--radius-md);
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.035), rgba(255, 255, 255, 0)), var(--cc-glass);
   border: 1px solid var(--cc-line-strong);
+}
+
+.statFull {
+  color: var(--celeb-tint, var(--cc-gold));
+}
+
+.ledger {
+  width: min(380px, 100%);
+  padding: 8px 10px 6px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), rgba(255, 255, 255, 0)),
+    color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 6%, var(--cc-glass));
+  border: 1px solid color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 28%, var(--cc-line));
+  text-align: left;
+}
+
+.ledgerHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-label);
+  text-transform: uppercase;
+  color: var(--cc-text-dim);
+}
+
+.ledgerChip {
+  padding: 1px 6px;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 55%, transparent);
+  color: var(--celeb-tint, var(--cc-gold));
+}
+
+.ledgerMiss {
+  color: var(--cc-text-faint);
+}
+
+.ledgerRow,
+.ledgerRowMiss {
+  display: grid;
+  grid-template-columns: 12px 1fr auto;
+  gap: 8px;
+  align-items: baseline;
+  padding: 2px 0;
+  font-family: var(--cc-font-body);
+  font-size: var(--body-sm);
+}
+
+.ledgerRow {
+  color: var(--cc-text);
+}
+
+.ledgerRowMiss {
+  color: var(--cc-text-faint);
+}
+
+.celebClimb {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.celebClimb li {
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 35%, var(--cc-line));
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  color: var(--cc-text-dim);
+}
+
+.celebClimbNow {
+  border-color: var(--celeb-tint, var(--cc-gold));
+  color: var(--celeb-tint, var(--cc-gold));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 40%, transparent);
 }
 
 .stat {

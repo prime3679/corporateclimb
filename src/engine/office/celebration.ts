@@ -4,11 +4,15 @@ import {
   FLOOR_4_LEDGER_MAX,
   FLOOR_5_LEDGER_MAX,
   FLOOR_LEDGER_MAX,
+  FLOOR_REWARD_IDS,
+  RECEIPTS,
+  REWARD_OPTIONS,
   elevatorRowFor,
   floorNumber,
   ledgerOptionsEarned,
   type AssignmentId,
   type FloorId,
+  type RewardId,
 } from '@/content/office'
 import { inParty, isHired, type OfficeState } from './state'
 
@@ -112,6 +116,7 @@ export function celebrationStats(state: OfficeState, screen: CelebrationScreen) 
   const floorId = celebrationFloor(screen)
   const ids = FLOOR_ASSIGNMENTS[floorId]
   const assignmentsDone = ids.filter((id) => state.assignments[id] === 'complete').length
+  const ledger = celebrationLedger(state, screen)
   return {
     floorId,
     assignmentsDone,
@@ -119,10 +124,49 @@ export function celebrationStats(state: OfficeState, screen: CelebrationScreen) 
     battlesWon: state.stats.battlesWon,
     losses: state.stats.losses,
     switches: state.stats.switches,
-    options: ledgerOptionsEarned(state.rewardsClaimed, floorId),
-    ledgerMax: LEDGER_MAX[floorId],
+    options: ledger.earned,
+    ledgerMax: ledger.max,
+    ledgerComplete: ledger.complete,
     timeMs: state.stats.msOnFloor,
   }
+}
+
+export interface CelebrationLedgerRow {
+  id: RewardId
+  title: string
+  options: number
+  claimed: boolean
+}
+
+export interface CelebrationLedger {
+  rows: CelebrationLedgerRow[]
+  earned: number
+  max: number
+  complete: boolean
+}
+
+function receiptTitleFor(id: RewardId): string {
+  const receipt = Object.values(RECEIPTS).find((row) => row.rewardId === id)
+  return receipt?.title ?? id
+}
+
+/** Claimed vs missed `rwd_*` rows for one floor. Promotion 0-Option rows stay off the plate. */
+export function celebrationLedger(
+  state: OfficeState,
+  screen: CelebrationScreen,
+): CelebrationLedger {
+  const floorId = celebrationFloor(screen)
+  const rows = FLOOR_REWARD_IDS[floorId]
+    .filter((id) => (REWARD_OPTIONS[id] ?? 0) > 0)
+    .map((id) => ({
+      id,
+      title: receiptTitleFor(id),
+      options: REWARD_OPTIONS[id],
+      claimed: state.rewardsClaimed.includes(id),
+    }))
+  const earned = ledgerOptionsEarned(state.rewardsClaimed, floorId)
+  const max = LEDGER_MAX[floorId]
+  return { rows, earned, max, complete: earned === max }
 }
 
 export interface CelebrationButton {

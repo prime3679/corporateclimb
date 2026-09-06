@@ -29,6 +29,7 @@ import {
   celebrationButtons,
   celebrationCopy,
   celebrationKicker,
+  celebrationLedger,
   celebrationStats,
   type CelebrationScreen,
 } from '@/engine/office'
@@ -1235,6 +1236,7 @@ function CelebrationScreen({
 }) {
   const copy = celebrationCopy(state, screen)
   const stats = celebrationStats(state, screen)
+  const ledger = celebrationLedger(state, screen)
   const buttons = celebrationButtons(screen)
   const assign = useCountUp(stats.assignmentsDone, CELEBRATION_COUNT_MS, reduceMotion)
   const won = useCountUp(stats.battlesWon, CELEBRATION_COUNT_MS, reduceMotion)
@@ -1276,6 +1278,7 @@ function CelebrationScreen({
       aria-label={copy.title}
     >
       <span className={styles.celebWash} aria-hidden />
+      <span className={styles.celebSkyline} aria-hidden />
       <span className={styles.celebSweep} aria-hidden />
       <span className={styles.celebSparks} aria-hidden />
       <span className={styles.celebMark} aria-hidden>
@@ -1287,6 +1290,15 @@ function CelebrationScreen({
       </div>
       <div className={styles.celebTitle}>{copy.title}</div>
       <div className={styles.celebLine}>{copy.body}</div>
+      {screen === 'screen_floor5_complete' && (
+        <ol className={styles.celebClimb} aria-label="Five floors. One nod.">
+          {[1, 2, 3, 4, 5].map((n) => (
+            <li key={n} className={n === 5 ? styles.celebClimbNow : undefined}>
+              {n}
+            </li>
+          ))}
+        </ol>
+      )}
       <PartyChips state={state} size={64} showNames className={styles.celebParty} />
       <div className={styles.stats} aria-live="polite">
         <div className={styles.stat}>
@@ -1309,14 +1321,35 @@ function CelebrationScreen({
         </div>
         <div className={styles.stat}>
           <span>Options earned</span>
-          <span className={styles.statVal}>
-            {options} {CURRENCY_ICON}
+          <span className={`${styles.statVal} ${ledger.complete ? styles.statFull : ''}`}>
+            {options} / {stats.ledgerMax} {CURRENCY_ICON}
           </span>
         </div>
         <div className={styles.stat}>
           <span>Time on floor</span>
           <span className={styles.statVal}>{formatFloorTime(time)}</span>
         </div>
+      </div>
+      <div className={styles.ledger} aria-label="Floor ledger">
+        <div className={styles.ledgerHead}>
+          <span>Floor ledger</span>
+          {ledger.complete ? (
+            <span className={styles.ledgerChip}>Full ledger</span>
+          ) : (
+            <span className={styles.ledgerMiss}>
+              {ledger.rows.filter((row) => !row.claimed).length} open
+            </span>
+          )}
+        </div>
+        {ledger.rows.map((row) => (
+          <div key={row.id} className={row.claimed ? styles.ledgerRow : styles.ledgerRowMiss}>
+            <span>{row.claimed ? '✓' : '–'}</span>
+            <span>{row.title}</span>
+            <span>
+              +{row.options} {CURRENCY_ICON}
+            </span>
+          </div>
+        ))}
       </div>
       <div className={`${styles.body} ${styles.dim}`} style={{ textAlign: 'center' }}>
         {copy.dim}

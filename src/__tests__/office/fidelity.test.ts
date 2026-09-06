@@ -152,7 +152,7 @@ describe('Office should-fix fidelity', () => {
     expect(s.firedTriggers).toContain('poi_supply_cabinet_upper:opened')
   })
 
-  it('stocks Floors 2–5 with the upper vending SKUs without touching Floor 1', () => {
+  it('stocks Floor 2 with Operations SKUs without touching Floor 1', () => {
     const fresh = start()
     expect(fresh.vendingStock.floor_01).toEqual(['espresso', 'espresso', 'side_hustle'])
     expect(fresh.vendingStock.floor_02).toEqual(OFFICE_VENDING_STOCK_UPPER)

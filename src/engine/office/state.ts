@@ -5,6 +5,7 @@ import type { BattleState, RunState } from '../state'
 import {
   COWORKER_KITS,
   FLOOR_IDS,
+  OFFICE_VENDING_STOCK_BY_FLOOR,
   PARTY_MAX,
   spawnForFloor,
   type AssignmentId,
@@ -101,26 +102,22 @@ export interface OfficeState extends OfficeSave {
   rideTo: FloorId | null
 }
 
-export const OFFICE_VENDING_STOCK: ItemId[] = ['espresso', 'espresso', 'side_hustle']
-/** Floors 2–5 share this SKU list until a later per-floor restock pass. */
-export const OFFICE_VENDING_STOCK_UPPER: ItemId[] = [
-  'espresso',
-  'espresso',
-  'pto_day',
-  'standing_desk',
-]
+/** Floor 1 machine — frozen SKUs from mvp-design §5. */
+export const OFFICE_VENDING_STOCK: ItemId[] = [...OFFICE_VENDING_STOCK_BY_FLOOR.floor_01]
+/** Floor 2 Operations machine. Alias kept for Floor 2 tests. */
+export const OFFICE_VENDING_STOCK_UPPER: ItemId[] = [...OFFICE_VENDING_STOCK_BY_FLOOR.floor_02]
 
 export function vendingStockForFloor(floorId: FloorId): ItemId[] {
-  return floorId === 'floor_01' ? [...OFFICE_VENDING_STOCK] : [...OFFICE_VENDING_STOCK_UPPER]
+  return [...OFFICE_VENDING_STOCK_BY_FLOOR[floorId]]
 }
 
 export function defaultVendingStock(): Record<FloorId, ItemId[]> {
   return {
-    floor_01: [...OFFICE_VENDING_STOCK],
-    floor_02: [...OFFICE_VENDING_STOCK_UPPER],
-    floor_03: [...OFFICE_VENDING_STOCK_UPPER],
-    floor_04: [...OFFICE_VENDING_STOCK_UPPER],
-    floor_05: [...OFFICE_VENDING_STOCK_UPPER],
+    floor_01: vendingStockForFloor('floor_01'),
+    floor_02: vendingStockForFloor('floor_02'),
+    floor_03: vendingStockForFloor('floor_03'),
+    floor_04: vendingStockForFloor('floor_04'),
+    floor_05: vendingStockForFloor('floor_05'),
   }
 }
 

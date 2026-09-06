@@ -5,6 +5,8 @@ import {
   FLOOR_4_ZONE_ACCENT,
   FLOOR_5_ZONE_ACCENT,
   OFFICE_ENCOUNTERS,
+  SIDE_LOCKERS_OPEN,
+  SIDE_SAFE_READ,
   SPEAKER_SPRITE,
   floorLabel,
   ZONE_LABEL,
@@ -277,7 +279,11 @@ export function promptText(target: InteractTarget, state: OfficeSave): string {
     case 'poi_break_table_f2':
       return 'Inspect · Break table'
     case 'poi_lockers':
-      return 'Inspect · Lockers'
+      return state.firedTriggers.includes(SIDE_LOCKERS_OPEN)
+        ? 'Inspect · Lockers'
+        : state.firedTriggers.includes(SIDE_SAFE_READ)
+          ? 'Try combo · Lockers'
+          : 'Inspect · Lockers'
     case 'poi_janitor_cart':
       return 'Inspect · Janitor cart'
     case 'poi_safe':
