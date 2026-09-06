@@ -63,6 +63,9 @@ and the remaining roadmap):
   manifest and a content-hash VERSION at build time (`npm run build` prints the entry
   count). Keep its `self.__PRECACHE = ['/']` and `const VERSION = 'dev'` placeholders
   intact.
+- Office music/SFX are a second catalog on the same `Music` / `SFX` facades
+  (`docs/rpg/office-audio.md`). Do not retarget Classic `CLASSIC_TRACKS` filenames;
+  regenerate Office files with `python3 scripts/gen_office_audio.py`.
 
 ## Conventions
 

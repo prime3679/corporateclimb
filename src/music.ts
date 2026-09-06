@@ -4,18 +4,41 @@
 // Track changes crossfade (~450ms) instead of hard-cutting; volume
 // ramps are per-element and cancellable, so a settings change or a
 // rapid screen hop simply supersedes the in-flight fade.
+//
+// Classic keeps the four original Act-1 beds. Office plays its own
+// title / Floor 1 / Operations / Exec loops — see docs/rpg/office-audio.md.
 
-type TrackName = 'title' | 'battle' | 'boss' | 'event'
+export type ClassicTrack = 'title' | 'battle' | 'boss' | 'event'
+export type OfficeTrack = 'officeTitle' | 'officeFloor1' | 'officeFloor2' | 'officeExec'
+export type TrackName = ClassicTrack | OfficeTrack
 
-const TRACKS: Record<TrackName, string> = {
+/** Classic tower beds. Filenames are a contract — do not retarget these keys. */
+export const CLASSIC_TRACKS: Record<ClassicTrack, string> = {
   title: '/audio/music_menu_corporate_lobby.mp3',
   battle: '/audio/music_gameplay_ladder_grind.mp3',
   boss: '/audio/music_executive_floor_luxury_predator.mp3',
   event: '/audio/music_gameplay_pressure_review.mp3',
 }
 
+/** Office campaign beds. Distinct from Classic Act-1 wallpaper. */
+export const OFFICE_TRACKS: Record<OfficeTrack, string> = {
+  officeTitle: '/audio/music_office_title_after_hours.mp3',
+  officeFloor1: '/audio/music_office_floor1_cubicle_hum.mp3',
+  officeFloor2: '/audio/music_office_floor2_operations.mp3',
+  officeExec: '/audio/music_office_exec_the_nod.mp3',
+}
+
+const TRACKS: Record<TrackName, string> = { ...CLASSIC_TRACKS, ...OFFICE_TRACKS }
+
 /** Every bed, for the service worker's background warm-up. */
 export const MUSIC_URLS: string[] = Object.values(TRACKS)
+
+/** Floor 3/4 reuse Operations until dedicated Product/Sales beds exist. */
+export function officeBedForFloor(floorId: string): OfficeTrack {
+  if (floorId === 'floor_05') return 'officeExec'
+  if (floorId === 'floor_01') return 'officeFloor1'
+  return 'officeFloor2'
+}
 
 let currentTrack: TrackName | null = null
 let currentAudio: HTMLAudioElement | null = null
@@ -160,6 +183,12 @@ export const Music = {
   playEvent() {
     playTrack('event')
   },
+  playOfficeTitle() {
+    playTrack('officeTitle')
+  },
+  playOfficeFloor(floorId: string) {
+    playTrack(officeBedForFloor(floorId))
+  },
   stop() {
     stopMusic()
   },
@@ -211,4 +240,12 @@ export const Music = {
   get currentTrack() {
     return currentTrack
   },
+}
+
+/** Playwright / debug read of the selected bed. Not a gameplay API. */
+if (typeof window !== 'undefined') {
+  Object.defineProperty(window, '__CC_MUSIC_TRACK', {
+    get: () => currentTrack,
+    configurable: true,
+  })
 }

@@ -6,7 +6,6 @@ import {
   REWARD_OPTIONS,
   ZONE_LABEL,
   floorLabel,
-  floorNumber,
   zoneAt,
 } from '@/content/office'
 import {
@@ -88,8 +87,7 @@ export function useOfficeFeedback(state: OfficeState): string {
         say(`${enc.titleCard}. ${enc.name}.`)
       } else if (state.screen === 'elevator_ride') {
         const dest = state.rideTo ?? prev.floorId
-        if (floorNumber(dest) < floorNumber(prev.floorId)) SFX.elevatorDown()
-        else SFX.elevatorUp()
+        // Cab SFX (open / close / arrive chime) live on ElevatorRide's timeline.
         Haptics.selection()
         say(`Elevator. Next stop: ${floorLabel(dest)}.`)
       } else if (state.screen === 'promotion') {
@@ -178,7 +176,8 @@ export function useOfficeFeedback(state: OfficeState): string {
     }
 
     if (ov.kind === 'celebration') {
-      SFX.fanfare()
+      if (ov.screen === 'screen_floor5_complete') SFX.stampTheNod()
+      else SFX.stampCleared()
       Haptics.success()
       say(celebrationLive(state, ov.screen))
       return

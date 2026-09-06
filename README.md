@@ -56,3 +56,6 @@ alpha preserved) from the original 1024×1024 PNG masters. Those masters are no
 longer in the tree — recover them from git history before commit `0ebdf73`
 (`git show 0ebdf73~1:src/assets/characters/npcs/boss.png > boss.png`) if you
 need to re-export at a different size.
+
+Office campaign audio (distinct from Classic Act-1 beds) is documented in
+`docs/rpg/office-audio.md` and regenerated with `python3 scripts/gen_office_audio.py`.

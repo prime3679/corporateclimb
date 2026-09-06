@@ -263,15 +263,28 @@ export default function CorporateClimb() {
     return () => window.removeEventListener('keydown', onKey)
   }, [showSettings, showCareer])
 
-  // Music: play track based on current screen
+  // Music: Classic screens keep the Act-1 beds. Office plays its own
+  // title / floor loops — never the Classic lobby wallpaper.
   const floor = run?.floor ?? 0
+  const officeFloorId = office?.floorId
   useEffect(() => {
+    const officeScreens =
+      screen === 'officeStart' || screen === 'officeClassSelect' || screen === 'office'
+    SFX.setCampaign(officeScreens ? 'office' : 'classic')
+
+    if (screen === 'officeStart' || screen === 'officeClassSelect') {
+      Music.playOfficeTitle()
+      return
+    }
+    if (screen === 'office') {
+      if (officeFloorId) Music.playOfficeFloor(officeFloorId)
+      else Music.playOfficeTitle()
+      return
+    }
+
     switch (screen) {
       case 'title':
       case 'classSelect':
-      case 'officeStart':
-      case 'officeClassSelect':
-      case 'office':
         Music.playTitle()
         break
       case 'battle':
@@ -291,7 +304,7 @@ export default function CorporateClimb() {
         Music.stop()
         break
     }
-  }, [screen, floor])
+  }, [screen, floor, officeFloorId])
 
   // ─── Battle outcome flows ──────────────────────────────────
   const handleWin = useCallback(

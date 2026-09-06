@@ -1398,15 +1398,22 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
 
   useEffect(() => {
     if (reduceMotion) {
+      SFX.elevatorChime()
       complete.current()
       return
     }
+    SFX.elevatorOpen()
     const timers: number[] = []
     const closeAt = ELEVATOR_RIDE.openMs
     const travelAt = closeAt + ELEVATOR_RIDE.closeMs
     const arriveAt = travelAt + ELEVATOR_RIDE.travelMs
     const fadeAt = arriveAt + ELEVATOR_RIDE.arriveMs
-    timers.push(window.setTimeout(() => setPhase('close'), closeAt))
+    timers.push(
+      window.setTimeout(() => {
+        setPhase('close')
+        SFX.elevatorClose()
+      }, closeAt),
+    )
     timers.push(window.setTimeout(() => setPhase('travel'), travelAt))
     for (const tick of elevatorRideTicks(state.floorId, destination)) {
       timers.push(
@@ -1419,8 +1426,7 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
     timers.push(
       window.setTimeout(() => {
         setPhase('arrive')
-        if (plan.up) SFX.elevatorUp()
-        else SFX.elevatorDown()
+        SFX.elevatorChime()
       }, arriveAt),
     )
     timers.push(window.setTimeout(() => setPhase('fade'), fadeAt))
