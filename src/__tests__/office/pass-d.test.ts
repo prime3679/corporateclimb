@@ -142,7 +142,7 @@ describe('Pass D — ledger 54 / 64 / 78', () => {
 
 describe('Pass D — optional side POIs', () => {
   it('opens the Finance lockers only after reading the safe sticky', () => {
-    let s = { ...start(), floorId: 'floor_02' as const }
+    let s: OfficeState = { ...start(), floorId: 'floor_02' }
     s = inspectAt(s, 9, 12, 'w')
     expect(s.overlay).toMatchObject({
       kind: 'dialogue',
