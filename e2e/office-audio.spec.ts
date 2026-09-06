@@ -19,7 +19,7 @@ function muteSettings() {
   return JSON.stringify({ textSpeed: 'instant', musicVolume: 0, sfxVolume: 0 })
 }
 
-function officeSave(floorId: 'floor_01' | 'floor_02' | 'floor_05') {
+function officeSave(floorId: 'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05') {
   return {
     version: 2,
     run: {
@@ -104,7 +104,10 @@ function officeSave(floorId: 'floor_01' | 'floor_02' | 'floor_05') {
   }
 }
 
-async function continueOffice(page: Page, floorId: 'floor_01' | 'floor_02' | 'floor_05') {
+async function continueOffice(
+  page: Page,
+  floorId: 'floor_01' | 'floor_02' | 'floor_03' | 'floor_04' | 'floor_05',
+) {
   await page.goto('/')
   await page.evaluate(
     ({ save, settings }) => {
@@ -149,6 +152,17 @@ test('Floor 2 and Exec load their own beds, not the Classic lobby', async ({ pag
   await continueOffice(page, 'floor_05')
   await expect(page.getByText('Floor 5 · of 5')).toBeVisible({ timeout: 10_000 })
   await expectTrack(page, 'officeExec')
+})
+
+test('Product and Sales load dedicated beds, not Operations', async ({ page }) => {
+  test.setTimeout(45_000)
+  await continueOffice(page, 'floor_03')
+  await expect(page.getByText('Floor 3 · of 5')).toBeVisible({ timeout: 10_000 })
+  await expectTrack(page, 'officeFloor3')
+
+  await continueOffice(page, 'floor_04')
+  await expect(page.getByText('Floor 4 · of 5')).toBeVisible({ timeout: 10_000 })
+  await expectTrack(page, 'officeFloor4')
 })
 
 test('Classic continue still uses Act-1 battle bed', async ({ page }) => {

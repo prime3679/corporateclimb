@@ -1267,13 +1267,14 @@ that never changes); an unstyled default button or panel; text overflow, ellipsi
 any card at the smallest supported viewport; a blank empty state from §10.13; a placeholder string
 (`TODO`, `Lorem`, `??`); a transition that hard-cuts where §13 specifies a fade.
 
-### 14.4 Audio (Office beds shipped; duck still deferred)
+### 14.4 Audio (Office beds + combat duck shipped)
 
 Office no longer borrows the Classic Act-1 lobby bed. Live hooks play distinct
-title / Floor 1 / Operations / Exec loops plus cab and stamp stingers. See
-`docs/rpg/office-audio.md` for the file list, Classic isolation, and what is
-still deferred (combat duck, F3/F4 dedicated beds, wipe low-pass). All SFX cue
-points in §12 remain existing `SFX` methods — Office remaps hit/win through
+title / Floor 1 / Operations / Product / Sales / Exec loops plus cab and stamp
+stingers. Office combat ducks the floor bed to 22% over 300 ms and restores it
+on win or wipe. See `docs/rpg/office-audio.md` for the file list, Classic
+isolation, and what is still deferred (wipe low-pass). All SFX cue points in
+§12 remain existing `SFX` methods — Office remaps hit/win through
 `SFX.setCampaign('office')` instead of forking the sequencer.
 
 ---

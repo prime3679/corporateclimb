@@ -3,11 +3,19 @@
 // the facade surface and the volume/mute bookkeeping, not sound.
 import { afterEach, describe, expect, it } from 'vitest'
 import { SFX } from '@/sfx'
-import { CLASSIC_TRACKS, MUSIC_URLS, Music, OFFICE_TRACKS, officeBedForFloor } from '@/music'
+import {
+  CLASSIC_TRACKS,
+  COMBAT_DUCK_GAIN,
+  MUSIC_URLS,
+  Music,
+  OFFICE_TRACKS,
+  officeBedForFloor,
+} from '@/music'
 
 afterEach(() => {
   SFX.setCampaign('classic')
   SFX.setVolume(1)
+  Music.unduckCombat()
   Music.setVolume(1)
   Music.setMuted(false)
 })
@@ -112,22 +120,48 @@ describe('Music facade', () => {
   it('maps Office floors to distinct beds, not the Classic lobby', () => {
     expect(officeBedForFloor('floor_01')).toBe('officeFloor1')
     expect(officeBedForFloor('floor_02')).toBe('officeFloor2')
-    expect(officeBedForFloor('floor_03')).toBe('officeFloor2')
-    expect(officeBedForFloor('floor_04')).toBe('officeFloor2')
+    expect(officeBedForFloor('floor_03')).toBe('officeFloor3')
+    expect(officeBedForFloor('floor_04')).toBe('officeFloor4')
     expect(officeBedForFloor('floor_05')).toBe('officeExec')
+    expect(officeBedForFloor('unknown')).toBe('officeFloor1')
     expect(OFFICE_TRACKS.officeTitle).toBe('/audio/music_office_title_after_hours.mp3')
     expect(OFFICE_TRACKS.officeFloor1).not.toBe(CLASSIC_TRACKS.title)
     expect(OFFICE_TRACKS.officeFloor2).not.toBe(CLASSIC_TRACKS.battle)
+    expect(OFFICE_TRACKS.officeFloor3).toBe('/audio/music_office_floor3_product.mp3')
+    expect(OFFICE_TRACKS.officeFloor4).toBe('/audio/music_office_floor4_sales.mp3')
+    expect(OFFICE_TRACKS.officeFloor3).not.toBe(OFFICE_TRACKS.officeFloor2)
+    expect(OFFICE_TRACKS.officeFloor4).not.toBe(OFFICE_TRACKS.officeFloor2)
+    expect(OFFICE_TRACKS.officeFloor4).not.toBe(OFFICE_TRACKS.officeFloor3)
     expect(OFFICE_TRACKS.officeExec).not.toBe(CLASSIC_TRACKS.boss)
     expect(MUSIC_URLS).toEqual(expect.arrayContaining(Object.values(CLASSIC_TRACKS)))
     expect(MUSIC_URLS).toEqual(expect.arrayContaining(Object.values(OFFICE_TRACKS)))
+  })
+
+  it('ducks the Office bed for combat and restores it without touching Classic keys', () => {
+    expect(COMBAT_DUCK_GAIN).toBeGreaterThan(0)
+    expect(COMBAT_DUCK_GAIN).toBeLessThan(0.5)
+    expect(Music.ducked).toBe(false)
+    Music.duckCombat()
+    expect(Music.ducked).toBe(true)
+    Music.duckCombat()
+    expect(Music.ducked).toBe(true)
+    Music.unduckCombat()
+    expect(Music.ducked).toBe(false)
+    Music.duckCombat()
+    Music.stop()
+    expect(Music.ducked).toBe(false)
+    expect(CLASSIC_TRACKS.battle).toBe('/audio/music_gameplay_ladder_grind.mp3')
   })
 
   it('Office play helpers are callable without media', () => {
     expect(() => {
       Music.playOfficeTitle()
       Music.playOfficeFloor('floor_01')
+      Music.playOfficeFloor('floor_03')
+      Music.playOfficeFloor('floor_04')
       Music.playOfficeFloor('floor_05')
+      Music.duckCombat()
+      Music.unduckCombat()
       Music.playTitle()
       Music.stop()
     }).not.toThrow()

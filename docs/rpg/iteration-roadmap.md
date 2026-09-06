@@ -39,10 +39,10 @@ skip A to chase D.
 
 ## Current stack (as of 2026-09-06)
 
-Tip `main` includes Pass C feel `#86` (`0c4f781`) and Office audio `#89`
-(`e73376b`). Pass D depth (this draft) stacks on that tip: per-floor vending,
-optional side POIs, ledger plate 54 / 64 / 78, celebration polish. Do not
-remount the closed `#72`–`#78` stack. Do not add a Floor 6.
+Tip `main` includes Pass D `#91` and demo `#90` (`9d352b6`). Pass E (Astra)
+stacks on that tip: dedicated F3/F4 beds and combat duck. Visual Should-fix
+(glass / hall contrast) is a separate Fable lane. Do not remount the closed
+`#72`–`#78` stack. Do not add a Floor 6.
 
 ## Immediate next (after tip playtest)
 
@@ -64,7 +64,7 @@ do not treat this list as already triaged.
 - [ ] `currentObjective` F5→F4→F3→F2→F1; cross-floor pins on the current elevator doors.
 - [ ] Elevator: current floor inert (“You are here”); locked row beeps and stays open; ride 2→3→4→5 and 5→1.
 - [ ] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
-- [x] Office audio (title / F1 / Operations / Exec beds + cab + CLEARED/THE NOD + combat hit/win) — `docs/rpg/office-audio.md`. F3/F4 dedicated beds and combat duck still deferred.
+- [x] Office audio (title / F1–F5 beds + cab + CLEARED/THE NOD + combat hit/win + combat duck) — `docs/rpg/office-audio.md`.
 
 **Nice later (Pass D)**
 

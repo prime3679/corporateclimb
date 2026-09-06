@@ -13,6 +13,7 @@ from __future__ import annotations
 
 import math
 import subprocess
+import sys
 import tempfile
 import wave
 from pathlib import Path
@@ -372,6 +373,99 @@ def bed_floor2() -> np.ndarray:
     return loop_crossfade(schroeder_verb(buf, 0.2))
 
 
+def hvac_rng(n: int, colour: float, rng: np.random.Generator) -> np.ndarray:
+    """HVAC bed with a private seed so new floors don't steal the shared RNG stream."""
+    t = time_axis(n)
+    walk = np.cumsum(rng.normal(0.0, 1.0, n))
+    walk -= walk.mean()
+    peak = np.max(np.abs(walk)) or 1.0
+    air = one_pole_low(walk / peak, colour)
+    buzz = sine(t, 119.4) * 0.04 + sine(t, 60.1) * 0.03
+    shimmer = one_pole_high(rng.uniform(-1.0, 1.0, n), 7000.0) * (0.012 + 0.008 * sine(t, 0.11))
+    return (air * 0.22 + buzz + shimmer) * env_adsr(n, 0.8, 0.4, 0.9, 0.8, 1.0)
+
+
+def tick_rng(n: int, rng: np.random.Generator) -> np.ndarray:
+    t = time_axis(n)
+    return one_pole_high(rng.uniform(-1.0, 1.0, n), 2800.0) * np.exp(-t * 70.0) * 0.55
+
+
+def bed_floor3() -> np.ndarray:
+    """Floor 3 — Product. A dorian, 86 BPM. Cork, stickies, a cursor in the Now column."""
+    rng = np.random.default_rng(202609063)
+    bpm = 86.0
+    n = beats_to_samples(16, bpm)
+    buf = np.zeros((n, 2))
+    mix_to(buf, hvac_rng(n, 85.0, rng), 0, 0.48)
+    # A3 C4 E4 G4 — cooler than Floor 1's Fmaj7, no G-minor grind
+    mix_to(buf, pad_chord(n, [220.00, 261.63, 329.63, 392.00], 0.20), 0, 0.34)
+    # Questioning Rhodes: A C G E / F E D C
+    hits = [
+        (0.0, 220.00, 0.72),
+        (2.5, 261.63, 0.48),
+        (4.0, 392.00, 0.42),
+        (6.0, 329.63, 0.50),
+        (8.0, 174.61, 0.62),
+        (10.5, 329.63, 0.40),
+        (12.0, 293.66, 0.46),
+        (14.5, 261.63, 0.44),
+    ]
+    for beat, f, vel in hits:
+        mix_to(buf, fm_rhodes(time_axis(int(1.35 * SR)), f, vel), beats_to_samples(beat, bpm), 0.30)
+    # Sub A / G — a held thought, not an ostinato
+    bar = beats_to_samples(4, bpm)
+    for i, f in enumerate((55.00, 55.00, 49.00, 55.00)):
+        body = sine(time_axis(bar), f) * env_adsr(bar, 0.06, 0.4, 0.38, 0.55, 0.68)
+        mix_to(buf, body, i * bar, 0.20)
+    # Keyboard / sticky-note ticks — Product, not a drum kit
+    for beat, gain in ((1.75, 0.08), (3.12, 0.05), (7.0, 0.09), (7.14, 0.06), (11.5, 0.07), (15.25, 0.08)):
+        mix_to(buf, tick_rng(int(0.05 * SR), rng), beats_to_samples(beat, bpm), gain)
+    # Cork-board plucks (triangle, dry)
+    for beat, f in ((5.5, 440.00), (9.5, 392.00), (13.5, 523.25)):
+        t = time_axis(int(0.42 * SR))
+        pl = triangle(t, f) * env_adsr(len(t), 0.002, 0.06, 0.10, 0.18, 0.55)
+        mix_to(buf, pl, beats_to_samples(beat, bpm), 0.14)
+    return loop_crossfade(schroeder_verb(buf, 0.24))
+
+
+def bed_floor4() -> np.ndarray:
+    """Floor 4 — Sales. F mixolydian, 108 BPM. Handshake, pipeline, the Close."""
+    rng = np.random.default_rng(202609064)
+    bpm = 108.0
+    n = beats_to_samples(32, bpm)  # 8 bars — the floor that never sits
+    buf = np.zeros((n, 2))
+    mix_to(buf, hvac_rng(n, 95.0, rng), 0, 0.36)
+    # F A C D — warmer than Product, major-side vs Operations' G minor
+    mix_to(buf, pad_chord(n, [174.61, 220.00, 261.63, 293.66], 0.26), 0, 0.28)
+    # Bass: F C Eb F — a close, not a grind
+    ost = [87.31, 65.41, 77.78, 87.31]
+    step = beats_to_samples(1, bpm)
+    for i in range(32):
+        f = ost[i % 4]
+        body = soft_square(time_axis(step), f, 5) * env_adsr(step, 0.01, 0.10, 0.32, 0.18, 0.78)
+        body = one_pole_low(body, 420)
+        mix_to(buf, body, i * step, 0.26)
+    # Kick on 1 only — Sales walks, it does not march
+    k = kick(int(0.26 * SR), 50.0)
+    for i in range(0, 32, 4):
+        mix_to(buf, k, beats_to_samples(i, bpm), 0.15)
+    # Offbeat hats + a few opens on the "and"
+    for i in range(32):
+        if i % 2:
+            mix_to(buf, hat(int(0.065 * SR), True), beats_to_samples(i, bpm), 0.05)
+        if i % 8 == 5:
+            mix_to(buf, hat(int(0.20 * SR), False), beats_to_samples(i, bpm), 0.045)
+    # Phone-adjacent ticks (not the printer cluster)
+    for beat in (2.25, 6.0, 14.5, 22.0, 29.75):
+        mix_to(buf, tick_rng(int(0.045 * SR), rng), beats_to_samples(beat, bpm), 0.09)
+    # Handshake bells — F5 / A5, twice a loop
+    mix_to(buf, gold_bell(time_axis(int(1.6 * SR)), 698.46, 0.55), beats_to_samples(7, bpm), 0.14)
+    mix_to(buf, gold_bell(time_axis(int(1.4 * SR)), 880.00, 0.40), beats_to_samples(8.5, bpm), 0.10)
+    mix_to(buf, gold_bell(time_axis(int(1.6 * SR)), 698.46, 0.50), beats_to_samples(23, bpm), 0.12)
+    mix_to(buf, gold_bell(time_axis(int(1.5 * SR)), 1046.50, 0.32), beats_to_samples(30, bpm), 0.09)
+    return loop_crossfade(schroeder_verb(buf, 0.18))
+
+
 def bed_exec() -> np.ndarray:
     """Floor 5 — The Nod. C# minor, 60 BPM. Mahogany, pulse, gold. Not Classic luxury-predator."""
     bpm = 60.0
@@ -490,6 +584,8 @@ JOBS = [
     ("music_office_title_after_hours.mp3", bed_title),
     ("music_office_floor1_cubicle_hum.mp3", bed_floor1),
     ("music_office_floor2_operations.mp3", bed_floor2),
+    ("music_office_floor3_product.mp3", bed_floor3),
+    ("music_office_floor4_sales.mp3", bed_floor4),
     ("music_office_exec_the_nod.mp3", bed_exec),
     ("sfx_elevator_door_open.mp3", sfx_door_open),
     ("sfx_elevator_door_close.mp3", sfx_door_close),
@@ -502,8 +598,11 @@ JOBS = [
 
 
 def main() -> None:
+    wanted = set(sys.argv[1:])
     print("Generating Office audio (original synthesis)…")
     for name, fn in JOBS:
+        if wanted and name not in wanted:
+            continue
         write_mp3(name, fn())
     print("done")
 

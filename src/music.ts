@@ -6,10 +6,16 @@
 // rapid screen hop simply supersedes the in-flight fade.
 //
 // Classic keeps the four original Act-1 beds. Office plays its own
-// title / Floor 1 / Operations / Exec loops — see docs/rpg/office-audio.md.
+// title / Floor 1–5 loops — see docs/rpg/office-audio.md.
 
 export type ClassicTrack = 'title' | 'battle' | 'boss' | 'event'
-export type OfficeTrack = 'officeTitle' | 'officeFloor1' | 'officeFloor2' | 'officeExec'
+export type OfficeTrack =
+  | 'officeTitle'
+  | 'officeFloor1'
+  | 'officeFloor2'
+  | 'officeFloor3'
+  | 'officeFloor4'
+  | 'officeExec'
 export type TrackName = ClassicTrack | OfficeTrack
 
 /** Classic tower beds. Filenames are a contract — do not retarget these keys. */
@@ -25,6 +31,8 @@ export const OFFICE_TRACKS: Record<OfficeTrack, string> = {
   officeTitle: '/audio/music_office_title_after_hours.mp3',
   officeFloor1: '/audio/music_office_floor1_cubicle_hum.mp3',
   officeFloor2: '/audio/music_office_floor2_operations.mp3',
+  officeFloor3: '/audio/music_office_floor3_product.mp3',
+  officeFloor4: '/audio/music_office_floor4_sales.mp3',
   officeExec: '/audio/music_office_exec_the_nod.mp3',
 }
 
@@ -33,11 +41,17 @@ const TRACKS: Record<TrackName, string> = { ...CLASSIC_TRACKS, ...OFFICE_TRACKS 
 /** Every bed, for the service worker's background warm-up. */
 export const MUSIC_URLS: string[] = Object.values(TRACKS)
 
-/** Floor 3/4 reuse Operations until dedicated Product/Sales beds exist. */
+/** How far the Office floor bed sits under battle SFX. Classic never ducks. */
+export const COMBAT_DUCK_GAIN = 0.22
+const DUCK_MS = 300
+
+/** One Office bed per floor. Unknown ids fall back to Floor 1, not Classic. */
 export function officeBedForFloor(floorId: string): OfficeTrack {
   if (floorId === 'floor_05') return 'officeExec'
-  if (floorId === 'floor_01') return 'officeFloor1'
-  return 'officeFloor2'
+  if (floorId === 'floor_04') return 'officeFloor4'
+  if (floorId === 'floor_03') return 'officeFloor3'
+  if (floorId === 'floor_02') return 'officeFloor2'
+  return 'officeFloor1'
 }
 
 let currentTrack: TrackName | null = null
@@ -48,6 +62,8 @@ let pendingTrack: TrackName | null = null
 let unlockListenerRegistered = false
 /** App backgrounded: playback paused but the track selection kept. */
 let suspended = false
+/** Office combat: the floor bed stays selected, quieter under SFX. */
+let combatDuck = false
 
 function hasUserActivation() {
   if (typeof navigator === 'undefined') return true
@@ -66,7 +82,12 @@ function cancelFade(audio: HTMLAudioElement) {
   fadeIds.set(audio, ++fadeSeq)
 }
 
-function fadeTo(audio: HTMLAudioElement, target: number, onDone?: () => void) {
+function fadeTo(
+  audio: HTMLAudioElement,
+  target: number,
+  onDone?: () => void,
+  ms: number = FADE_MS,
+) {
   if (typeof requestAnimationFrame === 'undefined') {
     audio.volume = target
     onDone?.()
@@ -79,7 +100,7 @@ function fadeTo(audio: HTMLAudioElement, target: number, onDone?: () => void) {
   const tick = (t: number) => {
     if (fadeIds.get(audio) !== id) return // superseded
     if (t0 === null) t0 = t
-    const k = Math.min(1, (t - t0) / FADE_MS)
+    const k = Math.min(1, (t - t0) / ms)
     audio.volume = start + (target - start) * k
     if (k < 1) requestAnimationFrame(tick)
     else onDone?.()
@@ -88,7 +109,15 @@ function fadeTo(audio: HTMLAudioElement, target: number, onDone?: () => void) {
 }
 
 function targetVolume() {
-  return _muted ? 0 : _volume
+  const base = _muted ? 0 : _volume
+  return combatDuck ? base * COMBAT_DUCK_GAIN : base
+}
+
+function setCombatDuck(next: boolean) {
+  if (combatDuck === next) return
+  combatDuck = next
+  if (!currentAudio) return
+  fadeTo(currentAudio, targetVolume(), undefined, next ? DUCK_MS : FADE_MS)
 }
 
 function applyGain() {
@@ -189,7 +218,19 @@ export const Music = {
   playOfficeFloor(floorId: string) {
     playTrack(officeBedForFloor(floorId))
   },
+  /** Office combat: keep the floor bed, sit it under hit/win SFX. Classic never calls this. */
+  duckCombat() {
+    setCombatDuck(true)
+  },
+  /** Win, wipe, or leaving Office: restore the bed to the user volume. */
+  unduckCombat() {
+    setCombatDuck(false)
+  },
+  get ducked() {
+    return combatDuck
+  },
   stop() {
+    combatDuck = false
     stopMusic()
   },
 
@@ -246,6 +287,10 @@ export const Music = {
 if (typeof window !== 'undefined') {
   Object.defineProperty(window, '__CC_MUSIC_TRACK', {
     get: () => currentTrack,
+    configurable: true,
+  })
+  Object.defineProperty(window, '__CC_MUSIC_DUCKED', {
+    get: () => combatDuck,
     configurable: true,
   })
 }
