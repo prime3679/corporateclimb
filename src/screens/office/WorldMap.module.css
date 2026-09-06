@@ -193,7 +193,7 @@
   font-size: 16px;
   line-height: 1;
   color: var(--cc-gold-bright);
-  filter: drop-shadow(0 0 6px rgba(255, 193, 7, 0.45));
+  filter: drop-shadow(0 0 10px rgba(255, 193, 7, 0.65));
   text-shadow:
     0 1px 0 rgba(10, 13, 19, 1),
     0 -1px 0 rgba(10, 13, 19, 1),
@@ -207,13 +207,22 @@
     top 250ms var(--cc-ease-out);
 }
 
+.pin::before {
+  content: '';
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(255, 213, 79, 0.55);
+  animation: of-pin-ring 1.2s ease-out infinite;
+}
+
 .pinBeam {
   position: absolute;
   top: 16px;
-  width: 2px;
-  height: 26px;
+  width: 3px;
+  height: 28px;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(255, 213, 79, 0.56), rgba(255, 213, 79, 0));
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.85), rgba(255, 213, 79, 0));
 }
 
 .callout {
@@ -369,6 +378,17 @@
   }
 }
 
+@keyframes of-pin-ring {
+  from {
+    transform: scale(0.72);
+    opacity: 0.8;
+  }
+  to {
+    transform: scale(1.45);
+    opacity: 0;
+  }
+}
+
 @keyframes of-pop {
   from {
     transform: translate(-50%, -94%) scale(0.72);
@@ -461,6 +481,7 @@
 }
 
 :global(.reduce-motion) .pin,
+:global(.reduce-motion) .pin::before,
 :global(.reduce-motion) .chevron,
 :global(.reduce-motion) .nearbyCoach,
 :global(.reduce-motion) .nearby,
@@ -487,6 +508,7 @@
   }
 
   .pin,
+  .pin::before,
   .chevron,
   .nearbyCoach,
   .nearby,

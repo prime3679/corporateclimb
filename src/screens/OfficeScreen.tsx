@@ -27,6 +27,8 @@ import {
   OFFICE_ENCOUNTERS,
   hudFloorEyebrow,
   officeBattleChrome,
+  officeBattleLabels,
+  officeBattleRoom,
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
@@ -290,7 +292,7 @@ export default function OfficeScreen({
       const sting = officeVictoryStinger(state.encounter.encounterId)
       setStinger(sting)
       SFX.victory()
-      if (!reduceMotion) await new Promise((r) => setTimeout(r, 720))
+      if (!reduceMotion) await new Promise((r) => setTimeout(r, 980))
       setStinger(null)
     }
     if (hold) onChange(next)
@@ -352,6 +354,8 @@ export default function OfficeScreen({
     const player = effectiveKit(state, member)
     const enemy = OFFICE_ENCOUNTERS[state.encounter.encounterId]
     const battleFloor = officeBattleChrome(state.floorId)
+    const battleRoom = officeBattleRoom(state.floorId)
+    const battleLabels = officeBattleLabels(state.encounter.encounterId)
     const forced = state.battle.phase === 'switch_required'
     const showBench = state.benchOpen || forced
     const turn = busy || state.battle.phase !== 'player' || showBench ? 'wait' : 'player'
@@ -359,10 +363,17 @@ export default function OfficeScreen({
     const firstStanding = bench.findIndex((m, i) => i !== state.encounter!.activeIndex && m.hp > 0)
     return (
       <div
-        className={`${styles.sceneStage} ${sceneFx === 'battle-in' ? styles.sceneBattleIn : ''}`}
-        style={{ height: '100%', position: 'relative' }}
+        className={`${styles.sceneStage} ${styles.reviewChamber} ${sceneFx === 'battle-in' ? styles.sceneBattleIn : ''}`}
+        style={
+          {
+            height: '100%',
+            position: 'relative',
+            '--review-tint': battleRoom.palette.accent,
+          } as CSSProperties
+        }
       >
         {sceneFx === 'battle-in' && <span className={styles.sceneVeil} aria-hidden />}
+        {(liveView.shake || liveView.typeFlash) && <span className={styles.hitRim} aria-hidden />}
         <div className={styles.reviewPlate} aria-hidden>
           <span className={styles.reviewCard}>{enemy.titleCard}</span>
           <span className={styles.reviewOpp}>{enemy.name}</span>
@@ -407,6 +418,9 @@ export default function OfficeScreen({
                   : 'THEIR MOVE'
           }
           commandHint="YOUR MOVE • KEYS 1–4"
+          chrome={battleLabels}
+          scenePalette={battleRoom.palette}
+          sceneAct={battleRoom.act}
           onSwitch={
             bench.filter((m) => m.hp > 0).length >= 2
               ? () => {
@@ -490,7 +504,8 @@ export default function OfficeScreen({
         )}
         {stinger && (
           <div className={styles.winStinger} role="status" aria-live="assertive">
-            <span className={styles.winKicker}>{stinger.kicker}</span>
+            <span className={styles.winBar} aria-hidden />
+            <span className={styles.winStamp}>{stinger.kicker}</span>
             <span className={styles.winTitle}>{stinger.name}</span>
             <span className={styles.winCard}>{stinger.card}</span>
           </div>

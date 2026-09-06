@@ -44,6 +44,59 @@
   text-shadow: 0 8px 28px rgba(255, 193, 7, 0.25);
 }
 
+.rule {
+  width: min(220px, 56%);
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--cc-gold), transparent);
+  opacity: 0.75;
+}
+
+.tower {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  width: min(280px, 100%);
+}
+
+.fl {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 22px;
+  padding: 3px 10px;
+  border-left: 3px solid var(--fl, var(--cc-gold));
+  background: linear-gradient(
+    90deg,
+    color-mix(in srgb, var(--fl, var(--cc-gold)) 18%, transparent),
+    transparent
+  );
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: 0.1em;
+  color: var(--cc-text-2);
+}
+
+.fl b {
+  width: 12px;
+  color: var(--fl, var(--cc-gold));
+}
+
+.tower .fl:nth-child(1) {
+  --fl: #d4af37;
+}
+.tower .fl:nth-child(2) {
+  --fl: #e07a5f;
+}
+.tower .fl:nth-child(3) {
+  --fl: #7c9cff;
+}
+.tower .fl:nth-child(4) {
+  --fl: #e0844d;
+}
+.tower .fl:nth-child(5) {
+  --fl: #ffc107;
+}
+
 .blurb {
   margin: 0;
   max-width: 320px;

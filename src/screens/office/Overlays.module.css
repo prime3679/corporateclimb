@@ -828,11 +828,37 @@
   gap: 10px;
   padding: 24px;
   text-align: center;
-  background: rgba(6, 8, 12, 0.92);
+  background:
+    radial-gradient(70% 50% at 50% 42%, rgba(229, 57, 53, 0.14), transparent 62%),
+    rgba(6, 8, 12, 0.92);
   color: var(--cc-text);
   pointer-events: auto;
   cursor: pointer;
   animation: ovl-fade 200ms var(--cc-ease-out);
+}
+
+.interPlate {
+  position: relative;
+  width: min(400px, 100%);
+  padding: 28px 22px 22px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0)), var(--cc-glass);
+  border: 1px solid rgba(229, 57, 53, 0.45);
+  box-shadow: var(--cc-shadow-plate);
+}
+
+.interStamp {
+  display: inline-block;
+  margin-bottom: 10px;
+  padding: 4px 10px 3px;
+  border: 2px solid var(--cc-danger);
+  border-radius: 3px;
+  transform: rotate(-8deg);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: 0.16em;
+  color: var(--cc-danger);
 }
 
 .interQuote {
@@ -870,7 +896,8 @@
 
 .celebWash,
 .celebSweep,
-.celebMark {
+.celebMark,
+.celebSparks {
   position: absolute;
   inset: 0;
   pointer-events: none;
@@ -912,9 +939,50 @@
 .celebParty,
 .stats,
 .celebActions,
+.celebLetterhead,
+.celebStamp,
 .celebration > .body {
   position: relative;
   z-index: 2;
+}
+
+.celebLetterhead {
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-gold-bright);
+  padding-bottom: 8px;
+  border-bottom: 1px solid color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 45%, transparent);
+  animation: ovl-rise 280ms var(--cc-ease-out) both;
+}
+
+.celebStamp {
+  position: absolute;
+  top: 14%;
+  right: 10%;
+  z-index: 3;
+  padding: 6px 10px 5px;
+  border: 2.5px solid color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 80%, #fff);
+  border-radius: 4px;
+  transform: rotate(-12deg);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-xs);
+  letter-spacing: 0.16em;
+  color: color-mix(in srgb, var(--celeb-tint, var(--cc-gold)) 75%, #fff);
+  animation: celeb-stamp 380ms cubic-bezier(0.2, 1.25, 0.35, 1) 180ms both;
+}
+
+.celebSparks {
+  z-index: 1;
+  background:
+    radial-gradient(2px 2px at 18% 28%, rgba(255, 233, 162, 0.9), transparent 60%),
+    radial-gradient(2px 2px at 78% 22%, rgba(255, 213, 79, 0.8), transparent 60%),
+    radial-gradient(1.5px 1.5px at 32% 70%, rgba(255, 233, 162, 0.7), transparent 60%),
+    radial-gradient(2px 2px at 86% 64%, rgba(255, 213, 79, 0.75), transparent 60%),
+    radial-gradient(1.5px 1.5px at 48% 16%, rgba(255, 255, 255, 0.7), transparent 60%),
+    radial-gradient(2px 2px at 62% 82%, rgba(255, 193, 7, 0.65), transparent 60%);
+  animation: celeb-sparks 900ms var(--cc-ease-out) 80ms both;
 }
 
 .celebKicker {
@@ -1032,12 +1100,42 @@
     linear-gradient(180deg, #121820, #070a10);
 }
 
+.cabShaft {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  background:
+    repeating-linear-gradient(
+      180deg,
+      transparent 0 28px,
+      rgba(255, 213, 79, 0.06) 28px 30px,
+      transparent 30px 58px
+    ),
+    linear-gradient(
+      90deg,
+      rgba(0, 0, 0, 0.45),
+      transparent 18%,
+      transparent 82%,
+      rgba(0, 0, 0, 0.45)
+    );
+  opacity: 0.55;
+}
+
+.cabTravel.cabUp .cabShaft {
+  animation: cab-shaft-up 920ms linear both;
+}
+
+.cabTravel.cabDown .cabShaft {
+  animation: cab-shaft-down 920ms linear both;
+}
+
 .cabWell {
   position: absolute;
   left: 18%;
   right: 18%;
   top: 12%;
   bottom: 22%;
+  z-index: 2;
   border-radius: 8px;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.04), transparent 30%),
@@ -1051,8 +1149,8 @@
 .cabDisplay {
   position: absolute;
   left: 50%;
-  top: 18%;
-  z-index: 3;
+  top: 10%;
+  z-index: 6;
   display: grid;
   justify-items: center;
   gap: 4px;
@@ -1064,6 +1162,35 @@
   box-shadow:
     0 0 0 1px rgba(0, 0, 0, 0.6),
     0 0 18px rgba(255, 193, 7, 0.12);
+}
+
+.cabPlaqueRide {
+  position: absolute;
+  left: 50%;
+  bottom: 12%;
+  z-index: 6;
+  transform: translateX(-50%);
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 8px 16px 10px;
+  border-radius: 6px;
+  background: rgba(7, 9, 13, 0.88);
+  border: 1px solid rgba(255, 213, 79, 0.22);
+  font-family: var(--cc-font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-wide);
+  color: var(--cc-text-dim);
+}
+
+.cabPlaqueRide b {
+  font-size: var(--display-sm);
+  color: var(--cc-gold-bright);
+  letter-spacing: 0.08em;
+}
+
+.cabArrive .cabPlaqueRide {
+  animation: celeb-title 280ms var(--cc-ease-out) both;
 }
 
 .cabGlyph {
@@ -1078,6 +1205,11 @@
   line-height: 0.85;
   color: #ffe082;
   text-shadow: 0 0 16px rgba(255, 193, 7, 0.35);
+  animation: cab-flip 220ms var(--cc-ease-out) both;
+}
+
+.cabArrive .cabFloorNum {
+  animation: celeb-title 280ms var(--cc-ease-out) both;
 }
 
 .cabDestName {
@@ -1120,10 +1252,12 @@
 }
 
 .cabClose .cabDoorL,
-.cabClose .cabDoorR,
 .cabTravel .cabDoorL,
-.cabTravel .cabDoorR,
+.cabArrive .cabDoorL,
 .cabFade .cabDoorL,
+.cabClose .cabDoorR,
+.cabTravel .cabDoorR,
+.cabArrive .cabDoorR,
 .cabFade .cabDoorR {
   transform: translateX(0);
 }
@@ -1131,7 +1265,7 @@
 .cabVeil {
   position: absolute;
   inset: 0;
-  z-index: 5;
+  z-index: 7;
   background: var(--cc-bg);
   opacity: 0;
   transition: opacity 420ms var(--cc-ease-out);
@@ -1215,6 +1349,52 @@
     transform: scale(1) translateY(0);
   }
 }
+@keyframes cab-shaft-up {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 -220px;
+  }
+}
+@keyframes cab-shaft-down {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 0 220px;
+  }
+}
+@keyframes cab-flip {
+  from {
+    opacity: 0.35;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@keyframes celeb-stamp {
+  from {
+    opacity: 0;
+    transform: rotate(-24deg) scale(1.45);
+  }
+  to {
+    opacity: 1;
+    transform: rotate(-12deg) scale(1);
+  }
+}
+@keyframes celeb-sparks {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
 
 :global(.reduce-motion) .scrim,
 :global(.reduce-motion) .card,
@@ -1227,7 +1407,12 @@
 :global(.reduce-motion) .celebSweep,
 :global(.reduce-motion) .celebKicker,
 :global(.reduce-motion) .celebTitle,
-:global(.reduce-motion) .celebLine {
+:global(.reduce-motion) .celebLine,
+:global(.reduce-motion) .celebStamp,
+:global(.reduce-motion) .celebSparks,
+:global(.reduce-motion) .celebLetterhead,
+:global(.reduce-motion) .cabShaft,
+:global(.reduce-motion) .cabFloorNum {
   animation: none;
 }
 
@@ -1345,7 +1530,12 @@
   .celebSweep,
   .celebKicker,
   .celebTitle,
-  .celebLine {
+  .celebLine,
+  .celebStamp,
+  .celebSparks,
+  .celebLetterhead,
+  .cabShaft,
+  .cabFloorNum {
     animation: none;
   }
   .hpFill {

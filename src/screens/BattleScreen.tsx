@@ -10,7 +10,7 @@ import type {
 } from '@/types'
 import { ITEMS, TOTAL_FLOORS, TYPE_COLORS, getAct, getTypeMultiplier } from '@/data'
 import { battleHintApplicable } from '@/onboarding'
-import { getScene } from '@/ui/scenes'
+import { getScene, type ScenePalette } from '@/ui/scenes'
 import SceneBackdrop from '@/components/SceneBackdrop'
 import StagedSprite from '@/components/StagedSprite'
 import HpBar from '@/components/HpBar'
@@ -58,6 +58,9 @@ export default function BattleScreen({
   onSwitch,
   turnBanner,
   commandHint = 'TAP A MOVE • HOLD THE LADDER',
+  chrome,
+  scenePalette,
+  sceneAct,
 }: {
   player: PlayerClass
   enemy: Enemy
@@ -101,9 +104,17 @@ export default function BattleScreen({
   turnBanner?: string
   /** Office passes a climb-specific hint; Classic keeps the ladder line. */
   commandHint?: string
+  /** Office review chrome. Classic keeps ENEMY DOSSIER / BLOCK PROMOTION. */
+  chrome?: { enemyKicker?: string; playerKicker?: string; intent?: string }
+  /** Office department room. Classic keeps `getScene(getAct(floor), …)`. */
+  scenePalette?: ScenePalette
+  sceneAct?: 1 | 2 | 3
 }) {
-  const act = getAct(floor)
-  const sc = getScene(act, Math.min(floor % 10, 4))
+  const act = sceneAct ?? getAct(floor)
+  const sc = scenePalette ?? getScene(act, Math.min(floor % 10, 4))
+  const enemyKicker = chrome?.enemyKicker ?? 'ENEMY DOSSIER'
+  const playerKicker = chrome?.playerKicker ?? 'PLAYER RESOURCES'
+  const intent = chrome?.intent ?? 'INTENT: BLOCK PROMOTION'
   const [showLog, setShowLog] = useState(false)
   const logEndRef = useRef<HTMLDivElement>(null)
   // The coach-mark waits for a battle it can actually demonstrate in;
@@ -229,7 +240,7 @@ export default function BattleScreen({
 
       <div className={styles.battlefield}>
         <div className={styles.enemyDossier}>
-          <div className={styles.dossierKicker}>ENEMY DOSSIER</div>
+          <div className={styles.dossierKicker}>{enemyKicker}</div>
           <HpBar
             current={enemyHp}
             max={enemy.maxHp}
@@ -243,7 +254,7 @@ export default function BattleScreen({
             ))}
           </div>
           <StatusBadges statuses={enemyStatuses} />
-          <div className={styles.intentLine}>INTENT: BLOCK PROMOTION</div>
+          <div className={styles.intentLine}>{intent}</div>
         </div>
 
         <div style={{ position: 'absolute', top: '4%', right: 8, zIndex: 2 }}>
@@ -268,7 +279,7 @@ export default function BattleScreen({
         </div>
 
         <div className={styles.playerResourcePanel}>
-          <div className={styles.dossierKicker}>PLAYER RESOURCES</div>
+          <div className={styles.dossierKicker}>{playerKicker}</div>
           <HpBar
             current={playerHp}
             max={playerMaxHp}

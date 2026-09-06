@@ -6,6 +6,8 @@ import {
   elevatorRideTicks,
   elevatorRideTotalMs,
   hudFloorEyebrow,
+  officeBattleLabels,
+  officeBattleRoom,
   OFFICE_FLOOR_COUNT,
 } from '@/content/office'
 import { PLAYER_CLASSES } from '@/data'
@@ -70,14 +72,41 @@ describe('Pass C feel — HUD / copy', () => {
   })
 })
 
+describe('Pass C feel — review chamber', () => {
+  it('gives Office fights department rooms and review chrome, not Classic dossiers', () => {
+    expect(officeBattleRoom('floor_01').act).toBe(1)
+    expect(officeBattleRoom('floor_03').act).toBe(2)
+    expect(officeBattleRoom('floor_05').act).toBe(3)
+    expect(officeBattleRoom('floor_05').palette.accent).toBe('#D4AF37')
+    expect(officeBattleLabels('enc_desk_challenger')).toEqual({
+      enemyKicker: 'SPAR',
+      playerKicker: 'YOUR TEAM',
+      intent: 'INTENT: PROVE IT',
+    })
+    expect(officeBattleLabels('enc_ceo_review').intent).toBe('INTENT: THE NOD')
+    expect(officeBattleLabels('enc_supervisor_1on1').enemyKicker).toBe('REVIEW')
+    expect(officeBattleLabels('enc_auditor').enemyKicker).toBe('AUDIT')
+  })
+})
+
 describe('Pass C feel — cab ride', () => {
   it('plans a 1→5 ride with floor ticks after the doors close', () => {
     const plan = elevatorRidePlan('floor_01', 'floor_05')
     expect(plan).toMatchObject({ fromNumber: 1, toNumber: 5, destName: 'EXEC', up: true, steps: 4 })
     const ticks = elevatorRideTicks('floor_01', 'floor_05')
     expect(ticks.map((t) => t.floor)).toEqual([2, 3, 4, 5])
-    expect(ticks[0]?.at).toBeGreaterThanOrEqual(ELEVATOR_RIDE.closeMs)
-    expect(ticks[ticks.length - 1]?.at).toBeLessThanOrEqual(elevatorRideTotalMs())
+    const doorsShut = ELEVATOR_RIDE.openMs + ELEVATOR_RIDE.closeMs
+    expect(ticks[0]?.at).toBeGreaterThanOrEqual(doorsShut)
+    expect(ticks[ticks.length - 1]?.at).toBeLessThanOrEqual(
+      doorsShut + ELEVATOR_RIDE.travelMs + ELEVATOR_RIDE.arriveMs,
+    )
+    expect(elevatorRideTotalMs()).toBe(
+      ELEVATOR_RIDE.openMs +
+        ELEVATOR_RIDE.closeMs +
+        ELEVATOR_RIDE.travelMs +
+        ELEVATOR_RIDE.arriveMs +
+        ELEVATOR_RIDE.fadeMs,
+    )
   })
 
   it('ticks downward 5→1 and names YOUR TEAM', () => {

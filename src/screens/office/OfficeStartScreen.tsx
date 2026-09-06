@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react'
 import { CURRENCY_ICON } from '@/data'
+import { ELEVATOR_FLOORS } from '@/content/office'
 import { loadOfficeSave, memberName, type OfficeSave } from '@/engine/office'
 import { Button } from '@/ui'
 import { SFX } from '@/sfx'
@@ -51,6 +52,15 @@ export default function OfficeStartScreen({
 
       <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
       <h1 className={styles.title}>THE OFFICE</h1>
+      <div className={styles.rule} aria-hidden />
+      <div className={styles.tower} aria-hidden>
+        {ELEVATOR_FLOORS.map((row) => (
+          <span key={row.id} className={styles.fl}>
+            <b>{row.number}</b>
+            {row.name}
+          </span>
+        ))}
+      </div>
       <p className={styles.blurb}>
         Five floors. Reception to the board. The badge they handed you is a visitor badge.
       </p>

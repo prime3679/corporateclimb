@@ -17,13 +17,21 @@ export const OFFICE_FLOOR_COUNT = 5
 
 /** Cab ride beats. Presentation owns the timers; the reducer completes on the last beat. */
 export const ELEVATOR_RIDE = {
+  openMs: 240,
   closeMs: 480,
   travelMs: 920,
+  arriveMs: 380,
   fadeMs: 420,
 } as const
 
 export function elevatorRideTotalMs(): number {
-  return ELEVATOR_RIDE.closeMs + ELEVATOR_RIDE.travelMs + ELEVATOR_RIDE.fadeMs
+  return (
+    ELEVATOR_RIDE.openMs +
+    ELEVATOR_RIDE.closeMs +
+    ELEVATOR_RIDE.travelMs +
+    ELEVATOR_RIDE.arriveMs +
+    ELEVATOR_RIDE.fadeMs
+  )
 }
 
 export function elevatorRidePlan(from: FloorId, to: FloorId) {
@@ -49,7 +57,10 @@ export function elevatorRideTicks(
   return Array.from({ length: plan.steps }, (_, i) => {
     const step = i + 1
     return {
-      at: ELEVATOR_RIDE.closeMs + Math.round((ELEVATOR_RIDE.travelMs * step) / plan.steps),
+      at:
+        ELEVATOR_RIDE.openMs +
+        ELEVATOR_RIDE.closeMs +
+        Math.round((ELEVATOR_RIDE.travelMs * step) / plan.steps),
       floor: (plan.fromNumber + dir * step) as 1 | 2 | 3 | 4 | 5,
     }
   })

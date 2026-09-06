@@ -1277,10 +1277,14 @@ function CelebrationScreen({
     >
       <span className={styles.celebWash} aria-hidden />
       <span className={styles.celebSweep} aria-hidden />
+      <span className={styles.celebSparks} aria-hidden />
       <span className={styles.celebMark} aria-hidden>
         {floorN}
       </span>
-      <div className={styles.celebKicker}>{kicker}</div>
+      <div className={styles.celebLetterhead}>{kicker}</div>
+      <div className={styles.celebStamp} aria-hidden>
+        {screen === 'screen_floor5_complete' ? 'THE NOD' : 'CLEARED'}
+      </div>
       <div className={styles.celebTitle}>{copy.title}</div>
       <div className={styles.celebLine}>{copy.body}</div>
       <PartyChips state={state} size={64} showNames className={styles.celebParty} />
@@ -1365,13 +1369,15 @@ export function Interstitial({ state, onChange }: OverlayProps) {
       aria-live="assertive"
       onClick={() => advance.current()}
     >
-      <div className={`${styles.eyebrow} ${styles.eyebrowDanger}`}>Time out</div>
-      <div className={`${styles.title} ${styles.titleLg}`}>Your team needs a minute.</div>
-      <div className={styles.interQuote}>
-        “{lostNode.lines[0]}” — {enc.name}
-      </div>
-      <div className={styles.tapHint} style={{ opacity: ready ? 1 : 0 }}>
-        tap to continue
+      <div className={styles.interPlate}>
+        <div className={styles.interStamp}>TIME OUT</div>
+        <div className={`${styles.title} ${styles.titleLg}`}>Your team needs a minute.</div>
+        <div className={styles.interQuote}>
+          “{lostNode.lines[0]}” — {enc.name}
+        </div>
+        <div className={styles.tapHint} style={{ opacity: ready ? 1 : 0 }}>
+          tap to continue
+        </div>
       </div>
     </div>
   )
@@ -1387,7 +1393,7 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
     complete.current = () =>
       onChange(dispatchOfficeAction(state, { type: 'COMPLETE_ELEVATOR_RIDE' }).state)
   })
-  const [phase, setPhase] = useState<'close' | 'travel' | 'fade'>('close')
+  const [phase, setPhase] = useState<'open' | 'close' | 'travel' | 'arrive' | 'fade'>('open')
   const [shownFloor, setShownFloor] = useState(plan.fromNumber)
 
   useEffect(() => {
@@ -1396,7 +1402,12 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
       return
     }
     const timers: number[] = []
-    timers.push(window.setTimeout(() => setPhase('travel'), ELEVATOR_RIDE.closeMs))
+    const closeAt = ELEVATOR_RIDE.openMs
+    const travelAt = closeAt + ELEVATOR_RIDE.closeMs
+    const arriveAt = travelAt + ELEVATOR_RIDE.travelMs
+    const fadeAt = arriveAt + ELEVATOR_RIDE.arriveMs
+    timers.push(window.setTimeout(() => setPhase('close'), closeAt))
+    timers.push(window.setTimeout(() => setPhase('travel'), travelAt))
     for (const tick of elevatorRideTicks(state.floorId, destination)) {
       timers.push(
         window.setTimeout(() => {
@@ -1406,30 +1417,49 @@ export function ElevatorRide({ state, onChange, reduceMotion = false }: OverlayP
       )
     }
     timers.push(
-      window.setTimeout(() => setPhase('fade'), ELEVATOR_RIDE.closeMs + ELEVATOR_RIDE.travelMs),
+      window.setTimeout(() => {
+        setPhase('arrive')
+        if (plan.up) SFX.elevatorUp()
+        else SFX.elevatorDown()
+      }, arriveAt),
     )
-    timers.push(
-      window.setTimeout(
-        () => complete.current(),
-        ELEVATOR_RIDE.closeMs + ELEVATOR_RIDE.travelMs + ELEVATOR_RIDE.fadeMs,
-      ),
-    )
+    timers.push(window.setTimeout(() => setPhase('fade'), fadeAt))
+    timers.push(window.setTimeout(() => complete.current(), fadeAt + ELEVATOR_RIDE.fadeMs))
     return () => {
       for (const id of timers) window.clearTimeout(id)
     }
-  }, [rideKey, reduceMotion, destination, state.floorId])
+  }, [rideKey, reduceMotion, destination, state.floorId, plan.up])
+
+  const doorsShut = phase !== 'open'
 
   return (
     <div
-      className={`${styles.cab} ${styles.cabClose} ${phase === 'travel' ? styles.cabTravel : ''} ${phase === 'fade' ? styles.cabFade : ''}`}
+      className={[
+        styles.cab,
+        plan.up ? styles.cabUp : styles.cabDown,
+        phase === 'open' ? styles.cabOpen : '',
+        doorsShut ? styles.cabClose : '',
+        phase === 'travel' ? styles.cabTravel : '',
+        phase === 'arrive' ? styles.cabArrive : '',
+        phase === 'fade' ? styles.cabFade : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       role="status"
       aria-label={`Elevator to ${floorLabel(destination)}`}
     >
+      <span className={styles.cabShaft} aria-hidden />
       <span className={styles.cabWell} aria-hidden />
       <div className={styles.cabDisplay}>
         <span className={styles.cabGlyph}>{plan.up ? '▲' : '▼'}</span>
-        <span className={styles.cabFloorNum}>{shownFloor}</span>
+        <span key={shownFloor} className={styles.cabFloorNum}>
+          {shownFloor}
+        </span>
         <span className={styles.cabDestName}>{plan.destName}</span>
+      </div>
+      <div className={styles.cabPlaqueRide} aria-hidden>
+        <span>NEXT</span>
+        <b>{plan.destName}</b>
       </div>
       <span className={`${styles.cabDoor} ${styles.cabDoorL}`} aria-hidden />
       <span className={`${styles.cabDoor} ${styles.cabDoorR}`} aria-hidden />
