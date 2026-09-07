@@ -8,8 +8,10 @@ import {
   drainOverlays,
   expectObjective,
   fightUntilSettled,
+  injectOfficeSave,
   logBeat,
   openElevator,
+  passDoor,
   readOfficeSave,
   rideElevator,
   shot,
@@ -17,6 +19,7 @@ import {
   talkThrough,
   waitOverworld,
   walkTo,
+  writeCheckpoint,
   writeClimbLog,
 } from './office-helpers'
 
@@ -27,7 +30,7 @@ import {
  * Auto: title → role → overworld walks, talks, elevator, fights, save/load,
  * backtrack. Combat is played live (no HP smash). No product-code hooks.
  */
-test.use({ viewport: GAME_VIEWPORT })
+test.use({ viewport: GAME_VIEWPORT, trace: 'off', video: 'off' })
 
 test.skip(!process.env.PLAYTEST_FULL_CLIMB, 'set PLAYTEST_FULL_CLIMB=1 to run the full climb')
 
@@ -75,7 +78,8 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await shot(page, '03-gavin-won')
 
   // ── Holloway + access badge ───────────────────────────────
-  await walkTo(page, 6, 2, 's', 'Holloway')
+  await walkTo(page, 10, 3, undefined, 'Holloway glass door')
+  await passDoor(page)
   await beginAndFight(page, 'holloway', ['Begin'])
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_supervisor_1on1).toBe('won')
@@ -101,9 +105,10 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
 
   await page.keyboard.press('5')
   await expect(page.getByRole('listbox', { name: 'Elevator floors' })).toBeVisible()
-  await expect(page.getByText(/Floors 3–5|employee badge|Badge required/i)).toBeVisible({
+  await expect(page.getByText(/The reader blinks red\. Floors 3–5/).first()).toBeVisible({
     timeout: 5_000,
   })
+  await expect(page.getByRole('option', { name: /3 PRODUCT/ })).toContainText('Badge required')
   logBeat('elevator-locked-f3-5-beep')
   await shot(page, '06-elevator-locked-beep')
   await page.keyboard.press('Escape')
@@ -160,14 +165,14 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await expectObjective(page, /Kessler/i)
   logBeat('teddy-won')
   await shot(page, '08-teddy-won')
+  await writeCheckpoint(page, 'teddy-won')
 
   // ── Kessler + employee badge ──────────────────────────────
-  await walkTo(page, 3, 8, 's', 'Kessler door approach')
+  // Face south only after arriving — facing during walkTo steps into the door loop.
+  await walkTo(page, 3, 8, undefined, 'Kessler door approach')
   await page.keyboard.press('ArrowDown')
   await page.waitForTimeout(320)
-  const stepIn = page.getByRole('button', { name: 'Step in' })
-  if (await stepIn.isVisible().catch(() => false)) await stepIn.click()
-  await drainOverlays(page)
+  await passDoor(page)
   await beginAndFight(page, 'kessler', ['Begin'])
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_director_review).toBe('won')
@@ -328,4 +333,22 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   expect(pageErrors, 'no uncaught page errors').toEqual([])
   writeClimbLog()
   logBeat('PASS', { artifactDir: ARTIFACT_DIR })
+})
+
+test('resume from teddy-won checkpoint through THE NOD', async ({ page }) => {
+  test.skip(!process.env.PLAYTEST_RESUME, 'set PLAYTEST_RESUME=1 with a teddy-won checkpoint')
+  test.setTimeout(15 * 60_000)
+  const fs = await import('node:fs')
+  const raw = fs.readFileSync(`${ARTIFACT_DIR}/checkpoint-teddy-won.json`, 'utf8')
+  await injectOfficeSave(page, JSON.parse(raw))
+  await shot(page, 'resume-teddy')
+  await walkTo(page, 3, 8, undefined, 'Kessler door approach')
+  logBeat('reached-kessler-door')
+  await page.keyboard.press('ArrowDown')
+  await page.waitForTimeout(320)
+  await passDoor(page)
+  await beginAndFight(page, 'kessler', ['Begin'])
+  const save = await readOfficeSave(page)
+  expect(save?.encounters.enc_director_review).toBe('won')
+  logBeat('kessler-won-resume')
 })

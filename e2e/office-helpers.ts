@@ -1,4 +1,4 @@
-import { expect, type Page } from '@playwright/test'
+import { expect, type Locator, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
@@ -59,6 +59,16 @@ export async function shot(page: Page, name: string) {
 export function writeClimbLog() {
   mkdirSync(ARTIFACT_DIR, { recursive: true })
   writeFileSync(path.join(ARTIFACT_DIR, 'beats.log'), BEATS.join('\n') + '\n')
+}
+
+async function vis(el: Locator) {
+  return el.isVisible({ timeout: 0 }).catch(() => false)
+}
+
+export async function writeCheckpoint(page: Page, name: string) {
+  const save = await readOfficeSave(page)
+  mkdirSync(ARTIFACT_DIR, { recursive: true })
+  writeFileSync(path.join(ARTIFACT_DIR, `checkpoint-${name}.json`), JSON.stringify(save, null, 2))
 }
 
 const KEY: Record<Facing, 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft'> = {
@@ -270,21 +280,30 @@ export async function startFreshOffice(page: Page, className = 'Product Manager'
   logBeat('fresh-save-started', { className })
 }
 
-export async function drainOverlays(page: Page, rounds = 24) {
+export async function drainOverlays(page: Page, rounds = 24, opts: { allowCombat?: boolean } = {}) {
+  const allowCombat = opts.allowCombat !== false
   for (let i = 0; i < rounds; i++) {
+    if (!allowCombat) {
+      const combatChoice = await page
+        .getByRole('button', { name: /^(Bring it|Begin|Begin training|Not now)$/ })
+        .first()
+        .isVisible({ timeout: 0 })
+        .catch(() => false)
+      if (combatChoice) return
+    }
     if (
       await page
         .getByText(/Floor \d · of 5/)
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       const blocking = await page
         .getByRole('dialog')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
       const coach = await page
         .locator('[id^="coach_"]')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
       if (!blocking && !coach) return
     }
@@ -292,7 +311,7 @@ export async function drainOverlays(page: Page, rounds = 24) {
     if (
       await page
         .getByText('CHOOSE A PERK')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       await page.keyboard.press('1')
@@ -301,38 +320,40 @@ export async function drainOverlays(page: Page, rounds = 24) {
     }
 
     const fileIt = page.getByRole('button', { name: 'File it' })
-    if (await fileIt.isVisible().catch(() => false)) {
-      await fileIt.click()
+    if (await fileIt.isVisible({ timeout: 0 }).catch(() => false)) {
+      await fileIt.click({ timeout: 2_000 })
       await page.waitForTimeout(200)
       continue
     }
 
-    for (const name of [
-      'Bring it',
-      'Begin',
-      'Begin training',
-      'Step in',
-      'Extend the offer',
-      'Not yet',
-      'Stay on the floor',
-      'Back to Floor 1',
-      'Back to Floor 2',
-      'Back to Floor 3',
-      'Back to Floor 4',
-      'Back to Floor 5',
-    ]) {
+    const confirmNames = allowCombat
+      ? [
+          'Bring it',
+          'Begin',
+          'Begin training',
+          'Extend the offer',
+          'Stay on the floor',
+          'Back to Floor 1',
+          'Back to Floor 2',
+          'Back to Floor 3',
+          'Back to Floor 4',
+          'Back to Floor 5',
+        ]
+      : ['File it']
+    let clicked = false
+    for (const name of confirmNames) {
       const btn = page.getByRole('button', { name, exact: true })
-      if (await btn.isVisible().catch(() => false)) {
-        // Prefer combat / door confirms; skip "Not yet" unless it's the only choice.
-        if (name === 'Not yet') break
-        await btn.click()
+      if (await btn.isVisible({ timeout: 0 }).catch(() => false)) {
+        await btn.click({ timeout: 2_000 }).catch(() => {})
         await page.waitForTimeout(250)
-        continue
+        clicked = true
+        break
       }
     }
+    if (clicked) continue
 
     const coach = page.locator('[id^="coach_"]')
-    if (await coach.isVisible().catch(() => false)) {
+    if (await coach.isVisible({ timeout: 0 }).catch(() => false)) {
       await coach.click().catch(() => {})
       await page.keyboard.press('Enter').catch(() => {})
       await page.waitForTimeout(200)
@@ -351,34 +372,67 @@ export async function walkTo(
   facing?: Facing,
   label = `${x},${y}`,
 ) {
-  const save = await readOfficeSave(page)
-  if (!save) throw new Error(`walkTo ${label}: no office save`)
-  const route = pathfind(save.floorId, save.player, { x, y })
-  if (!route) {
-    throw new Error(
-      `walkTo ${label}: no path from ${save.player.x},${save.player.y} on ${save.floorId}`,
-    )
-  }
-  for (const dir of route) {
-    await drainOverlays(page, 8)
-    await page.keyboard.press(KEY[dir])
-    await page.waitForTimeout(300)
-  }
-  if (facing) {
-    await drainOverlays(page, 6)
-    const after = await readOfficeSave(page)
-    if (!after) throw new Error(`walkTo ${label}: save vanished`)
-    if (after.player.x !== x || after.player.y !== y) {
-      throw new Error(
-        `walkTo ${label}: ended at ${after.player.x},${after.player.y} facing ${after.player.facing}`,
-      )
+  logBeat(`walkTo:${label}:start`)
+  for (let attempt = 0; attempt < 80; attempt++) {
+    await drainOverlays(page, 6, { allowCombat: false })
+    if (
+      await page
+        .getByText('TAP A MOVE')
+        .isVisible({ timeout: 0 })
+        .catch(() => false)
+    ) {
+      return
     }
-    if (after.player.facing !== facing) {
+    if (
+      await page
+        .getByRole('button', { name: /^(Bring it|Begin|Begin training)$/ })
+        .first()
+        .isVisible({ timeout: 0 })
+        .catch(() => false)
+    ) {
+      return
+    }
+    const cur = await readOfficeSave(page)
+    if (!cur) throw new Error(`walkTo ${label}: no office save`)
+    if (cur.player.x === x && cur.player.y === y) {
+      const dlg = await page
+        .getByRole('dialog')
+        .isVisible({ timeout: 0 })
+        .catch(() => false)
+      if (!facing || cur.player.facing === facing || dlg) {
+        await drainOverlays(page, 4, { allowCombat: false })
+        return
+      }
       await page.keyboard.press(KEY[facing])
       await page.waitForTimeout(280)
+      continue
     }
+    const route = pathfind(cur.floorId, cur.player, { x, y })
+    if (!route) {
+      throw new Error(
+        `walkTo ${label}: no path from ${cur.player.x},${cur.player.y} on ${cur.floorId}`,
+      )
+    }
+    if (attempt > 0 && attempt % 20 === 0) {
+      logBeat(`walkTo:${label}:retry`, { attempt, at: `${cur.player.x},${cur.player.y}` })
+    }
+    await page.keyboard.press(KEY[route[0]])
+    await page.waitForTimeout(300)
   }
-  await drainOverlays(page, 8)
+  const after = await readOfficeSave(page)
+  throw new Error(
+    `walkTo ${label}: stuck at ${after?.player.x},${after?.player.y} facing ${after?.player.facing}`,
+  )
+}
+
+export async function passDoor(page: Page) {
+  const stepIn = page.getByRole('button', { name: 'Step in' })
+  if (await stepIn.isVisible({ timeout: 0 }).catch(() => false)) {
+    await stepIn.click({ timeout: 2_000 }).catch(() => {})
+    await page.waitForTimeout(350)
+    return true
+  }
+  return false
 }
 
 export async function interact(page: Page) {
@@ -394,7 +448,7 @@ export async function talkThrough(page: Page, preferred?: string[]) {
     if (preferred) {
       for (const name of preferred) {
         const btn = page.getByRole('button', { name, exact: true })
-        if (await btn.isVisible().catch(() => false)) {
+        if (await btn.isVisible({ timeout: 0 }).catch(() => false)) {
           await btn.click()
           await page.waitForTimeout(250)
           return
@@ -404,26 +458,26 @@ export async function talkThrough(page: Page, preferred?: string[]) {
     if (
       await page
         .getByText(/Floor \d · of 5/)
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       const dlg = await page
         .getByRole('dialog')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
       if (!dlg) return
     }
     if (
       await page
         .getByText('TAP A MOVE')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     )
       return
     if (
       await page
         .getByText('CHOOSE A PERK')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       await page.keyboard.press('1')
@@ -431,14 +485,14 @@ export async function talkThrough(page: Page, preferred?: string[]) {
       return
     }
     const fileIt = page.getByRole('button', { name: 'File it' })
-    if (await fileIt.isVisible().catch(() => false)) {
+    if (await fileIt.isVisible({ timeout: 0 }).catch(() => false)) {
       await fileIt.click()
       await page.waitForTimeout(200)
       continue
     }
     for (const name of ['Bring it', 'Begin', 'Begin training', 'Step in', 'Extend the offer']) {
       const btn = page.getByRole('button', { name, exact: true })
-      if (await btn.isVisible().catch(() => false)) {
+      if (await btn.isVisible({ timeout: 0 }).catch(() => false)) {
         await btn.click()
         await page.waitForTimeout(250)
         return
@@ -455,14 +509,22 @@ export async function waitOverworld(page: Page) {
 
 export async function fightUntilSettled(page: Page, encounter: string) {
   const notes = { phase2: false, wipe: false, win: false }
-  for (let i = 0; i < 90; i++) {
-    const body = await page.locator('body').innerText()
-    if (/PHASE 2|Let's take this offline|Caldwell \(Offline\)/.test(body)) notes.phase2 = true
+  for (let i = 0; i < 220; i++) {
+    if (i > 0 && i % 20 === 0) logBeat(`fight:${encounter}:tick`, { i, ...notes })
+    if (
+      await page
+        .getByText(/PHASE 2|Let's take this offline/)
+        .first()
+        .isVisible({ timeout: 0 })
+        .catch(() => false)
+    ) {
+      notes.phase2 = true
+    }
 
     if (
       await page
         .getByText('CHOOSE A PERK')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       notes.win = true
@@ -476,7 +538,7 @@ export async function fightUntilSettled(page: Page, encounter: string) {
     if (
       await page
         .getByText(/You take five|take five/i)
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
     ) {
       notes.wipe = true
@@ -488,21 +550,21 @@ export async function fightUntilSettled(page: Page, encounter: string) {
     if (
       (await page
         .getByText(/Floor \d · of 5/)
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)) &&
       !(await page
         .getByText('TAP A MOVE')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)) &&
       !(await page
         .locator('[data-testid="move-button"]')
         .first()
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false))
     ) {
       const dlg = await page
         .getByRole('dialog')
-        .isVisible()
+        .isVisible({ timeout: 0 })
         .catch(() => false)
       if (!dlg) {
         notes.win = true
@@ -512,17 +574,28 @@ export async function fightUntilSettled(page: Page, encounter: string) {
       }
     }
 
+    const switchDlg = page.getByRole('dialog', { name: /Switch party member/i })
+    if (await switchDlg.isVisible({ timeout: 0 }).catch(() => false)) {
+      const bench = switchDlg.locator('button').first()
+      if (await bench.isVisible({ timeout: 0 }).catch(() => false)) {
+        await bench.click({ timeout: 2_000 }).catch(() => {})
+        await page.waitForTimeout(500)
+        continue
+      }
+    }
+
     const move = page.locator('[data-testid="move-button"]:not([disabled])').first()
-    if (await move.isVisible().catch(() => false)) {
+    if (await move.isVisible({ timeout: 0 }).catch(() => false)) {
       await move.click({ timeout: 2_000 }).catch(() => {})
-      await page.waitForTimeout(550)
+      await page.keyboard.press(String((i % 4) + 1))
+      await page.waitForTimeout(700)
       continue
     }
 
     const pwr = page.locator('button:not([disabled])').filter({ hasText: 'PWR' }).first()
-    if (await pwr.isVisible().catch(() => false)) {
+    if (await pwr.isVisible({ timeout: 0 }).catch(() => false)) {
       await pwr.click({ timeout: 2_000 }).catch(() => {})
-      await page.waitForTimeout(550)
+      await page.waitForTimeout(700)
       continue
     }
 
@@ -535,7 +608,7 @@ export async function fightUntilSettled(page: Page, encounter: string) {
 export async function beginAndFight(page: Page, encounter: string, preferred?: string[]) {
   await talkThrough(page, preferred)
   const stakes = page.getByRole('button', { name: /^(Bring it|Begin|Begin training)$/ }).first()
-  if (await stakes.isVisible().catch(() => false)) {
+  if (await stakes.isVisible({ timeout: 0 }).catch(() => false)) {
     await stakes.click()
     await page.waitForTimeout(400)
   }
@@ -558,12 +631,12 @@ export async function rideElevator(page: Page, to: 1 | 2 | 3 | 4 | 5) {
   // (preview-complete labels it "Floor 2", not "stay").
   await page.waitForTimeout(2_800)
   const dest = page.getByRole('button', { name: `Floor ${to}`, exact: true })
-  if (await dest.isVisible().catch(() => false)) {
+  if (await dest.isVisible({ timeout: 0 }).catch(() => false)) {
     await dest.click()
     await page.waitForTimeout(400)
   } else {
     const stay = page.getByRole('button', { name: /Back to Floor/ })
-    if (await stay.isVisible().catch(() => false)) await stay.click()
+    if (await stay.isVisible({ timeout: 0 }).catch(() => false)) await stay.click()
   }
   await drainOverlays(page)
   await waitOverworld(page)
@@ -571,6 +644,22 @@ export async function rideElevator(page: Page, to: 1 | 2 | 3 | 4 | 5) {
 
 export async function expectObjective(page: Page, text: string | RegExp) {
   await expect(page.getByLabel('Objective')).toContainText(text, { timeout: 8_000 })
+}
+
+export async function injectOfficeSave(page: Page, save: unknown) {
+  await page.goto('/')
+  await page.evaluate(
+    ({ next, settings, key }) => {
+      localStorage.clear()
+      localStorage.setItem(key, JSON.stringify(next))
+      localStorage.setItem('corporate-climb-settings', settings)
+    },
+    { next: save, settings: muteSettings(), key: OFFICE_SAVE_KEY },
+  )
+  await page.reload()
+  await page.getByRole('button', { name: 'THE OFFICE' }).click({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'CONTINUE' }).click({ timeout: 10_000 })
+  await waitOverworld(page)
 }
 
 export async function continueOfficeFromTitle(page: Page) {
