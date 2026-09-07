@@ -18,30 +18,17 @@
       "itemsUsed": 0
     },
     "stockOptions": 75,
-    "perks": [
-      "executive_presence"
-    ],
+    "perks": ["executive_presence"],
     "pendingPerkOffer": null,
-    "shopStock": [
-      "espresso",
-      "espresso",
-      "side_hustle"
-    ],
+    "shopStock": ["espresso", "espresso", "side_hustle"],
     "relics": [],
     "eliteFloor": false,
     "mystery": null,
     "treasureFloor": false,
     "treasureLoot": null,
     "hp": 51,
-    "pp": [
-      7,
-      20,
-      6,
-      3
-    ],
-    "inventory": [
-      "networking_card"
-    ],
+    "pp": [7, 20, 6, 3],
+    "inventory": ["networking_card"],
     "floorEnemyIds": [
       "Intern",
       "Recruiter",
@@ -102,12 +89,7 @@
         "classId": "pm"
       },
       "hp": 51,
-      "pp": [
-        7,
-        20,
-        6,
-        3
-      ]
+      "pp": [7, 20, 6, 3]
     },
     {
       "slot": "party_slot_1",
@@ -116,10 +98,7 @@
         "id": "cw_desk_challenger"
       },
       "hp": 70,
-      "pp": [
-        20,
-        10
-      ]
+      "pp": [20, 10]
     },
     {
       "slot": "party_slot_2",
@@ -128,17 +107,10 @@
         "id": "cw_help_desk_intern"
       },
       "hp": 75,
-      "pp": [
-        15,
-        12,
-        10
-      ]
+      "pp": [15, 12, 10]
     }
   ],
-  "hired": [
-    "cw_desk_challenger",
-    "cw_help_desk_intern"
-  ],
+  "hired": ["cw_desk_challenger", "cw_help_desk_intern"],
   "bench": {},
   "floorId": "floor_02",
   "player": {
@@ -206,34 +178,10 @@
     "rides": 3
   },
   "vendingStock": {
-    "floor_01": [
-      "espresso",
-      "espresso",
-      "side_hustle"
-    ],
-    "floor_02": [
-      "espresso",
-      "espresso",
-      "pto_day",
-      "standing_desk"
-    ],
-    "floor_03": [
-      "espresso",
-      "noise_cancelling",
-      "mentors_advice",
-      "standing_desk"
-    ],
-    "floor_04": [
-      "espresso",
-      "networking_card",
-      "linkedin_endorsement",
-      "reply_all_grenade"
-    ],
-    "floor_05": [
-      "espresso",
-      "pto_day",
-      "reorg_memo",
-      "forward_to_legal"
-    ]
+    "floor_01": ["espresso", "espresso", "side_hustle"],
+    "floor_02": ["espresso", "espresso", "pto_day", "standing_desk"],
+    "floor_03": ["espresso", "noise_cancelling", "mentors_advice", "standing_desk"],
+    "floor_04": ["espresso", "networking_card", "linkedin_endorsement", "reply_all_grenade"],
+    "floor_05": ["espresso", "pto_day", "reorg_memo", "forward_to_legal"]
   }
 }
