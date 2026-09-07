@@ -570,6 +570,13 @@ async function skipBattleText(page: Page) {
   if (await vis(line)) {
     await line.click({ timeout: 400, force: true }).catch(() => {})
   }
+  const logP = page
+    .locator('p')
+    .filter({ hasText: /used |damage|faint|Offline|burned/i })
+    .last()
+  if (await vis(logP)) {
+    await logP.click({ timeout: 400, force: true }).catch(() => {})
+  }
 }
 
 async function inBattle(page: Page) {
@@ -586,7 +593,7 @@ async function inBattle(page: Page) {
 
 export async function fightUntilSettled(page: Page, encounter: string): Promise<FightNotes> {
   const notes: FightNotes = { phase2: false, wipe: false, win: false, wipes: 0 }
-  for (let i = 0; i < 360; i++) {
+  for (let i = 0; i < 520; i++) {
     if (i > 0 && i % 20 === 0) {
       logBeat(`fight:${encounter}:tick`, { i, ...notes })
       if (i % 80 === 0) await shot(page, `fight-${encounter}-t${i}`)
