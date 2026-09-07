@@ -111,10 +111,11 @@ south). The drop-in checklist is `docs/rpg/floors-3-5-content-contract.md`.
 The cab panel (`ovl_elevator_panel`, table `ELEVATOR_FLOORS`) is the only
 destination picker. Rows: 5 EXEC / 4 SALES / 3 PRODUCT (`key_employee_badge`),
 2 OPERATIONS (`key_access_badge`), 1 YOUR TEAM (open). The current floor is inert
-("You are here"). Pressing a locked 3+ row plays that destination’s red-reader inspect once
-(`poi_elevator_door_f2` / `_f3` / `_f4` with `flag_reader_denied_f2` / `_f3` /
-`_f4` for Floors 3 / 4 / 5) and leaves the panel open. `poi_elevator_door_f5`
-is the green “no 6” inspect, not a lockout.
+("You are here"). Pressing a locked 3+ row beeps, keeps the cab open, and shows
+the employee-badge deny (`poi_elevator_door_f2` / `flag_reader_denied_f2`) on
+the plaque — Floors 3–5 still share that key, so per-floor "above your grade"
+lines stay a lie. `poi_elevator_door_f5` is the green “no 6” inspect, not a
+lockout.
 
 Rides stay two-phase: `RIDE_ELEVATOR { to }` → `screen_elevator_ride` (doors /
 fade presentation) → `COMPLETE_ELEVATOR_RIDE` sets `floorId`, teleports to

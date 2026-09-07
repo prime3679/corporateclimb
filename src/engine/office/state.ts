@@ -88,7 +88,7 @@ export type Overlay =
         | 'screen_floor4_complete'
         | 'screen_floor5_complete'
     }
-  | { kind: 'elevator_panel' }
+  | { kind: 'elevator_panel'; denyNote?: string }
 
 export interface OfficeState extends OfficeSave {
   screen: OfficeScreenId

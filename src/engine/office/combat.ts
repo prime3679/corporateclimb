@@ -208,6 +208,15 @@ export function officeBattleOutcome(
   return 'ongoing'
 }
 
+/** Pass C spar beat. F3–5 reviews linger a little longer before the perk offer. */
+export const OFFICE_SPAR_HOLD_MS = 980
+export const OFFICE_REVIEW_HOLD_MS = 1320
+
+export function officeVictoryHoldMs(encounterId: EncounterId): number {
+  const enc = OFFICE_ENCOUNTERS[encounterId]
+  return enc.boss && enc.rank >= 6 ? OFFICE_REVIEW_HOLD_MS : OFFICE_SPAR_HOLD_MS
+}
+
 /** Full-frame sting after the faint beat. Classic never sees this. */
 export function officeVictoryStinger(encounterId: EncounterId): {
   kicker: string

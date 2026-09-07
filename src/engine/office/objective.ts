@@ -13,7 +13,7 @@ export interface OfficeObjective {
 export const LANDING_DEST_ACCENT = '#e0844d'
 
 /** Elevator doors are the same tiles on every floor; the pin for a cross-floor target sits on them. */
-const ELEVATOR_PIN = { x: 3, y: 1 }
+export const ELEVATOR_PIN = { x: 3, y: 1 }
 
 /** Soft-skip: a floor the player already stepped onto (or started) stays the dest. */
 function floorStarted(state: OfficeSave, floor: 'floor_03' | 'floor_04' | 'floor_05'): boolean {
@@ -61,7 +61,12 @@ function floor5Objective(state: OfficeSave): OfficeObjective | null {
   if (state.flags.includes('flag_floor5_complete')) {
     return on
       ? { text: 'The elevator still goes down', zone: 'zone_landing', pin: ELEVATOR_PIN }
-      : null
+      : {
+          text: 'The elevator still goes down',
+          zone: awayZone(state),
+          pin: ELEVATOR_PIN,
+          destFloor: 'floor_01',
+        }
   }
   if (asg === 'accepted') {
     return here(
@@ -238,7 +243,7 @@ function floor2Objective(state: OfficeSave): OfficeObjective | null {
       ? { text: here, zone, pin }
       : {
           text: away,
-          zone: 'zone_elevator' as ZoneId,
+          zone: awayZone(state),
           pin: ELEVATOR_PIN,
           destFloor: 'floor_02' as const,
         }
@@ -378,6 +383,14 @@ export function currentObjective(state: OfficeSave): OfficeObjective {
     return { text: 'Get toner from the supply cabinet', zone: 'zone_break', pin: { x: 15, y: 8 } }
   }
   return { text: 'Talk to Renata', zone: 'zone_reception', pin: { x: 8, y: 14 } }
+}
+
+/** True when the banner is sending the player to another floor — pin must be this floor's doors. */
+export function isCrossFloorObjective(
+  state: OfficeSave,
+  obj: OfficeObjective = currentObjective(state),
+): boolean {
+  return !!obj.destFloor && obj.destFloor !== state.floorId
 }
 
 export function destChip(

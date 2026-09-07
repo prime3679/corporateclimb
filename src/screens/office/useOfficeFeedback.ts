@@ -193,6 +193,10 @@ export function useOfficeFeedback(state: OfficeState): string {
     }
 
     if (ov.kind === 'elevator_panel') {
+      if (prevOv?.kind === 'elevator_panel') {
+        if (ov.denyNote) say(ov.denyNote)
+        return
+      }
       SFX.badgeSwipe()
       Haptics.selection()
       say('Elevator. Pick a floor. Arrow keys or 1 through 5.')
