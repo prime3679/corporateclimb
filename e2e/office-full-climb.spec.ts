@@ -322,8 +322,15 @@ async function climbFromKesslerToNod(page: Page) {
   logBeat('caldwell-won', caldwell)
   await shot(page, '17-the-nod')
 
-  await expect(page.getByText('THE NOD', { exact: true })).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByRole('dialog', { name: /THE CLIMB|THE NOD/i })).toBeVisible()
+  const nod = page.getByRole('dialog', { name: /THE CLIMB/i })
+  if (!(await nod.isVisible({ timeout: 2_000 }).catch(() => false))) {
+    // Product re-shows screen_floor5_complete if you pick Floor 5 on the cab.
+    await openElevator(page)
+    await page.keyboard.press('5')
+    await page.waitForTimeout(800)
+  }
+  await expect(page.getByRole('dialog', { name: /THE CLIMB/i })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByLabel('Five floors. One nod.')).toBeVisible()
   await expect(page.getByText(/Floor 6/i)).toHaveCount(0)
   logBeat('screen-floor5-complete')
 

@@ -280,11 +280,18 @@ export async function startFreshOffice(page: Page, className = 'Product Manager'
   logBeat('fresh-save-started', { className })
 }
 
-export async function drainOverlays(page: Page, rounds = 24, opts: { allowCombat?: boolean } = {}) {
+export async function drainOverlays(
+  page: Page,
+  rounds = 24,
+  opts: { allowCombat?: boolean; keepCelebration?: boolean } = {},
+) {
   const allowCombat = opts.allowCombat !== false
   for (let i = 0; i < rounds; i++) {
     // Enter on the cab panel rides to the focused floor. Never auto-advance it.
     if (await vis(page.getByRole('listbox', { name: 'Elevator floors' }))) return
+    if (opts.keepCelebration && (await vis(page.getByText('THE NOD', { exact: true })))) return
+    if (opts.keepCelebration && (await vis(page.getByRole('dialog', { name: /THE CLIMB/i }))))
+      return
     if (!allowCombat) {
       const combatChoice = await page
         .getByRole('button', { name: /^(Bring it|Begin|Begin training|Not now)$/ })
@@ -328,7 +335,7 @@ export async function drainOverlays(page: Page, rounds = 24, opts: { allowCombat
       continue
     }
 
-    const confirmNames = allowCombat
+    let confirmNames = allowCombat
       ? [
           'Bring it',
           'Begin',
@@ -342,6 +349,9 @@ export async function drainOverlays(page: Page, rounds = 24, opts: { allowCombat
           'Back to Floor 5',
         ]
       : ['File it']
+    if (opts.keepCelebration) {
+      confirmNames = confirmNames.filter((name) => !/^(Back to Floor|Floor \d|Title)/.test(name))
+    }
     let clicked = false
     for (const name of confirmNames) {
       const btn = page.getByRole('button', { name, exact: true })
@@ -590,15 +600,14 @@ export async function fightUntilSettled(page: Page, encounter: string): Promise<
       notes.win = true
       await page.waitForTimeout(400)
       await pickPerk(page)
-      await drainOverlays(page)
+      await drainOverlays(page, 24, { keepCelebration: true })
       logBeat(`fight:${encounter}`, notes)
       return notes
     }
 
-    // Battle chrome says "INTENT: THE NOD" — only the celebration stamp is exact.
-    if ((await vis(page.getByText('THE NOD', { exact: true }))) && !(await inBattle(page))) {
+    // Celebration title is THE CLIMB; the THE NOD stamp is aria-hidden.
+    if ((await vis(page.getByRole('dialog', { name: /THE CLIMB/i }))) && !(await inBattle(page))) {
       notes.win = true
-      await drainOverlays(page)
       logBeat(`fight:${encounter}`, notes)
       return notes
     }
@@ -627,7 +636,13 @@ export async function fightUntilSettled(page: Page, encounter: string): Promise<
       await fileIt.click({ timeout: 2_000 }).catch(() => {})
       await page.waitForTimeout(300)
       if (await vis(page.getByText('CHOOSE A PERK'))) await pickPerk(page)
-      await drainOverlays(page)
+      await drainOverlays(page, 24, { keepCelebration: true })
+      logBeat(`fight:${encounter}`, notes)
+      return notes
+    }
+
+    if ((await vis(page.getByRole('dialog', { name: /THE CLIMB/i }))) && !(await inBattle(page))) {
+      notes.win = true
       logBeat(`fight:${encounter}`, notes)
       return notes
     }
@@ -635,9 +650,11 @@ export async function fightUntilSettled(page: Page, encounter: string): Promise<
     const backFloor = page.getByRole('button', { name: /Back to Floor/ }).first()
     if ((await vis(backFloor)) && !(await inBattle(page))) {
       notes.win = true
-      await backFloor.click({ timeout: 2_000 }).catch(() => {})
-      await page.waitForTimeout(300)
-      await drainOverlays(page)
+      if (encounter !== 'caldwell') {
+        await backFloor.click({ timeout: 2_000 }).catch(() => {})
+        await page.waitForTimeout(300)
+        await drainOverlays(page, 24, { keepCelebration: true })
+      }
       logBeat(`fight:${encounter}`, notes)
       return notes
     }
