@@ -1,6 +1,6 @@
 import type { CSSProperties } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
-import { headshotFocal } from '@/sprites'
+import { headshotFocal, headshotPlacement } from '@/sprites'
 import styles from './Headshot.module.css'
 
 export type HeadshotShape = 'circle' | 'badge'
@@ -32,8 +32,7 @@ export default function Headshot({
   style?: CSSProperties
 }) {
   const url = getSpriteUrls()[spriteId]
-  const focal = headshotFocal(spriteId)
-  const img = size * focal.zoom
+  const place = headshotPlacement(size, headshotFocal(spriteId))
   const classes = [styles.frame, styles[shape], out ? styles.out : '', className]
     .filter(Boolean)
     .join(' ')
@@ -50,10 +49,10 @@ export default function Headshot({
           draggable={false}
           className={styles.img}
           style={{
-            width: img,
-            height: img,
-            left: size / 2 - focal.x * img,
-            top: size / 2 - focal.y * img,
+            width: place.width,
+            height: place.height,
+            left: place.left,
+            top: place.top,
           }}
         />
       )}

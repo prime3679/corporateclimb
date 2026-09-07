@@ -919,6 +919,35 @@
   animation: none;
 }
 
+/* Short stage (440×760 playtest, landscape phones): denser HUD, more map. */
+@container stage (max-height: 820px) {
+  .screen {
+    padding: 6px 10px 8px;
+    gap: 6px;
+  }
+
+  .objective {
+    min-height: 36px;
+    padding: 4px 8px 5px 10px;
+    margin-right: 118px;
+  }
+
+  .ticketKicker {
+    font-size: 8px;
+    margin-bottom: 0;
+  }
+
+  .ctl {
+    height: 176px;
+    padding-top: 14px;
+  }
+
+  .coachMove,
+  .coachInteract {
+    bottom: 164px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .objectiveSwap,
   .walletPulse,

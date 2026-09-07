@@ -1,5 +1,11 @@
 import { describe, expect, it } from 'vitest'
-import { DESIGN_WIDTH, MAX_DESIGN_HEIGHT, MIN_DESIGN_HEIGHT, computeStageLayout } from '@/ui/Stage'
+import {
+  COMPACT_DESIGN_HEIGHT,
+  DESIGN_WIDTH,
+  MAX_DESIGN_HEIGHT,
+  MIN_DESIGN_HEIGHT,
+  computeStageLayout,
+} from '@/ui/Stage'
 
 describe('computeStageLayout', () => {
   it('fills a modern phone with no letterbox', () => {
@@ -53,5 +59,12 @@ describe('computeStageLayout', () => {
 
   it('falls back to the reference layout on degenerate input', () => {
     expect(computeStageLayout(0, 0)).toEqual({ scale: 1, height: 884 })
+  })
+
+  it('lands the 440×760 playtest viewport in the compact chrome band', () => {
+    const { height } = computeStageLayout(440, 760)
+    expect(height).toBeGreaterThanOrEqual(MIN_DESIGN_HEIGHT)
+    expect(height).toBeLessThanOrEqual(COMPACT_DESIGN_HEIGHT)
+    expect(COMPACT_DESIGN_HEIGHT).toBeLessThan(884)
   })
 })
