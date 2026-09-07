@@ -330,8 +330,11 @@ async function climbFromKesslerToNod(page: Page) {
     await page.waitForTimeout(800)
   }
   await expect(page.getByRole('dialog', { name: /THE CLIMB/i })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('dialog', { name: /THE CLIMB/i })).toContainText('THE NOD')
   await expect(page.getByLabel('Five floors. One nod.')).toBeVisible()
-  await expect(page.getByText(/Floor 6/i)).toHaveCount(0)
+  await expect(page.getByLabel('Five floors. One nod.').getByRole('listitem')).toHaveCount(5)
+  await expect(page.getByRole('button', { name: 'Floor 1' })).toBeVisible()
+  await expect(page.getByRole('option', { name: /6 / })).toHaveCount(0)
   logBeat('screen-floor5-complete')
 
   const stay5 = page.getByRole('button', { name: /Back to Floor 5/ })
