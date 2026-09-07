@@ -1,17 +1,17 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
+import { existsSync, readFileSync } from 'node:fs'
 import { GAME_VIEWPORT } from './helpers'
 import {
   ARTIFACT_DIR,
+  approachKessler,
   assertNoClassicBleed,
   beginAndFight,
   continueOfficeFromTitle,
   drainOverlays,
   expectObjective,
-  fightUntilSettled,
   injectOfficeSave,
   logBeat,
   openElevator,
-  passDoor,
   readOfficeSave,
   rideElevator,
   shot,
@@ -69,8 +69,10 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await shot(page, '02-printer-done')
 
   // ── Gavin ─────────────────────────────────────────────────
-  await walkTo(page, 5, 10, 'e', 'Gavin')
-  await beginAndFight(page, 'gavin', ['Bring it'])
+  await beginAndFight(page, 'gavin', {
+    preferred: ['Bring it'],
+    approach: () => walkTo(page, 5, 10, 'e', 'Gavin'),
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_desk_challenger).toBe('won')
   await expectObjective(page, 'See Holloway')
@@ -78,9 +80,13 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await shot(page, '03-gavin-won')
 
   // ── Holloway + access badge ───────────────────────────────
-  await walkTo(page, 10, 3, undefined, 'Holloway glass door')
-  await passDoor(page)
-  await beginAndFight(page, 'holloway', ['Begin'])
+  await beginAndFight(page, 'holloway', {
+    preferred: ['Begin'],
+    approach: async () => {
+      await walkTo(page, 10, 3, undefined, 'Holloway glass door')
+      await passDoor(page)
+    },
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_supervisor_1on1).toBe('won')
   expect(save?.keyItems.key_access_badge).toBe(1)
@@ -151,14 +157,15 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   expect(save?.assignments.asg_transfer).toBe('filed')
   logBeat('packet-filed')
 
-  await walkTo(page, 9, 7, 'n', 'Teddy report approach')
-  await page.keyboard.press('ArrowUp')
-  await page.waitForTimeout(320)
-  await drainOverlays(page)
-  await talkThrough(page, ['Begin training', 'Begin', 'Bring it'])
-  const teddyFight = page.getByRole('button', { name: /^(Begin training|Begin|Bring it)$/ }).first()
-  if (await teddyFight.isVisible().catch(() => false)) await teddyFight.click()
-  await fightUntilSettled(page, 'teddy')
+  await beginAndFight(page, 'teddy', {
+    preferred: ['Begin training', 'Begin', 'Bring it'],
+    approach: async () => {
+      await walkTo(page, 9, 7, 'n', 'Teddy report approach')
+      await page.keyboard.press('ArrowUp')
+      await page.waitForTimeout(320)
+      await drainOverlays(page)
+    },
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_help_desk_intern).toBe('won')
   expect(save?.assignments.asg_transfer).toBe('complete')
@@ -167,14 +174,19 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await shot(page, '08-teddy-won')
   await writeCheckpoint(page, 'teddy-won')
 
-  // ── Kessler + employee badge ──────────────────────────────
-  // Face south only after arriving — facing during walkTo steps into the door loop.
-  await walkTo(page, 3, 8, undefined, 'Kessler door approach')
-  await page.keyboard.press('ArrowDown')
-  await page.waitForTimeout(320)
-  await passDoor(page)
-  await beginAndFight(page, 'kessler', ['Begin'])
-  save = await readOfficeSave(page)
+  await climbFromKesslerToNod(page)
+  expect(pageErrors, 'no uncaught page errors').toEqual([])
+  writeClimbLog()
+  logBeat('PASS', { artifactDir: ARTIFACT_DIR })
+})
+
+async function climbFromKesslerToNod(page: Page) {
+  await beginAndFight(page, 'kessler', {
+    preferred: ['Begin'],
+    healFirst: true,
+    approach: () => approachKessler(page),
+  })
+  let save = await readOfficeSave(page)
   expect(save?.encounters.enc_director_review).toBe('won')
   logBeat('kessler-won')
   await shot(page, '09-kessler-won')
@@ -188,7 +200,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   logBeat('employee-badge')
   await shot(page, '10-employee-badge')
 
-  // ── Save / load mid-climb ─────────────────────────────────
   await assertNoClassicBleed(page)
   await continueOfficeFromTitle(page)
   save = await readOfficeSave(page)
@@ -205,7 +216,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   logBeat('arrived-floor-3')
   await shot(page, '12-floor3-arrival')
 
-  // ── Backtrack 3→2→3 ───────────────────────────────────────
   await drainOverlays(page)
   await rideElevator(page, 2)
   await expect(page.getByText('Floor 2 · of 5')).toBeVisible({ timeout: 15_000 })
@@ -215,7 +225,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await expectObjective(page, /Sloane/i)
   logBeat('back-to-floor-3')
 
-  // ── Sloane / Nico / Quincy ────────────────────────────────
   await walkTo(page, 10, 4, 'n', 'Sloane')
   await talkThrough(page)
   save = await readOfficeSave(page)
@@ -239,8 +248,11 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   logBeat('sloane-nico-complete')
   await shot(page, '13-roadmap-done')
 
-  await walkTo(page, 16, 11, 'e', 'Quincy')
-  const quincy = await beginAndFight(page, 'quincy', ['Begin'])
+  const quincy = await beginAndFight(page, 'quincy', {
+    preferred: ['Begin'],
+    healFirst: true,
+    approach: () => walkTo(page, 16, 11, 'e', 'Quincy'),
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_vp_product).toBe('won')
   logBeat('quincy-won', quincy)
@@ -254,7 +266,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await expect(page.getByText('Floor 4 · of 5')).toBeVisible({ timeout: 15_000 })
   logBeat('arrived-floor-4')
 
-  // ── Harper / Reyes / Ashford ──────────────────────────────
   await drainOverlays(page)
   await walkTo(page, 10, 4, 'n', 'Harper')
   await talkThrough(page)
@@ -269,8 +280,11 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await expectObjective(page, /Ashford/i)
   logBeat('harper-reyes-complete')
 
-  await walkTo(page, 16, 11, 'e', 'Ashford')
-  await beginAndFight(page, 'ashford', ['Begin'])
+  await beginAndFight(page, 'ashford', {
+    preferred: ['Begin'],
+    healFirst: true,
+    approach: () => walkTo(page, 16, 11, 'e', 'Ashford'),
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_vp_sales).toBe('won')
   logBeat('ashford-won')
@@ -285,7 +299,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   logBeat('arrived-floor-5')
   await shot(page, '16-floor5-arrival')
 
-  // ── Marlowe / Caldwell / THE NOD ──────────────────────────
   await drainOverlays(page)
   await walkTo(page, 10, 4, 'n', 'Marlowe')
   await talkThrough(page)
@@ -298,8 +311,11 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await expectObjective(page, /Caldwell/i)
   logBeat('marlowe-packet-complete')
 
-  await walkTo(page, 17, 11, 'e', 'Caldwell')
-  const caldwell = await beginAndFight(page, 'caldwell', ['Begin'])
+  const caldwell = await beginAndFight(page, 'caldwell', {
+    preferred: ['Begin'],
+    healFirst: true,
+    approach: () => walkTo(page, 17, 11, 'e', 'Caldwell'),
+  })
   save = await readOfficeSave(page)
   expect(save?.encounters.enc_ceo_review).toBe('won')
   expect(save?.flags).toContain('flag_floor5_complete')
@@ -316,7 +332,6 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   await drainOverlays(page)
   await waitOverworld(page)
 
-  // Post-nod elevator: 1–5 only, current floor climb/here, ride down.
   await openElevator(page)
   await expect(page.getByRole('option', { name: /5 EXEC/ })).toBeVisible()
   await expect(page.getByRole('option', { name: /6 / })).toHaveCount(0)
@@ -330,25 +345,25 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   logBeat('post-nod-backtrack-5-to-1')
 
   await assertNoClassicBleed(page)
-  expect(pageErrors, 'no uncaught page errors').toEqual([])
-  writeClimbLog()
-  logBeat('PASS', { artifactDir: ARTIFACT_DIR })
-})
+}
+
+function teddyCheckpointPath() {
+  const artifact = `${ARTIFACT_DIR}/checkpoint-teddy-won.json`
+  const fixture = 'e2e/fixtures/checkpoint-teddy-won.json'
+  if (existsSync(artifact)) return artifact
+  if (existsSync(fixture)) return fixture
+  throw new Error(`missing teddy-won checkpoint (${artifact} or ${fixture})`)
+}
 
 test('resume from teddy-won checkpoint through THE NOD', async ({ page }) => {
   test.skip(!process.env.PLAYTEST_RESUME, 'set PLAYTEST_RESUME=1 with a teddy-won checkpoint')
-  test.setTimeout(15 * 60_000)
-  const fs = await import('node:fs')
-  const raw = fs.readFileSync(`${ARTIFACT_DIR}/checkpoint-teddy-won.json`, 'utf8')
-  await injectOfficeSave(page, JSON.parse(raw))
+  test.setTimeout(20 * 60_000)
+  const pageErrors: string[] = []
+  page.on('pageerror', (e) => pageErrors.push(e.message))
+  await injectOfficeSave(page, JSON.parse(readFileSync(teddyCheckpointPath(), 'utf8')))
   await shot(page, 'resume-teddy')
-  await walkTo(page, 3, 8, undefined, 'Kessler door approach')
-  logBeat('reached-kessler-door')
-  await page.keyboard.press('ArrowDown')
-  await page.waitForTimeout(320)
-  await passDoor(page)
-  await beginAndFight(page, 'kessler', ['Begin'])
-  const save = await readOfficeSave(page)
-  expect(save?.encounters.enc_director_review).toBe('won')
-  logBeat('kessler-won-resume')
+  await climbFromKesslerToNod(page)
+  expect(pageErrors, 'no uncaught page errors').toEqual([])
+  writeClimbLog()
+  logBeat('PASS-resume', { artifactDir: ARTIFACT_DIR })
 })

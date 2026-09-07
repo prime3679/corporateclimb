@@ -507,66 +507,144 @@ export async function waitOverworld(page: Page) {
   await expect(page.getByText(/Floor \d · of 5/)).toBeVisible({ timeout: 20_000 })
 }
 
-export async function fightUntilSettled(page: Page, encounter: string) {
-  const notes = { phase2: false, wipe: false, win: false }
-  for (let i = 0; i < 220; i++) {
-    if (i > 0 && i % 20 === 0) logBeat(`fight:${encounter}:tick`, { i, ...notes })
-    if (
-      await page
-        .getByText(/PHASE 2|Let's take this offline/)
-        .first()
-        .isVisible({ timeout: 0 })
-        .catch(() => false)
-    ) {
+const BREAK_SPOT: Record<FloorId, { x: number; y: number; facing: Facing }> = {
+  floor_01: { x: 19, y: 8, facing: 'n' },
+  floor_02: { x: 11, y: 11, facing: 'n' },
+  floor_03: { x: 5, y: 12, facing: 'n' },
+  floor_04: { x: 5, y: 12, facing: 'n' },
+  floor_05: { x: 5, y: 12, facing: 'n' },
+}
+
+export async function takeFive(page: Page) {
+  const save = await readOfficeSave(page)
+  if (!save) return
+  const spot = BREAK_SPOT[save.floorId]
+  await walkTo(page, spot.x, spot.y, spot.facing, `take-five-${save.floorId}`)
+  await page.keyboard.press('e')
+  await page.waitForTimeout(280)
+  const yes = page.getByRole('button', { name: 'Take five', exact: true })
+  if (await vis(yes)) {
+    await yes.click({ timeout: 2_000 }).catch(() => {})
+    await page.waitForTimeout(350)
+  }
+  await drainOverlays(page, 8, { allowCombat: false })
+  logBeat('take-five', { floorId: save.floorId })
+}
+
+export type FightNotes = { phase2: boolean; wipe: boolean; win: boolean; wipes: number }
+
+async function pickPerk(page: Page) {
+  const choices = page.getByLabel('Promotion reward choices').locator('button').first()
+  if (await vis(choices)) {
+    await choices.click({ timeout: 2_000 }).catch(() => {})
+  } else {
+    await page.keyboard.press('1')
+  }
+  await page.waitForTimeout(450)
+}
+
+async function dismissWipe(page: Page) {
+  // Interstitial ignores input for 1.2s, then Enter / click advances.
+  await page.waitForTimeout(1_350)
+  const plate = page.getByText('Your team needs a minute.')
+  if (await vis(plate)) {
+    await plate.click({ timeout: 2_000 }).catch(() => {})
+  }
+  await page.keyboard.press('Enter')
+  await page.waitForTimeout(300)
+  await drainOverlays(page, 10, { allowCombat: false })
+}
+
+async function skipBattleText(page: Page) {
+  const line = page.locator('p[aria-live="polite"][aria-label]').first()
+  if (await vis(line)) {
+    await line.click({ timeout: 400, force: true }).catch(() => {})
+  }
+}
+
+async function inBattle(page: Page) {
+  if (await vis(page.getByRole('button', { name: 'FIGHT' }))) return true
+  if (await vis(page.getByText('YOUR MOVE'))) return true
+  if (await vis(page.getByText('THEIR MOVE'))) return true
+  if (await vis(page.getByText('TAP A MOVE'))) return true
+  if (await vis(page.getByText('REVIEW CLOSED'))) return true
+  if ((await page.locator('[data-testid="move-button"]').count()) > 0) return true
+  // Sequencer hold: command-deck TextBox stays mounted while moves are hidden.
+  if (await vis(page.locator('p[aria-live="polite"][aria-label]').first())) return true
+  return false
+}
+
+export async function fightUntilSettled(page: Page, encounter: string): Promise<FightNotes> {
+  const notes: FightNotes = { phase2: false, wipe: false, win: false, wipes: 0 }
+  for (let i = 0; i < 360; i++) {
+    if (i > 0 && i % 20 === 0) {
+      logBeat(`fight:${encounter}:tick`, { i, ...notes })
+      if (i % 80 === 0) await shot(page, `fight-${encounter}-t${i}`)
+    }
+
+    if (await vis(page.getByText(/PHASE 2|Let's take this offline|Let's restructure/).first())) {
       notes.phase2 = true
     }
 
-    if (
-      await page
-        .getByText('CHOOSE A PERK')
-        .isVisible({ timeout: 0 })
-        .catch(() => false)
-    ) {
+    if (await vis(page.getByText('CHOOSE A PERK'))) {
       notes.win = true
-      await page.keyboard.press('1')
-      await page.waitForTimeout(500)
+      await page.waitForTimeout(400)
+      await pickPerk(page)
+      await drainOverlays(page)
+      logBeat(`fight:${encounter}`, notes)
+      return notes
+    }
+
+    if (await vis(page.getByText('THE NOD'))) {
+      notes.win = true
       await drainOverlays(page)
       logBeat(`fight:${encounter}`, notes)
       return notes
     }
 
     if (
-      await page
-        .getByText(/You take five|take five/i)
-        .isVisible({ timeout: 0 })
-        .catch(() => false)
+      (await vis(page.getByText('TIME OUT'))) ||
+      (await vis(page.getByText('Your team needs a minute.')))
     ) {
       notes.wipe = true
-      await drainOverlays(page)
+      await dismissWipe(page)
       logBeat(`fight:${encounter}:wipe`, notes)
       return notes
     }
 
-    if (
-      (await page
-        .getByText(/Floor \d · of 5/)
-        .isVisible({ timeout: 0 })
-        .catch(() => false)) &&
-      !(await page
-        .getByText('TAP A MOVE')
-        .isVisible({ timeout: 0 })
-        .catch(() => false)) &&
-      !(await page
-        .locator('[data-testid="move-button"]')
-        .first()
-        .isVisible({ timeout: 0 })
-        .catch(() => false))
-    ) {
-      const dlg = await page
-        .getByRole('dialog')
-        .isVisible({ timeout: 0 })
-        .catch(() => false)
-      if (!dlg) {
+    const takeFiveToast = page.getByText(/You take five\. Everyone/)
+    if ((await vis(takeFiveToast)) && !(await inBattle(page))) {
+      notes.wipe = true
+      await drainOverlays(page, 8, { allowCombat: false })
+      logBeat(`fight:${encounter}:wipe-toast`, notes)
+      return notes
+    }
+
+    const fileIt = page.getByRole('button', { name: 'File it' })
+    if (await vis(fileIt)) {
+      notes.win = true
+      await fileIt.click({ timeout: 2_000 }).catch(() => {})
+      await page.waitForTimeout(300)
+      if (await vis(page.getByText('CHOOSE A PERK'))) await pickPerk(page)
+      await drainOverlays(page)
+      logBeat(`fight:${encounter}`, notes)
+      return notes
+    }
+
+    const backFloor = page.getByRole('button', { name: /Back to Floor/ }).first()
+    if ((await vis(backFloor)) && !(await inBattle(page))) {
+      notes.win = true
+      await backFloor.click({ timeout: 2_000 }).catch(() => {})
+      await page.waitForTimeout(300)
+      await drainOverlays(page)
+      logBeat(`fight:${encounter}`, notes)
+      return notes
+    }
+
+    if ((await vis(page.getByText(/Floor \d · of 5/))) && !(await inBattle(page))) {
+      const dlg = await vis(page.getByRole('dialog').first())
+      const interstitial = await vis(page.getByText('TIME OUT'))
+      if (!dlg && !interstitial) {
         notes.win = true
         await drainOverlays(page)
         logBeat(`fight:${encounter}`, notes)
@@ -574,45 +652,138 @@ export async function fightUntilSettled(page: Page, encounter: string) {
       }
     }
 
+    const gotIt = page.getByRole('button', { name: 'GOT IT' })
+    if (await vis(gotIt)) {
+      await gotIt.click({ timeout: 2_000 }).catch(() => {})
+      await page.waitForTimeout(200)
+      continue
+    }
+
+    const logClose = page.getByRole('button', { name: 'CLOSE' })
+    if (await vis(logClose)) {
+      await logClose.click({ timeout: 2_000 }).catch(() => {})
+      await page.waitForTimeout(200)
+      continue
+    }
+
     const switchDlg = page.getByRole('dialog', { name: /Switch party member/i })
-    if (await switchDlg.isVisible({ timeout: 0 }).catch(() => false)) {
-      const bench = switchDlg.locator('button').first()
-      if (await bench.isVisible({ timeout: 0 }).catch(() => false)) {
-        await bench.click({ timeout: 2_000 }).catch(() => {})
+    if (await vis(switchDlg)) {
+      const standing = switchDlg.locator('button:not([disabled])').filter({ hasNotText: /^Back$/ })
+      const n = await standing.count()
+      if (n > 0) {
+        await standing
+          .nth(0)
+          .click({ timeout: 2_000 })
+          .catch(() => {})
         await page.waitForTimeout(500)
         continue
       }
     }
 
-    const move = page.locator('[data-testid="move-button"]:not([disabled])').first()
-    if (await move.isVisible({ timeout: 0 }).catch(() => false)) {
-      await move.click({ timeout: 2_000 }).catch(() => {})
-      await page.keyboard.press(String((i % 4) + 1))
-      await page.waitForTimeout(700)
+    const coach = page.locator('[id^="coach_"]')
+    if (await vis(coach)) {
+      await coach.click().catch(() => {})
+      await page.keyboard.press('Enter').catch(() => {})
+      await page.waitForTimeout(200)
+      continue
+    }
+
+    const moves = page.locator('[data-testid="move-button"]:not([disabled])')
+    const moveCount = await moves.count()
+    if (moveCount > 0 && (await vis(moves.first()))) {
+      await moves
+        .nth(i % moveCount)
+        .click({ timeout: 2_000 })
+        .catch(() => {})
+      await page.waitForTimeout(280)
+      await skipBattleText(page)
+      await page.waitForTimeout(200)
       continue
     }
 
     const pwr = page.locator('button:not([disabled])').filter({ hasText: 'PWR' }).first()
-    if (await pwr.isVisible({ timeout: 0 }).catch(() => false)) {
+    if (await vis(pwr)) {
       await pwr.click({ timeout: 2_000 }).catch(() => {})
-      await page.waitForTimeout(700)
+      await page.waitForTimeout(400)
+      continue
+    }
+
+    if (await inBattle(page)) {
+      await skipBattleText(page)
+      await page.keyboard.press('Enter')
+      await page.waitForTimeout(180)
       continue
     }
 
     await page.keyboard.press('Enter')
-    await page.waitForTimeout(220)
+    await page.waitForTimeout(200)
   }
+  await shot(page, `fight-${encounter}-stall`)
   throw new Error(`fight ${encounter} did not settle`)
 }
 
-export async function beginAndFight(page: Page, encounter: string, preferred?: string[]) {
-  await talkThrough(page, preferred)
-  const stakes = page.getByRole('button', { name: /^(Bring it|Begin|Begin training)$/ }).first()
-  if (await stakes.isVisible({ timeout: 0 }).catch(() => false)) {
-    await stakes.click()
-    await page.waitForTimeout(400)
+export async function approachKessler(page: Page) {
+  await walkTo(page, 3, 8, undefined, 'Kessler door approach')
+  await page.keyboard.press('ArrowDown')
+  await page.waitForTimeout(320)
+  const blocked = page.getByRole('button', { name: 'Back', exact: true })
+  if (await vis(blocked)) {
+    await blocked.click({ timeout: 2_000 }).catch(() => {})
+    await takeFive(page)
+    await walkTo(page, 3, 8, undefined, 'Kessler door retry')
+    await page.keyboard.press('ArrowDown')
+    await page.waitForTimeout(320)
   }
-  return fightUntilSettled(page, encounter)
+  await passDoor(page)
+}
+
+export async function beginAndFight(
+  page: Page,
+  encounter: string,
+  opts: {
+    preferred?: string[]
+    approach?: () => Promise<void>
+    healFirst?: boolean
+    maxWipes?: number
+  } = {},
+): Promise<FightNotes> {
+  const preferred = opts.preferred
+  const maxWipes = opts.maxWipes ?? 8
+  if (opts.healFirst) await takeFive(page)
+
+  const start = async () => {
+    if (opts.approach) await opts.approach()
+    await talkThrough(page, preferred)
+    const stakes = page.getByRole('button', { name: /^(Bring it|Begin|Begin training)$/ }).first()
+    if (await vis(stakes)) {
+      await stakes.click({ timeout: 2_000 }).catch(() => {})
+      await page.waitForTimeout(400)
+    }
+  }
+
+  let wipes = 0
+  let last: FightNotes = { phase2: false, wipe: false, win: false, wipes: 0 }
+  for (let attempt = 0; attempt <= maxWipes; attempt++) {
+    if (attempt > 0) {
+      await drainOverlays(page, 10, { allowCombat: false })
+      await takeFive(page)
+    }
+    await start()
+    last = await fightUntilSettled(page, encounter)
+    last.wipes = wipes
+    if (last.win) {
+      logBeat(`fight:${encounter}:cleared`, last)
+      return last
+    }
+    if (last.wipe) {
+      wipes += 1
+      last.wipes = wipes
+      logBeat(`fight:${encounter}:retry`, { attempt, wipes })
+      continue
+    }
+  }
+  await shot(page, `fight-${encounter}-gave-up`)
+  throw new Error(`fight ${encounter} did not win after ${wipes} wipes`)
 }
 
 export async function openElevator(page: Page) {
