@@ -283,6 +283,8 @@ export async function startFreshOffice(page: Page, className = 'Product Manager'
 export async function drainOverlays(page: Page, rounds = 24, opts: { allowCombat?: boolean } = {}) {
   const allowCombat = opts.allowCombat !== false
   for (let i = 0; i < rounds; i++) {
+    // Enter on the cab panel rides to the focused floor. Never auto-advance it.
+    if (await vis(page.getByRole('listbox', { name: 'Elevator floors' }))) return
     if (!allowCombat) {
       const combatChoice = await page
         .getByRole('button', { name: /^(Bring it|Begin|Begin training|Not now)$/ })
@@ -374,6 +376,10 @@ export async function walkTo(
 ) {
   logBeat(`walkTo:${label}:start`)
   for (let attempt = 0; attempt < 80; attempt++) {
+    if (await vis(page.getByRole('listbox', { name: 'Elevator floors' }))) {
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(250)
+    }
     await drainOverlays(page, 6, { allowCombat: false })
     if (
       await page
@@ -395,17 +401,11 @@ export async function walkTo(
     const cur = await readOfficeSave(page)
     if (!cur) throw new Error(`walkTo ${label}: no office save`)
     if (cur.player.x === x && cur.player.y === y) {
-      const dlg = await page
-        .getByRole('dialog')
-        .isVisible({ timeout: 0 })
-        .catch(() => false)
-      if (!facing || cur.player.facing === facing || dlg) {
-        await drainOverlays(page, 4, { allowCombat: false })
-        return
+      if (facing && cur.player.facing !== facing) {
+        await page.keyboard.press(KEY[facing])
+        await page.waitForTimeout(280)
       }
-      await page.keyboard.press(KEY[facing])
-      await page.waitForTimeout(280)
-      continue
+      return
     }
     const route = pathfind(cur.floorId, cur.player, { x, y })
     if (!route) {
@@ -787,14 +787,28 @@ export async function beginAndFight(
 }
 
 export async function openElevator(page: Page) {
-  await walkTo(page, 3, 2, 'n', 'elevator boarding')
+  const panel = page.getByRole('listbox', { name: 'Elevator floors' })
+  if (await vis(panel)) return
+  const here = await readOfficeSave(page)
+  if (!here || here.player.x !== 3 || here.player.y !== 2 || here.player.facing !== 'n') {
+    await walkTo(page, 3, 2, 'n', 'elevator boarding')
+  }
+  if (await vis(panel)) return
   await page.keyboard.press('e')
-  await expect(page.getByRole('listbox', { name: 'Elevator floors' })).toBeVisible({
-    timeout: 8_000,
-  })
+  await expect(panel).toBeVisible({ timeout: 8_000 })
 }
 
 export async function rideElevator(page: Page, to: 1 | 2 | 3 | 4 | 5) {
+  const already = await readOfficeSave(page)
+  if (already?.floorId === (`floor_0${to}` as FloorId)) {
+    const panel = page.getByRole('listbox', { name: 'Elevator floors' })
+    if (await vis(panel)) {
+      await page.keyboard.press('Escape')
+      await page.waitForTimeout(200)
+    }
+    await waitOverworld(page)
+    return
+  }
   await openElevator(page)
   await page.keyboard.press(String(to))
   await page.waitForTimeout(400)
