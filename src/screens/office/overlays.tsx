@@ -771,7 +771,6 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
                 role="option"
                 aria-selected={current}
                 aria-disabled={current || locked}
-                aria-label={`Floor ${row.number} ${row.name}. ${sub || 'Open'}`}
                 disabled={current}
                 className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${locked ? styles.elevLocked : ''}`}
                 onClick={() => {
