@@ -79,10 +79,11 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   boss: { x: 0.5, y: 0.125, zoom: 3.05 },
   eng: { x: 0.435, y: 0.12, zoom: 3.2 },
   design: { x: 0.49, y: 0.11, zoom: 3.2 },
-  // Sloane's 512 has more headroom than the house PM plate. Pin the eyes
-  // (not the empty sky) and zoom a hair tighter so the badge crop matches
-  // the house Headshot contract instead of sitting high in the circle.
-  sloane: { x: 0.48, y: 0.148, zoom: 3.36 },
+  // Sloane's 512 has more headroom than the house PM plate, so the house
+  // y=0.12 pin sat the face a hair high in the badge. Drop the pin toward
+  // the hairline and zoom a hair tighter so the crop matches the house
+  // Headshot contract (eyes in the upper third, not the top rim).
+  sloane: { x: 0.48, y: 0.105, zoom: 3.38 },
   nico: { x: 0.5, y: 0.12, zoom: 3.15 },
   quincy: { x: 0.48, y: 0.115, zoom: 3.15 },
   harper: { x: 0.48, y: 0.12, zoom: 3.15 },

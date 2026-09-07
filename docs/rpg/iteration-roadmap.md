@@ -67,7 +67,7 @@ stack. Do not add a Floor 6. Do not re-record the demo mp4.
 
 - [x] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
 - [x] F3–5 Headshot portraits shipped (Sloane / Nico / Quincy / Harper / Reyes / Ashford / Marlowe / Caldwell). Floor 1–2 house portraits already unique.
-- [x] Sloane Headshot crop tightened (Pass H) — eyes pinned, zoom 3.36; no longer sits a hair high vs the house contract.
+- [x] Sloane Headshot crop tightened (Pass H) — hairline pin, zoom 3.38; no longer sits a hair high vs the house contract.
 - [x] §12 / §13 / §19 **presentation** sign-off (Pass H). Evidence in `src/screens/office/presentation.ts` and the PR. Hardware CoS playtest remains the merge gate, not a code gap.
 - [ ] Extra ambient / side-cast portraits beyond the eight F3–5 faces.
 

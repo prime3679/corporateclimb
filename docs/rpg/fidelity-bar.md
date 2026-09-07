@@ -155,8 +155,8 @@ Presentation follow-up. Does not touch Office audio, Classic, or frozen IDs.
   focal contract. Encounter kits for Quincy / Ashford / Caldwell use those
   keys. Floor 1–2 house portraits were already unique and stay put.
 - **Sloane crop (Pass H):** `#93` deferred “faces may sit a hair high.”
-  Focal is now `{ x: 0.48, y: 0.148, zoom: 3.36 }` so the eyes sit on the
-  house pin instead of the empty headroom. Placement goes through
+  Focal is now `{ x: 0.48, y: 0.105, zoom: 3.38 }` so the eyes sit in the
+  upper third of the badge, not the top rim. Placement goes through
   `headshotPlacement` in `sprites.ts`.
 - **Stub copy:** live maps still do not place `poi_directory_sign_stub` or
   `STUB_DIRECTORY_TEXT`. The leftover inspect id stays for save compat.

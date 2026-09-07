@@ -32,25 +32,25 @@ function start(): OfficeState {
 }
 
 describe('Pass H — Sloane Headshot crop', () => {
-  it('pins Sloane’s eyes below the house default so the face does not sit high', () => {
+  it('drops Sloane’s pin toward the hairline so the face does not sit high', () => {
     const sloane = headshotFocal('sloane')
     const house = headshotFocal('product_manager')
-    expect(sloane.y).toBeGreaterThan(DEFAULT_HEADSHOT_FOCAL.y)
-    expect(sloane.y).toBeGreaterThan(house.y)
-    expect(sloane.y).toBeLessThanOrEqual(0.16)
+    expect(sloane.y).toBeLessThan(DEFAULT_HEADSHOT_FOCAL.y)
+    expect(sloane.y).toBeLessThanOrEqual(house.y)
+    expect(sloane.y).toBeGreaterThanOrEqual(0.1)
     expect(sloane.zoom).toBeGreaterThan(DEFAULT_HEADSHOT_FOCAL.zoom)
     expect(sloane.x).toBeGreaterThanOrEqual(0.46)
     expect(sloane.x).toBeLessThanOrEqual(0.5)
-    expect(sloane).toEqual({ x: 0.48, y: 0.148, zoom: 3.36 })
+    expect(sloane).toEqual({ x: 0.48, y: 0.105, zoom: 3.38 })
   })
 
-  it('places the 40/48/64 badge crops with less empty headroom than the old pin', () => {
+  it('places the 40/48/64 badge crops with more headroom than the old pin', () => {
     const sloane = headshotFocal('sloane')
     const old = { x: 0.47, y: 0.12, zoom: 3.2 }
     for (const size of [40, 48, 64] as const) {
       const next = headshotPlacement(size, sloane)
       const prev = headshotPlacement(size, old)
-      expect(next.top, `size ${size}`).toBeLessThan(prev.top)
+      expect(next.top, `size ${size}`).toBeGreaterThan(prev.top)
       expect(next.width).toBe(size * sloane.zoom)
     }
   })
