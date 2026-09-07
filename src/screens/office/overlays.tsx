@@ -1554,6 +1554,7 @@ export function CoachMark({
         }
       }}
     >
+      <span className={styles.coachRail} aria-hidden />
       <span className={styles.coachKey}>{copy.key}</span>
       <span className={styles.coachRest}>{copy.rest}</span>
     </div>

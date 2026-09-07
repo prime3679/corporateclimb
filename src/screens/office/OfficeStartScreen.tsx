@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, type CSSProperties } from 'react'
 import { CURRENCY_ICON } from '@/data'
 import { ELEVATOR_FLOORS } from '@/content/office'
 import { loadOfficeSave, memberName, type OfficeSave } from '@/engine/office'
@@ -6,6 +6,7 @@ import { Button } from '@/ui'
 import { SFX } from '@/sfx'
 import Headshot from './Headshot'
 import { campaignSummary, formatFloorTime, memberRing, memberSprite } from './cast'
+import { FLOOR_INK } from './floorInk'
 import styles from './OfficeStartScreen.module.css'
 
 /**
@@ -55,7 +56,11 @@ export default function OfficeStartScreen({
       <div className={styles.rule} aria-hidden />
       <div className={styles.tower} aria-hidden>
         {ELEVATOR_FLOORS.map((row) => (
-          <span key={row.id} className={styles.fl}>
+          <span
+            key={row.id}
+            className={styles.fl}
+            style={{ '--fl': FLOOR_INK[row.number] } as CSSProperties}
+          >
             <b>{row.number}</b>
             {row.name}
           </span>

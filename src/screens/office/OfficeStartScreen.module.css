@@ -81,22 +81,6 @@
   color: var(--fl, var(--cc-gold));
 }
 
-.tower .fl:nth-child(1) {
-  --fl: #d4af37;
-}
-.tower .fl:nth-child(2) {
-  --fl: #e07a5f;
-}
-.tower .fl:nth-child(3) {
-  --fl: #7c9cff;
-}
-.tower .fl:nth-child(4) {
-  --fl: #e0844d;
-}
-.tower .fl:nth-child(5) {
-  --fl: #ffc107;
-}
-
 .blurb {
   margin: 0;
   max-width: 320px;

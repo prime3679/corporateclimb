@@ -9,11 +9,9 @@ import { SFX } from '@/sfx'
 export default function ClassSelect({
   onSelect,
   onBack,
-  variant = 'classic',
 }: {
   onSelect: (cls: PlayerClass, ascension: number) => void
   onBack?: () => void
-  variant?: 'classic' | 'office'
 }) {
   const [selected, setSelected] = useState(0)
   const [reorg, setReorg] = useState(0)
@@ -21,9 +19,8 @@ export default function ClassSelect({
   const cls = PLAYER_CLASSES[selected]
   const unlocked = getClassAscension(cls.id).unlocked
   // Switching to a class with fewer unlocked tiers clamps the pick.
-  const office = variant === 'office'
-  const ascension = office ? 0 : Math.min(reorg, unlocked)
-  const tier = !office && ascension > 0 ? getAscensionTier(ascension) : null
+  const ascension = Math.min(reorg, unlocked)
+  const tier = ascension > 0 ? getAscensionTier(ascension) : null
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -45,7 +42,7 @@ export default function ClassSelect({
       if (e.key === 'Enter') {
         if (document.activeElement instanceof HTMLButtonElement) return
         e.preventDefault()
-        onSelect(PLAYER_CLASSES[selected], office ? 0 : Math.min(reorg, unlocked))
+        onSelect(PLAYER_CLASSES[selected], Math.min(reorg, unlocked))
         return
       }
       if (e.key === 'Escape' && onBack) {
@@ -55,7 +52,7 @@ export default function ClassSelect({
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [onBack, onSelect, office, reorg, selected, unlocked])
+  }, [onBack, onSelect, reorg, selected, unlocked])
 
   return (
     <div
@@ -97,48 +94,18 @@ export default function ClassSelect({
           ‹ Title
         </button>
       )}
-      {office && (
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-2xs)',
-            letterSpacing: 'var(--cc-track-wide)',
-            color: 'var(--cc-text-dim)',
-            textAlign: 'center',
-            paddingTop: onBack ? 18 : 0,
-          }}
-        >
-          YOUR ROLE · FLOORS 1–5
-        </div>
-      )}
       <div
         className="t-display"
         style={{
           fontSize: 'var(--display-sm)',
           color: 'var(--gold-bright)',
           textAlign: 'center',
-          padding: office ? '0 12px' : '0 88px 0 12px',
+          padding: '0 88px 0 12px',
           textShadow: '2px 2px 0 #E65100',
         }}
       >
         SELECT CAREER ARCHETYPE
       </div>
-      {office && (
-        <p
-          className="t-body"
-          style={{
-            margin: 0,
-            textAlign: 'center',
-            fontSize: 'var(--body-md)',
-            lineHeight: 1.35,
-            color: 'var(--cc-text-2)',
-            maxWidth: 320,
-            alignSelf: 'center',
-          }}
-        >
-          Reception to the board. Five floors. One badge at a time.
-        </p>
-      )}
 
       <div
         style={{ display: 'flex', gap: 8, justifyContent: 'center' }}
@@ -432,7 +399,7 @@ export default function ClassSelect({
         </div>
       </Panel>
 
-      {!office && unlocked > 0 && (
+      {unlocked > 0 && (
         <div
           style={{
             display: 'flex',
@@ -491,7 +458,6 @@ export default function ClassSelect({
       <Button
         variant="primary"
         size="lg"
-        autoFocus={office}
         onClick={() => onSelect(PLAYER_CLASSES[selected], ascension)}
         style={{ alignSelf: 'center', minWidth: 220 }}
       >

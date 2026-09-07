@@ -95,6 +95,7 @@ import {
   type OfficeState,
 } from './engine/office'
 import OfficeStartScreen from './screens/office/OfficeStartScreen'
+import OfficeClassSelect from './screens/office/OfficeClassSelect'
 import { campaignSummary } from './screens/office/cast'
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
@@ -867,8 +868,7 @@ export default function CorporateClimb() {
           />
         )}
         {screen === 'officeClassSelect' && (
-          <ClassSelect
-            variant="office"
+          <OfficeClassSelect
             onBack={() => setScreen('title')}
             onSelect={(cls) => {
               SFX.menuConfirm()
