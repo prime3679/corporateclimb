@@ -1,9 +1,10 @@
 /**
  * Trailer-style Office capture. Not a CI test — run with:
  *   DEMO_URL=http://127.0.0.1:4173 npm run demo:office
- * Playwright video has no audio; the mux uses the live Office beds +
- * cab / stamp / combat stingers at scene marks. Writes
- * /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
+ * Playwright video has no audio; the mux uses the live Office beds
+ * (title / F1–F5 including Product + Sales) + cab / stamp / combat
+ * stingers at scene marks. Combat ducks the Floor 1 bed to 22%.
+ * Writes /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
  */
 import { chromium } from '@playwright/test'
 import { spawn } from 'node:child_process'
@@ -136,11 +137,37 @@ function save(patch = {}) {
     encounters: { ...base.encounters, ...(patch.encounters ?? {}) },
     keyItems: { ...base.keyItems, ...(patch.keyItems ?? {}) },
     flags: patch.flags ?? base.flags,
+    firedTriggers: patch.firedTriggers ?? base.firedTriggers,
     player: patch.player ?? base.player,
     party: patch.party ?? base.party,
     hired: patch.hired ?? base.hired,
     stats: { ...base.stats, ...(patch.stats ?? {}) },
   }
+}
+
+/** Shared flags for F3–5 peeks — first-step callouts already fired so walks stay clean. */
+const UPPER_FLAGS = [
+  ...COACH_FLAGS,
+  'flag_office_intro',
+  'flag_first_desk_done',
+  'flag_preview_complete',
+  'flag_visited_f2',
+  'flag_visited_f3',
+  'flag_visited_f4',
+  'flag_visited_f5',
+  'flag_floor2_complete',
+]
+const UPPER_TRIGGERS = [
+  'trg_first_step_f2:arrival',
+  'trg_first_step_f3:arrival',
+  'trg_first_step_f4:arrival',
+  'trg_first_step_f5:arrival',
+]
+const UPPER_KEYS = { key_access_badge: 1, key_employee_badge: 1 }
+const UPPER_ASSIGNMENTS = {
+  asg_printer: 'complete',
+  asg_meeting_prep: 'complete',
+  asg_transfer: 'complete',
 }
 
 const SETTINGS = {
@@ -178,6 +205,26 @@ async function seen(page, pattern, timeout = 2500) {
   } catch {
     return false
   }
+}
+
+/** Landing (3,2) → glass at (6,3) → (9,3) facing the F3–5 cast. Avoids sight tiles. */
+async function walkLandingToCast(page) {
+  await step(page, 'ArrowDown')
+  await step(page, 'ArrowRight', 6)
+  await hold(page, 400)
+}
+
+async function talkPortrait(page, pattern) {
+  await page.keyboard.press('e')
+  if (!(await seen(page, pattern, 8000))) {
+    await page.keyboard.press('Enter')
+    await seen(page, pattern, 4000)
+  }
+  await hold(page, 1600)
+  await page.keyboard.press('Enter')
+  await hold(page, 700)
+  await page.keyboard.press('Enter')
+  await hold(page, 500)
 }
 
 async function resumeOffice(page, next) {
@@ -273,13 +320,21 @@ async function mixLiveAudio(concat, seconds, out) {
   const body = (id, fallback) => TITLE_SECS + markAt(id, fallback)
   const tFloor1 = body('floor1', 14)
   const tFloor2 = body('floor2', 48)
-  const tExec = body('exec', 62)
+  const tFloor3 = body('floor3', 58)
+  const tFloor4 = body('floor4', 68)
+  const tExec = body('exec', 78)
   const tCab = body('cab', 40)
-  const tCabExec = body('cab-exec', 54)
-  const tCabClimb = body('cab-climb', 70)
+  const tCabExec = body('cab-exec', 74)
+  const tCabClimb = body('cab-climb', 88)
+  const tCombat = body('combat', 28)
   const tWin = body('combat-win', 34)
   const tCleared = body('floor1-cleared', 44)
-  const tClimb = body('the-climb', 72)
+  const tClimb = body('the-climb', 90)
+  // Live game: Office combat ducks the floor bed to 22% over 300 ms.
+  const DUCK_GAIN = 0.22
+  const BED_GAIN = 0.28
+  const duckStart = Math.min(Math.max(tCombat, tFloor1 + 0.2), tFloor2 - 0.4)
+  const duckEnd = Math.min(Math.max(tWin, duckStart + 0.8), tFloor2 - 0.15)
 
   const beds = [
     {
@@ -287,34 +342,70 @@ async function mixLiveAudio(concat, seconds, out) {
       start: 0,
       end: tFloor1,
       fadeIn: 1.4,
+      volume: BED_GAIN,
     },
     {
       file: audioFile('music_office_floor1_cubicle_hum.mp3'),
       start: tFloor1,
+      end: duckStart,
+      fadeIn: 0.45,
+      volume: BED_GAIN,
+    },
+    {
+      file: audioFile('music_office_floor1_cubicle_hum.mp3'),
+      start: duckStart,
+      end: duckEnd,
+      fadeIn: 0.3,
+      volume: BED_GAIN * DUCK_GAIN,
+    },
+    {
+      file: audioFile('music_office_floor1_cubicle_hum.mp3'),
+      start: duckEnd,
       end: tFloor2,
       fadeIn: 0.45,
+      volume: BED_GAIN,
     },
     {
       file: audioFile('music_office_floor2_operations.mp3'),
       start: tFloor2,
+      end: tFloor3,
+      fadeIn: 0.45,
+      volume: BED_GAIN,
+    },
+    {
+      file: audioFile('music_office_floor3_product.mp3'),
+      start: tFloor3,
+      end: tFloor4,
+      fadeIn: 0.45,
+      volume: BED_GAIN,
+    },
+    {
+      file: audioFile('music_office_floor4_sales.mp3'),
+      start: tFloor4,
       end: tExec,
       fadeIn: 0.45,
+      volume: BED_GAIN,
     },
     {
       file: audioFile('music_office_exec_the_nod.mp3'),
       start: tExec,
       end: seconds,
       fadeIn: 0.45,
+      volume: BED_GAIN,
     },
-  ]
+  ].filter((bed) => bed.end - bed.start > 0.35)
 
   const stings = [
     [audioFile('sfx_elevator_door_open.mp3'), tCab, 0.82],
     [audioFile('sfx_elevator_door_close.mp3'), tCab + CAB_CLOSE, 0.82],
     [audioFile('sfx_elevator_arrive_chime.mp3'), tCab + CAB_CHIME, 0.88],
-    [audioFile('sfx_elevator_door_open.mp3'), tCabExec, 0.82],
-    [audioFile('sfx_elevator_door_close.mp3'), tCabExec + CAB_CLOSE, 0.82],
-    [audioFile('sfx_elevator_arrive_chime.mp3'), tCabExec + CAB_CHIME, 0.88],
+    ...(marks.some((m) => m.id === 'cab-exec')
+      ? [
+          [audioFile('sfx_elevator_door_open.mp3'), tCabExec, 0.82],
+          [audioFile('sfx_elevator_door_close.mp3'), tCabExec + CAB_CLOSE, 0.82],
+          [audioFile('sfx_elevator_arrive_chime.mp3'), tCabExec + CAB_CHIME, 0.88],
+        ]
+      : []),
     [audioFile('sfx_elevator_door_open.mp3'), tCabClimb, 0.82],
     [audioFile('sfx_elevator_door_close.mp3'), tCabClimb + CAB_CLOSE, 0.82],
     [audioFile('sfx_elevator_arrive_chime.mp3'), tCabClimb + CAB_CHIME, 0.88],
@@ -342,8 +433,9 @@ async function mixLiveAudio(concat, seconds, out) {
     const fadeOutSt = bed.end >= seconds - 0.05 ? Math.max(0, fadeOut - bed.start) : fadeOutAt
     const fadeOutDur = bed.end >= seconds - 0.05 ? 2.0 : 0.45
     const label = `bed${input}`
+    const vol = bed.volume ?? BED_GAIN
     filters.push(
-      `[${input}:a]volume=0.28,atrim=0:${dur.toFixed(2)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=${bed.fadeIn},afade=t=out:st=${fadeOutSt.toFixed(2)}:d=${fadeOutDur},adelay=${delay}:all=1,aformat=channel_layouts=stereo[${label}]`,
+      `[${input}:a]volume=${vol},atrim=0:${dur.toFixed(2)},asetpts=PTS-STARTPTS,afade=t=in:st=0:d=${bed.fadeIn},afade=t=out:st=${fadeOutSt.toFixed(2)}:d=${fadeOutDur},adelay=${delay}:all=1,aformat=channel_layouts=stereo[${label}]`,
     )
     labels.push(label)
     input += 1
@@ -385,7 +477,12 @@ async function mixLiveAudio(concat, seconds, out) {
   console.log('mix beds', {
     tFloor1,
     tFloor2,
+    tFloor3,
+    tFloor4,
     tExec,
+    tCombat,
+    duckStart,
+    duckEnd,
     tCab,
     tCabExec,
     tWin,
@@ -451,26 +548,34 @@ async function main() {
         .isVisible()
         .catch(() => false)
     ) {
-      await hold(page, 800)
+      await hold(page, 1400)
     }
     await step(page, 'ArrowLeft')
-    await hold(page, 600)
-    await page.keyboard.press('Enter')
     await hold(page, 700)
+    await page.keyboard.press('Enter')
+    await hold(page, 800)
     if (
       await page
         .locator('#coach_pin')
         .isVisible()
         .catch(() => false)
     ) {
-      await hold(page, 900)
+      await hold(page, 1400)
       await page.locator('#coach_pin').click()
     }
     await step(page, 'ArrowLeft')
     await step(page, 'ArrowDown')
     await step(page, 'ArrowLeft')
     await step(page, 'ArrowUp')
-    await hold(page, 600)
+    await hold(page, 500)
+    if (
+      await page
+        .locator('#coach_interact')
+        .isVisible()
+        .catch(() => false)
+    ) {
+      await hold(page, 1200)
+    }
     await page.keyboard.press('e')
     if (!(await seen(page, /You have the look/, 6000))) {
       await resumeOffice(
@@ -567,41 +672,70 @@ async function main() {
     await clickIf(page, 'Floor 2', 4000)
     await page.getByText('Floor 2 · of 5').first().waitFor({ timeout: 12_000 })
     mark('floor2')
-    await hold(page, 800)
-    await step(page, 'ArrowDown', 3)
+    await hold(page, 700)
+    await step(page, 'ArrowDown', 2)
     await step(page, 'ArrowRight', 2)
-    await hold(page, 1200)
+    await hold(page, 900)
+  })
+
+  await scene('product', async () => {
+    await resumeOffice(
+      page,
+      save({
+        floorId: 'floor_03',
+        player: { x: 3, y: 2, facing: 's' },
+        assignments: UPPER_ASSIGNMENTS,
+        encounters: { enc_desk_challenger: 'won', enc_supervisor_1on1: 'won' },
+        keyItems: UPPER_KEYS,
+        flags: UPPER_FLAGS,
+        firedTriggers: UPPER_TRIGGERS,
+        stats: { battlesWon: 5, losses: 1, switches: 1, msOnFloor: 40_000, rides: 3 },
+      }),
+    )
+    mark('floor3')
+    await hold(page, 900)
+    await walkLandingToCast(page)
+    await talkPortrait(page, /Q4 is a card|Sloane|Legal won't look/)
+  })
+
+  await scene('sales', async () => {
+    await resumeOffice(
+      page,
+      save({
+        floorId: 'floor_04',
+        player: { x: 3, y: 2, facing: 's' },
+        assignments: UPPER_ASSIGNMENTS,
+        encounters: { enc_desk_challenger: 'won', enc_supervisor_1on1: 'won' },
+        keyItems: UPPER_KEYS,
+        flags: UPPER_FLAGS,
+        firedTriggers: UPPER_TRIGGERS,
+        stats: { battlesWon: 6, losses: 1, switches: 1, msOnFloor: 30_000, rides: 4 },
+      }),
+    )
+    mark('floor4')
+    await hold(page, 900)
+    await walkLandingToCast(page)
+    await talkPortrait(page, /leave-behind|Harper|The Close/)
   })
 
   await scene('exec-peek', async () => {
     await resumeOffice(
       page,
       save({
-        floorId: 'floor_02',
-        player: { x: 3, y: 2, facing: 'n' },
-        assignments: {
-          asg_printer: 'complete',
-          asg_meeting_prep: 'complete',
-          asg_transfer: 'complete',
-        },
+        floorId: 'floor_05',
+        player: { x: 3, y: 2, facing: 's' },
+        assignments: UPPER_ASSIGNMENTS,
         encounters: { enc_desk_challenger: 'won', enc_supervisor_1on1: 'won' },
-        keyItems: { key_access_badge: 1, key_employee_badge: 1 },
-        flags: [...COACH_FLAGS, 'flag_preview_complete', 'flag_visited_f2', 'flag_floor2_complete'],
-        stats: { battlesWon: 5, losses: 1, switches: 1, msOnFloor: 80_000, rides: 2 },
+        keyItems: UPPER_KEYS,
+        flags: UPPER_FLAGS,
+        firedTriggers: UPPER_TRIGGERS,
+        stats: { battlesWon: 7, losses: 1, switches: 2, msOnFloor: 30_000, rides: 5 },
       }),
     )
-    await page.keyboard.press('e')
-    await page.getByRole('listbox', { name: 'Elevator floors' }).waitFor({ timeout: 10_000 })
-    await hold(page, 1300)
-    mark('cab-exec')
-    await page.getByRole('option', { name: /EXEC/ }).click()
-    await hold(page, 3000)
-    await page.getByText('Floor 5 · of 5').first().waitFor({ timeout: 12_000 })
     mark('exec')
-    await hold(page, 800)
-    await step(page, 'ArrowDown', 3)
-    await step(page, 'ArrowRight', 2)
-    await hold(page, 1600)
+    await hold(page, 900)
+    await walkLandingToCast(page)
+    await talkPortrait(page, /Caldwell reviews|Marlowe|board packets/)
   })
 
   await scene('the-climb', async () => {
@@ -679,7 +813,7 @@ async function main() {
 
   await writeFile('/tmp/office-demo/marks.json', JSON.stringify(marks, null, 2))
   await card(title, ['CORPORATE CLIMB', 'THE OFFICE', 'Floors 1–5'], TITLE_SECS)
-  await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass C  ·  feel'], END_SECS)
+  await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass E/F  ·  tip'], END_SECS)
 
   await run('ffmpeg', [
     '-y',
