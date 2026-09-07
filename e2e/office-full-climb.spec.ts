@@ -322,8 +322,8 @@ async function climbFromKesslerToNod(page: Page) {
   logBeat('caldwell-won', caldwell)
   await shot(page, '17-the-nod')
 
-  await expect(page.getByText('THE NOD')).toBeVisible({ timeout: 15_000 })
-  await expect(page.getByRole('dialog', { name: /THE NOD|THE CLIMB|THE REVIEW/i })).toBeVisible()
+  await expect(page.getByText('THE NOD', { exact: true })).toBeVisible({ timeout: 15_000 })
+  await expect(page.getByRole('dialog', { name: /THE CLIMB|THE NOD/i })).toBeVisible()
   await expect(page.getByText(/Floor 6/i)).toHaveCount(0)
   logBeat('screen-floor5-complete')
 

@@ -595,7 +595,8 @@ export async function fightUntilSettled(page: Page, encounter: string): Promise<
       return notes
     }
 
-    if (await vis(page.getByText('THE NOD'))) {
+    // Battle chrome says "INTENT: THE NOD" — only the celebration stamp is exact.
+    if ((await vis(page.getByText('THE NOD', { exact: true }))) && !(await inBattle(page))) {
       notes.win = true
       await drainOverlays(page)
       logBeat(`fight:${encounter}`, notes)
@@ -645,10 +646,23 @@ export async function fightUntilSettled(page: Page, encounter: string): Promise<
       const dlg = await vis(page.getByRole('dialog').first())
       const interstitial = await vis(page.getByText('TIME OUT'))
       if (!dlg && !interstitial) {
-        notes.win = true
-        await drainOverlays(page)
-        logBeat(`fight:${encounter}`, notes)
-        return notes
+        const save = await readOfficeSave(page)
+        const expected: Record<string, string> = {
+          gavin: 'enc_desk_challenger',
+          holloway: 'enc_supervisor_1on1',
+          teddy: 'enc_help_desk_intern',
+          kessler: 'enc_director_review',
+          quincy: 'enc_vp_product',
+          ashford: 'enc_vp_sales',
+          caldwell: 'enc_ceo_review',
+        }
+        const id = expected[encounter]
+        if (id && save?.encounters[id] === 'won') {
+          notes.win = true
+          await drainOverlays(page)
+          logBeat(`fight:${encounter}`, notes)
+          return notes
+        }
       }
     }
 
