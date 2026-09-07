@@ -9,8 +9,8 @@ import {
   ELEVATOR_FLOORS,
   ELEVATOR_RIDE,
   FLOOR_DIRECTORY_TEXT,
-  canRideTo,
   deskRosterLine,
+  elevatorPanelIntent,
   elevatorRidePlan,
   elevatorRideTicks,
   elevatorRowFor,
@@ -717,8 +717,9 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
         e.preventDefault()
         const row = ELEVATOR_FLOORS.find((r) => String(r.number) === e.key)
         if (row) {
-          const locked = row.id !== here && !canRideTo(row.id, state.keyItems)
-          if (locked) SFX.eventBad()
+          const intent = elevatorPanelIntent(here, row.id, state.keyItems, state.flags)
+          if (intent === 'here') return
+          if (intent === 'locked') SFX.eventBad()
           else SFX.menuConfirm()
           act({ type: 'CHOOSE', choice: row.id })
         }
@@ -726,8 +727,10 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [act, focusIdx, here, state.keyItems])
+  }, [act, focusIdx, here, state.flags, state.keyItems])
   const hereRow = elevatorRowFor(here)
+  const denyNote =
+    state.overlay?.kind === 'elevator_panel' ? (state.overlay.denyNote ?? null) : null
   return (
     <Scrim tight>
       <div className={styles.cabPanel}>
@@ -737,18 +740,24 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
             Floor {hereRow.number}
             <span className={styles.cabHereName}>{hereRow.name}</span>
           </div>
+          {denyNote && (
+            <div className={styles.cabDeny} role="status" aria-live="polite">
+              {denyNote}
+            </div>
+          )}
         </div>
         <div ref={listRef} className={styles.elevList} role="listbox" aria-label="Elevator floors">
           {ELEVATOR_FLOORS.map((row) => {
-            const current = row.id === here
-            const climbHere =
-              row.id === 'floor_05' && current && state.flags.includes('flag_floor5_complete')
-            const open = (!current && canRideTo(row.id, state.keyItems)) || climbHere
+            const intent = elevatorPanelIntent(here, row.id, state.keyItems, state.flags)
+            const current = intent === 'here'
+            const climbHere = intent === 'climb'
+            const locked = intent === 'locked'
+            const open = intent === 'ride' || climbHere
             const sub = climbHere
               ? 'The climb'
               : current
                 ? 'You are here'
-                : !open
+                : locked
                   ? row.requires === 'key_employee_badge'
                     ? 'Badge required'
                     : 'Access badge required'
@@ -761,11 +770,13 @@ function ElevatorPanel({ state, act }: { state: OfficeState; act: Act }) {
                 type="button"
                 role="option"
                 aria-selected={current}
-                disabled={current && !climbHere}
-                className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${!open && !current ? styles.elevLocked : ''}`}
+                aria-disabled={current || locked}
+                aria-label={`Floor ${row.number} ${row.name}. ${sub || 'Open'}`}
+                disabled={current}
+                className={`${styles.elevRow} ${current ? styles.elevHere : ''} ${locked ? styles.elevLocked : ''}`}
                 onClick={() => {
-                  if (current && !climbHere) return
-                  if (!open) SFX.eventBad()
+                  if (intent === 'here') return
+                  if (intent === 'locked') SFX.eventBad()
                   else SFX.menuConfirm()
                   act({ type: 'CHOOSE', choice: row.id })
                 }}

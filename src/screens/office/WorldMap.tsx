@@ -3,6 +3,7 @@ import {
   DIALOGUE,
   MAP_HEIGHT,
   MAP_WIDTH,
+  OFFICE_LIGHT_POOLS,
   PHOTO_BOOTH_COPY,
   TILE_SIZE,
   VIEWPORT_TILES_X,
@@ -14,6 +15,7 @@ import {
   type DialogueId,
   type Facing,
   type NpcId,
+  type OfficeLightPoolKind,
 } from '@/content/office'
 import { currentObjective, interactTarget, kitFor, type OfficeState } from '@/engine/office'
 import { ringColorFor } from './ringColor'
@@ -101,43 +103,20 @@ function tileStates(state: OfficeState, nearby: ReturnType<typeof interactTarget
   }
 }
 
-/** One warm ceiling fixture per room, positioned in map pixels per floor. */
-const LIGHT_POOLS: Record<OfficeState['floorId'], { className: string; style: CSSProperties }[]> = {
-  floor_01: [
-    { className: styles.poolElevator, style: {} },
-    { className: styles.poolDesks, style: {} },
-    { className: styles.poolBreak, style: {} },
-    { className: styles.poolMeeting, style: {} },
-    { className: styles.poolReception, style: {} },
-  ],
-  floor_02: [
-    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolDesks, style: { left: 230, top: 30, width: 220 } },
-    { className: styles.poolMeeting, style: { left: 500, top: 40, width: 240 } },
-    { className: styles.poolReception, style: { left: 20, top: 330, width: 200, height: 170 } },
-    { className: styles.poolBreak, style: { left: 270, top: 330 } },
-    { className: styles.poolBreak, style: { left: 520, top: 330, width: 220 } },
-  ],
-  floor_03: [
-    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolWar, style: { left: 230, top: 30, width: 220 } },
-    { className: styles.poolIntake, style: { left: 500, top: 40, width: 240 } },
-    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolProduct, style: { left: 480, top: 330, width: 240, height: 170 } },
-  ],
-  floor_04: [
-    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolPipeline, style: { left: 230, top: 30, width: 220 } },
-    { className: styles.poolClient, style: { left: 500, top: 40, width: 240 } },
-    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolSales, style: { left: 480, top: 330, width: 240, height: 170 } },
-  ],
-  floor_05: [
-    { className: styles.poolElevator, style: { left: 20, top: 40, width: 180 } },
-    { className: styles.poolAnte, style: { left: 230, top: 30, width: 420 } },
-    { className: styles.poolBreak, style: { left: 20, top: 330, width: 220 } },
-    { className: styles.poolExec, style: { left: 350, top: 330, width: 320, height: 180 } },
-  ],
+const POOL_CLASS: Record<OfficeLightPoolKind, string> = {
+  elevator: styles.poolElevator,
+  desks: styles.poolDesks,
+  break: styles.poolBreak,
+  meeting: styles.poolMeeting,
+  reception: styles.poolReception,
+  war: styles.poolWar,
+  intake: styles.poolIntake,
+  product: styles.poolProduct,
+  pipeline: styles.poolPipeline,
+  client: styles.poolClient,
+  sales: styles.poolSales,
+  ante: styles.poolAnte,
+  exec: styles.poolExec,
 }
 
 /* ── sprite-sheet layers ────────────────────────────────────
@@ -321,9 +300,16 @@ export default function WorldMap({ state }: { state: OfficeState }) {
         <FloorLayer floorId={state.floorId} />
         <PropLayers floorId={state.floorId} {...states} />
         <div className={styles.lightPools} aria-hidden>
-          {LIGHT_POOLS[state.floorId].map((pool, i) => (
-            <span key={i} className={`${styles.pool} ${pool.className}`} style={pool.style} />
-          ))}
+          {OFFICE_LIGHT_POOLS[state.floorId].map((pool, i) => {
+            const { kind, ...box } = pool
+            return (
+              <span
+                key={`${kind}-${i}`}
+                className={`${styles.pool} ${POOL_CLASS[kind]}`}
+                style={box}
+              />
+            )
+          })}
         </div>
 
         {outlineTile && (

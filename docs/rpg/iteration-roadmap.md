@@ -37,12 +37,12 @@ Do not merge a draft that skipped step 3.
 A pass is done when CoS’s cold playtest of that pass’s bar is green. Do not
 skip A to chase D.
 
-## Current stack (as of 2026-09-06)
+## Current stack (as of 2026-09-07)
 
-Tip `main` includes Pass D `#91` and demo `#90` (`9d352b6`). Pass E (Astra)
-stacks on that tip: dedicated F3/F4 beds and combat duck. Visual Should-fix
-(glass / hall contrast) is a separate Fable lane. Do not remount the closed
-`#72`–`#78` stack. Do not add a Floor 6.
+Tip `main` is Pass F `#94` (`00538c7`) on Pass E audio `#92` + Fable contrast
+`#93`. Pass G (Astra) is the engine/UX Should-fix lane: objectives, elevator
+cab, F3–5 combat hold + perk offers. Do not remount the closed `#72`–`#78`
+stack. Do not add a Floor 6.
 
 ## Immediate next (after tip playtest)
 
@@ -61,9 +61,9 @@ do not treat this list as already triaged.
 
 - [x] Glass at `(6,3)` / `(14,3)` reads as openings; Product / Sales / Exec contrast vs hall.
 - [x] Actor sheets + Headshot portraits for F3–5 cast; no leftover stub copy (`poi_directory_sign_stub`, `STUB_DIRECTORY_TEXT` on live maps).
-- [ ] `currentObjective` F5→F4→F3→F2→F1; cross-floor pins on the current elevator doors.
-- [ ] Elevator: current floor inert (“You are here”); locked row beeps and stays open; ride 2→3→4→5 and 5→1.
-- [ ] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
+- [x] `currentObjective` F5→F4→F3→F2→F1; cross-floor pins on the current elevator doors.
+- [x] Elevator: current floor inert (“You are here”); locked row beeps and stays open; ride 2→3→4→5 and 5→1.
+- [x] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
 - [x] Office audio (title / F1–F5 beds + cab + CLEARED/THE NOD + combat hit/win + combat duck) — `docs/rpg/office-audio.md`.
 
 **Nice later (Pass D)**

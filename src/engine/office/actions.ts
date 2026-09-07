@@ -1382,14 +1382,13 @@ function selectElevatorFloor(state: OfficeState, to: FloorId): OfficeState {
   if (to === state.floorId) return state
   if (!canRideTo(to, state.keyItems)) {
     const deny = elevatorDenyFor(to)
-    if (!deny) return state
-    const first = !state.flags.includes(deny.flag)
-    const flagged = withFlag(state, deny.flag)
-    if (!first) return flagged
-    return enqueueOverlays({ ...flagged, overlay: null, overlayQueue: [] }, [
-      { kind: 'dialogue', nodeId: `inspect:${POI_INSPECT[deny.poiId]}`, line: 0 },
-      { kind: 'elevator_panel' },
-    ])
+    const flagged = deny ? withFlag(state, deny.flag) : state
+    const denyNote = deny
+      ? POI_INSPECT[deny.poiId]
+      : to === 'floor_02'
+        ? 'Access badge required'
+        : 'Badge required'
+    return { ...flagged, overlay: { kind: 'elevator_panel', denyNote } }
   }
   return rideElevator(state, to)
 }

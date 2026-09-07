@@ -40,6 +40,8 @@ export {
 export {
   currentObjective,
   destChip,
+  ELEVATOR_PIN,
+  isCrossFloorObjective,
   LANDING_DEST_ACCENT,
   objectiveLabel,
   type OfficeObjective,
@@ -68,7 +70,10 @@ export {
 export {
   encounterIntro,
   officeBattleOutcome,
+  officeVictoryHoldMs,
   officeVictoryStinger,
+  OFFICE_REVIEW_HOLD_MS,
+  OFFICE_SPAR_HOLD_MS,
   shouldCoachSwitch,
   startEncounter,
 } from './combat'

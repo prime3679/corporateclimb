@@ -73,22 +73,22 @@ describe('elevator panel (floors 1–5)', () => {
     expect(POI_INSPECT.poi_elevator_door_f5).toContain('no 6')
   })
 
-  it('plays the employee-badge deny once and keeps the panel open', () => {
+  it('plays the employee-badge deny on the cab and keeps the panel open', () => {
     const badged = { ...start(), keyItems: { key_access_badge: 1 } }
     let s = dispatchOfficeAction(at(badged, 3, 2), { type: 'INTERACT' }).state
     s = dispatchOfficeAction(s, { type: 'CHOOSE', choice: 'floor_03' }).state
     expect(s.flags).toContain('flag_reader_denied_f2')
     expect(s.overlay).toMatchObject({
-      kind: 'dialogue',
-      nodeId: `inspect:${POI_INSPECT.poi_elevator_door_f2}`,
+      kind: 'elevator_panel',
+      denyNote: POI_INSPECT.poi_elevator_door_f2,
     })
+    expect(s.screen).toBe('overworld')
     expect(s.floorId).toBe('floor_01')
-    s = dispatchOfficeAction(s, { type: 'ADVANCE' }).state
-    expect(s.overlay).toMatchObject({ kind: 'elevator_panel' })
     for (const to of ['floor_03', 'floor_04', 'floor_05'] as FloorId[]) {
       s = dispatchOfficeAction(s, { type: 'CHOOSE', choice: to }).state
       expect(s.overlay).toMatchObject({ kind: 'elevator_panel' })
       expect(s.floorId).toBe('floor_01')
+      expect(s.screen).toBe('overworld')
     }
   })
 
@@ -98,11 +98,29 @@ describe('elevator panel (floors 1–5)', () => {
     s = dispatchOfficeAction(at(s, 3, 2), { type: 'INTERACT' }).state
     s = dispatchOfficeAction(s, { type: 'CHOOSE', choice: 'floor_04' }).state
     expect(s.overlay).toMatchObject({
-      kind: 'dialogue',
-      nodeId: `inspect:${POI_INSPECT.poi_elevator_door_f2}`,
+      kind: 'elevator_panel',
+      denyNote: POI_INSPECT.poi_elevator_door_f2,
     })
     expect(s.flags).toContain('flag_reader_denied_f2')
     expect(s.floorId).toBe('floor_02')
+  })
+
+  it('rides 2 → 3 → 4 → 5 and backtracks 5 → 1 on the shared shaft', () => {
+    let s: OfficeState = { ...start(), keyItems: { key_access_badge: 1, key_employee_badge: 1 } }
+    s = ride(s, 'floor_02')
+    s = ride(s, 'floor_03')
+    expect(s.floorId).toBe('floor_03')
+    expect(s.player).toEqual(elevatorArrivalForFloor('floor_03'))
+    s = ride(s, 'floor_04')
+    expect(s.floorId).toBe('floor_04')
+    s = ride(s, 'floor_05')
+    expect(s.floorId).toBe('floor_05')
+    expect(s.player).toEqual({ x: 3, y: 2, facing: 's' })
+    s = ride(s, 'floor_04')
+    expect(s.floorId).toBe('floor_04')
+    s = ride(s, 'floor_01')
+    expect(s.floorId).toBe('floor_01')
+    expect(s.player).toEqual({ x: 3, y: 2, facing: 's' })
   })
 
   it('rides 1 → 2 → 3 and arrives on the shared shaft tile', () => {

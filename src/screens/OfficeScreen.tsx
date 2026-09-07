@@ -17,6 +17,7 @@ import {
   currentObjective,
   destChip,
   officeBattleOutcome,
+  officeVictoryHoldMs,
   officeVictoryStinger,
   type OfficeState,
   type PartyMember,
@@ -294,7 +295,8 @@ export default function OfficeScreen({
       setStinger(sting)
       SFX.victory()
       SFX.stampCleared()
-      if (!reduceMotion) await new Promise((r) => setTimeout(r, 980))
+      if (!reduceMotion)
+        await new Promise((r) => setTimeout(r, officeVictoryHoldMs(state.encounter.encounterId)))
       setStinger(null)
     }
     if (hold) onChange(next)

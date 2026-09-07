@@ -92,6 +92,26 @@ export function canRideTo(to: FloorId, keyItems: Record<string, number>): boolea
   return (keyItems[row.requires] ?? 0) > 0
 }
 
+export type ElevatorPanelIntent = 'here' | 'locked' | 'ride' | 'climb'
+
+/**
+ * Cab row outcome. Current floor is inert unless Floor 5 is celebrating;
+ * a locked row must beep and leave the panel open (no ride, no close).
+ */
+export function elevatorPanelIntent(
+  here: FloorId,
+  to: FloorId,
+  keyItems: Record<string, number>,
+  flags: readonly string[] = [],
+): ElevatorPanelIntent {
+  if (to === here) {
+    if (to === 'floor_05' && flags.includes('flag_floor5_complete')) return 'climb'
+    return 'here'
+  }
+  if (!canRideTo(to, keyItems)) return 'locked'
+  return 'ride'
+}
+
 export interface ElevatorDenyLine {
   flag: FlagId
   poiId: PoiId
