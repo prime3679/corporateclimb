@@ -753,68 +753,84 @@
   animation: ovl-rise 160ms var(--cc-ease-out);
 }
 
-/* ── Coach mark ── */
+/* ── Coach mark ──
+   Same plate language as the work ticket / dest chip: glass, gold
+   hairline, left accent bar. Key is a dest-chip stamp, not a 3D pill. */
 .coach {
   position: absolute;
   display: flex;
   align-items: flex-start;
   gap: 10px;
   max-width: 320px;
-  padding: 11px 14px 12px;
+  padding: 11px 14px 12px 16px;
   border-radius: var(--radius-md);
-  background: linear-gradient(180deg, rgba(255, 213, 79, 0.16), transparent 38%), var(--cc-glass);
-  border: 1px solid var(--cc-gold);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 36%), var(--cc-glass);
+  border: 1px solid color-mix(in srgb, var(--cc-gold) 72%, var(--cc-line-strong));
   box-shadow:
-    0 0 0 1px rgba(255, 213, 79, 0.18),
-    0 10px 28px rgba(0, 0, 0, 0.42);
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 0 1px rgba(0, 0, 0, 0.35),
+    var(--cc-shadow-plate);
   color: var(--cc-text);
   font-family: var(--cc-font-body);
   font-size: var(--body-md);
-  line-height: 1.35;
+  line-height: 1.4;
   pointer-events: auto;
   cursor: pointer;
-  animation: ovl-scale 160ms var(--cc-ease-out);
+  animation: ovl-scale 120ms var(--cc-ease-out);
+}
+
+.coachRail {
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: var(--cc-accent-bar);
+  border-radius: 0 2px 2px 0;
+  background: var(--cc-gold);
 }
 
 .coach::after {
   content: '';
   position: absolute;
-  width: 12px;
-  height: 12px;
+  width: 8px;
+  height: 8px;
   background: var(--cc-glass);
-  border-right: 1px solid var(--cc-gold);
-  border-bottom: 1px solid var(--cc-gold);
+  border-right: 1px solid color-mix(in srgb, var(--cc-gold) 72%, var(--cc-line-strong));
+  border-bottom: 1px solid color-mix(in srgb, var(--cc-gold) 72%, var(--cc-line-strong));
 }
 
 .coachDown::after {
   left: var(--coach-pointer, 50%);
-  bottom: -7px;
+  bottom: -5px;
   transform: translateX(-50%) rotate(45deg);
 }
 
 .coachUp::after {
   left: var(--coach-pointer, 50%);
-  top: -7px;
+  top: -5px;
   transform: translateX(-50%) rotate(-135deg);
 }
 
 .coachKey {
   flex: none;
-  display: inline-grid;
-  place-items: center;
-  min-width: 54px;
-  padding: 4px 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 52px;
+  padding: 4px 8px 3px;
   border-radius: 6px;
-  background: linear-gradient(180deg, var(--cc-gold-bright), var(--cc-gold));
-  color: var(--cc-on-accent);
+  background: color-mix(in srgb, var(--cc-gold) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cc-gold) 55%, transparent);
+  color: var(--cc-gold-bright);
   font-family: var(--cc-font-display);
   font-size: var(--display-xs);
   letter-spacing: var(--cc-track-chip);
-  box-shadow: 0 2px 0 rgba(140, 90, 0, 0.7);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06);
 }
 
 .coachRest {
-  padding-top: 2px;
+  padding-top: 3px;
+  color: var(--cc-text-2);
 }
 
 /* ── Interstitial ── */
