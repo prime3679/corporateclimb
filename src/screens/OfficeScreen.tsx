@@ -291,12 +291,12 @@ export default function OfficeScreen({
       }
     }
     if (outcome === 'win' && state.encounter) {
-      const sting = officeVictoryStinger(state.encounter.encounterId)
+      const encounterId = state.encounter.encounterId
+      const sting = officeVictoryStinger(encounterId)
       setStinger(sting)
       SFX.victory()
       SFX.stampCleared()
-      if (!reduceMotion)
-        await new Promise((r) => setTimeout(r, officeVictoryHoldMs(state.encounter.encounterId)))
+      if (!reduceMotion) await new Promise((r) => setTimeout(r, officeVictoryHoldMs(encounterId)))
       setStinger(null)
     }
     if (hold) onChange(next)
