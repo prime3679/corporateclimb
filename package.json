@@ -15,12 +15,20 @@
     "demo:office": "node scripts/office-demo.mjs"
   },
   "dependencies": {
+    "@capacitor-community/keep-awake": "^7.1.0",
+    "@capacitor/app": "^7.1.2",
+    "@capacitor/core": "^7.6.9",
+    "@capacitor/haptics": "^7.0.5",
+    "@capacitor/share": "^7.0.4",
+    "@capacitor/splash-screen": "^7.0.5",
+    "@capacitor/status-bar": "^7.0.6",
     "@fontsource/anton": "^5.2.7",
     "@fontsource/space-grotesk": "^5.2.10",
     "react": "^18.3.1",
     "react-dom": "^18.3.1"
   },
   "devDependencies": {
+    "@capacitor/cli": "^7.6.9",
     "@eslint/js": "^9.0.0",
     "@playwright/test": "^1.49.0",
     "@types/node": "^26.1.0",

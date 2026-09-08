@@ -5,9 +5,10 @@ Corporate Climb already ships as an installable PWA. This document is the
 It expands [`PLATFORM.md`](./PLATFORM.md) with a seam inventory, a
 step-by-step wrap recipe for _this_ repo, gaps/risks, and a phased path.
 
-**This track is planning-only.** Do not add an `ios/` native tree, App
-Store metadata, or store-submit work here. **STOP before App Store
-submit** even after a wrap exists. Out of scope: Swift rewrite, IAP,
+**Phase A web wrap has landed** (Capacitor 7 seams, `capacitor.config.ts`,
+adapter branches). Do **not** commit an `ios/` native tree in this track
+until a Mac can run `npx cap add ios`. **STOP before App Store submit**
+even after a wrap exists. Out of scope: Swift rewrite, IAP,
 Office/Classic rewrite. Android can wait; the wrap is iOS-first.
 
 ## 1. Seam inventory
@@ -124,16 +125,26 @@ Do not invent Capacitor APIs beyond the packages already named in
 
 Estimates are relative wrap effort (not calendar).
 
-### Phase A — wrap (code + `ios/` tree; still not store submit)
+### Phase A — wrap (web seams landed; `ios/` tree Mac-blocked)
 
-- [ ] Packages + `cap init` as in §2.1–2.2
-- [ ] `isNative()` + adapter branches (§2.3)
-- [ ] Skip SW (§2.4); absolute leaderboard URL (§2.5)
-- [ ] `cap add ios` + `cap sync` (§2.6); splash / status / portrait (§2.7)
+Still not store submit. No IAP, no Swift rewrite.
+
+**Landed (web-side):**
+
+- [x] Packages + `capacitor.config.ts` as in §2.1–2.2 (`cap init` equivalent; no `ios/` tree)
+- [x] `isNative()` + adapter branches (§2.3)
+- [x] Skip SW (§2.4); absolute leaderboard URL (§2.5)
+- [x] Splash / status plugin _config_ in `capacitor.config.ts` (§2.7 web half)
+- [x] Confirm PWA path still registers SW in production web builds (`!isNative()`)
+
+**Mac-blocked** (do not run on Linux CI; no `ios/` commit):
+
+- [ ] `npx cap add ios` + `npx cap sync` (§2.6)
+- [ ] Portrait lock in Xcode (`UISupportedInterfaceOrientations`) — not expressible in Capacitor config
 - [ ] Simulator smoke: title → battle haptic → background music pause → share
-- [ ] Confirm PWA path still registers SW in production web builds
+- [ ] Archive / signing (Phase B)
 
-**Effort:** medium (platform adapters + one native project; no gameplay).
+**Effort:** medium for the landed web seams; native project is Mac-blocked.
 
 ### Phase B — TestFlight (internal; still not App Store submit)
 
@@ -163,7 +174,7 @@ separately scoped decision is required before any submit.
 
 **Out of scope:** Swift/native UI rewrite; IAP; Office vs Classic
 rewrites or retargeting `CLASSIC_TRACKS`; Android (`cap add android`);
-adding `ios/` in _this_ planning PR; gameplay, balance, save-format
+adding `ios/` until a Mac can run `npx cap add ios`; gameplay, balance, save-format
 bumps, CI, or Vercel changes.
 
 | Doc                            | Role                                                               |
@@ -173,4 +184,4 @@ bumps, CI, or Vercel changes.
 | `CLAUDE.md`                    | `src/platform/` may not import React; Capacitor swap is documented |
 | `src/engine/save.ts`           | Save version (v8) — wrap must not break migrations                 |
 
-Planning only — Phase A starts in a later PR.
+Phase A web wrap is in-repo. `npx cap add ios` / Simulator / Archive remain Mac-blocked. **STOP before App Store submit.**

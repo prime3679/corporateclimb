@@ -1,9 +1,12 @@
 // ─── DAILY LEADERBOARD CLIENT ───────────────────────────────
 // Talks to /api/daily-leaderboard (a Vercel function backed by
-// Upstash/Vercel KV). Everything degrades gracefully: when the API is
+// Upstash/Vercel KV). On a native shell the same path is absolute
+// (production HTTPS). Everything degrades gracefully: when the API is
 // absent (local dev) or unconfigured, fetches return null and the UI
 // simply hides the leaderboard. Entering a handle is the opt-in for
 // submitting scores.
+
+import { isNative } from '@/platform/native'
 
 export interface LeaderboardEntry {
   name: string
@@ -19,8 +22,15 @@ export const MAX_HANDLE_LENGTH = 12
 
 const HANDLE_KEY = 'corporate-climb-handle'
 const SUBMITTED_KEY = 'corporate-climb-lb-submitted'
-const API = '/api/daily-leaderboard'
+/** Same-origin Vercel function on the web PWA. */
+const WEB_LEADERBOARD_API = '/api/daily-leaderboard'
+/** WKWebView has no same-origin API — production HTTPS only (ATS). */
+const NATIVE_LEADERBOARD_API = 'https://corporateclimb.vercel.app/api/daily-leaderboard'
 const TIMEOUT_MS = 4000
+
+function leaderboardApi(): string {
+  return isNative() ? NATIVE_LEADERBOARD_API : WEB_LEADERBOARD_API
+}
 
 /** Display handles: letters, digits, space, _ and -, max 12 chars. */
 export function sanitizeHandle(raw: string): string {
@@ -93,7 +103,7 @@ export async function submitDailyScore(
   if (!isPlausibleSubmission(entry)) return false
   const t = withTimeout()
   try {
-    const res = await fetch(API, {
+    const res = await fetch(leaderboardApi(), {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ ...entry, name: sanitizeHandle(entry.name) }),
@@ -112,7 +122,7 @@ export async function submitDailyScore(
 export async function fetchDailyLeaderboard(seed: number): Promise<LeaderboardEntry[] | null> {
   const t = withTimeout()
   try {
-    const res = await fetch(`${API}?seed=${seed}`, { signal: t.signal })
+    const res = await fetch(`${leaderboardApi()}?seed=${seed}`, { signal: t.signal })
     if (!res.ok) return null
     const data = (await res.json()) as { entries?: LeaderboardEntry[] }
     return Array.isArray(data.entries) ? data.entries : null
