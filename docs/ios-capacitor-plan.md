@@ -3,7 +3,7 @@
 Corporate Climb already ships as an installable PWA. This document is the
 **iOS wrap plan** for a Capacitor shell around the existing Vite `dist/`.
 It expands [`PLATFORM.md`](./PLATFORM.md) with a seam inventory, a
-step-by-step wrap recipe for *this* repo, gaps/risks, and a phased path.
+step-by-step wrap recipe for _this_ repo, gaps/risks, and a phased path.
 
 **This track is planning-only.** Do not add an `ios/` native tree, App
 Store metadata, or store-submit work here. **STOP before App Store
@@ -15,33 +15,33 @@ Office/Classic rewrite. Android can wait; the wrap is iOS-first.
 Native capability already goes through `src/platform/` (framework-free;
 nothing there may import React). Consumers (sequencer haptic beats,
 battle wake lock, run-end share, install nudge) only see these surfaces.
-The Capacitor swap is a branch *inside* each adapter.
+The Capacitor swap is a branch _inside_ each adapter.
 
 ### 1.1 Adapter modules
 
-| Module | Exported surface | Web today | Capacitor swap |
-| ------ | ---------------- | --------- | -------------- |
-| `haptics.ts` | `Haptics.selection` / `impact(strength)` / `success` / `warning` / `setEnabled` / `supported` | `navigator.vibrate` (no-op on iOS Safari) | `@capacitor/haptics` (`impactMedium`, `notification`) |
-| `wakeLock.ts` | `WakeLock.acquire` / `release` / `reacquire` / `supported` | `navigator.wakeLock.request('screen')` | `@capacitor-community/keep-awake` |
-| `lifecycle.ts` | `registerLifecycle()` — fans out background/foreground | `document.visibilitychange` | `@capacitor/app` `appStateChange` |
-| `install.ts` | `registerInstallCapture` / `canInstall` / `promptInstall` / `isStandalone` / `isIOS` | `beforeinstallprompt` + `display-mode` | Not needed (native is always "installed") |
-| `share.ts` | `share(text): 'shared' \| 'copied' \| 'failed'` | `navigator.share` + clipboard fallback | `@capacitor/share` |
+| Module         | Exported surface                                                                              | Web today                                 | Capacitor swap                                        |
+| -------------- | --------------------------------------------------------------------------------------------- | ----------------------------------------- | ----------------------------------------------------- |
+| `haptics.ts`   | `Haptics.selection` / `impact(strength)` / `success` / `warning` / `setEnabled` / `supported` | `navigator.vibrate` (no-op on iOS Safari) | `@capacitor/haptics` (`impactMedium`, `notification`) |
+| `wakeLock.ts`  | `WakeLock.acquire` / `release` / `reacquire` / `supported`                                    | `navigator.wakeLock.request('screen')`    | `@capacitor-community/keep-awake`                     |
+| `lifecycle.ts` | `registerLifecycle()` — fans out background/foreground                                        | `document.visibilitychange`               | `@capacitor/app` `appStateChange`                     |
+| `install.ts`   | `registerInstallCapture` / `canInstall` / `promptInstall` / `isStandalone` / `isIOS`          | `beforeinstallprompt` + `display-mode`    | Not needed (native is always "installed")             |
+| `share.ts`     | `share(text): 'shared' \| 'copied' \| 'failed'`                                               | `navigator.share` + clipboard fallback    | `@capacitor/share`                                    |
 
 `src/platform/index.ts` is the barrel. Add `isNative()` there
 (`Capacitor.isNativePlatform()`); keep every exported surface unchanged.
 
 ### 1.2 PWA / service worker (not under `src/platform/`)
 
-| Seam | Where | Web today | Native wrap |
-| ---- | ----- | --------- | ----------- |
-| SW registration | `src/main.tsx` (prod only, `/sw.js`) | Precache + network-first navigations; `WARM_MUSIC` after first gesture | **Skip** when `isNative()` — native shell bundles assets; a SW would fight the local scheme |
-| SW template | `public/sw.js` (`VERSION` / `__PRECACHE` placeholders) | `scripts/sw-precache-plugin.ts` injects the manifest at `npm run build` | Leave as-is for the PWA; native never registers it |
-| Manifest | `public/manifest.webmanifest` | `display: standalone`, `orientation: portrait`, `theme_color: #263238` | Native config owns orientation/theme; manifest stays for the web PWA |
-| Boot splash | `index.html` `.boot-splash` | Static markup until React mounts | Keep; `@capacitor/splash-screen` covers WebView start |
-| Safe area | `index.html` `viewport-fit=cover` + `#root` `env(safe-area-inset-*)` | Already pads notches | Keep; pair with `@capacitor/status-bar` |
-| Leaderboard | `src/leaderboard.ts` `API = '/api/daily-leaderboard'` | Same-origin Vercel function | Native needs an **absolute** base URL (one constant) |
-| Saves | guarded `localStorage` via `src/engine/save.ts` | Versioned (currently **v8**); migration pipeline | Unchanged; `@capacitor/preferences` only if WebView eviction becomes real |
-| Audio | `AudioContext` SFX + `HTMLAudioElement` music beds | Bundled assets | Unchanged in a native shell |
+| Seam            | Where                                                                | Web today                                                               | Native wrap                                                                                 |
+| --------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+| SW registration | `src/main.tsx` (prod only, `/sw.js`)                                 | Precache + network-first navigations; `WARM_MUSIC` after first gesture  | **Skip** when `isNative()` — native shell bundles assets; a SW would fight the local scheme |
+| SW template     | `public/sw.js` (`VERSION` / `__PRECACHE` placeholders)               | `scripts/sw-precache-plugin.ts` injects the manifest at `npm run build` | Leave as-is for the PWA; native never registers it                                          |
+| Manifest        | `public/manifest.webmanifest`                                        | `display: standalone`, `orientation: portrait`, `theme_color: #263238`  | Native config owns orientation/theme; manifest stays for the web PWA                        |
+| Boot splash     | `index.html` `.boot-splash`                                          | Static markup until React mounts                                        | Keep; `@capacitor/splash-screen` covers WebView start                                       |
+| Safe area       | `index.html` `viewport-fit=cover` + `#root` `env(safe-area-inset-*)` | Already pads notches                                                    | Keep; pair with `@capacitor/status-bar`                                                     |
+| Leaderboard     | `src/leaderboard.ts` `API = '/api/daily-leaderboard'`                | Same-origin Vercel function                                             | Native needs an **absolute** base URL (one constant)                                        |
+| Saves           | guarded `localStorage` via `src/engine/save.ts`                      | Versioned (currently **v8**); migration pipeline                        | Unchanged; `@capacitor/preferences` only if WebView eviction becomes real                   |
+| Audio           | `AudioContext` SFX + `HTMLAudioElement` music beds                   | Bundled assets                                                          | Unchanged in a native shell                                                                 |
 
 ## 2. Wrap recipe (repo-specific)
 
@@ -105,17 +105,17 @@ Vite still type-checks and builds `dist/`; Capacitor copies that output.
 
 ## 3. Gaps and risks
 
-| Gap | Risk | Mitigation (wrap track, not this PR) |
-| --- | ---- | ------------------------------------ |
-| iOS Safari haptics are a no-op today | Native players expect beats | Swap `haptics.ts` to `@capacitor/haptics`; keep `setEnabled` |
-| SW vs `capacitor://` / local scheme | Stale or empty cache, broken navigations | Skip SW registration when `isNative()` |
-| Relative leaderboard API | Fetch fails in the WebView | Absolute URL constant in `src/leaderboard.ts` |
-| `localStorage` eviction in WKWebView | Rare save loss | Stay on v8 `localStorage` first; Preferences only if observed |
-| `visibilitychange` vs true app background | Music may not pause on home-button | `@capacitor/app` `appStateChange` in `lifecycle.ts` |
-| Portrait only via manifest | iOS may rotate the WebView | Native orientation lock |
-| ATS / HTTPS for leaderboard | App Transport Settings if origin is wrong | Use the production HTTPS origin only |
-| Signing / certificates | Wrap cannot launch on device | Xcode team + profiles in Phase B — not this PR |
-| Store review | Privacy, age rating, screenshots | Phase C assets only; **no submit** |
+| Gap                                       | Risk                                      | Mitigation (wrap track, not this PR)                          |
+| ----------------------------------------- | ----------------------------------------- | ------------------------------------------------------------- |
+| iOS Safari haptics are a no-op today      | Native players expect beats               | Swap `haptics.ts` to `@capacitor/haptics`; keep `setEnabled`  |
+| SW vs `capacitor://` / local scheme       | Stale or empty cache, broken navigations  | Skip SW registration when `isNative()`                        |
+| Relative leaderboard API                  | Fetch fails in the WebView                | Absolute URL constant in `src/leaderboard.ts`                 |
+| `localStorage` eviction in WKWebView      | Rare save loss                            | Stay on v8 `localStorage` first; Preferences only if observed |
+| `visibilitychange` vs true app background | Music may not pause on home-button        | `@capacitor/app` `appStateChange` in `lifecycle.ts`           |
+| Portrait only via manifest                | iOS may rotate the WebView                | Native orientation lock                                       |
+| ATS / HTTPS for leaderboard               | App Transport Settings if origin is wrong | Use the production HTTPS origin only                          |
+| Signing / certificates                    | Wrap cannot launch on device              | Xcode team + profiles in Phase B — not this PR                |
+| Store review                              | Privacy, age rating, screenshots          | Phase C assets only; **no submit**                            |
 
 Do not invent Capacitor APIs beyond the packages already named in
 `PLATFORM.md`.
@@ -156,21 +156,21 @@ Estimates are relative wrap effort (not calendar).
 
 The wrap track ends when a signed TestFlight build exists and review
 **assets** are drafted. It does **not** include App Store Connect
-submission, review replies, expedited review, or a public store
-release. A future, separately scoped decision is required before any
-submit. This planning PR must not start that submit.
+submission, review replies, or a public store release. A future,
+separately scoped decision is required before any submit.
 
 ## 6. Out of scope and doc map
 
 **Out of scope:** Swift/native UI rewrite; IAP; Office vs Classic
 rewrites or retargeting `CLASSIC_TRACKS`; Android (`cap add android`);
-adding `ios/` in *this* planning PR; gameplay, balance, save-format
+adding `ios/` in _this_ planning PR; gameplay, balance, save-format
 bumps, CI, or Vercel changes.
 
-| Doc | Role |
-| --- | ---- |
-| [`PLATFORM.md`](./PLATFORM.md) | Adapter contract + short store-build recipe (iOS-first step 5) |
-| This file | Inventory, expanded recipe, gaps, phases, STOP |
-| `CLAUDE.md` | `src/platform/` may not import React; Capacitor swap is documented |
-| `src/engine/save.ts` | Save version (v8) — wrap must not break migrations |
-This file must stay planning-only until a later wrap PR begins Phase A.
+| Doc                            | Role                                                               |
+| ------------------------------ | ------------------------------------------------------------------ |
+| [`PLATFORM.md`](./PLATFORM.md) | Adapter contract + short store-build recipe (iOS-first step 5)     |
+| This file                      | Inventory, expanded recipe, gaps, phases, STOP                     |
+| `CLAUDE.md`                    | `src/platform/` may not import React; Capacitor swap is documented |
+| `src/engine/save.ts`           | Save version (v8) — wrap must not break migrations                 |
+
+Planning only — Phase A starts in a later PR.
