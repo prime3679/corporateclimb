@@ -1099,6 +1099,8 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
   },
 }
 
+/** 15-speaker Office cast → 512px Headshot plates (`sprites.ts` / `Headshot`).
+ *  F1–2 keep unique house plates; F3–5 use named plates. No extra ambient NPC. */
 export const SPEAKER_SPRITE: Record<Exclude<SpeakerId, null>, string> = {
   renata: 'recruiter',
   gavin: 'overachiever',

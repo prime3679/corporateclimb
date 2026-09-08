@@ -37,12 +37,12 @@ Do not merge a draft that skipped step 3.
 A pass is done when CoS’s cold playtest of that pass’s bar is green. Do not
 skip A to chase D.
 
-## Current stack (as of 2026-09-07)
+## Current stack (as of 2026-09-08)
 
-Tip `main` is Pass G `#95` + demo `#96` (`0d1b72b`). Pass E audio `#92`,
-Pass F coaches `#94`, Pass E visuals `#93`. Pass H (this) is residual
-share-proud polish on that tip. Do not remount the closed `#72`–`#78`
-stack. Do not add a Floor 6. Do not re-record the demo mp4.
+Tip `main` is Pass H `#97` (`d37413a`) on Pass G `#95` + demo `#96`.
+Pass I (this) confirms the 15-speaker Office Headshot roster — no extra
+ambient NPCs to commission. Do not remount the closed `#72`–`#78` stack.
+Do not add a Floor 6. Do not re-record the demo mp4.
 
 ## Immediate next (after tip playtest)
 
@@ -63,13 +63,13 @@ stack. Do not add a Floor 6. Do not re-record the demo mp4.
 - [x] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
 - [x] Office audio (title / F1–F5 beds + cab + CLEARED/THE NOD + combat hit/win + combat duck) — `docs/rpg/office-audio.md`.
 
-**Nice later (Pass D / H)**
+**Nice later (Pass D / H / I)**
 
 - [x] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
 - [x] F3–5 Headshot portraits shipped (Sloane / Nico / Quincy / Harper / Reyes / Ashford / Marlowe / Caldwell). Floor 1–2 house portraits already unique.
 - [x] Sloane Headshot crop tightened (Pass H) — hairline pin, zoom 3.38; no longer sits a hair high vs the house contract.
 - [x] §12 / §13 / §19 **presentation** sign-off (Pass H). Evidence in `src/screens/office/presentation.ts` and the PR. Hardware CoS playtest remains the merge gate, not a code gap.
-- [ ] Extra ambient / side-cast portraits beyond the eight F3–5 faces.
+- [x] Extra ambient / side-cast portraits (Pass I). The 5-floor climb has exactly 15 speakers; every Headshot plate is already unique. No extra ambient NPC exists to commission (People Ops is a tray so Floor 2 never grew a fourth face). Side POIs / callouts stay inspect text — no generic Headshot. Same `sprites.ts` / `Headshot` contract.
 
 ## Do not
 

@@ -153,7 +153,8 @@ Presentation follow-up. Does not touch Office audio, Classic, or frozen IDs.
   department.
 - **Portraits:** unique 512px WebP for the eight F3–5 faces. Same `Headshot`
   focal contract. Encounter kits for Quincy / Ashford / Caldwell use those
-  keys. Floor 1–2 house portraits were already unique and stay put.
+  keys. Floor 1–2 house portraits were already unique and stay put. Pass I
+  confirms there is no leftover ambient / side-cast plate to commission.
 - **Sloane crop (Pass H):** `#93` deferred “faces may sit a hair high.”
   Focal is now `{ x: 0.48, y: 0.105, zoom: 3.38 }` so the eyes sit in the
   upper third of the badge, not the top rim. Placement goes through
@@ -198,6 +199,29 @@ coaches, Pass G objectives/elevator/combat, or the demo mp4.
 - **Titles:** celebration titles stay ≤ 16 chars (`FLOOR n CLEARED` /
   `THE CLIMB`); compact type is `--display-lg`. Office start `THE OFFICE`
   uses `text-wrap: balance`.
+
+### Pass I — ambient / side-cast Headshots
+
+Share-proud confirmation on tip `d37413a`. Does not retouch Pass E audio,
+Pass F coaches, Pass G objectives/elevator, Pass H chrome, or the demo mp4.
+
+The 5-floor climb has **exactly 15 speakers**. Every one already has a unique
+512px plate on the existing `sprites.ts` / `HEADSHOT_FOCALS` / `Headshot`
+contract — no second portrait system, no leftover house alias on F3–5, no
+generic stand-in on the required route or common side POIs.
+
+| Band                          | Speakers                                                                                                                   | Plates                                                                                               |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| F1–2 house (unique by freeze) | Renata `recruiter`, Gavin `overachiever`, Priya `scrum`, Holloway `manager`, Teddy `intern`, Whitlock `boss`, Kessler `vp` | House art; not aliases of each other                                                                 |
+| F3–5 named (Pass E)           | Sloane, Nico, Quincy, Harper, Reyes, Ashford, Marlowe, Caldwell                                                            | Own keys + own pixels                                                                                |
+| Extra ambient / side-cast     | none                                                                                                                       | Floor 2 made People Ops a tray so it would not grow a fourth face (`docs/rpg/floor-2-design.md` §14) |
+
+Inspect, first-step callouts, and Pass D side POIs (cooler / booth / tray /
+lockers / cart) stay speaker-less — italic inspect text, not a stub Headshot.
+Roster lock lives in `OFFICE_CAST_HEADSHOTS` + `pass-i-meng.test.ts`.
+
+Still deferred: F1–2 recast (already unique house art — do not re-commission
+without Adrian), hardware CoS on §12 / §13 / §19.
 
 ## Still Fable's (do not treat this PR as §14 done)
 

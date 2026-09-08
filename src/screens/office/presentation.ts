@@ -2,8 +2,9 @@ import { COMPACT_DESIGN_HEIGHT, computeStageLayout } from '@/ui/Stage'
 import { celebrationCopy, type CelebrationScreen, type OfficeState } from '@/engine/office'
 
 /**
- * Pass H presentation contract — short-stage chrome, celebration/title
- * readability, and the §12 / §13 / §19 evidence the roadmap ticks.
+ * Pass H / I presentation contract — short-stage chrome, celebration/title
+ * readability, the 15-speaker Headshot roster, and the §12 / §13 / §19
+ * evidence the roadmap ticks.
  *
  * CSS mirrors `COMPACT_DESIGN_HEIGHT` via `@container stage (max-height: 820px)`.
  * Safe-area insets live on `#root` (`index.html`); Stage measures that
@@ -65,6 +66,46 @@ export const PRESENTATION_SIGNOFF = {
     'tokens.css — --text-floor 10px, --tap-min 54px before Stage scale',
     'compact chrome at design height ≤ 820 — HUD / start / celebration',
     'Headshot focals — house crop; Sloane eyes pinned (Pass H)',
+    'Pass I ambient Headshots — 15 unique plates; no extra side-cast NPCs',
     'Pass G live 1→5 E2E — no Floor 6, THE NOD, save/load, Caldwell phase 2',
   ],
 } as const
+
+/**
+ * Pass I Headshot roster. The 5-floor climb has exactly these 15 speakers.
+ * F1–2 keep unique house plates (Renata is `recruiter` by freeze). F3–5 use
+ * named plates shipped in Pass E. There is no extra ambient NPC to commission
+ * — Floor 2 made People Ops a tray so it would not grow a fourth face.
+ * Same `sprites.ts` / `Headshot` crop; no second portrait system.
+ */
+export const OFFICE_CAST_HEADSHOTS = {
+  house: {
+    renata: 'recruiter',
+    gavin: 'overachiever',
+    priya: 'scrum',
+    holloway: 'manager',
+    teddy: 'intern',
+    whitlock: 'boss',
+    kessler: 'vp',
+  },
+  named: {
+    sloane: 'sloane',
+    nico: 'nico',
+    quincy: 'quincy',
+    harper: 'harper',
+    reyes: 'reyes',
+    ashford: 'ashford',
+    marlowe: 'marlowe',
+    caldwell: 'caldwell',
+  },
+} as const
+
+export const OFFICE_CAST_SPEAKER_COUNT =
+  Object.keys(OFFICE_CAST_HEADSHOTS.house).length + Object.keys(OFFICE_CAST_HEADSHOTS.named).length
+
+export function officeCastSpriteIds(): string[] {
+  return [
+    ...Object.values(OFFICE_CAST_HEADSHOTS.house),
+    ...Object.values(OFFICE_CAST_HEADSHOTS.named),
+  ]
+}

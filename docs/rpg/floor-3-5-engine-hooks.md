@@ -23,8 +23,9 @@ are in the design doc §8 and in `src/content/office/floor3.ts` /
   inspect id and is not placed on the Floor 3–5 maps.
 - **Renderer**: `tiles.tsx` draws the three maps (floors, rugs, decor, the four
   new props, reused take-five / desks / meeting table). Actor sheets and
-  `NPC_ACTOR` entries exist. Dialogue / party cards reuse house portraits via
-  new `spriteId` keys.
+  `NPC_ACTOR` entries exist. Dialogue / party cards use unique F3–5 Headshot
+  plates through the same `sprites.ts` / `Headshot` crop as Floors 1–2
+  (Pass E named keys; Pass I confirmed no leftover ambient aliases).
 - **Panel / save**: `#73` shipped `ELEVATOR_FLOORS` in `elevator.ts`,
   `RIDE_ELEVATOR { to }` / `COMPLETE_ELEVATOR_RIDE`, and office save v2
   (`hired`, `bench`, `stats.rides`). `elevatorDestination` is the deprecated

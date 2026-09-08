@@ -47,7 +47,9 @@ Fable does **not** invent a parallel combat resolver, touch Classic
 save/combat, or treat token-tinted tiles as done art.
 
 CoS playtests the required route on this draft. Pass H shipped presentation
-evidence for §12 / §13 / §19; hardware CoS is still the merge gate.
+evidence for §12 / §13 / §19; hardware CoS is still the merge gate. Pass I
+confirmed the 15-speaker Headshot roster is already unique — no extra
+ambient NPC portraits to add.
 
 ---
 
@@ -187,7 +189,7 @@ architecture work. Pass H shipped **presentation evidence** for §12 / §13 /
 §19 (`src/screens/office/presentation.ts`); hardware CoS playtest remains
 the merge gate.
 
-- Ship-quality tileset and badge-token art (§14) — sheets shipped; hardware confirms
+- Ship-quality tileset and badge-token art (§14) — sheets + unique Headshots shipped; hardware confirms
 - Full §12 feedback matrix and coach-mark motion — code shipped; device walk remains
 - §13 fade/duck timings — code shipped; device walk remains
 - §19 device sign-off — presentation evidence shipped; CoS signs the live checklist
