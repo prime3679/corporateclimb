@@ -403,13 +403,14 @@ clocks, vents, pinboards, whiteboards, Floor 2 gold/navy rug parts.
 
 **New cells (only what the maps need):**
 
-| Kind   | Cells                                                                                                                                                                                                     |
-| ------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Floors | `floor_war`, `floor_intake`, `floor_product`, `floor_pipeline`, `floor_client`, `floor_board`                                                                                                             |
-| Decor  | `plaque_product_l/m/r`, `plaque_sales_l/m/r`, `plaque_exec_l/m/r`, `sign_war`, `sign_intake`, `sign_pipeline`, `sign_client`, `sign_board`, `nameplate_quincy`, `nameplate_ashford`, `nameplate_caldwell` |
-| Props  | `directory_f3`, `directory_f4`, `directory_f5`, `roadmap_wall`, `intake_board`, `pipeline_board`, `sideboard`                                                                                             |
-| Pass E | `floor_sales`, `floor_ante`, `floor_hall_f3`, `floor_hall_f4`, `floor_hall_f5` (appended; F1/F2/F3–5 prior indices stay)                                                                                  |
-| Actors | `sloane`, `nico`, `quincy`, `harper`, `reyes`, `ashford`, `marlowe`, `caldwell`                                                                                                                           |
+| Kind   | Cells                                                                                                                                                                                                         |
+| ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Floors | `floor_war`, `floor_intake`, `floor_product`, `floor_pipeline`, `floor_client`, `floor_board`                                                                                                                 |
+| Decor  | `plaque_product_l/m/r`, `plaque_sales_l/m/r`, `plaque_exec_l/m/r`, `sign_war`, `sign_intake`, `sign_pipeline`, `sign_client`, `sign_board`, `nameplate_quincy`, `nameplate_ashford`, `nameplate_caldwell_l/r` |
+| Props  | `directory_f3`, `directory_f4`, `directory_f5`, `roadmap_wall`, `intake_board`, `pipeline_board`, `sideboard`                                                                                                 |
+| Pass E | `floor_sales`, `floor_ante`, `floor_hall_f3`, `floor_hall_f4`, `floor_hall_f5` (appended; F1/F2/F3–5 prior indices stay)                                                                                      |
+| Pass J | `nameplate_caldwell` became the two-cell `nameplate_caldwell_l/r` at F5 `(15,9)–(16,9)` (replaced in place; F1/F2 indices stay, later F3–5 cells shift by one)                                                |
+| Actors | `sloane`, `nico`, `quincy`, `harper`, `reyes`, `ashford`, `marlowe`, `caldwell`                                                                                                                               |
 
 Walk sheets use the Floor 1 chibi rig. Dialogue / party / battle cards use
 unique 512px portraits (`src/assets/characters/npcs/{sloane,nico,quincy,

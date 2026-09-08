@@ -39,10 +39,13 @@ skip A to chase D.
 
 ## Current stack (as of 2026-09-08)
 
-Tip `main` is Pass H `#97` (`d37413a`) on Pass G `#95` + demo `#96`.
-Pass I (this) confirms the 15-speaker Office Headshot roster — no extra
-ambient NPCs to commission. Do not remount the closed `#72`–`#78` stack.
-Do not add a Floor 6. Do not re-record the demo mp4.
+Tip `main` is the `#99` harness fix (`4243663`) on Pass I `#98` / Pass H
+`#97` / Pass G `#95` + demo `#96`. Pass I confirmed the 15-speaker Office
+Headshot roster — no extra ambient NPCs to commission. Pass J (this)
+promotes the flagged visual Should residuals to Must: Kessler / Renata house
+focals, Sloane chibi tie, two-cell CALDWELL plate, KESSLER plate frame
+(`docs/rpg/fidelity-bar.md` → Pass J). Do not remount the closed `#72`–`#78`
+stack. Do not add a Floor 6. Do not re-record the demo mp4.
 
 ## Immediate next (after tip playtest)
 
@@ -70,6 +73,8 @@ Do not add a Floor 6. Do not re-record the demo mp4.
 - [x] Sloane Headshot crop tightened (Pass H) — hairline pin, zoom 3.38; no longer sits a hair high vs the house contract.
 - [x] §12 / §13 / §19 **presentation** sign-off (Pass H). Evidence in `src/screens/office/presentation.ts` and the PR. Hardware CoS playtest remains the merge gate, not a code gap.
 - [x] Extra ambient / side-cast portraits (Pass I). The 5-floor climb has exactly 15 speakers; every Headshot plate is already unique. No extra ambient NPC exists to commission (People Ops is a tray so Floor 2 never grew a fourth face). Side POIs / callouts stay inspect text — no generic Headshot. Same `sprites.ts` / `Headshot` contract.
+- [x] Pass J visual residuals. F1–2 house crops framed like F3–5 (Kessler’s face was off the badge; Renata recentred), Sloane’s chibi loses the tie her portrait never had, CALDWELL nameplate spans two cells so the boardroom camera edge never slices a glyph, KESSLER plate gets its frame back. Holloway’s garbled folder text stays outside every Headshot crop (guarded), so the Classic-shared plate is untouched.
+- [ ] `sign_helpdesk` (F2) is a 35px plate in a 32px cell — same frame loss as KESSLER. Needs shorter copy or a two-cell sign; copy is a design call for Adrian.
 
 ## Do not
 

@@ -263,7 +263,10 @@ export const FLOOR_5_WALL_DECOR: Record<string, string> = {
   '4,9': 'shelf_mugs',
   '7,9': 'sign_kitchen',
   '12,9': 'sign_board',
-  '16,9': 'nameplate_caldwell',
+  // Two-cell CEO plate centred on the 15|16 seam (Pass J): the name gets
+  // margins and reads from one tile further west than the single cell did.
+  '15,9': 'nameplate_caldwell_l',
+  '16,9': 'nameplate_caldwell_r',
   '20,9': 'window_l',
   '21,9': 'window_r',
   '22,9': 'vent',

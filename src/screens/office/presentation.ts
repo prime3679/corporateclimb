@@ -67,6 +67,7 @@ export const PRESENTATION_SIGNOFF = {
     'compact chrome at design height ≤ 820 — HUD / start / celebration',
     'Headshot focals — house crop; Sloane eyes pinned (Pass H)',
     'Pass I ambient Headshots — 15 unique plates; no extra side-cast NPCs',
+    'Pass J visual — Kessler / Renata house focals, Sloane chibi tie, two-cell CALDWELL plate',
     'Pass G live 1→5 E2E — no Floor 6, THE NOD, save/load, Caldwell phase 2',
   ],
 } as const

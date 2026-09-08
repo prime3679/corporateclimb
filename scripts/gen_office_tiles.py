@@ -2295,7 +2295,11 @@ def server_status() -> Cell:
 
 
 def nameplate_tight(label: str) -> Cell:
-    """Full-width steel plaque for longer names (ASHFORD, CALDWELL)."""
+    """Full-width steel plaque for seven-glyph names (KESSLER, ASHFORD).
+
+    Seven 3×5 glyphs are 27px, so the plate keeps its ink frame inside the
+    cell. `nameplate()` would push a 33px plate past both cell edges and lose
+    the frame — that was the original KESSLER cell."""
     c = Cell()
     c.rect(1, 13, 30, 9, STEEL)
     c.hline(1, 13, 30, STEEL_LIT)
@@ -2304,6 +2308,32 @@ def nameplate_tight(label: str) -> Cell:
     tw = len(label) * 4 - 1
     text(c, label, max(1, (32 - tw) // 2), 15, INK)
     return c
+
+
+def nameplate_wide(label: str, tx: int = 4) -> tuple[Cell, Cell]:
+    """Two-cell steel plaque for eight-glyph names (CALDWELL).
+
+    Eight glyphs are 31px: in one cell the letters touched the frame and the
+    boardroom camera edge sliced straight through them. The plate now hangs
+    from the left cell's edge and spills a few pixels into the right cell, so
+    the name gets the same margins as the tight plates and finishes at
+    world x = cell·32 + 35. On Floor 5 that is inside the 13.6-tile viewport
+    from `(9, y)` facing east — one tile sooner than before — and the one
+    pose that still clips it (`(9, y)` facing north / south) lands on a glyph
+    gap and reads CALD, never half a letter. Returns the (left, right) cells."""
+    tw = len(label) * 4 - 1
+    x0 = tx - 3
+    w = tw + 6
+    parts: list[Cell] = []
+    for dx in (0, -CELL_W):
+        c = Cell()
+        c.rect(x0 + dx, 13, w, 9, STEEL)
+        c.hline(x0 + dx, 13, w, STEEL_LIT)
+        c.hline(x0 + dx, 21, w, STEEL_DARK)
+        c.frame(x0 + dx - 1, 12, w + 2, 11, INK)
+        text(c, label, tx + dx, 15, INK)
+        parts.append(c)
+    return parts[0], parts[1]
 
 
 def nameplate(label: str) -> Cell:
@@ -2870,7 +2900,9 @@ def build_floor2() -> None:
     register('sign_people', sign_room('PEOPLE'))
     register('sign_finance', sign_room('FINANCE'))
     register('sign_pantry', sign_room('PANTRY'))
-    register('nameplate_kessler', nameplate('KESSLER'))
+    # Pass J: seven glyphs need the tight plate — `nameplate()` lost its frame
+    # past both cell edges. Same index, new pixels.
+    register('nameplate_kessler', nameplate_tight('KESSLER'))
     register('directory_f2', directory_f2())
     register_group(['server_rack_0', 'server_rack_1'], [server_rack(0), server_rack(1)])
     register('photo_booth_idle', photo_booth('idle'))
@@ -3245,7 +3277,12 @@ def build_floor35() -> None:
     register('sign_board', sign_room('BOARD'))
     register('nameplate_quincy', nameplate('QUINCY'))
     register('nameplate_ashford', nameplate_tight('ASHFORD'))
-    register('nameplate_caldwell', nameplate_tight('CALDWELL'))
+    # Pass J: CALDWELL spans two wall cells at (15,9)–(16,9) so the eight
+    # glyphs get margins and the boardroom camera edge never slices a letter.
+    # Same steel, same height as the F2–4 plates — only wider.
+    caldwell_l, caldwell_r = nameplate_wide('CALDWELL')
+    register('nameplate_caldwell_l', caldwell_l)
+    register('nameplate_caldwell_r', caldwell_r)
     register('directory_f3', directory_floor('3', hexc('#c47a3a')))
     register('directory_f4', directory_floor('4', hexc('#d45a3a')))
     register('directory_f5', directory_floor('5', hexc('#e0d0a0')))

@@ -9,7 +9,7 @@ export const TILE_PAD = 1
 export const TILE_STRIDE_X = 34
 export const TILE_STRIDE_Y = 50
 export const TILE_SHEET_W = 272
-export const TILE_SHEET_H = 1300
+export const TILE_SHEET_H = 1350
 
 export const TILE_ATLAS = {
   floor_hall: [0, 0],
@@ -199,25 +199,26 @@ export const TILE_ATLAS = {
   sign_board: [2, 23],
   nameplate_quincy: [3, 23],
   nameplate_ashford: [4, 23],
-  nameplate_caldwell: [5, 23],
-  directory_f3: [6, 23],
-  directory_f4: [7, 23],
-  directory_f5: [0, 24],
-  roadmap_wall: [1, 24],
-  intake_board: [2, 24],
-  pipeline_board: [3, 24],
-  sideboard: [4, 24],
-  floor_sales: [5, 24],
-  floor_ante: [6, 24],
-  floor_hall_f3: [7, 24],
-  floor_hall_f4: [0, 25],
-  floor_hall_f5: [1, 25],
-  rug_red_tbl: [2, 25],
-  rug_gold_tbl: [3, 25],
-  rug_red_tb: [4, 25],
-  rug_gold_tb: [5, 25],
-  rug_red_tbr: [6, 25],
-  rug_gold_tbr: [7, 25],
+  nameplate_caldwell_l: [5, 23],
+  nameplate_caldwell_r: [6, 23],
+  directory_f3: [7, 23],
+  directory_f4: [0, 24],
+  directory_f5: [1, 24],
+  roadmap_wall: [2, 24],
+  intake_board: [3, 24],
+  pipeline_board: [4, 24],
+  sideboard: [5, 24],
+  floor_sales: [6, 24],
+  floor_ante: [7, 24],
+  floor_hall_f3: [0, 25],
+  floor_hall_f4: [1, 25],
+  floor_hall_f5: [2, 25],
+  rug_red_tbl: [3, 25],
+  rug_gold_tbl: [4, 25],
+  rug_red_tb: [5, 25],
+  rug_gold_tb: [6, 25],
+  rug_red_tbr: [7, 25],
+  rug_gold_tbr: [0, 26],
 } as const satisfies Record<string, readonly [number, number]>
 
 export type TileName = keyof typeof TILE_ATLAS

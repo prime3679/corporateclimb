@@ -71,11 +71,16 @@ export function headshotPlacement(size: number, focal: HeadshotFocal) {
 const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   product_manager: { x: 0.49, y: 0.115, zoom: 3.2 },
   overachiever: { x: 0.49, y: 0.1, zoom: 3.2 },
-  recruiter: { x: 0.45, y: 0.12, zoom: 3.2 },
+  // Renata leans into her phone: her eyes sit at x≈0.47 of the plate, not
+  // the 0.45 that pulled the badge toward the handset (Pass J).
+  recruiter: { x: 0.47, y: 0.12, zoom: 3.2 },
   scrum: { x: 0.585, y: 0.13, zoom: 3.1 },
   manager: { x: 0.415, y: 0.13, zoom: 3.1 },
   intern: { x: 0.5, y: 0.115, zoom: 3.2 },
-  vp: { x: 0.5, y: 0.11, zoom: 3.15 },
+  // Kessler stands on the right third of vp.webp (eyes at x≈0.68). The
+  // house x=0.5 pin framed empty background with his ear on the rim — the
+  // one F1–2 plate that was clearly behind the F3–5 bar (Pass J).
+  vp: { x: 0.685, y: 0.105, zoom: 3.25 },
   boss: { x: 0.5, y: 0.125, zoom: 3.05 },
   eng: { x: 0.435, y: 0.12, zoom: 3.2 },
   design: { x: 0.49, y: 0.11, zoom: 3.2 },
