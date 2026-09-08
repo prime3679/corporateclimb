@@ -2,7 +2,25 @@ import { expect, type Locator, type Page } from '@playwright/test'
 import { mkdirSync, writeFileSync } from 'node:fs'
 import path from 'node:path'
 
-export const ARTIFACT_DIR = '/opt/cursor/artifacts/e2e-full-climb'
+const PREFERRED_ARTIFACT_DIR = '/opt/cursor/artifacts/e2e-full-climb'
+const FALLBACK_ARTIFACT_DIR = path.join('test-results', 'e2e-full-climb')
+
+function resolveArtifactDir(): string {
+  const fromEnv = process.env.PLAYTEST_ARTIFACT_DIR
+  const candidates = fromEnv ? [fromEnv] : [PREFERRED_ARTIFACT_DIR, FALLBACK_ARTIFACT_DIR]
+  for (const dir of candidates) {
+    try {
+      mkdirSync(dir, { recursive: true })
+      writeFileSync(path.join(dir, '.writable'), 'ok')
+      return dir
+    } catch {
+      /* FUSE /opt/cursor/artifacts can EIO; keep looking */
+    }
+  }
+  return FALLBACK_ARTIFACT_DIR
+}
+
+export const ARTIFACT_DIR = resolveArtifactDir()
 export const OFFICE_SAVE_KEY = 'corporate-climb-office-save'
 export const CLASSIC_SAVE_KEY = 'corporate-climb-save'
 
@@ -52,13 +70,21 @@ export async function readClassicSave(page: Page): Promise<string | null> {
 }
 
 export async function shot(page: Page, name: string) {
-  mkdirSync(ARTIFACT_DIR, { recursive: true })
-  await page.screenshot({ path: path.join(ARTIFACT_DIR, `${name}.png`), fullPage: true })
+  try {
+    mkdirSync(ARTIFACT_DIR, { recursive: true })
+    await page.screenshot({ path: path.join(ARTIFACT_DIR, `${name}.png`), fullPage: true })
+  } catch {
+    /* artifact dir is optional — do not fail the climb on a screenshot EIO */
+  }
 }
 
 export function writeClimbLog() {
-  mkdirSync(ARTIFACT_DIR, { recursive: true })
-  writeFileSync(path.join(ARTIFACT_DIR, 'beats.log'), BEATS.join('\n') + '\n')
+  try {
+    mkdirSync(ARTIFACT_DIR, { recursive: true })
+    writeFileSync(path.join(ARTIFACT_DIR, 'beats.log'), BEATS.join('\n') + '\n')
+  } catch {
+    /* beats already printed to stdout */
+  }
 }
 
 async function vis(el: Locator) {
@@ -67,8 +93,12 @@ async function vis(el: Locator) {
 
 export async function writeCheckpoint(page: Page, name: string) {
   const save = await readOfficeSave(page)
-  mkdirSync(ARTIFACT_DIR, { recursive: true })
-  writeFileSync(path.join(ARTIFACT_DIR, `checkpoint-${name}.json`), JSON.stringify(save, null, 2))
+  try {
+    mkdirSync(ARTIFACT_DIR, { recursive: true })
+    writeFileSync(path.join(ARTIFACT_DIR, `checkpoint-${name}.json`), JSON.stringify(save, null, 2))
+  } catch {
+    /* fixture e2e/fixtures/checkpoint-teddy-won.json still covers resume */
+  }
 }
 
 const KEY: Record<Facing, 'ArrowUp' | 'ArrowRight' | 'ArrowDown' | 'ArrowLeft'> = {
