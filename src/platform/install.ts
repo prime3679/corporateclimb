@@ -2,6 +2,9 @@
 // Captures Chromium's beforeinstallprompt so the game can offer
 // installation at a moment of its choosing, and detects when it is
 // already running as an installed app (standalone display mode).
+// A Capacitor shell is always installed — canInstall stays false.
+
+import { isNative } from './native'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -14,6 +17,10 @@ let registered = false
 /** Must run before the browser fires the event — call from main.tsx. */
 export function registerInstallCapture() {
   if (registered || typeof window === 'undefined') return
+  if (isNative()) {
+    registered = true
+    return
+  }
   registered = true
   window.addEventListener('beforeinstallprompt', (e) => {
     e.preventDefault()
@@ -26,10 +33,12 @@ export function registerInstallCapture() {
 
 /** True when the browser has offered installability and we hold the prompt. */
 export function canInstall(): boolean {
+  if (isNative()) return false
   return deferredPrompt !== null
 }
 
 export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unavailable'> {
+  if (isNative()) return 'unavailable'
   const evt = deferredPrompt
   if (!evt) return 'unavailable'
   deferredPrompt = null // Chromium only allows one prompt() per event
@@ -41,8 +50,9 @@ export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unava
   }
 }
 
-/** Running as an installed app (home-screen launch)? */
+/** Running as an installed app (home-screen launch or native shell)? */
 export function isStandalone(): boolean {
+  if (isNative()) return true
   try {
     if (typeof window === 'undefined') return false
     if (window.matchMedia?.('(display-mode: standalone)').matches) return true

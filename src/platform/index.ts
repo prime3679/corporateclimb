@@ -1,8 +1,9 @@
 // ─── PLATFORM SERVICES ───────────────────────────────────────
 // The native-capability seam: framework-free adapters with web
-// implementations today and a documented Capacitor swap for the store
-// build (docs/PLATFORM.md). Nothing here may import React.
+// implementations and a Capacitor branch for the store build
+// (docs/PLATFORM.md). Nothing here may import React.
 
+export { isNative, bootstrapNativeChrome } from './native'
 export { Haptics } from './haptics'
 export { WakeLock } from './wakeLock'
 export { registerLifecycle } from './lifecycle'

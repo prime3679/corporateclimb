@@ -1,5 +1,7 @@
 node_modules/
 dist/
+ios/
+android/
 .vite/
 *.log
 .worktrees/

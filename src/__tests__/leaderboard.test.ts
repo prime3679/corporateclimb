@@ -72,6 +72,10 @@ describe('network behavior', () => {
     expect(hasSubmitted(ENTRY.seed)).toBe(false)
     expect(await submitDailyScore(ENTRY)).toBe(true)
     expect(hasSubmitted(ENTRY.seed)).toBe(true)
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      '/api/daily-leaderboard',
+      expect.objectContaining({ method: 'POST' }),
+    )
   })
 
   it('submit never throws when the API is down', async () => {
@@ -96,6 +100,10 @@ describe('network behavior', () => {
       }),
     )
     const entries = await fetchDailyLeaderboard(ENTRY.seed)
+    expect(vi.mocked(fetch)).toHaveBeenCalledWith(
+      `/api/daily-leaderboard?seed=${ENTRY.seed}`,
+      expect.anything(),
+    )
     expect(entries).toHaveLength(1)
     expect(entries![0].name).toBe('Rival')
 

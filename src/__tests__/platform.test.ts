@@ -1,4 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { bootstrapNativeChrome, isNative } from '@/platform'
 import { Haptics } from '@/platform/haptics'
 import { WakeLock } from '@/platform/wakeLock'
 import { share } from '@/platform/share'
@@ -100,6 +101,16 @@ describe('install', () => {
     expect(canInstall()).toBe(false)
     await expect(promptInstall()).resolves.toBe('unavailable')
     expect(isStandalone()).toBe(false)
+  })
+})
+
+describe('isNative (web / jsdom)', () => {
+  it('is false without a Capacitor native bridge', () => {
+    expect(isNative()).toBe(false)
+  })
+
+  it('bootstrapNativeChrome is a no-op on web', async () => {
+    await expect(bootstrapNativeChrome()).resolves.toBeUndefined()
   })
 })
 
