@@ -33,6 +33,8 @@ import {
  *
  * Teddy checkpoint (#95): PLAYTEST_FULL_CLIMB=1 PLAYTEST_RESUME=1
  * (e2e/fixtures/checkpoint-teddy-won.json, or ARTIFACT_DIR after a fresh run).
+ * Shots: PLAYTEST_ARTIFACT_DIR, else /opt/cursor/artifacts/e2e-full-climb,
+ * else test-results/e2e-full-climb. A screenshot EIO must not fail the climb.
  */
 test.use({ viewport: GAME_VIEWPORT, trace: 'off', video: 'off' })
 
