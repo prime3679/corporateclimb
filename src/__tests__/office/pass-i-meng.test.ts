@@ -144,11 +144,19 @@ describe('Pass I — Office cast Headshots are already unique', () => {
   })
 
   it('leaves inspect / callout / side POIs without a generic Headshot', () => {
-    const callouts = Object.values(DIALOGUE).filter((node) => node.id.endsWith('_callout'))
-    expect(callouts.length).toBeGreaterThanOrEqual(5)
-    for (const node of callouts) {
-      expect(node.speaker, node.id).toBeNull()
+    // First-step shouts (cast.ts ACROSS_THE_ROOM) carry no Headshot.
+    // Gavin's sightline callout is face-to-face and uses his unique plate.
+    const acrossRoom = [
+      'dlg_renata_callout',
+      'dlg_teddy_callout',
+      'dlg_sloane_callout',
+      'dlg_harper_callout',
+      'dlg_marlowe_callout',
+    ] as const
+    for (const id of acrossRoom) {
+      expect(DIALOGUE[id].speaker, id).toBeNull()
     }
+    expect(DIALOGUE.dlg_gavin_callout.speaker).toBe('gavin')
     for (const node of Object.values(DIALOGUE)) {
       if (node.speaker) {
         expect(SPEAKER_SPRITE[node.speaker], node.id).toBeTruthy()
