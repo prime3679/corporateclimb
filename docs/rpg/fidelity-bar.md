@@ -258,6 +258,31 @@ Not touched, noted for the next pass: `sign_helpdesk` (F2 `(7,0)`) is a
 35px plate in a 32px cell for the same reason as KESSLER — it needs either a
 two-cell sign or shorter copy, and copy is a design call.
 
+### Pass J — welcome: Office-first
+
+Title hierarchy on tip `5dde97d`. Scope is the welcome stack and its copy;
+no Floor 6, no engine work, Classic still one tap away.
+
+- **Hero.** THE OFFICE takes the treatment START CLIMB had: gold `primary`
+  / `lg`, 250px minimum, one soft gold glow (`.hero` in
+  `TitleScreen.module.css`), `CAMPAIGN · FLOORS 1–5` eyebrow in gold above
+  it, campaign summary line below it when a save exists. Label stays
+  `THE OFFICE` (e2e / demo contract).
+- **Classic.** `CLASSIC · 30 FLOORS` eyebrow over a blue `secondary` / `md`
+  `START CLIMB`; with a Classic save it becomes `CONTINUE` (secondary) +
+  `NEW CLIMB` (ghost) on one row. The erase confirm now says "Classic" so
+  nobody thinks it touches the campaign.
+- **Daily + Codex** share one row under Classic. The floating "Type
+  matchups, expense reports…" chip is removed — at 760 design height it sat
+  on top of the CTA stack and pushed CODEX behind the skyline.
+- **Copy nudge.** Tagline `RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE
+SWIPE FROM GLORY.`; lede `Pick a role, work the floor, build your team,
+and out-battle every manager between you and the board.` Wordmark,
+  `Q4 LADDER SIMULATION` kicker, and the FLOOR 30 / Konami sign are untouched.
+- **Short stages.** `@container stage (max-height: 820px)` tightens gaps,
+  drops the wordmark to 38px and the cast to 72/80px so the whole stack fits
+  the 440×760 playtest viewport with both saves present.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
