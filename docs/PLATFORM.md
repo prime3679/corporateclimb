@@ -7,6 +7,8 @@ React). That directory is the seam that makes an app-store build a
 configuration task instead of a rewrite: each adapter has a web
 implementation now and a documented Capacitor replacement.
 
+**Phased iOS plan:** see [`docs/ios-capacitor-plan.md`](./ios-capacitor-plan.md) for seam inventory, the Capacitor wrap recipe expanded for this repo, gaps/risks, TestFlight path, and an explicit **STOP before App Store submit**. That doc is planning-only — no store submit in that track.
+
 ## The adapter contract
 
 | Module         | Exported surface                                                          | Web implementation                                         | Capacitor swap                                        |
@@ -31,7 +33,8 @@ never touch a browser API directly.
 4. In `src/main.tsx`, skip service-worker registration when
    `isNative()` (the native shell bundles its assets; a SW would fight
    the local scheme).
-5. `npm run build && npx cap add ios android && npx cap sync`
+5. `npm run build && npx cap add ios && npx cap sync`
+   iOS-first: add the iOS platform in the wrap track; Android can wait. Details and STOP-before-submit checklist: [`ios-capacitor-plan.md`](./ios-capacitor-plan.md).
 6. Native niceties that replace web equivalents:
    - `@capacitor/splash-screen` — the boot splash in `index.html`
      still covers the WebView start
@@ -47,7 +50,7 @@ never touch a browser API directly.
   `HTMLAudioElement` streams of bundled assets.
 - Saves and progression: everything persists through guarded
   `localStorage` (consider `@capacitor/preferences` later if WebView
-  eviction ever becomes real; the save format is versioned and
+  eviction ever becomes real; the save format is versioned (currently v8 in `src/engine/save.ts`) and
   migration-friendly).
 - The daily leaderboard client points at `/api/daily-leaderboard` —
   a native build needs an absolute base URL (one constant in
