@@ -2192,6 +2192,8 @@ WHITLOCK = Actor(
 # ===========================================================================
 
 # --- Sloane — Staff PM, copper undercut, saffron cardigan, clipboard
+# Portrait contract (sloane.webp): open-collar white shirt, no tie, brown belt
+# with a brass buckle under the open cardigan. `T`/`t` are the belt here.
 
 SLOANE = Actor(
     'sloane',
@@ -2208,8 +2210,9 @@ SLOANE = Actor(
         'i': '#e8bc62',
         'S': '#f4efe4',
         's': '#d0c8b8',
-        'T': '#3a6a8a',
-        't': '#2a4a62',
+        'T': '#6a4a2a',
+        't': '#4a3018',
+        '1': '#c9a24a',
         'P': '#3a3a48',
         'p': '#282834',
         'B': '#1a1a22',
@@ -2289,13 +2292,13 @@ SLOANE = Actor(
                 """
                 ...KKKK...
                 iSSSSSSSSj
-                JSSSTTSSSj
-                JJSSTTSJJj
-                JJJJTTJJJj
-                JJJJtTJJJj
-                JJJJJtJJJj
-                JJJJJJJJJj
-                JJJJjOjJJj
+                JSSSSSSSSj
+                JJSSSSSJJj
+                JJJSSSSJJj
+                JJJSSSSJJj
+                JJJSSsSJJj
+                JJJSSsSJJj
+                JJJT1TJJJj
                 jjjjjjjjjj
                 """
             ),
@@ -2306,12 +2309,12 @@ SLOANE = Actor(
                 """
                 ..KKKK..
                 iJJJSSSj
-                JJJJSSTj
-                JJJJSSTj
-                JJJJJJTj
-                JJJJJJtj
-                JJJJJJJj
-                JJJJJJJj
+                JJJJSSSj
+                JJJJSSSj
+                JJJJJSSj
+                JJJJJSSj
+                JJJJJSsj
+                JJJJJTTj
                 JJJJJJJj
                 jjjjjjjj
                 """

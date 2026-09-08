@@ -130,7 +130,8 @@ Same pipeline, same families. Floor 1 and Floor 2 atlas indices stay bit-identic
 new cells append after `btable_f2_r` (`docs/rpg/floor-3-5-design.md` §7). The sheet
 grows to **272×1250** (195 cells) on the design branch, then **272×1300**
 (206 cells) after Pass E appends `floor_sales` / `floor_ante` / `floor_hall_f3–5`
-and one-row red/gold runners.
+and one-row red/gold runners, then **272×1350** (207 cells) after Pass J
+splits the CALDWELL nameplate into two cells.
 Original six department floors (war cork, intake lilac, product slate, pipeline
 terracotta, client sand, board plush), three 3-tile hall
 plaques, five room signs, three nameplates, three directories, and four props
@@ -222,6 +223,40 @@ Roster lock lives in `OFFICE_CAST_HEADSHOTS` + `pass-i-meng.test.ts`.
 
 Still deferred: F1–2 recast (already unique house art — do not re-commission
 without Adrian), hardware CoS on §12 / §13 / §19.
+
+### Pass J — visual residuals promoted to Must
+
+Share-proud pass on tip `4243663`. Four scoped items, nothing else: no Floor
+6, Classic untouched, demo mp4 not remuxed, no engine work.
+
+- **F1–2 house plates vs the F3–5 bar.** The house 512s are unique and stay
+  (no recast). Where F1–2 was clearly behind was the crop, not the art:
+  Kessler stands on the right third of `vp.webp`, so the house `x: 0.5` pin
+  framed empty background with his ear on the badge rim. `vp` is now
+  `{ x: 0.685, y: 0.105, zoom: 3.25 }`; Renata (`recruiter`) nudges from
+  `x: 0.45` to `0.47` so her eyes, not the handset, sit on centre. Same
+  `headshotPlacement` contract, same house zoom band.
+- **F2 environment.** `nameplate_kessler` was a 33px plate in a 32px cell —
+  the ink frame fell off both edges. It now uses the seven-glyph tight plate
+  (same index, new pixels). Regenerate with `python3 scripts/gen_office_tiles.py`.
+- **Sloane chibi.** The walk sheet wore a 2px blue tie her portrait never
+  had. Torso templates now read open white shirt + cardigan + brown belt;
+  `T`/`t` are the belt. Headshot unchanged.
+- **CALDWELL nameplate.** Eight glyphs are 31px; the single cell had the
+  letters touching the frame and the boardroom camera edge sliced them.
+  `nameplate_caldwell_l/r` spans `(15,9)–(16,9)`; the plate hangs from the
+  left cell edge and ends by x=6 of the right cell, so the name completes
+  from `(9, y)` facing east (one tile sooner) and the one pose that still
+  clips it — `(9, y)` facing north/south — cuts on the D|W glyph gap.
+- **Holloway folder text.** `manager.webp` prints garbled type on the folder
+  at y≈0.32–0.39; the `manager` crop bottom sits at 0.291 at every badge
+  size, so it never reaches a Headshot or dialogue card. Left as-is (the
+  plate is Classic-shared; battle shows the full body). Guarded in
+  `pass-j-visual.test.ts`.
+
+Not touched, noted for the next pass: `sign_helpdesk` (F2 `(7,0)`) is a
+35px plate in a 32px cell for the same reason as KESSLER — it needs either a
+two-cell sign or shorter copy, and copy is a design call.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
