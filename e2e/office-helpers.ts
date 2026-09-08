@@ -7,14 +7,14 @@ const FALLBACK_ARTIFACT_DIR = path.join('test-results', 'e2e-full-climb')
 
 function resolveArtifactDir(): string {
   const fromEnv = process.env.PLAYTEST_ARTIFACT_DIR
-  const candidates = fromEnv ? [fromEnv] : [PREFERRED_ARTIFACT_DIR, FALLBACK_ARTIFACT_DIR]
+  const candidates = [...(fromEnv ? [fromEnv] : []), PREFERRED_ARTIFACT_DIR, FALLBACK_ARTIFACT_DIR]
   for (const dir of candidates) {
     try {
       mkdirSync(dir, { recursive: true })
       writeFileSync(path.join(dir, '.writable'), 'ok')
       return dir
-    } catch {
-      /* FUSE /opt/cursor/artifacts can EIO; keep looking */
+    } catch (error) {
+      console.warn(`[climb] Artifact directory unavailable: ${dir}`, error)
     }
   }
   return FALLBACK_ARTIFACT_DIR
@@ -70,20 +70,22 @@ export async function readClassicSave(page: Page): Promise<string | null> {
 }
 
 export async function shot(page: Page, name: string) {
+  const file = path.join(ARTIFACT_DIR, `${name}.png`)
   try {
     mkdirSync(ARTIFACT_DIR, { recursive: true })
-    await page.screenshot({ path: path.join(ARTIFACT_DIR, `${name}.png`), fullPage: true })
-  } catch {
-    /* artifact dir is optional — do not fail the climb on a screenshot EIO */
+    await page.screenshot({ path: file, fullPage: true })
+  } catch (error) {
+    console.warn(`[climb] Could not write screenshot: ${file}`, error)
   }
 }
 
 export function writeClimbLog() {
+  const file = path.join(ARTIFACT_DIR, 'beats.log')
   try {
     mkdirSync(ARTIFACT_DIR, { recursive: true })
-    writeFileSync(path.join(ARTIFACT_DIR, 'beats.log'), BEATS.join('\n') + '\n')
-  } catch {
-    /* beats already printed to stdout */
+    writeFileSync(file, BEATS.join('\n') + '\n')
+  } catch (error) {
+    console.warn(`[climb] Could not write climb log: ${file}`, error)
   }
 }
 
@@ -93,11 +95,12 @@ async function vis(el: Locator) {
 
 export async function writeCheckpoint(page: Page, name: string) {
   const save = await readOfficeSave(page)
+  const file = path.join(ARTIFACT_DIR, `checkpoint-${name}.json`)
   try {
     mkdirSync(ARTIFACT_DIR, { recursive: true })
-    writeFileSync(path.join(ARTIFACT_DIR, `checkpoint-${name}.json`), JSON.stringify(save, null, 2))
-  } catch {
-    /* fixture e2e/fixtures/checkpoint-teddy-won.json still covers resume */
+    writeFileSync(file, JSON.stringify(save, null, 2))
+  } catch (error) {
+    console.warn(`[climb] Could not write checkpoint: ${file}`, error)
   }
 }
 
