@@ -453,7 +453,7 @@
 
 .close {
   min-width: var(--tap-min);
-  min-height: 40px;
+  min-height: var(--tap-min);
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--cc-line-strong);
