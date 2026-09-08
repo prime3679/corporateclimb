@@ -42,6 +42,7 @@
   letter-spacing: 0.06em;
   color: var(--cc-gold);
   text-shadow: 0 8px 28px rgba(255, 193, 7, 0.25);
+  text-wrap: balance;
 }
 
 .rule {
@@ -189,4 +190,26 @@
   letter-spacing: 0.02em;
   box-shadow: var(--shadow-sm);
   cursor: pointer;
+}
+
+@container stage (max-height: 820px) {
+  .screen {
+    gap: 8px;
+    padding: 16px 20px;
+    overflow-y: auto;
+  }
+
+  .title {
+    font-size: 34px;
+  }
+
+  .fl {
+    min-height: 18px;
+    padding: 2px 8px;
+  }
+
+  .back {
+    top: 10px;
+    left: 10px;
+  }
 }

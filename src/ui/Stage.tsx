@@ -16,6 +16,11 @@ const MAX_SCALE = 1.35
 export const MIN_DESIGN_HEIGHT = 760
 export const MAX_DESIGN_HEIGHT = 1060
 
+/** Design-height at or below this gets compact Office chrome (HUD, start
+ *  card, celebration). Matches `@container stage (max-height: 820px)`.
+ *  The 440×760 playtest viewport lands at ~815. */
+export const COMPACT_DESIGN_HEIGHT = 820
+
 export interface StageLayout {
   /** Uniform scale applied to the design-space canvas. */
   scale: number
@@ -84,6 +89,7 @@ export default function Stage({ children }: { children: ReactNode }) {
       <div
         className={styles.stage}
         data-testid="stage"
+        data-stage-density={layout.height <= COMPACT_DESIGN_HEIGHT ? 'compact' : 'roomy'}
         style={
           {
             width: DESIGN_WIDTH,

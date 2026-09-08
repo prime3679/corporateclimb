@@ -33,8 +33,8 @@ jobs.
   `PromotionScreen`, `ShopScreen`
 - Token-tinted stand-in tiles and tests that keep Classic green
 
-Astra does **not** own ship-quality art, §12 / §13 / §19 polish sign-off,
-rewriting frozen IDs or wording, a second perk pool, merge, or deploy.
+Astra does **not** own ship-quality art, hardware §19 sign-off, rewriting
+frozen IDs or wording, a second perk pool, merge, or deploy.
 
 **Fable owns** experience, content, wording, and pacing:
 
@@ -46,8 +46,8 @@ rewriting frozen IDs or wording, a second perk pool, merge, or deploy.
 Fable does **not** invent a parallel combat resolver, touch Classic
 save/combat, or treat token-tinted tiles as done art.
 
-CoS playtests the required route on this draft. Fable's §19 checklist is
-later polish, not a merge gate for this PR.
+CoS playtests the required route on this draft. Pass H shipped presentation
+evidence for §12 / §13 / §19; hardware CoS is still the merge gate.
 
 ---
 
@@ -183,12 +183,14 @@ and the reuse of `BattleScreen` / `PromotionScreen` / `ShopScreen`.
 ## 7. Deferred for Fable (polish, not architecture)
 
 These stay on Fable's side of the ownership table. They are not Astra
-architecture work and they do not block this draft:
+architecture work. Pass H shipped **presentation evidence** for §12 / §13 /
+§19 (`src/screens/office/presentation.ts`); hardware CoS playtest remains
+the merge gate.
 
-- Ship-quality tileset and badge-token art (§14)
-- Full §12 feedback matrix and coach-mark motion
-- §13 fade/duck timings
-- §19 device sign-off
+- Ship-quality tileset and badge-token art (§14) — sheets shipped; hardware confirms
+- Full §12 feedback matrix and coach-mark motion — code shipped; device walk remains
+- §13 fade/duck timings — code shipped; device walk remains
+- §19 device sign-off — presentation evidence shipped; CoS signs the live checklist
 
 The MVP is playable on the required route with token-tinted tiles and the
 existing portrait sprites.

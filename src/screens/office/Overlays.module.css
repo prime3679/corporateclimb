@@ -1058,6 +1058,9 @@
   color: var(--cc-gold);
   text-shadow: 0 6px 24px rgba(255, 193, 7, 0.25);
   animation: celeb-title 420ms var(--cc-ease-out) 60ms both;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+  max-width: 420px;
 }
 
 .celebLine {
@@ -1705,5 +1708,38 @@
   }
   .hpFill {
     transition: none;
+  }
+}
+
+/* Short stage: THE NOD / FLOOR n CLEARED stay one line; ledger still fits. */
+@container stage (max-height: 820px) {
+  .celebration {
+    gap: 6px;
+    padding: 12px 16px 10px;
+  }
+
+  .celebTitle {
+    font-size: var(--display-lg);
+    line-height: 1.02;
+  }
+
+  .celebMark {
+    font-size: min(28vw, 140px);
+  }
+
+  .celebStamp {
+    top: 8%;
+    font-size: var(--display-2xs);
+    padding: 4px 8px 3px;
+  }
+
+  .celebLine {
+    font-size: var(--body-md);
+    line-height: 1.35;
+  }
+
+  .stats,
+  .ledger {
+    padding: 7px 10px 5px;
   }
 }

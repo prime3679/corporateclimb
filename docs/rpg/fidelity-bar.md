@@ -154,6 +154,10 @@ Presentation follow-up. Does not touch Office audio, Classic, or frozen IDs.
 - **Portraits:** unique 512px WebP for the eight F3–5 faces. Same `Headshot`
   focal contract. Encounter kits for Quincy / Ashford / Caldwell use those
   keys. Floor 1–2 house portraits were already unique and stay put.
+- **Sloane crop (Pass H):** `#93` deferred “faces may sit a hair high.”
+  Focal is now `{ x: 0.48, y: 0.105, zoom: 3.38 }` so the eyes sit in the
+  upper third of the badge, not the top rim. Placement goes through
+  `headshotPlacement` in `sprites.ts`.
 - **Stub copy:** live maps still do not place `poi_directory_sign_stub` or
   `STUB_DIRECTORY_TEXT`. The leftover inspect id stays for save compat.
 
@@ -180,6 +184,21 @@ Presentation follow-up. Does not touch Office audio, Classic, or frozen IDs.
 6. Required route smoke (printer → Gavin → Holloway → badge → elevator) — same
    prompts, same save key, no Classic Continue bleed.
 
+### Pass H — residual presentation
+
+Share-proud polish on tip `0d1b72b`. Does not retouch Pass E audio, Pass F
+coaches, Pass G objectives/elevator/combat, or the demo mp4.
+
+- **Sloane Headshot:** tighter crop (see portraits above).
+- **Short-stage chrome:** Stage is a size container (`container-name: stage`)
+  and sets `data-stage-density` at design height ≤ 820 (the 440×760 playtest
+  viewport). Office HUD, start card, and celebration compact there.
+- **Safe areas:** `#root` already pads `env(safe-area-inset-*)`; Stage
+  measures that backdrop. `--tap-min` 54 / `--text-floor` 10 stay the floors.
+- **Titles:** celebration titles stay ≤ 16 chars (`FLOOR n CLEARED` /
+  `THE CLIMB`); compact type is `--display-lg`. Office start `THE OFFICE`
+  uses `text-wrap: balance`.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
@@ -187,9 +206,14 @@ Fable's ownership table:
 
 - §14 asset sign-off. Character walk sheets and the Floor 1 tileset / props
   are now hand-authored pixel art (see "Sprite art" and "Environment art"
-  above); the §19 device pass still has to confirm them on hardware.
-- Full §12 feedback matrix and coach-mark motion
-- §13 fade/duck timings
-- §19 device sign-off (task-8 playtest)
+  above); hardware still confirms them on a real phone.
+- Full §12 feedback matrix and coach-mark motion — **presentation shipped**
+  (Pass E audio, Pass F coaches, `useOfficeFeedback`). Hardware CoS still
+  walks the matrix with sound on.
+- §13 fade/duck timings — **presentation shipped** (scene veils, cab plan,
+  combat duck). Hardware CoS still confirms no hard cuts.
+- §19 device sign-off (task-8 playtest) — **presentation evidence** is in
+  `src/screens/office/presentation.ts`. CoS still signs the live device
+  checklist; that is the merge gate, not a missing code surface.
 
 Astra still does not own merge, deploy, or rewriting frozen IDs.

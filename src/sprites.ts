@@ -54,7 +54,19 @@ export interface HeadshotFocal {
   zoom: number
 }
 
-const DEFAULT_FOCAL: HeadshotFocal = { x: 0.5, y: 0.12, zoom: 3.2 }
+export const DEFAULT_HEADSHOT_FOCAL: HeadshotFocal = { x: 0.5, y: 0.12, zoom: 3.2 }
+
+/** Pixel placement for a `size`×`size` Headshot frame. Shared by the
+ *  component and tests so a crop tweak cannot drift from the contract. */
+export function headshotPlacement(size: number, focal: HeadshotFocal) {
+  const img = size * focal.zoom
+  return {
+    width: img,
+    height: img,
+    left: size / 2 - focal.x * img,
+    top: size / 2 - focal.y * img,
+  }
+}
 
 const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   product_manager: { x: 0.49, y: 0.115, zoom: 3.2 },
@@ -67,7 +79,11 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   boss: { x: 0.5, y: 0.125, zoom: 3.05 },
   eng: { x: 0.435, y: 0.12, zoom: 3.2 },
   design: { x: 0.49, y: 0.11, zoom: 3.2 },
-  sloane: { x: 0.47, y: 0.12, zoom: 3.2 },
+  // Sloane's 512 has more headroom than the house PM plate, so the house
+  // y=0.12 pin sat the face a hair high in the badge. Drop the pin toward
+  // the hairline and zoom a hair tighter so the crop matches the house
+  // Headshot contract (eyes in the upper third, not the top rim).
+  sloane: { x: 0.48, y: 0.105, zoom: 3.38 },
   nico: { x: 0.5, y: 0.12, zoom: 3.15 },
   quincy: { x: 0.48, y: 0.115, zoom: 3.15 },
   harper: { x: 0.48, y: 0.12, zoom: 3.15 },
@@ -78,5 +94,5 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
 }
 
 export function headshotFocal(spriteId: string): HeadshotFocal {
-  return HEADSHOT_FOCALS[spriteId] ?? DEFAULT_FOCAL
+  return HEADSHOT_FOCALS[spriteId] ?? DEFAULT_HEADSHOT_FOCAL
 }

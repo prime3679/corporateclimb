@@ -39,25 +39,22 @@ skip A to chase D.
 
 ## Current stack (as of 2026-09-07)
 
-Tip `main` is Pass F `#94` (`00538c7`) on Pass E audio `#92` + Fable contrast
-`#93`. Pass G (Astra) is the engine/UX Should-fix lane: objectives, elevator
-cab, F3–5 combat hold + perk offers. Do not remount the closed `#72`–`#78`
-stack. Do not add a Floor 6.
+Tip `main` is Pass G `#95` + demo `#96` (`0d1b72b`). Pass E audio `#92`,
+Pass F coaches `#94`, Pass E visuals `#93`. Pass H (this) is residual
+share-proud polish on that tip. Do not remount the closed `#72`–`#78`
+stack. Do not add a Floor 6. Do not re-record the demo mp4.
 
 ## Immediate next (after tip playtest)
 
-Placeholders for the first cross-review comments. Fill them against `main`;
-do not treat this list as already triaged.
+**Must-fix (Pass A)** — cleared by Pass G live 1→5 E2E (`#95` / `#96`)
 
-**Must-fix (Pass A)**
+- [x] Fresh-save required route 1→5: printer → Holloway → Teddy packet → Kessler → Sloane/Nico → Quincy → Harper/Reyes → Ashford → Marlowe → Caldwell → `screen_floor5_complete`. No softlock.
+- [x] Badge gates: Floor 2 needs `key_access_badge`; Floors 3–5 need `key_employee_badge`. Do not tighten 4/5 to product/client until Adrian says so.
+- [x] Floor 5 win and the post-climb Exec row open the celebration, not a sixth floor.
+- [x] Save/load on each floor; backtrack 5→1; loss respawn `(5,12)` north. Classic `corporate-climb-save` never bleeds.
+- [x] Caldwell phase 2 at ≤ 130 HP. Classic `simulation.test.ts` still bit-identical.
 
-- [ ] Fresh-save required route 1→5: printer → Holloway → Teddy packet → Kessler → Sloane/Nico → Quincy → Harper/Reyes → Ashford → Marlowe → Caldwell → `screen_floor5_complete`. No softlock.
-- [ ] Badge gates: Floor 2 needs `key_access_badge`; Floors 3–5 need `key_employee_badge`. Do not tighten 4/5 to product/client until Adrian says so.
-- [ ] Floor 5 win and the post-climb Exec row open the celebration, not a sixth floor.
-- [ ] Save/load on each floor; backtrack 5→1; loss respawn `(5,12)` north. Classic `corporate-climb-save` never bleeds.
-- [ ] Caldwell phase 2 at ≤ 130 HP. Classic `simulation.test.ts` still bit-identical.
-
-**Should-fix (Pass B / C)**
+**Should-fix (Pass B / C / G)** — Pass G `#95` closed the leftover feel rows
 
 - [x] Glass at `(6,3)` / `(14,3)` reads as openings; Product / Sales / Exec contrast vs hall.
 - [x] Actor sheets + Headshot portraits for F3–5 cast; no leftover stub copy (`poi_directory_sign_stub`, `STUB_DIRECTORY_TEXT` on live maps).
@@ -66,10 +63,13 @@ do not treat this list as already triaged.
 - [x] Combat pacing + perk offers on F3–5 bosses; roster stays 3 (no new `cw_*`); light pools per floor.
 - [x] Office audio (title / F1–F5 beds + cab + CLEARED/THE NOD + combat hit/win + combat duck) — `docs/rpg/office-audio.md`.
 
-**Nice later (Pass D)**
+**Nice later (Pass D / H)**
 
 - [x] Optional side POIs, per-floor vending stock, ledger polish (54 / 64 / 78).
-- [x] F3–5 Headshot portraits shipped (Sloane / Nico / Quincy / Harper / Reyes / Ashford / Marlowe / Caldwell). Floor 1–2 house portraits already unique. §12 / §13 / §19 device sign-off still open.
+- [x] F3–5 Headshot portraits shipped (Sloane / Nico / Quincy / Harper / Reyes / Ashford / Marlowe / Caldwell). Floor 1–2 house portraits already unique.
+- [x] Sloane Headshot crop tightened (Pass H) — hairline pin, zoom 3.38; no longer sits a hair high vs the house contract.
+- [x] §12 / §13 / §19 **presentation** sign-off (Pass H). Evidence in `src/screens/office/presentation.ts` and the PR. Hardware CoS playtest remains the merge gate, not a code gap.
+- [ ] Extra ambient / side-cast portraits beyond the eight F3–5 faces.
 
 ## Do not
 
