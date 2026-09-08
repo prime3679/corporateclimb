@@ -12,6 +12,7 @@ import {
 } from '@/konami'
 import { SFX } from '@/sfx'
 import { Button } from '@/ui'
+import styles from './TitleScreen.module.css'
 
 const CONFETTI_GLYPHS = ['💰', '🪪', '📈', '☕', '📎', '💼']
 
@@ -91,21 +92,7 @@ export default function TitleScreen({
   const cast = ['product_manager', 'eng', 'design']
 
   return (
-    <div
-      className="premium-screen"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 18,
-        padding: '34px 26px 24px',
-        background: 'transparent',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <div className={`premium-screen ${styles.screen}`}>
       <div
         aria-hidden="true"
         style={{
@@ -169,80 +156,27 @@ export default function TitleScreen({
         />
       ))}
 
-      <div style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}>
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-xs)',
-            color: 'var(--gold)',
-            letterSpacing: 3,
-            marginBottom: 10,
-          }}
-        >
-          Q4 LADDER SIMULATION
-        </div>
-        <h1
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-xl)',
-            color: 'var(--paper)',
-            margin: 0,
-            lineHeight: 1.06,
-            letterSpacing: 1,
-          }}
-        >
+      <div className={styles.header}>
+        <div className={`t-display ${styles.kicker}`}>Q4 LADDER SIMULATION</div>
+        <h1 className={`t-display ${styles.wordmark}`}>
           CORPORATE
           <br />
           CLIMB
         </h1>
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-2xs)',
-            color: 'var(--sky-soft)',
-            marginTop: 14,
-            letterSpacing: 2,
-            lineHeight: 1.45,
-          }}
-        >
-          THREE ACTS. THIRTY FLOORS. ONE BADGE SWIPE FROM GLORY.
+        <div className={`t-display ${styles.tagline}`}>
+          RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.
         </div>
-        <div
-          className="t-body"
-          style={{
-            maxWidth: 340,
-            margin: '9px auto 0',
-            fontSize: 'var(--body-md)',
-            color: 'var(--text-main)',
-            lineHeight: 1.25,
-          }}
-        >
-          Pick a role, exploit type matchups, and expense your way past managers before burnout
-          catches you.
+        <div className={`t-body ${styles.lede}`}>
+          Pick a role, work the floor, build your team, and out-battle every manager between you and
+          the board.
         </div>
       </div>
 
-      <div
-        style={{
-          display: 'flex',
-          gap: 14,
-          justifyContent: 'center',
-          alignItems: 'flex-end',
-          position: 'relative',
-          zIndex: 1,
-          margin: '4px 0 10px',
-          padding: '0 18px 12px',
-        }}
-      >
+      <div className={styles.cast}>
         {cast.map((id, i) => (
           <div
             key={id}
-            style={{
-              position: 'relative',
-              width: i === 1 ? 78 : 70,
-              height: i === 1 ? 94 : 86,
-              zIndex: i === 1 ? 2 : 1,
-            }}
+            className={i === 1 ? `${styles.castSlot} ${styles.castSlotLead}` : styles.castSlot}
           >
             <div className="sprite-idle" style={{ width: '100%', height: '100%' }}>
               <img
@@ -323,26 +257,31 @@ export default function TitleScreen({
         ))}
       </div>
 
-      {confirmNew ? (
-        <div
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 10,
-            zIndex: 2,
-            background: 'var(--cc-surface-2)',
-            border: '1px solid var(--gold-bright)',
-            borderRadius: 'var(--radius-lg)',
-            padding: '14px 18px',
-            boxShadow: 'var(--shadow-lg)',
-          }}
-        >
-          <div
-            className="t-body"
-            style={{ fontSize: 'var(--body-lg)', color: '#fff', textAlign: 'center' }}
+      {onOffice && (
+        <div className={styles.mode}>
+          <span
+            id="office-campaign-label"
+            className={`t-display ${styles.eyebrow} ${styles.eyebrowHero}`}
           >
-            Start over? Your saved climb will be erased.
+            CAMPAIGN · FLOORS 1–5
+          </span>
+          <Button
+            variant="primary"
+            size="lg"
+            onClick={onOffice}
+            className={styles.hero}
+            aria-describedby="office-campaign-label"
+          >
+            THE OFFICE
+          </Button>
+          {officeStatus && <span className={`t-body ${styles.status}`}>{officeStatus}</span>}
+        </div>
+      )}
+
+      {confirmNew ? (
+        <div className={styles.confirm}>
+          <div className={`t-body ${styles.confirmText}`}>
+            Start over? Your saved Classic climb will be erased.
           </div>
           <div style={{ display: 'flex', gap: 10 }}>
             <Button variant="accent" size="md" onClick={onStart}>
@@ -354,85 +293,54 @@ export default function TitleScreen({
           </div>
         </div>
       ) : (
-        <Button
-          variant="primary"
-          size="lg"
-          onClick={handleStart}
-          style={{
-            zIndex: 2,
-            minWidth: 210,
-          }}
-        >
-          {onContinue ? 'NEW CLIMB' : 'START CLIMB'}
-        </Button>
-      )}
-
-      {onContinue && !confirmNew && (
-        <Button variant="secondary" size="md" onClick={onContinue} style={{ zIndex: 2 }}>
-          CONTINUE
-        </Button>
-      )}
-
-      {onOffice && (
-        <div
-          style={{
-            zIndex: 2,
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            gap: 5,
-          }}
-        >
-          <span
-            id="office-campaign-label"
-            className="t-display"
-            style={{
-              fontSize: 'var(--display-2xs)',
-              letterSpacing: 'var(--cc-track-label)',
-              color: 'var(--cc-text-dim)',
-            }}
-          >
-            CAMPAIGN · FLOORS 1–5
+        <div className={styles.mode}>
+          <span id="classic-climb-label" className={`t-display ${styles.eyebrow}`}>
+            CLASSIC · 30 FLOORS
           </span>
-          <Button
-            variant="accent"
-            size="md"
-            onClick={onOffice}
-            style={{ minWidth: 210 }}
-            aria-describedby="office-campaign-label"
-          >
-            THE OFFICE
-          </Button>
-          {officeStatus && (
-            <span
-              className="t-body"
-              style={{ fontSize: 'var(--body-sm)', color: 'var(--cc-text-2)' }}
+          {onContinue ? (
+            <div className={styles.row}>
+              <Button
+                variant="secondary"
+                size="md"
+                onClick={onContinue}
+                aria-describedby="classic-climb-label"
+              >
+                CONTINUE
+              </Button>
+              <Button
+                variant="ghost"
+                size="md"
+                onClick={handleStart}
+                aria-describedby="classic-climb-label"
+              >
+                NEW CLIMB
+              </Button>
+            </div>
+          ) : (
+            <Button
+              variant="secondary"
+              size="md"
+              onClick={handleStart}
+              className={styles.classic}
+              aria-describedby="classic-climb-label"
             >
-              {officeStatus}
-            </span>
+              START CLIMB
+            </Button>
           )}
         </div>
       )}
 
-      <Button variant="accent" size="sm" onClick={onDaily} style={{ zIndex: 2 }}>
-        DAILY CHALLENGE
-      </Button>
+      <div className={styles.row}>
+        <Button variant="accent" size="sm" onClick={onDaily}>
+          DAILY CHALLENGE
+        </Button>
+        <Button variant="ghost" size="sm" onClick={onCodex}>
+          CODEX
+        </Button>
+      </div>
 
       {(streak.current > 0 || lifetime.bestFloor > 0 || goldenBadge) && (
-        <div
-          className="t-body"
-          style={{
-            zIndex: 2,
-            display: 'flex',
-            gap: 12,
-            fontSize: 'var(--body-sm)',
-            color: 'var(--muted-light)',
-            padding: '3px 12px',
-            borderRadius: 999,
-            background: 'rgba(5,7,13,.72)',
-            border: '1px solid var(--cc-line-faint)',
-          }}
-        >
+        <div className={`t-body ${styles.stats}`}>
           {streak.current > 0 && (
             <span>
               🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
@@ -494,30 +402,6 @@ export default function TitleScreen({
           </div>
         </div>
       )}
-
-      <Button variant="ghost" size="sm" onClick={onCodex} style={{ zIndex: 2 }}>
-        CODEX
-      </Button>
-
-      <div
-        className="t-body"
-        style={{
-          maxWidth: 332,
-          fontSize: 'var(--body-sm)',
-          color: '#64B5F6',
-          position: 'absolute',
-          bottom: 58,
-          zIndex: 2,
-          padding: '4px 10px',
-          borderRadius: 'var(--radius-sm)',
-          background: 'rgba(5,7,13,.82)',
-          border: '1px solid rgba(255,255,255,.08)',
-          textAlign: 'center',
-          lineHeight: 1.15,
-        }}
-      >
-        Type matchups, expense reports, promotion pressure.
-      </div>
     </div>
   )
 }

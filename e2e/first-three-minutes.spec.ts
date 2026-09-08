@@ -6,17 +6,30 @@ test('first three minutes present a stronger hook and clearer choices', async ({
   await page.reload()
 
   await expect(
-    page.getByText('THREE ACTS. THIRTY FLOORS. ONE BADGE SWIPE FROM GLORY.'),
+    page.getByText('RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.'),
   ).toBeVisible({
     timeout: 15_000,
   })
   await expect(
     page.getByText(
-      'Pick a role, exploit type matchups, and expense your way past managers before burnout catches you.',
+      'Pick a role, work the floor, build your team, and out-battle every manager between you and the board.',
     ),
   ).toBeVisible()
 
-  await page.getByRole('button', { name: 'START CLIMB' }).click()
+  // Office-first: THE OFFICE is the hero CTA, Classic sits below it as a
+  // labelled secondary path and stays one tap away.
+  const office = page.getByRole('button', { name: 'THE OFFICE' })
+  const classic = page.getByRole('button', { name: 'START CLIMB' })
+  await expect(page.getByText('CAMPAIGN · FLOORS 1–5')).toBeVisible()
+  await expect(page.getByText('CLASSIC · 30 FLOORS')).toBeVisible()
+  const [officeBox, classicBox] = await Promise.all([office.boundingBox(), classic.boundingBox()])
+  expect(officeBox).not.toBeNull()
+  expect(classicBox).not.toBeNull()
+  expect(officeBox!.y).toBeLessThan(classicBox!.y)
+  expect(officeBox!.width).toBeGreaterThan(classicBox!.width)
+  expect(officeBox!.height).toBeGreaterThan(classicBox!.height)
+
+  await classic.click()
   await expect(page.getByText('SELECT CAREER ARCHETYPE')).toBeVisible({ timeout: 10_000 })
 })
 

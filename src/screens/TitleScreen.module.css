@@ -1,0 +1,204 @@
+/* Title CTA stack. THE OFFICE (Campaign · Floors 1–5) is the hero; the
+   Classic 30-floor climb sits below it as a labelled secondary path, and
+   Daily + Codex share one row so the stack fits a phone without burying
+   anything. Backdrop decorations stay inline in TitleScreen.tsx. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  height: 100%;
+  /* Top padding clears the FLOOR 30 sign (top 42 + 30 tall). */
+  padding: 82px 26px 40px;
+  background: transparent;
+  position: relative;
+  overflow: hidden;
+}
+
+.header {
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.kicker {
+  font-size: var(--display-xs);
+  color: var(--gold);
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+}
+
+.wordmark {
+  font-size: var(--display-xl);
+  color: var(--paper);
+  margin: 0;
+  line-height: 1.06;
+  letter-spacing: 1px;
+}
+
+.tagline {
+  max-width: 340px;
+  margin: 12px auto 0;
+  font-size: var(--display-2xs);
+  color: var(--sky-soft);
+  letter-spacing: 2px;
+  line-height: 1.45;
+  text-wrap: balance;
+}
+
+.lede {
+  max-width: 340px;
+  margin: 8px auto 0;
+  font-size: var(--body-md);
+  color: var(--text-main);
+  line-height: 1.25;
+}
+
+.cast {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  align-items: flex-end;
+  position: relative;
+  z-index: 1;
+  margin: 0 0 6px;
+  padding: 0 18px 12px;
+}
+
+.castSlot {
+  position: relative;
+  width: 70px;
+  height: 86px;
+  z-index: 1;
+}
+
+.castSlotLead {
+  width: 78px;
+  height: 94px;
+  z-index: 2;
+}
+
+/* One mode = eyebrow + button (+ optional status), stacked and centred. */
+.mode {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.eyebrow {
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-label);
+  text-transform: uppercase;
+  color: var(--cc-text-dim);
+}
+
+.eyebrowHero {
+  color: var(--gold);
+}
+
+.hero {
+  min-width: 250px;
+  /* A touch more presence than the stock lg shadow: this is the one button
+     a first-time player should see first. */
+  --hero-glow: 0 0 32px rgba(255, 213, 79, 0.22);
+  box-shadow: var(--shadow-md), var(--hero-glow);
+}
+
+@media (hover: hover) {
+  .hero:hover:not(:disabled) {
+    box-shadow: var(--shadow-lg), var(--hero-glow);
+  }
+}
+
+.hero:active:not(:disabled) {
+  box-shadow: var(--shadow-sm), var(--hero-glow);
+}
+
+.status {
+  font-size: var(--body-sm);
+  color: var(--cc-text-2);
+}
+
+.row {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+.classic {
+  min-width: 210px;
+}
+
+.confirm {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  z-index: 2;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--gold-bright);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  box-shadow: var(--shadow-lg);
+}
+
+.confirmText {
+  font-size: var(--body-lg);
+  color: #fff;
+  text-align: center;
+}
+
+.stats {
+  z-index: 2;
+  display: flex;
+  gap: 12px;
+  font-size: var(--body-sm);
+  color: var(--muted-light);
+  padding: 3px 12px;
+  border-radius: 999px;
+  background: rgba(5, 7, 13, 0.72);
+  border: 1px solid var(--cc-line-faint);
+}
+
+/* Short stages (the 440×760 playtest viewport, landscape phones): tighten
+   the stack so Codex and the stats pill never fall behind the skyline. */
+@container stage (max-height: 820px) {
+  .screen {
+    gap: 11px;
+    padding: 76px 22px 28px;
+  }
+
+  .wordmark {
+    font-size: 38px;
+  }
+
+  .tagline {
+    margin-top: 8px;
+  }
+
+  .lede {
+    margin-top: 6px;
+  }
+
+  .cast {
+    margin-bottom: 2px;
+    padding-bottom: 8px;
+  }
+
+  .castSlot {
+    width: 58px;
+    height: 72px;
+  }
+
+  .castSlotLead {
+    width: 66px;
+    height: 80px;
+  }
+}
