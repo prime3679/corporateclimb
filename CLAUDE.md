@@ -56,7 +56,11 @@ and the remaining roadmap):
   grids comparable — the smart AI (`chooseEnemyMoveSmart`) is only reachable at ascension 3+.
 - `src/platform/` — framework-free native-capability adapters (haptics, wake lock,
   lifecycle, install prompt, share). Nothing here may import React; the Capacitor
-  store-build swap is documented in `docs/PLATFORM.md`.
+  store-build swap is documented in `docs/PLATFORM.md`. The boot color (`BOOT_COLOR`,
+  frame black `#06080c`) is mirrored in `capacitor.config.ts`, `index.html`, and the
+  manifest — `src/__tests__/boot-splash.test.ts` guards the chain, and
+  `resources/splash.png` (regenerate with `node scripts/gen-splash.mjs`) must keep
+  matching the `.boot-splash` in `index.html`.
 - `src/history.ts` / `src/onboarding.ts` — run history + lifetime stats, and the first-run
   coach-mark / install-nudge gates (both persistence modules in the style of `daily.ts`).
 - `public/sw.js` is a template: `scripts/sw-precache-plugin.ts` injects the precache
