@@ -1,7 +1,7 @@
 {
   "id": "/",
   "name": "Corporate Climb",
-  "short_name": "CorpClimb",
+  "short_name": "Corp Climb",
   "description": "A satirical turn-based RPG about climbing the corporate ladder.",
   "start_url": "/",
   "scope": "/",

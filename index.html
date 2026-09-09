@@ -6,7 +6,7 @@
       name="viewport"
       content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
-    <title>Corporate Climb - A Satirical Side-Scrolling RPG</title>
+    <title>Corporate Climb — A Satirical Turn-Based RPG</title>
     <meta
       name="description"
       content="Navigate the absurdity of modern career progression. Built by Adrian Lumley with Claude Code."
@@ -48,7 +48,11 @@
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <meta name="apple-mobile-web-app-title" content="CorpClimb" />
+    <!-- Home-screen label. Launchers truncate past ~12 characters, so this is
+         the one place the name is shortened; it must match the manifest
+         short_name (src/__tests__/app-name.test.ts). Everywhere else the game
+         is "Corporate Climb". -->
+    <meta name="apple-mobile-web-app-title" content="Corp Climb" />
 
     <style>
       * {
