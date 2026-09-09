@@ -11,6 +11,7 @@ const mocks = vi.hoisted(() => ({
   allowSleep: vi.fn().mockResolvedValue(undefined),
   setBackgroundColor: vi.fn().mockResolvedValue(undefined),
   setStyle: vi.fn().mockResolvedValue(undefined),
+  setOverlaysWebView: vi.fn().mockResolvedValue(undefined),
   hideSplash: vi.fn().mockResolvedValue(undefined),
 }))
 
@@ -45,6 +46,7 @@ vi.mock('@capacitor/status-bar', () => ({
   StatusBar: {
     setBackgroundColor: mocks.setBackgroundColor,
     setStyle: mocks.setStyle,
+    setOverlaysWebView: mocks.setOverlaysWebView,
   },
 }))
 
@@ -64,6 +66,7 @@ import {
   share,
 } from '@/platform'
 import { Haptics } from '@/platform/haptics'
+import { BOOT_COLOR } from '@/platform/native'
 import { WakeLock } from '@/platform/wakeLock'
 import { fetchDailyLeaderboard, submitDailyScore } from '@/leaderboard'
 
@@ -103,14 +106,22 @@ describe('isNative branching', () => {
 describe('bootstrapNativeChrome', () => {
   it('sets status-bar chrome and hides splash on native', async () => {
     await bootstrapNativeChrome()
-    expect(mocks.setBackgroundColor).toHaveBeenCalledWith({ color: '#263238' })
+    expect(mocks.setOverlaysWebView).toHaveBeenCalledWith({ overlay: true })
+    expect(mocks.setBackgroundColor).toHaveBeenCalledWith({ color: BOOT_COLOR })
     expect(mocks.setStyle).toHaveBeenCalledWith({ style: 'DARK' })
+    expect(mocks.hideSplash).toHaveBeenCalled()
+  })
+
+  it('still hides the splash when the status-bar plugin rejects', async () => {
+    mocks.setOverlaysWebView.mockRejectedValueOnce(new Error('not implemented'))
+    await bootstrapNativeChrome()
     expect(mocks.hideSplash).toHaveBeenCalled()
   })
 
   it('skips plugins on web', async () => {
     mocks.isNativePlatform.mockReturnValue(false)
     await bootstrapNativeChrome()
+    expect(mocks.setOverlaysWebView).not.toHaveBeenCalled()
     expect(mocks.setStyle).not.toHaveBeenCalled()
     expect(mocks.hideSplash).not.toHaveBeenCalled()
   })
