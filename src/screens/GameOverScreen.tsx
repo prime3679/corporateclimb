@@ -1,9 +1,8 @@
-import { useState } from 'react'
 import type { PlayerClass } from '@/types'
 import { CURRENCY_ICON, getAscensionTier, groupPerks } from '@/data'
 import type { LifetimeStats, RunRecord } from '@/history'
-import { share } from '@/platform'
 import InstallNudge from '@/components/InstallNudge'
+import { useShareFeedback } from './useShareFeedback'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -36,7 +35,6 @@ export default function GameOverScreen({
   record?: RunRecord | null
   lifetime?: LifetimeStats | null
 }) {
-  const [shared, setShared] = useState(false)
   const build = record ? groupPerks(record.perks) : []
   const reorgTier = record && record.ascension > 0 ? getAscensionTier(record.ascension) : null
 
@@ -44,14 +42,7 @@ export default function GameOverScreen({
     ? `Corporate Climb ended my run on Floor ${floor}${record.defeatedBy ? ` — taken down by ${record.defeatedBy}` : ''}. ${record.totalTurns} turns, ${record.totalDamageDealt.toLocaleString()} damage dealt.${record.ngPlus > 0 ? ` NG+${record.ngPlus}.` : ''} The climb continues. corporateclimb.vercel.app`
     : `Corporate Climb ended my run on Floor ${floor}. The climb continues. corporateclimb.vercel.app`
 
-  const handleShare = async () => {
-    const result = await share(shareText)
-    if (result === 'shared') setShared(true)
-    else if (result === 'copied') {
-      setShared(true)
-      setTimeout(() => setShared(false), 2000)
-    }
-  }
+  const { handleShare, shareLabel } = useShareFeedback(shareText, 'SHARE')
 
   return (
     <div
@@ -234,7 +225,7 @@ export default function GameOverScreen({
           TRY AGAIN
         </Button>
         <Button variant="ghost" size="md" onClick={handleShare}>
-          {shared ? 'COPIED!' : 'SHARE'}
+          {shareLabel}
         </Button>
       </div>
 

@@ -79,9 +79,22 @@ describe('share', () => {
     expect(nativeShare).toHaveBeenCalledWith({ text: 'hello' })
   })
 
+  it('reports an AbortError cancel without surprise-copying', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    const abort = new Error('Share canceled')
+    abort.name = 'AbortError'
+    cleanups.push(defineOnNavigator('clipboard', { writeText }))
+    cleanups.push(defineOnNavigator('share', vi.fn().mockRejectedValue(abort)))
+    await expect(share('hello')).resolves.toBe('cancelled')
+    expect(writeText).not.toHaveBeenCalled()
+  })
+
   it('reports a cancelled sheet without surprise-copying', async () => {
+    const writeText = vi.fn().mockResolvedValue(undefined)
+    cleanups.push(defineOnNavigator('clipboard', { writeText }))
     cleanups.push(defineOnNavigator('share', vi.fn().mockRejectedValue(new Error('abort'))))
-    await expect(share('hello')).resolves.toBe('failed')
+    await expect(share('hello')).resolves.toBe('cancelled')
+    expect(writeText).not.toHaveBeenCalled()
   })
 
   it('falls back to the clipboard', async () => {
