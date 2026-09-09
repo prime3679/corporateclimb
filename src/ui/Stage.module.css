@@ -12,7 +12,15 @@
   display: flex;
   align-items: center;
   justify-content: center;
+  /* clip, not hidden: `hidden` still makes this a scroll container. On a
+     phone the stage's untransformed layout box (472 × ~1020) is bigger than
+     the backdrop, so any UA scroll — focus() on an autoFocus button,
+     scrollIntoView, a stray scrollTo — could offset it and nothing ever
+     scrolled it back; the title came back up-left after Office › Title.
+     `clip` has no scroll offset at all. The hidden line is the fallback for
+     engines without clip (pre-16 Safari), where the old behaviour remains. */
   overflow: hidden;
+  overflow: clip;
   /* Quiet near-black stage behind the canvas with one soft ambient pool. */
   background:
     radial-gradient(ellipse at 50% 12%, rgba(255, 193, 7, 0.06) 0%, transparent 46%),
@@ -21,7 +29,9 @@
 
 .stage {
   position: relative;
+  /* Same hardening as .backdrop: the canvas must never scroll either. */
   overflow: hidden;
+  overflow: clip;
   flex: none;
   transform-origin: center center;
   container-type: size;
