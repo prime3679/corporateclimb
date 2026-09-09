@@ -198,11 +198,11 @@ describe('Office should-fix fidelity', () => {
     expect(destChip(s).label).toBe('▲ → FLOOR 5')
   })
 
-  it('crops intern / vp / boss and Floor 3–5 portraits to a real headshot focal', () => {
+  it('crops Teddy / Kessler / Whitlock and Floor 3–5 portraits to a real headshot focal', () => {
     const missing = headshotFocal('no-such-sprite')
-    expect(headshotFocal('intern')).not.toEqual(missing)
-    expect(headshotFocal('vp')).not.toEqual(missing)
-    expect(headshotFocal('boss')).not.toEqual(missing)
+    expect(headshotFocal('teddy')).not.toEqual(missing)
+    expect(headshotFocal('kessler')).not.toEqual(missing)
+    expect(headshotFocal('whitlock')).not.toEqual(missing)
     for (const id of [
       'sloane',
       'nico',
@@ -216,11 +216,11 @@ describe('Office should-fix fidelity', () => {
       expect(headshotFocal(id), id).not.toEqual(missing)
     }
     // Unique faces — no more house-portrait aliases.
-    expect(headshotFocal('reyes')).not.toEqual(headshotFocal('intern'))
-    expect(headshotFocal('quincy')).not.toEqual(headshotFocal('vp'))
-    expect(headshotFocal('caldwell')).not.toEqual(headshotFocal('boss'))
+    expect(headshotFocal('reyes')).not.toEqual(headshotFocal('teddy'))
+    expect(headshotFocal('quincy')).not.toEqual(headshotFocal('kessler'))
+    expect(headshotFocal('caldwell')).not.toEqual(headshotFocal('whitlock'))
     expect(headshotFocal('sloane')).not.toEqual(headshotFocal('product_manager'))
-    expect(headshotFocal('harper')).not.toEqual(headshotFocal('recruiter'))
+    expect(headshotFocal('harper')).not.toEqual(headshotFocal('renata'))
     const urls = buildSpriteUrls()
     for (const id of [
       'sloane',
@@ -234,8 +234,8 @@ describe('Office should-fix fidelity', () => {
     ] as const) {
       expect(urls[id], id).toBeTruthy()
       expect(urls[id], id).not.toEqual(urls.product_manager)
-      expect(urls[id], id).not.toEqual(urls.vp)
-      expect(urls[id], id).not.toEqual(urls.boss)
+      expect(urls[id], id).not.toEqual(urls.kessler)
+      expect(urls[id], id).not.toEqual(urls.whitlock)
     }
     expect(OFFICE_ENCOUNTERS.enc_vp_product.spriteId).toBe('quincy')
     expect(OFFICE_ENCOUNTERS.enc_vp_sales.spriteId).toBe('ashford')

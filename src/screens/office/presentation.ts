@@ -68,26 +68,29 @@ export const PRESENTATION_SIGNOFF = {
     'Headshot focals — house crop; Sloane eyes pinned (Pass H)',
     'Pass I ambient Headshots — 15 unique plates; no extra side-cast NPCs',
     'Pass J visual — Kessler / Renata house focals, Sloane chibi tie, two-cell CALDWELL plate',
+    'Pass J house plates — F1–2 recast to Office-only 512s (scripts/gen_office_plates.py); Classic files untouched',
     'Pass G live 1→5 E2E — no Floor 6, THE NOD, save/load, Caldwell phase 2',
   ],
 } as const
 
 /**
  * Pass I Headshot roster. The 5-floor climb has exactly these 15 speakers.
- * F1–2 keep unique house plates (Renata is `recruiter` by freeze). F3–5 use
- * named plates shipped in Pass E. There is no extra ambient NPC to commission
- * — Floor 2 made People Ops a tray so it would not grow a fourth face.
- * Same `sprites.ts` / `Headshot` crop; no second portrait system.
+ * F1–2 house plates are Office-only 512s recast in Pass J (they used to
+ * borrow the Classic enemy files `recruiter` / `overachiever` / …, which
+ * Classic still owns untouched). F3–5 use named plates shipped in Pass E.
+ * There is no extra ambient NPC to commission — Floor 2 made People Ops a
+ * tray so it would not grow a fourth face. Same `sprites.ts` / `Headshot`
+ * crop; no second portrait system.
  */
 export const OFFICE_CAST_HEADSHOTS = {
   house: {
-    renata: 'recruiter',
-    gavin: 'overachiever',
-    priya: 'scrum',
-    holloway: 'manager',
-    teddy: 'intern',
-    whitlock: 'boss',
-    kessler: 'vp',
+    renata: 'renata',
+    gavin: 'gavin',
+    priya: 'priya',
+    holloway: 'holloway',
+    teddy: 'teddy',
+    whitlock: 'whitlock',
+    kessler: 'kessler',
   },
   named: {
     sloane: 'sloane',

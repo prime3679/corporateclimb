@@ -221,8 +221,9 @@ Inspect, first-step callouts, and Pass D side POIs (cooler / booth / tray /
 lockers / cart) stay speaker-less — italic inspect text, not a stub Headshot.
 Roster lock lives in `OFFICE_CAST_HEADSHOTS` + `pass-i-meng.test.ts`.
 
-Still deferred: F1–2 recast (already unique house art — do not re-commission
-without Adrian), hardware CoS on §12 / §13 / §19.
+Still deferred at the time: F1–2 recast (already unique house art — do not
+re-commission without Adrian) — since commissioned by the Captain, see
+"Pass J — F1–2 house-plate recast" below; hardware CoS on §12 / §13 / §19.
 
 ### Pass J — visual residuals promoted to Must
 
@@ -257,6 +258,65 @@ Share-proud pass on tip `4243663`. Four scoped items, nothing else: no Floor
 Not touched, noted for the next pass: `sign_helpdesk` (F2 `(7,0)`) is a
 35px plate in a 32px cell for the same reason as KESSLER — it needs either a
 two-cell sign or shorter copy, and copy is a design call.
+
+### Pass J — F1–2 house-plate recast
+
+The leftover from the visual pass above, promoted to Must by the Captain on
+tip `2c4d2f0`. One scoped item: no Floor 6, Classic untouched, demo mp4 not
+remuxed, no engine work.
+
+**Before.** The seven F1–2 speakers were badged with the Classic tower's
+enemy plates (`recruiter`, `overachiever`, `scrum`, `manager`, `intern`,
+`boss`, `vp`). Unique from each other, yes — but Pokémon-trainer art: Renata
+and Priya were drawn as grinning / shouting men while the dialogue says "she",
+Holloway (also "she") was a tired man with a coffee, four of the seven were
+brown-haired lookalikes, props (handset, whiteboard, coffee) crowded the badge
+rim, and expressions sat at battle-taunt energy next to the calm F3–5 badge
+photos. The Pass J crop nudges (`vp` x→0.685, `recruiter` x→0.47) framed the
+faces better but could not fix the art.
+
+**After.** Seven Office-only 512×512 WebPs — `renata`, `gavin`, `priya`,
+`holloway`, `teddy`, `whitlock`, `kessler` — on the same
+`sprites.ts` / `HEADSHOT_FOCALS` / `Headshot` contract as the F3–5 named
+plates. Same roster style (cel-shaded, crisp ink, one shading step, white
+ground, full body so Office battle shows the same figure). Each figure stands
+centred, badge-photo calm, and carries the walk sheet's identity: Renata wavy
+brown hair / navy blazer / khakis / handset; Gavin slick near-black hair /
+navy suit / gold pin / papers; Priya spiky brown pixie / brown blazer /
+sky-blue shirt / sticky-note badges / index cards; Holloway brown bun / grey
+pantsuit / cobalt tie / coffee; Teddy messy brown hair / navy blazer / red
+lanyard / chinos / sneakers / coffee; Whitlock swept white hair / black suit
+/ red tie / green ledger / reading glasses; Kessler blond slicked back / navy
+suit / steel tie / dark folder. Renata, Priya and Holloway are women now, as
+written.
+
+**Pipeline.** `scripts/gen_office_plates.py` is the regenerable half:
+`brief` prints each speaker's commission (style anchor + character + the
+identity carriers read straight from the `gen_office_actors.py` palettes, so
+portrait and OverworldActor cannot disagree); `import <dir>` runs the
+`import_art.py` contract (edge flood-fill background, trim, fit 512, WebP
+q82); `check` verifies 512×512 RGBA, side margins, not byte-identical to any
+Classic plate, and that the hair sampled at the top of the head sits within
+hue / lightness tolerance of the actor palette `H`. Masters are generated
+from the briefs and are not committed (same as Pass E).
+
+**Classic.** `recruiter.webp` … `vp.webp` are bit-identical to `main`
+(`pass-j-visual.test.ts` pins their sha256); Classic enemies still key them
+and their `HEADSHOT_FOCALS` rows stay for Classic-side crops. Office no
+longer references those keys anywhere (`SPEAKER_SPRITE`,
+`OFFICE_CAST_HEADSHOTS.house`, encounter / coworker kits, `SPRITE_TO_ACTOR`).
+`spriteId` is never persisted, so Office saves resume unchanged.
+
+**Focals.** All seven sit in the named-plate band: x 0.45–0.5 (centred
+figures), y 0.11–0.135 (eye line in the upper third), zoom 3.15–3.35. Renata's
+wavy hair is the widest head and takes the loosest zoom; the three
+slick-haired men take the tightest. The Holloway folder-text guard is retired
+— the new plate has no folder.
+
+Not touched, noted for the next pass: the F1–2 walk sheets already carried
+these palettes, so no chibi retouch was needed; if a future re-commission
+changes a carrier, update the `gen_office_actors.py` palette first and let
+`check` catch the portrait.
 
 ### Pass J — welcome: Office-first
 

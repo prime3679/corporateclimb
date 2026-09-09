@@ -1,8 +1,9 @@
+import { createHash } from 'node:crypto'
 import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { inflateSync } from 'node:zlib'
 import { describe, expect, it } from 'vitest'
-import { FLOOR_5_WALL_DECOR, FLOOR_2_WALL_DECOR } from '@/content/office'
+import { FLOOR_5_WALL_DECOR, FLOOR_2_WALL_DECOR, SPEAKER_SPRITE } from '@/content/office'
 import {
   TILE_ATLAS,
   TILE_CELL_H,
@@ -11,15 +12,18 @@ import {
   TILE_STRIDE_Y,
 } from '@/screens/office/tileAtlas'
 import { PRESENTATION_SIGNOFF } from '@/screens/office/presentation'
-import { headshotFocal, headshotPlacement } from '@/sprites'
+import { DEFAULT_HEADSHOT_FOCAL, headshotFocal, headshotPlacement } from '@/sprites'
 
 /**
  * Pass J visual guards — the promoted Should residuals:
- *   1. F1–2 house Headshots framed like F3–5 (Kessler’s face was off the badge).
+ *   1. F1–2 house plates recast to the F3–5 bar: Office-only 512s keyed by
+ *      speaker (`renata` … `kessler`), Classic enemy files bit-identical, and
+ *      the house focals pinned into the named-plate band. (The earlier Pass J
+ *      crop nudges on `vp` / `recruiter` are superseded — those keys are
+ *      Classic-only now.)
  *   2. Sloane’s OverworldActor matches her portrait (no tie).
  *   3. CALDWELL nameplate spans two cells and never slices a glyph at the
  *      boardroom camera edge.
- *   4. Holloway’s garbled folder text stays outside every Headshot crop.
  * Pixel checks decode the committed PNGs so a regenerated sheet that drifts
  * fails here, not in a playtest.
  */
@@ -93,27 +97,83 @@ function cellOrigin(name: keyof typeof TILE_ATLAS) {
   return { x: col * TILE_STRIDE_X + TILE_PAD, y: row * TILE_STRIDE_Y + TILE_PAD }
 }
 
-describe('Pass J — F1–2 house Headshots framed like F3–5', () => {
-  it('pins Kessler on the right third of vp.webp where his face actually is', () => {
-    // The vp plate stands its figure at x≈0.66–0.72; the house x=0.5 pin
-    // framed empty background with his ear on the rim.
-    const vp = headshotFocal('vp')
-    expect(vp.x).toBeGreaterThanOrEqual(0.66)
-    expect(vp.x).toBeLessThanOrEqual(0.72)
-    expect(vp).toEqual({ x: 0.685, y: 0.105, zoom: 3.25 })
-    // Zoom stays in the house band so the badge does not read tighter than
-    // the rest of the F1–2 row.
-    expect(vp.zoom).toBeGreaterThanOrEqual(3.05)
-    expect(vp.zoom).toBeLessThanOrEqual(3.4)
+const HOUSE = ['renata', 'gavin', 'priya', 'holloway', 'teddy', 'whitlock', 'kessler'] as const
+const NAMED = [
+  'sloane',
+  'nico',
+  'quincy',
+  'harper',
+  'reyes',
+  'ashford',
+  'marlowe',
+  'caldwell',
+] as const
+
+/** The Classic enemy plates Office used to borrow for F1–2. Classic still
+ *  renders them; the recast must leave every byte alone. */
+const CLASSIC_PLATES: Record<string, string> = {
+  recruiter: '20a9fc76f1abeb4abd88dcac00cd88a91f5acf673a221ebf047ec49b24eedf85',
+  overachiever: '82d2fedc6854c836c9956b9e3205b3b7cbe7a41efbcc7d1b3f4fce9d61c11716',
+  scrum: 'beb31d3c33d392b9ed068e9c24ccbeddc22fb627b35bcd941ec886ac7e45a847',
+  manager: 'b686cd60689d99e4d62ad74f69ca916b5d995cb418ee6f3012c68aa84ce7d00c',
+  intern: '15910acc492aebcc34c4064f50ea014485f2c39fea00f22e57ff256a475b18a8',
+  boss: '90c5ed9c410129e7346508d43e816c300bddc3197a9ef38e0a4d6a0e3b40199d',
+  vp: 'e9f0fc37a27ac578e631b57aacf63ba17faeeb622e09fa22138033890567eb49',
+}
+
+const sha256 = (buf: Buffer) => createHash('sha256').update(buf).digest('hex')
+
+/** Minimal RIFF/VP8X reader: canvas size + alpha flag of a WebP. */
+function webpInfo(buf: Buffer): { w: number; h: number; alpha: boolean } {
+  expect(buf.toString('latin1', 0, 4)).toBe('RIFF')
+  expect(buf.toString('latin1', 8, 12)).toBe('WEBP')
+  expect(buf.toString('latin1', 12, 16), 'extended WebP (VP8X)').toBe('VP8X')
+  const flags = buf[20]
+  const w = 1 + buf.readUIntLE(24, 3)
+  const h = 1 + buf.readUIntLE(27, 3)
+  return { w, h, alpha: (flags & 0x10) !== 0 }
+}
+
+describe('Pass J — F1–2 house plates recast to the F3–5 bar', () => {
+  it('keys every house speaker onto its own Office-only 512 plate', () => {
+    for (const id of HOUSE) {
+      expect(SPEAKER_SPRITE[id]).toBe(id)
+      const buf = repoFile('src', 'assets', 'characters', 'npcs', `${id}.webp`)
+      const info = webpInfo(buf)
+      expect(info, id).toEqual({ w: 512, h: 512, alpha: true })
+      expect(Object.values(CLASSIC_PLATES), `${id} is a Classic file`).not.toContain(sha256(buf))
+    }
   })
 
-  it('centres Renata on her eyes, not the handset', () => {
-    const renata = headshotFocal('recruiter')
-    expect(renata).toEqual({ x: 0.47, y: 0.12, zoom: 3.2 })
+  it('leaves the Classic enemy plates bit-identical', () => {
+    for (const [id, hash] of Object.entries(CLASSIC_PLATES)) {
+      const buf = repoFile('src', 'assets', 'characters', 'npcs', `${id}.webp`)
+      expect(sha256(buf), id).toBe(hash)
+    }
+  })
+
+  it('pins the house focals into the named-plate band (eyes upper third, zoom 3.1–3.4)', () => {
+    const namedZoom = NAMED.map((id) => headshotFocal(id).zoom)
+    const namedY = NAMED.map((id) => headshotFocal(id).y)
+    for (const id of HOUSE) {
+      const f = headshotFocal(id)
+      expect(f, id).not.toEqual(DEFAULT_HEADSHOT_FOCAL)
+      // Every recast figure stands centred on its plate — no more right-third
+      // Kessler or handset-heavy Renata pins.
+      expect(f.x, `${id} x`).toBeGreaterThanOrEqual(0.44)
+      expect(f.x, `${id} x`).toBeLessThanOrEqual(0.52)
+      expect(f.zoom, `${id} zoom`).toBeGreaterThanOrEqual(Math.min(...namedZoom))
+      expect(f.zoom, `${id} zoom`).toBeLessThanOrEqual(Math.max(...namedZoom))
+      // Eye line lands in the upper third of the badge at every size.
+      expect(f.y, `${id} y`).toBeGreaterThanOrEqual(Math.min(...namedY))
+      expect(f.y, `${id} y`).toBeLessThanOrEqual(0.14)
+    }
+    expect(headshotFocal('renata')).toEqual({ x: 0.45, y: 0.135, zoom: 3.15 })
+    expect(headshotFocal('kessler')).toEqual({ x: 0.495, y: 0.118, zoom: 3.35 })
   })
 
   it('keeps every house crop inside the plate at badge sizes', () => {
-    for (const id of ['recruiter', 'overachiever', 'scrum', 'manager', 'intern', 'boss', 'vp']) {
+    for (const id of HOUSE) {
       const f = headshotFocal(id)
       for (const size of [40, 44, 48, 64]) {
         const p = headshotPlacement(size, f)
@@ -126,15 +186,17 @@ describe('Pass J — F1–2 house Headshots framed like F3–5', () => {
     }
   })
 
-  it('leaves Holloway’s folder text out of every Headshot crop', () => {
-    // manager.webp prints garbled type on the folder at y≈0.32–0.39 of the
-    // plate. The badge crop is proportional, so the bottom edge of the
-    // frame maps to the same plate fraction at every size — it must stay
-    // above the folder. Battle shows the full plate (Classic-shared art) and
-    // is out of scope for this guard.
-    const f = headshotFocal('manager')
-    const bottomFraction = f.y + 0.5 / f.zoom
-    expect(bottomFraction).toBeLessThan(0.31)
+  it('ships the plate pipeline with a brief per speaker and the walk-sheet carriers', () => {
+    const src = readFileSync(join(process.cwd(), 'scripts', 'gen_office_plates.py'), 'utf8')
+    for (const id of HOUSE) {
+      expect(src, id).toMatch(new RegExp(`'${id}': \\('${id.toUpperCase()}', '\\w+'\\)`))
+      expect(src, `${id} brief`).toMatch(new RegExp(`'${id}': \\(\\n`))
+    }
+    for (const cmd of ['brief', 'import', 'check']) expect(src).toContain(`'${cmd}'`)
+    expect(src).toContain("actor.pal['H']")
+    expect(PRESENTATION_SIGNOFF.section19.some((row) => row.includes('Pass J house plates'))).toBe(
+      true,
+    )
   })
 })
 

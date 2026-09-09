@@ -57,5 +57,11 @@ longer in the tree — recover them from git history before commit `0ebdf73`
 (`git show 0ebdf73~1:src/assets/characters/npcs/boss.png > boss.png`) if you
 need to re-export at a different size.
 
+Office Floor 1–2 house plates (`npcs/renata.webp` … `kessler.webp`) are
+Office-only portraits on the same 512 contract; `python3 scripts/gen_office_plates.py brief`
+prints the commission brief per speaker (identity carriers come from the walk-sheet palettes),
+`import <dir>` re-encodes masters, and `check` verifies the committed plates. Classic keeps its
+own `recruiter` / `overachiever` / … files untouched.
+
 Office campaign audio (distinct from Classic Act-1 beds) is documented in
 `docs/rpg/office-audio.md` and regenerated with `python3 scripts/gen_office_audio.py`.

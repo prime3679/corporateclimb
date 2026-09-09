@@ -1100,16 +1100,17 @@ export const DIALOGUE: Record<DialogueId, DialogueNode> = {
 }
 
 /** 15-speaker Office cast → 512px Headshot plates (`sprites.ts` / `Headshot`).
- *  F1–2 keep unique house plates; F3–5 use named plates. No extra ambient NPC. */
+ *  Every speaker keys their own plate. F1–2 house plates were recast in
+ *  Pass J (they used to borrow Classic enemy art); F3–5 named plates are
+ *  Pass E. No extra ambient NPC. */
 export const SPEAKER_SPRITE: Record<Exclude<SpeakerId, null>, string> = {
-  renata: 'recruiter',
-  gavin: 'overachiever',
-  priya: 'scrum',
-  holloway: 'manager',
-  teddy: 'intern',
-  whitlock: 'boss',
-  kessler: 'vp',
-  // Unique 512px portraits (same Headshot crop as Floors 1–2).
+  renata: 'renata',
+  gavin: 'gavin',
+  priya: 'priya',
+  holloway: 'holloway',
+  teddy: 'teddy',
+  whitlock: 'whitlock',
+  kessler: 'kessler',
   sloane: 'sloane',
   nico: 'nico',
   quincy: 'quincy',
