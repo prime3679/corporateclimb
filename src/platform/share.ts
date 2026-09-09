@@ -6,25 +6,30 @@
 import { Share } from '@capacitor/share'
 import { isNative } from './native'
 
-export type ShareResult = 'shared' | 'copied' | 'failed'
+export type ShareResult = 'shared' | 'copied' | 'cancelled' | 'failed'
+
+export function isShareCancelled(error: unknown): boolean {
+  const err = error as { name?: string; message?: string } | null
+  return err?.name === 'AbortError' || /abort|cancel/i.test(err?.message ?? '')
+}
 
 export async function share(text: string): Promise<ShareResult> {
   if (isNative()) {
     try {
       await Share.share({ text })
       return 'shared'
-    } catch {
+    } catch (error) {
       // Cancelled sheet or share failure — don't surprise-copy instead.
-      return 'failed'
+      return isShareCancelled(error) ? 'cancelled' : 'failed'
     }
   }
   if (typeof navigator !== 'undefined' && navigator.share) {
     try {
       await navigator.share({ text })
       return 'shared'
-    } catch {
+    } catch (error) {
       // Cancelled sheet or share failure — don't surprise-copy instead.
-      return 'failed'
+      return isShareCancelled(error) ? 'cancelled' : 'failed'
     }
   }
   try {

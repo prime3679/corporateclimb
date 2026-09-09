@@ -1,4 +1,3 @@
-import { useState } from 'react'
 import type { PlayerClass } from '@/types'
 import {
   DAILY_MODIFIERS,
@@ -8,9 +7,9 @@ import {
   getDailyStreak,
 } from '@/daily'
 import { Button } from '@/ui'
-import { share } from '@/platform'
 import DailyLeaderboard from '@/components/DailyLeaderboard'
 import InstallNudge from '@/components/InstallNudge'
+import { useShareFeedback } from './useShareFeedback'
 
 export default function DailyResultScreen({
   player,
@@ -35,7 +34,6 @@ export default function DailyResultScreen({
   modifierId: string
   onBack: () => void
 }) {
-  const [shared, setShared] = useState(false)
   const modifier = DAILY_MODIFIERS.find((m) => m.id === modifierId) ?? getDailyModifier(seed)
   const dayNum = getDailyDayNumber(seed)
   const grid = buildShareGrid(floorsCleared, won)
@@ -59,14 +57,7 @@ export default function DailyResultScreen({
     `corporateclimb.vercel.app`,
   ].join('\n')
 
-  const handleShare = async () => {
-    const result = await share(shareText)
-    if (result === 'shared') setShared(true)
-    else if (result === 'copied') {
-      setShared(true)
-      setTimeout(() => setShared(false), 2000)
-    }
-  }
+  const { handleShare, shared, shareLabel } = useShareFeedback(shareText, 'SHARE RESULT')
 
   return (
     <div
@@ -186,7 +177,7 @@ export default function DailyResultScreen({
         onClick={handleShare}
         style={shared ? { background: 'var(--green)' } : undefined}
       >
-        {shared ? 'COPIED!' : 'SHARE RESULT'}
+        {shareLabel}
       </Button>
 
       <DailyLeaderboard

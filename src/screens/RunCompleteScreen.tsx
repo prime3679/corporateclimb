@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react'
+import { useEffect } from 'react'
 import type { PerkId, PlayerClass, AchievementId, AchievementDef } from '@/types'
 import { CURRENCY_ICON, groupPerks } from '@/data'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { SFX } from '@/sfx'
-import { share } from '@/platform'
 import InstallNudge from '@/components/InstallNudge'
+import { useShareFeedback } from './useShareFeedback'
 import { Button, IconChip, Panel, getIconGlyph } from '@/ui'
 import styles from './InterludeScreen.module.css'
 
@@ -46,7 +46,6 @@ export default function RunCompleteScreen({
   unlockedAchievements,
 }: RunCompleteScreenProps) {
   const sprites = getSpriteUrls()
-  const [shared, setShared] = useState(false)
   const build = groupPerks(perks)
 
   useEffect(() => {
@@ -61,14 +60,7 @@ export default function RunCompleteScreen({
       : ''
   const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corporateclimb.vercel.app`
 
-  const handleShare = async () => {
-    const result = await share(shareText)
-    if (result === 'shared') setShared(true)
-    else if (result === 'copied') {
-      setShared(true)
-      setTimeout(() => setShared(false), 2000)
-    }
-  }
+  const { handleShare, shared, shareLabel } = useShareFeedback(shareText, 'SHARE RESULT')
 
   return (
     <div
@@ -290,7 +282,7 @@ export default function RunCompleteScreen({
           onClick={handleShare}
           style={shared ? { background: 'var(--green)', color: '#FFF' } : undefined}
         >
-          {shared ? 'COPIED!' : 'SHARE RESULT'}
+          {shareLabel}
         </Button>
       </Panel>
 

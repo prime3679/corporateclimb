@@ -173,9 +173,16 @@ describe('native share', () => {
     expect(mocks.share).toHaveBeenCalledWith({ text: 'hello' })
   })
 
+  it('reports AbortError as cancelled without clipboard fallback', async () => {
+    const abort = new Error('Share canceled')
+    abort.name = 'AbortError'
+    mocks.share.mockRejectedValueOnce(abort)
+    await expect(share('hello')).resolves.toBe('cancelled')
+  })
+
   it('does not clipboard-fallback on cancel', async () => {
     mocks.share.mockRejectedValueOnce(new Error('abort'))
-    await expect(share('hello')).resolves.toBe('failed')
+    await expect(share('hello')).resolves.toBe('cancelled')
   })
 })
 
