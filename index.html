@@ -40,7 +40,10 @@
 
     <!-- PWA: installable, offline-capable -->
     <link rel="manifest" href="/manifest.webmanifest" />
-    <meta name="theme-color" content="#263238" />
+    <!-- Frame black (--cc-bg): the one boot color. Same value as the html/#root
+         void and .boot-splash below, capacitor.config.ts, manifest.webmanifest,
+         and BOOT_COLOR in src/platform/native.ts (boot-splash.test.ts enforces). -->
+    <meta name="theme-color" content="#06080c" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -59,19 +62,27 @@
         width: 100%;
         height: 100%;
         overflow: hidden;
-        background: #0f172a;
+        /* Frame black. This is what shows in the safe-area bands (under the
+           status bar / home indicator) and in the instant before .boot-splash
+           paints, so it must be the boot color, not a third shade. */
+        background: #06080c;
       }
       body {
         -webkit-touch-callout: none;
       }
-      /* Safe area insets for notched devices */
+      /* Safe area insets for notched devices. The native shell keeps the
+         status bar as a transparent overlay (Capacitor StatusBar
+         overlaysWebView: true, ios.contentInset: 'never'), so this padding is
+         the only inset — nothing else may add one. */
       #root {
         padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
           env(safe-area-inset-left);
       }
       /* Pre-hydration splash: static markup React replaces on mount, so
          the first paint is branded instead of a blank void. The sprite
-         preloader screen mirrors this layout for a seamless handoff. */
+         preloader screen mirrors this layout for a seamless handoff, and
+         the native splash PNG (resources/splash.png, scripts/gen-splash.mjs)
+         mirrors it again one step earlier — change one, regenerate the other. */
       .boot-splash {
         height: 100%;
         display: flex;

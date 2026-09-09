@@ -1,8 +1,14 @@
 .backdrop {
   width: 100%;
-  /* dvh tracks the mobile URL bar; the vh line is the older-browser fallback. */
-  height: 100vh;
-  height: 100dvh;
+  /* dvh tracks the mobile URL bar; the vh line is the older-browser fallback.
+     #root already pads the safe-area insets, so they come off the viewport
+     height here: a plain 100dvh backdrop is inset-total taller than #root's
+     content box, the stage sits (top inset) too low and overflow:hidden clips
+     its bottom by top+bottom — ~93pt of battle controls on a Dynamic Island
+     phone. Real insets only exist in the installed PWA and the native shell;
+     browsers and Playwright report 0, where this is identical to 100dvh. */
+  height: calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
+  height: calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   justify-content: center;
