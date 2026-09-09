@@ -27,6 +27,7 @@ never touch a browser API directly.
 
 1. Capacitor 7 packages are installed (`@capacitor/core`, CLI, haptics, share, app, splash-screen, status-bar, `@capacitor-community/keep-awake`).
 2. `capacitor.config.ts`: appId `com.corporateclimb.app`, appName Corporate Climb, `webDir dist`. Portrait is Xcode-only.
+   **Naming:** the player-facing name is `Corporate Climb` everywhere — `<title>`, OG/Twitter, manifest `name`, `appName`, install nudge, share text. The one sanctioned short form is the home-screen label, `Corp Climb` (manifest `short_name` + `apple-mobile-web-app-title`), because launchers truncate labels past ~12 characters. Never the mashed `CorpClimb`. `src/__tests__/app-name.test.ts` keeps all of these in step.
 3. `isNative()` (`Capacitor.isNativePlatform()`) is on the `src/platform/index.ts` barrel; each adapter branches — exported surfaces stay unchanged.
 4. `src/main.tsx` skips service-worker registration when `isNative()` (the native shell bundles its assets; a SW would fight the local scheme) and calls `bootstrapNativeChrome()`.
 5. **Mac-blocked:** `npm run build && npx cap add ios && npx cap sync`, then copy `resources/splash.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` (three names, see `resources/README.md`).
