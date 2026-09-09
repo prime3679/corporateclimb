@@ -15,7 +15,7 @@ export function useShareFeedback(text: string, defaultLabel: string) {
   }
   const shared = feedback?.result === 'shared' || feedback?.result === 'copied'
   const shareLabel =
-    feedback?.result === 'cancelled' ? 'MAYBE LATER' : shared ? 'COPIED!' : defaultLabel
+    feedback?.result === 'cancelled' ? 'NEXT TIME' : shared ? 'COPIED!' : defaultLabel
 
   return { handleShare, shared, shareLabel }
 }

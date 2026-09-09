@@ -79,20 +79,20 @@ afterEach(async () => {
 })
 
 describe('useShareFeedback', () => {
-  it('shows MAYBE LATER on cancel and restores the default label after 2s', async () => {
+  it('shows NEXT TIME on cancel and restores the default label after 2s', async () => {
     shareMock.mockResolvedValue('cancelled')
     await mount()
     expect(snap.shareLabel).toBe('SHARE RESULT')
     expect(snap.shared).toBe(false)
 
     await clickShare()
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
     expect(snap.shared).toBe(false)
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1999)
     })
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1)
@@ -127,7 +127,7 @@ describe('useShareFeedback', () => {
     shareMock.mockResolvedValueOnce('cancelled')
     await clickShare()
     expect(snap.shared).toBe(false)
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
   })
 
   it('shows no flash when share fails', async () => {
@@ -147,13 +147,13 @@ describe('useShareFeedback', () => {
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1500)
     })
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
 
     await clickShare()
     await act(async () => {
       await vi.advanceTimersByTimeAsync(1500)
     })
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
 
     await act(async () => {
       await vi.advanceTimersByTimeAsync(500)
@@ -167,7 +167,7 @@ describe('useShareFeedback', () => {
     await mount()
 
     await clickShare()
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
 
     shareMock.mockResolvedValueOnce('shared')
     await clickShare()
@@ -185,7 +185,7 @@ describe('useShareFeedback', () => {
     shareMock.mockResolvedValue('cancelled')
     await mount()
     await clickShare()
-    expect(snap.shareLabel).toBe('MAYBE LATER')
+    expect(snap.shareLabel).toBe('NEXT TIME')
 
     await unmount()
     await act(async () => {
