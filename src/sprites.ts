@@ -19,6 +19,15 @@ import reyes from './assets/characters/npcs/reyes.webp'
 import ashford from './assets/characters/npcs/ashford.webp'
 import marlowe from './assets/characters/npcs/marlowe.webp'
 import caldwell from './assets/characters/npcs/caldwell.webp'
+// Office Floor 1–2 house plates (Pass J recast). Classic keeps its own
+// recruiter / overachiever / … files above; these are Office-only pixels.
+import renata from './assets/characters/npcs/renata.webp'
+import gavin from './assets/characters/npcs/gavin.webp'
+import priya from './assets/characters/npcs/priya.webp'
+import holloway from './assets/characters/npcs/holloway.webp'
+import teddy from './assets/characters/npcs/teddy.webp'
+import whitlock from './assets/characters/npcs/whitlock.webp'
+import kessler from './assets/characters/npcs/kessler.webp'
 
 const SPRITES: Record<string, string> = {
   product_manager: productManager,
@@ -39,6 +48,13 @@ const SPRITES: Record<string, string> = {
   ashford,
   marlowe,
   caldwell,
+  renata,
+  gavin,
+  priya,
+  holloway,
+  teddy,
+  whitlock,
+  kessler,
 }
 
 export function buildSpriteUrls(): Record<string, string> {
@@ -70,16 +86,13 @@ export function headshotPlacement(size: number, focal: HeadshotFocal) {
 
 const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   product_manager: { x: 0.49, y: 0.115, zoom: 3.2 },
+  // Classic enemy plates. Office no longer badges these (see the house
+  // block below); they still crop for Classic-side surfaces.
   overachiever: { x: 0.49, y: 0.1, zoom: 3.2 },
-  // Renata leans into her phone: her eyes sit at x≈0.47 of the plate, not
-  // the 0.45 that pulled the badge toward the handset (Pass J).
   recruiter: { x: 0.47, y: 0.12, zoom: 3.2 },
   scrum: { x: 0.585, y: 0.13, zoom: 3.1 },
   manager: { x: 0.415, y: 0.13, zoom: 3.1 },
   intern: { x: 0.5, y: 0.115, zoom: 3.2 },
-  // Kessler stands on the right third of vp.webp (eyes at x≈0.68). The
-  // house x=0.5 pin framed empty background with his ear on the rim — the
-  // one F1–2 plate that was clearly behind the F3–5 bar (Pass J).
   vp: { x: 0.685, y: 0.105, zoom: 3.25 },
   boss: { x: 0.5, y: 0.125, zoom: 3.05 },
   eng: { x: 0.435, y: 0.12, zoom: 3.2 },
@@ -96,6 +109,18 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   ashford: { x: 0.51, y: 0.115, zoom: 3.15 },
   marlowe: { x: 0.53, y: 0.12, zoom: 3.2 },
   caldwell: { x: 0.51, y: 0.12, zoom: 3.1 },
+  // Office F1–2 house plates (Pass J recast). Every figure stands centred
+  // on its plate, so x sits near 0.5; y pins the eye line into the upper
+  // third of the badge and zoom stays in the 3.1–3.4 band the F3–5 named
+  // plates use. Renata's wavy hair is the widest head of the seven — she
+  // takes the loosest zoom; the three slick-haired men take the tightest.
+  renata: { x: 0.45, y: 0.135, zoom: 3.15 },
+  gavin: { x: 0.485, y: 0.114, zoom: 3.35 },
+  priya: { x: 0.49, y: 0.135, zoom: 3.3 },
+  holloway: { x: 0.5, y: 0.122, zoom: 3.3 },
+  teddy: { x: 0.5, y: 0.13, zoom: 3.2 },
+  whitlock: { x: 0.49, y: 0.11, zoom: 3.35 },
+  kessler: { x: 0.495, y: 0.118, zoom: 3.35 },
 }
 
 export function headshotFocal(spriteId: string): HeadshotFocal {

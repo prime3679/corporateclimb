@@ -216,8 +216,9 @@ Recruitability at a glance:
 | Priya    | **yes**     | Optional coworker; fills the third slot                   |
 | Holloway | no          | Boss. "I'm your manager. That's the opposite of joining." |
 
-Portraits (all reused from `src/assets/characters/`, see §14.2): Renata `recruiter`, Gavin
-`overachiever`, Priya `scrum`, Holloway `manager`. The same headshot crop appears on the map token,
+Portraits (Office-only 512s in `src/assets/characters/npcs/`, see §14.2 and
+`docs/rpg/fidelity-bar.md` Pass J house plates): Renata `renata`, Gavin `gavin`, Priya `priya`,
+Holloway `holloway`. The same headshot crop appears on the map token,
 in the dialogue eyebrow, on the party strip, in the team panel, on the bench picker and on the
 recruit card — one face per person everywhere.
 
@@ -392,8 +393,8 @@ apply to whichever member is active, exactly as they apply to the lead today.
 
 | Recruit def id       | Name  | Portrait (reuse) | HP  | ATK | DEF | Types      | Moves (dmg · type · PP · extra)                                                                                                                                      |
 | -------------------- | ----- | ---------------- | --- | --- | --- | ---------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cw_desk_challenger` | Gavin | `overachiever`   | 70  | 10  | 8   | `normal`   | Well, Actually · 10 · `normal` · 20 PP — Passive-Aggressive Sticky Note · 12 · `influence` · 10 PP · 40% Demoralized (−DEF) on enemy                                 |
-| `cw_meeting_prepper` | Priya | `scrum`          | 80  | 11  | 9   | `strategy` | Calendar Hold · 12 · `strategy` · 12 PP · 50% Micromanaged (−ATK) on enemy — Agenda Item · 14 · `strategy` · 15 PP — Circle Back · 8 · `influence` · 8 PP · heals 10 |
+| `cw_desk_challenger` | Gavin | `gavin`          | 70  | 10  | 8   | `normal`   | Well, Actually · 10 · `normal` · 20 PP — Passive-Aggressive Sticky Note · 12 · `influence` · 10 PP · 40% Demoralized (−DEF) on enemy                                 |
+| `cw_meeting_prepper` | Priya | `priya`          | 80  | 11  | 9   | `strategy` | Calendar Hold · 12 · `strategy` · 12 PP · 50% Micromanaged (−ATK) on enemy — Agenda Item · 14 · `strategy` · 15 PP — Circle Back · 8 · `influence` · 8 PP · heals 10 |
 
 Kits are `PlayerClass`-shaped (`maxHp`, `atk`, `def`, `spd`, `types`, `moves[]`, `perk: none`) so
 `getEffectivePlayer` and the move grid work unchanged. Coworker moves never upgrade (no promotion
@@ -552,11 +553,11 @@ numbers below are the contract — ranks 0/1 happen to match `15 + 7·rank` / `8
 is a premium override). Overworld enemies live in their own content module and never enter
 `ENEMY_POOLS`, so the tower balance snapshot stays bit-identical.
 
-| Encounter id          | Opponent | Rank | Boss | Recruit unlocked     | HP  | ATK | DEF | Types                   | Battle sprite  | XP  | 📈 OPT | Declinable | Flee   |
-| --------------------- | -------- | ---- | ---- | -------------------- | --- | --- | --- | ----------------------- | -------------- | --- | ------ | ---------- | ------ |
-| `enc_desk_challenger` | Gavin    | 0    | no   | `cw_desk_challenger` | 70  | 8   | 6   | `normal`                | `overachiever` | 15  | 8      | yes        | n/a    |
-| `enc_meeting_prepper` | Priya    | 1    | no   | `cw_meeting_prepper` | 85  | 11  | 7   | `strategy`              | `scrum`        | 22  | 11     | yes        | n/a    |
-| `enc_supervisor_1on1` | Holloway | 2    | yes  | —                    | 130 | 14  | 9   | `influence`, `strategy` | `manager`      | 30  | 20     | **no**     | **no** |
+| Encounter id          | Opponent | Rank | Boss | Recruit unlocked     | HP  | ATK | DEF | Types                   | Battle sprite | XP  | 📈 OPT | Declinable | Flee   |
+| --------------------- | -------- | ---- | ---- | -------------------- | --- | --- | --- | ----------------------- | ------------- | --- | ------ | ---------- | ------ |
+| `enc_desk_challenger` | Gavin    | 0    | no   | `cw_desk_challenger` | 70  | 8   | 6   | `normal`                | `gavin`       | 15  | 8      | yes        | n/a    |
+| `enc_meeting_prepper` | Priya    | 1    | no   | `cw_meeting_prepper` | 85  | 11  | 7   | `strategy`              | `priya`       | 22  | 11     | yes        | n/a    |
+| `enc_supervisor_1on1` | Holloway | 2    | yes  | —                    | 130 | 14  | 9   | `influence`, `strategy` | `holloway`    | 30  | 20     | **no**     | **no** |
 
 Holloway is tuned for a bench (130/14/9): a real threat to a solo lead and a tense, winnable fight
 for a team of two.
@@ -1214,14 +1215,14 @@ badges) — never as furniture, characters, or map tiles.
 
 ### 14.1 Reused as-is (ship-quality today)
 
-| Asset                                                                                                 | Use                                                                                                                                          |
-| ----------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/assets/characters/*.webp` via `PixelSprite`/`StagedSprite`                                       | Battle portraits (player classes; Gavin `overachiever`, Priya `scrum`, Holloway `manager`) and, cropped, every headshot on the floor (§14.2) |
-| `TextBox`, `Panel`, `Button`, `IconChip`, `HpBar`, `XpBar`, `TypeBadge`, `StatusBadges`, `MoveButton` | Dialogue, cards, chips, bars, badges, deck                                                                                                   |
-| `PromotionScreen`, `ShopScreen`, `RunCompleteScreen` layout, `SettingsPanel`                          | Promotion, vending, celebration, settings                                                                                                    |
-| `SFX` cues, `Haptics` adapter                                                                         | The entire §12 matrix                                                                                                                        |
-| Emoji `📈 ☕ 💰 🪪 📄` and item emoji                                                                 | Wallet, item rows, badge/letter receipt rows (existing icon language)                                                                        |
-| `tokens.css`                                                                                          | All color, type, spacing, motion                                                                                                             |
+| Asset                                                                                                 | Use                                                                                                                                                                      |
+| ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `src/assets/characters/*.webp` via `PixelSprite`/`StagedSprite`                                       | Battle portraits (player classes; Gavin `gavin`, Priya `priya`, Holloway `holloway` — Office-only plates since Pass J) and, cropped, every headshot on the floor (§14.2) |
+| `TextBox`, `Panel`, `Button`, `IconChip`, `HpBar`, `XpBar`, `TypeBadge`, `StatusBadges`, `MoveButton` | Dialogue, cards, chips, bars, badges, deck                                                                                                                               |
+| `PromotionScreen`, `ShopScreen`, `RunCompleteScreen` layout, `SettingsPanel`                          | Promotion, vending, celebration, settings                                                                                                                                |
+| `SFX` cues, `Haptics` adapter                                                                         | The entire §12 matrix                                                                                                                                                    |
+| Emoji `📈 ☕ 💰 🪪 📄` and item emoji                                                                 | Wallet, item rows, badge/letter receipt rows (existing icon language)                                                                                                    |
+| `tokens.css`                                                                                          | All color, type, spacing, motion                                                                                                                                         |
 
 ### 14.2 Required new assets — ship-quality, block "done"
 
@@ -1234,7 +1235,8 @@ drop-shadow outline, and a soft 4-px shadow ellipse. Facing is a 6-px notch on t
 office renders people as their badges), it reuses the best art the project has, and the same
 headshot recurs on every party surface so faces are consistent everywhere. Required: 3 player
 tokens (pm/eng/design) × 4 facings, 4 NPC tokens × 1 facing each, plus the same crops at 40/48/64
-px for chips, dialogue and cards. Renata's headshot is the `recruiter` portrait.
+px for chips, dialogue and cards. Renata's headshot is the `renata` plate (Pass J recast; it was
+the Classic `recruiter` portrait until then).
 
 **Tileset (32×32, one sheet), flat two-tone with hairline and 1-px ink outline, palette from
 `--cc-surface-*` and zone accents.** Required tiles and states:

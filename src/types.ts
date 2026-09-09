@@ -107,6 +107,13 @@ export type SpriteId =
   | 'ashford'
   | 'marlowe'
   | 'caldwell'
+  | 'renata'
+  | 'gavin'
+  | 'priya'
+  | 'holloway'
+  | 'teddy'
+  | 'whitlock'
+  | 'kessler'
 
 export interface EnemyMove {
   name: string

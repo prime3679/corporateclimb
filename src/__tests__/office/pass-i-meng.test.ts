@@ -27,7 +27,20 @@ import {
 
 const repo = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts), 'utf8')
 
+/** Office F1–2 house plates (Pass J recast — Office-only pixels). */
 const HOUSE_FILES: Record<string, string> = {
+  renata: 'src/assets/characters/npcs/renata.webp',
+  gavin: 'src/assets/characters/npcs/gavin.webp',
+  priya: 'src/assets/characters/npcs/priya.webp',
+  holloway: 'src/assets/characters/npcs/holloway.webp',
+  teddy: 'src/assets/characters/npcs/teddy.webp',
+  whitlock: 'src/assets/characters/npcs/whitlock.webp',
+  kessler: 'src/assets/characters/npcs/kessler.webp',
+}
+
+/** Classic enemy plates the house speakers used to borrow. Classic still
+ *  renders these; Office must not key a speaker onto them any more. */
+const CLASSIC_FILES: Record<string, string> = {
   recruiter: 'src/assets/characters/npcs/recruiter.webp',
   overachiever: 'src/assets/characters/npcs/overachiever.webp',
   scrum: 'src/assets/characters/npcs/scrum.webp',
@@ -107,18 +120,29 @@ describe('Pass I — Office cast Headshots are already unique', () => {
         )
       }
     }
-    expect(urls.reyes).not.toEqual(urls.intern)
-    expect(urls.quincy).not.toEqual(urls.vp)
-    expect(urls.caldwell).not.toEqual(urls.boss)
+    expect(urls.reyes).not.toEqual(urls.teddy)
+    expect(urls.quincy).not.toEqual(urls.kessler)
+    expect(urls.caldwell).not.toEqual(urls.whitlock)
     expect(urls.sloane).not.toEqual(urls.product_manager)
-    expect(urls.harper).not.toEqual(urls.recruiter)
+    expect(urls.harper).not.toEqual(urls.renata)
   })
 
-  it('keeps F1–2 house plates unique from each other (the intended recast)', () => {
+  it('keys every F1–2 house speaker onto its own Office plate, not a Classic file', () => {
+    const urls = buildSpriteUrls()
     const ids = Object.values(OFFICE_CAST_HEADSHOTS.house)
     expect(new Set(ids).size).toBe(ids.length)
     const hashes = ids.map((id) => sha256(HOUSE_FILES[id]))
     expect(new Set(hashes).size).toBe(ids.length)
+    for (const [speaker, spriteId] of Object.entries(OFFICE_CAST_HEADSHOTS.house)) {
+      expect(spriteId).toBe(speaker)
+      expect(CLASSIC_FILES[spriteId], `${speaker} keys a Classic plate`).toBeUndefined()
+      for (const [classicId, file] of Object.entries(CLASSIC_FILES)) {
+        expect(urls[spriteId], `${speaker} vs ${classicId}`).not.toEqual(urls[classicId])
+        expect(sha256(HOUSE_FILES[spriteId]), `${speaker} vs ${classicId}`).not.toEqual(
+          sha256(file),
+        )
+      }
+    }
   })
 
   it('wires encounter kits and map actors to those same plates', () => {
@@ -176,6 +200,7 @@ describe('Pass I — Office cast Headshots are already unique', () => {
     const expected = new Set([
       ...Object.keys(HOUSE_FILES).map((id) => `${id}.webp`),
       ...Object.keys(NAMED_FILES).map((id) => `${id}.webp`),
+      ...Object.keys(CLASSIC_FILES).map((id) => `${id}.webp`),
       'product_manager.webp',
     ])
     expect(new Set(webps)).toEqual(expected)

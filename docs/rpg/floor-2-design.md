@@ -244,7 +244,9 @@ Recruitability at a glance:
 | Whitlock | no          | External. "I don't work here. Legally, that's the point of me."           |
 | Kessler  | no          | Boss. "Directors don't join. Directors are joined."                       |
 
-Portraits (reused, one face per person everywhere): Teddy `intern`, Whitlock `boss`, Kessler `vp`.
+Portraits (one face per person everywhere): Teddy `teddy`, Whitlock `whitlock`, Kessler `kessler` —
+Office-only 512s since the Pass J house-plate recast (they borrowed Classic `intern` / `boss` / `vp`
+before that; see `docs/rpg/fidelity-bar.md`).
 Map bodies: `public/office/actors/{teddy,kessler,whitlock}.png`, same rig and ink as the Floor 1
 cast (`scripts/gen_office_actors.py`). Eyebrows: `TEDDY · IT HELP DESK`, `WHITLOCK · EXTERNAL
 AUDITOR`, `KESSLER · DIRECTOR OF OPERATIONS`.
@@ -431,7 +433,7 @@ party at the moment of the ride.
 
 | Recruit def id        | Name  | Portrait | HP  | ATK | DEF | SPD | Types       | Moves (dmg · type · PP · extra)                                                                                                                                            |
 | --------------------- | ----- | -------- | --- | --- | --- | --- | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `cw_help_desk_intern` | Teddy | `intern` | 75  | 9   | 10  | 10  | `technical` | Have You Tried Restarting · 11 · `technical` · 15 PP · heals 6 — Reply All · 9 · `influence` · 12 PP · 40% Burned Out (DoT) on enemy — Escalate · 14 · `technical` · 10 PP |
+| `cw_help_desk_intern` | Teddy | `teddy`  | 75  | 9   | 10  | 10  | `technical` | Have You Tried Restarting · 11 · `technical` · 15 PP · heals 6 — Reply All · 9 · `influence` · 12 PP · 40% Burned Out (DoT) on enemy — Escalate · 14 · `technical` · 10 PP |
 
 Move descriptions: Have You Tried Restarting — "Turns it off and on. Including you."; Reply All —
 "Per my last email. Everyone's."; Escalate — "Now it's someone else's problem." Role: chip damage
@@ -486,9 +488,9 @@ Ranks continue the ladder (Floor 1 used 0–2).
 
 | Encounter id           | Opponent | Rank | Boss | Recruit unlocked      | HP  | ATK | DEF | Types                    | Battle sprite | XP  | 📈 OPT | Declinable | Phase 2 |
 | ---------------------- | -------- | ---- | ---- | --------------------- | --- | --- | --- | ------------------------ | ------------- | --- | ------ | ---------- | ------- |
-| `enc_help_desk_intern` | Teddy    | 3    | no   | `cw_help_desk_intern` | 95  | 12  | 8   | `technical`              | `intern`      | 36  | 15     | yes        | —       |
-| `enc_auditor`          | Whitlock | 4    | no   | —                     | 120 | 14  | 10  | `analytics`              | `boss`        | 43  | 21     | yes        | —       |
-| `enc_director_review`  | Kessler  | 5    | yes  | —                     | 170 | 16  | 12  | `execution`, `analytics` | `vp`          | 55  | 32     | **no**     | **yes** |
+| `enc_help_desk_intern` | Teddy    | 3    | no   | `cw_help_desk_intern` | 95  | 12  | 8   | `technical`              | `teddy`       | 36  | 15     | yes        | —       |
+| `enc_auditor`          | Whitlock | 4    | no   | —                     | 120 | 14  | 10  | `analytics`              | `whitlock`    | 43  | 21     | yes        | —       |
+| `enc_director_review`  | Kessler  | 5    | yes  | —                     | 170 | 16  | 12  | `execution`, `analytics` | `kessler`     | 55  | 32     | **no**     | **yes** |
 
 ### 5.1 Move sets and battle copy
 
@@ -895,8 +897,9 @@ authoring; `tileset.test.ts` still passes against the frozen Floor 1 map).
 hair, navy blazer over a light shirt and short red tie, tan chinos, backpack (seen from behind,
 straps from the front), paper coffee cup. Kessler: blond slicked back, high hairline, navy suit
 with a pocket square, grey-blue tie, slim dark folder with a brass clasp. Whitlock: swept white
-hair, black suit, red tie, age lines under the eyes, green ledger. Palettes track the `intern`,
-`vp`, `boss` portraits so the map body and the headshot agree. Registered in `ACTOR_IDS` /
+hair, black suit, red tie, age lines under the eyes, green ledger. Palettes are the identity
+carriers the `teddy` / `kessler` / `whitlock` plates are commissioned against
+(`scripts/gen_office_plates.py brief`), so the map body and the headshot agree. Registered in `ACTOR_IDS` /
 `SPRITE_TO_ACTOR` (`intern → teddy`, `vp → kessler`, `boss → whitlock`); `overworld-actor.test.ts`
 covers the files.
 
@@ -1106,7 +1109,8 @@ Full route: 90 📈 on this floor, level 4 reached at Kessler.
 - **Whitlock wears the `boss` portrait.** The remaining faces are `intern`, `vp`, `boss`. Every
   floor after this one needs new portraits regardless; spending the last one on an external auditor
   who "doesn't work here" is the reuse that reads best. Floor 3's cast is a portrait commission
-  either way.
+  either way. _(Superseded by the Pass J house-plate recast: Whitlock now wears his own `whitlock`
+  plate and `boss` is Classic-only again.)_
 - **Kessler gets phase 2, not a gimmick.** Floor 1 wrote the rule and left it unused. A boss whose
   numbers change halfway is the tower's language, already sequenced, and it is exactly what makes a
   three-member team feel necessary rather than nice.
