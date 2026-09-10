@@ -69,6 +69,7 @@ export const PRESENTATION_SIGNOFF = {
     'Pass I ambient Headshots — 15 unique plates; no extra side-cast NPCs',
     'Pass J visual — Kessler / Renata house focals, Sloane chibi tie, two-cell CALDWELL plate',
     'Pass J house plates — F1–2 recast to Office-only 512s (scripts/gen_office_plates.py); Classic files untouched',
+    'Pass J signage — F2 HELP / DESK stacks in one cell; seven-glyph room signs frame inside the cell',
     'Pass G live 1→5 E2E — no Floor 6, THE NOD, save/load, Caldwell phase 2',
   ],
 } as const

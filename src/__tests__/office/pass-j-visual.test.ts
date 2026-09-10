@@ -24,6 +24,9 @@ import { DEFAULT_HEADSHOT_FOCAL, headshotFocal, headshotPlacement } from '@/spri
  *   2. Sloane’s OverworldActor matches her portrait (no tie).
  *   3. CALDWELL nameplate spans two cells and never slices a glyph at the
  *      boardroom camera edge.
+ *   4. F2 HELP DESK sign stacks its two words in one cell with a complete
+ *      frame (it was a 35px plate in a 32px cell), and the seven-glyph room
+ *      signs get the frame column they hung past the left edge.
  * Pixel checks decode the committed PNGs so a regenerated sheet that drifts
  * fails here, not in a playtest.
  */
@@ -90,6 +93,7 @@ function decodePng(buf: Buffer): { w: number; h: number; at: (x: number, y: numb
 const same = (a: Rgba, b: Rgba) => a[0] === b[0] && a[1] === b[1] && a[2] === b[2] && a[3] === b[3]
 const INK: Rgba = [27, 23, 38, 255]
 const STEEL: Rgba = [156, 167, 182, 255]
+const PAPER: Rgba = [242, 244, 246, 255]
 
 /** Sheet-pixel origin of an atlas cell (skips the 1px extruded border). */
 function cellOrigin(name: keyof typeof TILE_ATLAS) {
@@ -293,5 +297,94 @@ describe('Pass J — Floor 1–2 atlas stays put', () => {
 
   it('records the pass in the presentation sign-off', () => {
     expect(PRESENTATION_SIGNOFF.section19.some((row) => row.includes('Pass J'))).toBe(true)
+  })
+})
+
+describe('Pass J — F2 HELP DESK sign frames inside one cell', () => {
+  const G = TILE_CELL_H - 32
+  // Stacked plaque geometry from `sign_stacked('HELP', 'DESK')`: frame x 5–25,
+  // y 9–26; HELP on rows 12–16, DESK on rows 19–23.
+  const FRAME = { x0: 5, x1: 25, y0: 9, y1: 26 }
+  const LINES = [
+    [12, 16],
+    [19, 23],
+  ] as const
+
+  it('keeps the single cell at its index, hung at (7,0) — no two-cell pair', () => {
+    expect(TILE_ATLAS.sign_helpdesk).toEqual([7, 16])
+    expect(FLOOR_2_WALL_DECOR['7,0']).toBe('sign_helpdesk')
+    expect('sign_helpdesk_l' in TILE_ATLAS).toBe(false)
+    expect('sign_helpdesk_r' in TILE_ATLAS).toBe(false)
+  })
+
+  it('stacks HELP / DESK with a complete ink frame and clear wall on every side', () => {
+    const sheet = decodePng(repoFile('public', 'office', 'tiles.png'))
+    const s = cellOrigin('sign_helpdesk')
+    const at = (x: number, y: number) => sheet.at(s.x + x, s.y + G + y)
+    for (let x = FRAME.x0; x <= FRAME.x1; x++) {
+      expect(same(at(x, FRAME.y0), INK), `top frame x${x}`).toBe(true)
+      expect(same(at(x, FRAME.y1), INK), `bottom frame x${x}`).toBe(true)
+    }
+    for (let y = FRAME.y0; y <= FRAME.y1; y++) {
+      expect(same(at(FRAME.x0, y), INK), `left frame y${y}`).toBe(true)
+      expect(same(at(FRAME.x1, y), INK), `right frame y${y}`).toBe(true)
+    }
+    // The old plate ran off both cell edges; the plaque now never touches one.
+    for (let y = -G; y < 32; y++) {
+      for (let x = 0; x < 32; x++) {
+        const outside = x < FRAME.x0 || x > FRAME.x1 || y < FRAME.y0 || y > FRAME.y1
+        if (outside) expect(at(x, y)[3], `transparent at ${x},${y}`).toBe(0)
+      }
+    }
+  })
+
+  it('prints both words in paper caps, one per line, inside the margins', () => {
+    const sheet = decodePng(repoFile('public', 'office', 'tiles.png'))
+    const s = cellOrigin('sign_helpdesk')
+    const paperRow = (y: number) => {
+      let n = 0
+      for (let x = 0; x < 32; x++) if (same(sheet.at(s.x + x, s.y + G + y), PAPER)) n++
+      return n
+    }
+    for (const [top, bottom] of LINES) {
+      for (let y = top; y <= bottom; y++) expect(paperRow(y), `glyph row y${y}`).toBeGreaterThan(0)
+    }
+    // Margins above, between and below the two lines carry no glyph pixels.
+    for (const y of [10, 11, 17, 18, 24, 25]) expect(paperRow(y), `margin y${y}`).toBe(0)
+    // Letters never touch the frame: one clear column each side of the 15px word.
+    for (let y = FRAME.y0; y <= FRAME.y1; y++) {
+      for (const x of [FRAME.x0 + 1, FRAME.x1 - 1]) {
+        expect(same(sheet.at(s.x + x, s.y + G + y), PAPER), `frame margin ${x},${y}`).toBe(false)
+      }
+    }
+  })
+
+  it('frames the seven-glyph room signs that used to hang past the left edge', () => {
+    const sheet = decodePng(repoFile('public', 'office', 'tiles.png'))
+    for (const name of ['sign_finance', 'sign_meeting', 'sign_kitchen'] as const) {
+      const o = cellOrigin(name)
+      for (let y = 12; y <= 22; y++) {
+        expect(same(sheet.at(o.x, o.y + G + y), INK), `${name} left frame y${y}`).toBe(true)
+        expect(same(sheet.at(o.x + 30, o.y + G + y), INK), `${name} right frame y${y}`).toBe(true)
+        expect(sheet.at(o.x + 31, o.y + G + y)[3], `${name} clear column y${y}`).toBe(0)
+      }
+    }
+    // Six-glyph plates keep their two-pixel margins and original footprint.
+    const p = cellOrigin('sign_people')
+    for (let y = 12; y <= 22; y++) {
+      expect(same(sheet.at(p.x + 1, p.y + G + y), INK), `PEOPLE left frame y${y}`).toBe(true)
+      expect(same(sheet.at(p.x + 29, p.y + G + y), INK), `PEOPLE right frame y${y}`).toBe(true)
+    }
+  })
+
+  it('refuses one-line labels the cell cannot frame, in the generator itself', () => {
+    const src = readFileSync(join(process.cwd(), 'scripts', 'gen_office_tiles.py'), 'utf8')
+    expect(src).toContain("register('sign_helpdesk', sign_stacked('HELP', 'DESK'))")
+    expect(src).not.toContain("sign_room('HELPDESK')")
+    expect(src).toMatch(/if w \+ 2 > CELL_W:\n\s+raise SystemExit\(/)
+    // Every one-line sign the atlas registers fits: ≤ 7 glyphs.
+    for (const m of src.matchAll(/sign_room\('([A-Z ]+)'\)/g)) {
+      expect(m[1].length, `sign_room(${m[1]})`).toBeLessThanOrEqual(7)
+    }
   })
 })
