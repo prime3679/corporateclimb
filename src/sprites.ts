@@ -109,16 +109,20 @@ const HEADSHOT_FOCALS: Record<string, HeadshotFocal> = {
   ashford: { x: 0.51, y: 0.115, zoom: 3.15 },
   marlowe: { x: 0.53, y: 0.12, zoom: 3.2 },
   caldwell: { x: 0.51, y: 0.12, zoom: 3.1 },
-  // Office F1–2 house plates (Pass J recast). Every figure stands centred
-  // on its plate, so x sits near 0.5; y pins the eye line into the upper
-  // third of the badge and zoom stays in the 3.1–3.4 band the F3–5 named
-  // plates use. Renata's wavy hair is the widest head of the seven — she
-  // takes the loosest zoom; the three slick-haired men take the tightest.
-  renata: { x: 0.45, y: 0.135, zoom: 3.15 },
+  // Office F1–2 house plates (Pass J recast + pose-energy pass). Every
+  // figure stands centred on its plate, so x sits near 0.5 — the pose pass
+  // shifts a few heads off the plate centre line (Teddy leans in from the
+  // left, Renata cocks her hip to the right), so x follows the head, not
+  // the figure. y pins the eye line into the upper third of the badge and
+  // zoom stays in the 3.1–3.4 band the F3–5 named plates use. Renata's wavy
+  // hair is the widest head of the seven — she takes the loosest zoom; the
+  // three slick-haired men take the tightest. Props are held below the
+  // shoulder line on every plate, so no prop reaches the badge rim.
+  renata: { x: 0.49, y: 0.14, zoom: 3.15 },
   gavin: { x: 0.485, y: 0.114, zoom: 3.35 },
-  priya: { x: 0.49, y: 0.135, zoom: 3.3 },
+  priya: { x: 0.505, y: 0.14, zoom: 3.3 },
   holloway: { x: 0.5, y: 0.122, zoom: 3.3 },
-  teddy: { x: 0.5, y: 0.13, zoom: 3.2 },
+  teddy: { x: 0.47, y: 0.13, zoom: 3.2 },
   whitlock: { x: 0.49, y: 0.11, zoom: 3.35 },
   kessler: { x: 0.495, y: 0.118, zoom: 3.35 },
 }
