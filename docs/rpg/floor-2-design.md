@@ -900,12 +900,19 @@ with a pocket square, grey-blue tie, slim dark folder with a brass clasp. Whitlo
 hair, black suit, red tie, age lines under the eyes, green ledger. Palettes are the identity
 carriers the `teddy` / `kessler` / `whitlock` plates are commissioned against
 (`scripts/gen_office_plates.py brief`), so the map body and the headshot agree. Registered in `ACTOR_IDS` /
-`SPRITE_TO_ACTOR` (`intern → teddy`, `vp → kessler`, `boss → whitlock`); `overworld-actor.test.ts`
-covers the files.
+`SPRITE_TO_ACTOR` (`teddy → teddy`, `kessler → kessler`, `whitlock → whitlock` — the sprite id and
+the actor id are the same key since the Pass J recast) and `NPC_ACTOR` (`npc_help_desk_intern →
+teddy`, `npc_auditor → whitlock`, `npc_director → kessler`); `overworld-actor.test.ts` covers the
+files.
 
-**Reused as-is**: every Floor 1 cell, the three portraits above via `Headshot` (focal points may
-need one `HEADSHOT_FOCALS` entry each — check the crop on the small phone as part of §12),
-`PromotionScreen`, `ShopScreen`, `RunCompleteScreen` layout, all SFX/haptics.
+**Portraits** (`src/assets/characters/npcs/{teddy,whitlock,kessler}.webp`, 512×512): Office-only
+plates on the same `sprites.ts` / `HEADSHOT_FOCALS` / `Headshot` contract as the F3–5 named plates,
+each with its own `HEADSHOT_FOCALS` row in the named-plate band (`docs/rpg/fidelity-bar.md` → Pass J
+house-plate recast / pose energy). Classic `intern` / `vp` / `boss` are Classic-only and
+bit-identical.
+
+**Reused as-is**: every Floor 1 cell, the `Headshot` crop component, `PromotionScreen`,
+`ShopScreen`, `RunCompleteScreen` layout, all SFX/haptics.
 
 **Wired on this branch** (on top of PR #71's floor-keyed content and elevator ride): the Floor 2
 map, zones, floors, rugs, decor, props and doorway in `tiles.tsx`; the three NPCs on the map with
