@@ -311,6 +311,7 @@ export default function TitleScreen({
                 variant="ghost"
                 size="md"
                 onClick={handleStart}
+                className={styles.newClimb}
                 aria-describedby="classic-climb-label"
               >
                 NEW CLIMB

@@ -136,6 +136,16 @@
   min-width: 210px;
 }
 
+/* NEW CLIMB sits beside CONTINUE in the Classic save row, so it reads as a
+   peer action: keep the ghost colours but set it in the display face like
+   every other climb button. Anton is single-weight, so the ghost's 700 has
+   to go too or the browser fakes a bold. Scoped under .row so it outranks
+   Button's .ghost without touching the global variant (CODEX stays body). */
+.row .newClimb {
+  font-family: var(--font-display);
+  font-weight: normal;
+}
+
 .confirm {
   display: flex;
   flex-direction: column;
