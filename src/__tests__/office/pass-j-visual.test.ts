@@ -172,7 +172,7 @@ describe('Pass J — F1–2 house plates recast to the F3–5 bar', () => {
       expect(f.y, `${id} y`).toBeGreaterThanOrEqual(Math.min(...namedY))
       expect(f.y, `${id} y`).toBeLessThanOrEqual(0.14)
     }
-    expect(headshotFocal('renata')).toEqual({ x: 0.45, y: 0.135, zoom: 3.15 })
+    expect(headshotFocal('renata')).toEqual({ x: 0.49, y: 0.14, zoom: 3.15 })
     expect(headshotFocal('kessler')).toEqual({ x: 0.495, y: 0.118, zoom: 3.35 })
   })
 
@@ -194,10 +194,15 @@ describe('Pass J — F1–2 house plates recast to the F3–5 bar', () => {
     const src = readFileSync(join(process.cwd(), 'scripts', 'gen_office_plates.py'), 'utf8')
     for (const id of HOUSE) {
       expect(src, id).toMatch(new RegExp(`'${id}': \\('${id.toUpperCase()}', '\\w+'\\)`))
-      expect(src, `${id} brief`).toMatch(new RegExp(`'${id}': \\(\\n`))
+      // One CHARACTER entry and one POSE entry per speaker.
+      expect(src.match(new RegExp(`'${id}': \\(\\n`, 'g'))?.length, `${id} brief`).toBe(2)
     }
     for (const cmd of ['brief', 'import', 'check']) expect(src).toContain(`'${cmd}'`)
     expect(src).toContain("actor.pal['H']")
+    // Pose-energy pass: the shared pose contract keeps props under the
+    // shoulder line so nothing lands on the Headshot rim.
+    expect(src).toContain('POSE_ANCHOR')
+    expect(src).toContain('BELOW the shoulder line')
     expect(PRESENTATION_SIGNOFF.section19.some((row) => row.includes('Pass J house plates'))).toBe(
       true,
     )

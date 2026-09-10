@@ -30,6 +30,13 @@ Pipeline (same shape as Pass E's F3–5 plates):
 
 Masters are generated from the briefs (style anchor: the Pass E F3–5 plates)
 and are not committed — see README "Assets" for the precedent.
+
+Pose energy (Pass J follow-up): the first recast landed badge-calm but
+static — arms straight down, both hands on the cup. The brief now carries a
+shared pose contract (POSE_ANCHOR) and one gesture per speaker (POSE), tuned
+against the F3–5 plates: weight on one hip, a hand doing something with the
+prop, a lean — with every prop held below the shoulder line so the square
+Headshot crop shows a clean face and nothing sits on the badge rim.
 """
 
 from __future__ import annotations
@@ -62,58 +69,127 @@ STYLE_ANCHOR = (
     'roster, in exactly the same art style as the Floor 3–5 plates (sloane, '
     'harper, ashford, caldwell): clean cel-shaded anime / JRPG trainer-card '
     'style, crisp dark line art, flat colours with one level of soft shading, '
-    'no gradients or painterly texture, calm "employee badge photo" expression, '
-    'standing straight, facing the viewer, full body from head to shoes, '
-    'centred, plain pure white background, no ground shadow, no text, no '
-    'logo, no frame. Proportions and line weight must match the roster.'
+    'no gradients or painterly texture, calm "employee badge photo" face, '
+    'facing the viewer, full body from head to shoes, centred, plain pure '
+    'white background, no ground shadow, no text, no logo, no frame. '
+    'Proportions and line weight must match the roster.'
 )
+
+# Pose energy (Pass J follow-up). The F3–5 plates stand alive — weight on one
+# hip, a hand doing something with the prop, a lean — while the face stays
+# calm enough for a dialogue crop. The first F1–2 recast landed static (arms
+# straight down, both hands on the cup). This is the shared pose contract;
+# the per-speaker gesture lives in POSE.
+POSE_ANCHOR = (
+    'Pose: alive, not static — weight shifted onto one leg with a relaxed hip, '
+    'shoulders turned a few degrees, ONE clear gesture with the prop or a hand. '
+    'No action pose, no walking stride, no jumping, no shouting, no open mouth, '
+    'no pointing at the camera, no exaggerated grin — this is a colleague '
+    'caught between meetings, not a battle taunt. CRITICAL crop contract: both '
+    'hands and the prop stay BELOW the shoulder line (sternum height or lower, '
+    'arms hanging where the gesture allows) so the top third of the figure — '
+    'head, neck, shoulders — contains nothing but the person; the square '
+    'Headshot crop must show a clean face with no prop touching its rim. Keep '
+    'the whole figure, including the prop and elbows, inside the frame with '
+    'clear white margin on both sides, both feet on the ground.'
+)
+
+POSE: dict[str, str] = {
+    'renata': (
+        'Hip cocked, weight on the back leg, shoulders turned a few degrees. '
+        'One arm hangs down with the handset held loosely at thigh height, '
+        'mouthpiece tipped toward the viewer ("it\'s for you"), coiled cord '
+        'trailing; the other hand flat on the opposite hip. Head tilted, one '
+        'eyebrow up, small dry closed-mouth smile.'
+    ),
+    'gavin': (
+        'Three-quarter stance, weight on the back leg, front foot angled out, '
+        'one shoulder dropped, chin lifted like he is sizing you up. Paper '
+        'stack tucked under one arm against his hip; the other hand fastens '
+        'the single jacket button at his waist, elbow out. Smug closed-mouth '
+        'half smile, one eyebrow slightly up.'
+    ),
+    'priya': (
+        'Slight forward lean from the ankles, weight on the front foot, like '
+        'she is already on her way to the next meeting. One arm hangs down '
+        'with the fan of blank index cards at thigh height, tilted toward the '
+        'viewer; the other hand taps her wristwatch at waist height. Sticky '
+        'notes on the lapel stay blank (no writing). Tight determined '
+        'closed-mouth smile, brows set.'
+    ),
+    'holloway': (
+        'Weight sunk hard onto one hip so the hips tilt, shoulders sloped, '
+        'head tilted the other way. The coffee cup is carried at waist height '
+        'in one hand, tipped a few degrees; the other hand rests on her hip. '
+        'Tie hanging loose. Resigned patient closed-mouth smile, eyes '
+        'half-lidded.'
+    ),
+    'teddy': (
+        'Standing, leaning forward eagerly from the ankles, heels together, '
+        'shoulders turned a few degrees. Coffee cup held in one hand at '
+        'sternum height, a little toward the viewer; the other thumb hooked '
+        'under the backpack strap. Wide earnest eyes, eyebrows up, small '
+        'hopeful closed-mouth smile.'
+    ),
+    'whitlock': (
+        'Leaning back very slightly, weight on the heels. Green ledger open in '
+        'one hand at chest height, pen in the other poised over the page '
+        'mid-note; he looks at the viewer over the top of his reading glasses. '
+        'One eyebrow raised, mouth a flat line.'
+    ),
+    'kessler': (
+        'Square, planted stance, weight on one leg, chin raised. Folder tucked '
+        'under one arm; the other wrist turned up in front of his stomach as '
+        'he checks his watch — the meeting started without you. Stern, no '
+        'smile, eyes on the viewer.'
+    ),
+}
 
 # Who they are. Pronouns follow the dialogue (mvp-design §2, floor-2-design §2).
 CHARACTER: dict[str, str] = {
     'renata': (
         'Front-desk receptionist, woman in her early thirties. Wavy '
         'shoulder-length hair with a soft side part. Blazer over a plain white '
-        'blouse, tailored trousers, dark flats. Holds a desk-phone handset at '
-        'her hip, other hand on her hip. Dry, unimpressed but kind — she has '
-        'seen every new hire.'
+        'blouse, tailored trousers, dark flats. Prop: a corded desk-phone handset. '
+        'Dry, unimpressed but kind — she has seen every new hire.'
     ),
     'gavin': (
         'Senior Associate, nine years at the same desk, man in his mid-thirties. '
         'Slicked-back hair with a sharp part. Trim buttoned suit, crisp shirt, '
-        'narrow tie, tiny gold company pin on the lapel. Neat stack of papers '
-        'against his chest, other hand in a pocket. Smug, competitive half smile.'
+        'narrow tie, tiny gold company pin on the lapel. Prop: a neat stack of '
+        'papers. Smug, competitive half smile.'
     ),
     'priya': (
         'Ops coordinator who front-loads every meeting, South Asian woman in her '
         'late twenties. Short choppy spiky hair. Fitted blazer over a light shirt, '
         'charcoal trousers, ankle boots. Sticky notes stuck to the lapel like '
-        'badges; a fan of index cards in one hand. Focused, tight determined smile.'
+        'badges. Prop: a fan of index cards. Focused, tight determined smile.'
     ),
     'holloway': (
         'Interim team lead, interim for four years, woman in her mid-forties. Hair '
         'pulled into a low loose bun, faint tired shadows under the eyes. Pantsuit, '
-        'pale collared shirt, slim bright tie worn loose, dark loafers. Paper '
-        'coffee cup raised mid-sip. Weary, patient, resigned smile.'
+        'pale collared shirt, slim bright tie worn loose, dark loafers. Prop: a '
+        'paper coffee cup. Weary, patient, resigned smile.'
     ),
     'teddy': (
         'Rotational intern fourteen months into six, also the help desk, young man '
         'about 23. Messy tousled hair, a few freckles. Slightly-too-big blazer worn '
         'open over a pale button-up, red lanyard with a white ID badge, chinos, '
-        'white sneakers, grey backpack strap. Holds a coffee cup with both hands. '
-        'Eager, a little anxious, wide earnest eyes.'
+        'white sneakers, grey backpack strap. Prop: a paper coffee cup. Eager, a '
+        'little anxious, wide earnest eyes.'
     ),
     'whitlock': (
         'External financial auditor ("legally, that\'s the point of me"), man in '
         'his early sixties. Swept-back white hair, long lined clean-shaven face, '
         'thin rectangular reading glasses. Severe suit with waistcoat, crisp shirt, '
-        'narrow deep-red tie. Slim green hardcover ledger under one arm, pen in the '
-        'other hand. Neutral, precise, faintly disapproving; mouth a flat line.'
+        'narrow deep-red tie. Props: a slim green hardcover ledger and a pen. '
+        'Neutral, precise, faintly disapproving; mouth a flat line.'
     ),
     'kessler': (
         'Director of Operations, the Floor 2 boss who makes everyone stand, man in '
         'his late forties. Blond hair slicked straight back, strong jaw, thin mouth. '
         'Immaculate buttoned suit, crisp shirt, steel-blue tie in a tight knot, black '
-        'dress shoes. Slim dark leather folder closed against his side. Stern, '
+        'dress shoes, a slim wristwatch. Prop: a slim dark leather folder. Stern, '
         'controlled, chin slightly raised, no smile.'
     ),
 }
@@ -167,6 +243,10 @@ def brief(speaker: str, actors) -> str:
         STYLE_ANCHOR,
         '',
         CHARACTER[speaker],
+        '',
+        POSE_ANCHOR,
+        '',
+        'Gesture: ' + POSE[speaker],
         '',
         'Identity carriers — must match public/office/actors/%s.png:' % speaker,
     ]

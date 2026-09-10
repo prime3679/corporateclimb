@@ -363,6 +363,62 @@ these palettes, so no chibi retouch was needed; if a future re-commission
 changes a carrier, update the `gen_office_actors.py` palette first and let
 `check` catch the portrait.
 
+### Pass J — F1–2 plate pose energy
+
+Follow-up to the recast above, on tip `414a77c`. One scoped item across all
+seven house plates: no Floor 6, Classic untouched (sha256 pins hold), no
+iOS, demo mp4 not remuxed, no engine work, no walk-sheet change.
+
+**Before.** The recast fixed identity and calm, but landed static next to
+the F3–5 plates: Kessler and Whitlock arms straight down, Teddy with both
+hands on the cup, Holloway holding a coffee at arm's length, Gavin a hand in
+a pocket and papers flat to the chest. The F3–5 named plates read alive —
+Sloane's contrapposto and clipboard, Nico's cards and pocket, Quincy's tube
+under the arm, Ashford's lean, Marlowe reading the tablet — and the two rows
+did not sit together on the party strip. Two of the old F1–2 props (Priya's
+cards, Holloway's cup) also cut the badge rim at 64px, the same corner-clip
+the Classic `recruiter` handset had.
+
+**After.** Seven re-commissioned masters against the same style anchor, same
+identity carriers, same `sprites.ts` / `HEADSHOT_FOCALS` / `Headshot`
+contract. Gesture per speaker:
+
+- **Renata** — hip cocked, hand on hip, handset hanging at thigh height with
+  the mouthpiece tipped at you ("it's for you"), head tilted, one eyebrow up.
+- **Gavin** — three-quarter turn, weight back, chin lifted; papers tucked
+  under one arm, the other hand fastening his jacket button. Smug half smile.
+- **Priya** — forward lean from the ankles, cards carried low, the other
+  hand tapping her watch; sticky notes blank. Tight determined smile.
+- **Holloway** — weight sunk onto one hip, shoulders sloped, cup carried at
+  the waist, other hand on her hip, tie loose, eyes half-lidded.
+- **Teddy** — leaning in from the ankles, heels together, cup in one hand at
+  the sternum, thumb hooked under the backpack strap, eyebrows up, closed
+  hopeful smile (no open mouth, no stride).
+- **Whitlock** — leaning back a touch, green ledger open at chest height,
+  pen mid-note, looking at you over the top of his reading glasses.
+- **Kessler** — planted, chin raised, folder under one arm, wrist turned up
+  checking his watch: the meeting started without you.
+
+Faces stay badge-photo calm — closed mouths, no shouting, no thrash — so the
+dialogue crops read the same as F3–5.
+
+**Crop contract.** The brief now carries a shared pose contract
+(`POSE_ANCHOR` in `gen_office_plates.py`): hands and props stay below the
+shoulder line, so the top third of every figure is head / neck / shoulders
+only. At 40–64px every badge shows a clean face with no prop touching the
+rim; the props are all in the full figure the Office battle shows. Focals
+moved only where a head moved: Renata `x 0.45→0.49, y 0.135→0.14` (hip cock
+shifts her head right), Priya `x 0.49→0.505, y 0.135→0.14`, Teddy
+`x 0.5→0.47` (he leans in from the left). All seven stay in the named-plate
+band (x 0.47–0.505, y 0.11–0.14, zoom 3.15–3.35); `pass-j-visual.test.ts`
+pins Renata and Kessler.
+
+**Pipeline.** `brief` prints the pose contract + gesture under the character
+line; `check` is unchanged and passes for all seven (hair carriers still
+match the walk-sheet palettes, so no chibi retouch). One master (Priya) had
+a scribble on a sticky note flat-filled before import; otherwise the masters
+are as generated and, as before, not committed.
+
 ### Pass J — welcome: Office-first
 
 Title hierarchy on tip `5dde97d`. Scope is the welcome stack and its copy;
