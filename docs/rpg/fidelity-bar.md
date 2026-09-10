@@ -447,6 +447,26 @@ and out-battle every manager between you and the board.` Wordmark,
   drops the wordmark to 38px and the cast to 72/80px so the whole stack fits
   the 440×760 playtest viewport with both saves present.
 
+### Pass J — demo remux
+
+`public/demos/office-demo.mp4` re-recorded on tip `aa89d23` through
+`npm run demo:office` (the `#96` capture predated every Pass J visual).
+Same mux: Playwright video is silent, so the script lays the live Office
+beds and cab / stamp / hit stingers at the scene marks. ~100 s at 1280×720.
+
+- **Welcome** now opens on the Office-first stack — gold THE OFFICE hero,
+  `CAMPAIGN · FLOORS 1–5` eyebrow, blue Classic secondary — instead of the
+  old START CLIMB hero.
+- **F1** Renata and Gavin speak through the `#107` / `#111` recast plates
+  (spar included), so the trailer carries the pose-energy portraits.
+- **F2** gets a real beat: the old walk pressed arrows into Teddy's
+  first-step callout and stood at `(3,3)`. Now it lets the callout read,
+  walks the glass at `(6,3)` to `(8,3)` under the stacked HELP / DESK sign
+  (`#110`), and opens Teddy's transfer-packet dialogue. New `helpdesk` mark;
+  the Ops bed just runs longer.
+- End card reads `Pass J · tip`. F3 / F4 / F5 peeks and THE CLIMB are
+  unchanged. No Floor 6; Classic stays out of the trailer.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear

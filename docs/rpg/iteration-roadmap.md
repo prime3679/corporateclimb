@@ -45,7 +45,9 @@ Headshot roster — no extra ambient NPCs to commission. Pass J (this)
 promotes the flagged visual Should residuals to Must: Kessler / Renata house
 focals, Sloane chibi tie, two-cell CALDWELL plate, KESSLER plate frame
 (`docs/rpg/fidelity-bar.md` → Pass J). Do not remount the closed `#72`–`#78`
-stack. Do not add a Floor 6. Do not re-record the demo mp4.
+stack. Do not add a Floor 6. Do not re-record the demo mp4 inside a visual
+or copy pass — the remux is its own PR (`docs/rpg/fidelity-bar.md` → Pass J
+demo remux).
 
 ## Immediate next (after tip playtest)
 

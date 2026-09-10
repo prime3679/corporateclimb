@@ -4,6 +4,8 @@
  * Playwright video has no audio; the mux uses the live Office beds
  * (title / F1–F5 including Product + Sales) + cab / stamp / combat
  * stingers at scene marks. Combat ducks the Floor 1 bed to 22%.
+ * Route: Office-first welcome → offer → F1 Renata + Gavin spar → cab →
+ * F2 help desk (Teddy) → F3/F4/F5 cast peeks → THE CLIMB.
  * Writes /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
  */
 import { chromium } from '@playwright/test'
@@ -673,9 +675,19 @@ async function main() {
     await page.getByText('Floor 2 · of 5').first().waitFor({ timeout: 12_000 })
     mark('floor2')
     await hold(page, 700)
-    await step(page, 'ArrowDown', 2)
-    await step(page, 'ArrowRight', 2)
-    await hold(page, 900)
+    // First step on F2 fires Teddy's callout and holds the player until it is
+    // dismissed; the old walk kept pressing arrows into that overlay.
+    await step(page, 'ArrowDown')
+    if (await seen(page, /Visitor badge\. On two/, 3000)) {
+      await hold(page, 1300)
+      await page.keyboard.press('Enter')
+      await hold(page, 450)
+    }
+    // (3,3) → glass door (6,3) → (8,3), facing Teddy under the stacked HELP/DESK sign.
+    await step(page, 'ArrowRight', 5)
+    await hold(page, 700)
+    mark('helpdesk')
+    await talkPortrait(page, /Help desk\. Also badges/)
   })
 
   await scene('product', async () => {
@@ -813,7 +825,7 @@ async function main() {
 
   await writeFile('/tmp/office-demo/marks.json', JSON.stringify(marks, null, 2))
   await card(title, ['CORPORATE CLIMB', 'THE OFFICE', 'Floors 1–5'], TITLE_SECS)
-  await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass E/F  ·  tip'], END_SECS)
+  await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass J  ·  tip'], END_SECS)
 
   await run('ffmpeg', [
     '-y',
