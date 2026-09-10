@@ -213,7 +213,7 @@ generic stand-in on the required route or common side POIs.
 
 | Band                          | Speakers                                                                                                                   | Plates                                                                                               |
 | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| F1–2 house (unique by freeze) | Renata `recruiter`, Gavin `overachiever`, Priya `scrum`, Holloway `manager`, Teddy `intern`, Whitlock `boss`, Kessler `vp` | House art; not aliases of each other                                                                 |
+| F1–2 house (unique by freeze) | Renata `recruiter`, Gavin `overachiever`, Priya `scrum`, Holloway `manager`, Teddy `intern`, Whitlock `boss`, Kessler `vp` | Keys at the time (Classic plates); since rekeyed to `renata` … `kessler` — Pass J recast below       |
 | F3–5 named (Pass E)           | Sloane, Nico, Quincy, Harper, Reyes, Ashford, Marlowe, Caldwell                                                            | Own keys + own pixels                                                                                |
 | Extra ambient / side-cast     | none                                                                                                                       | Floor 2 made People Ops a tray so it would not grow a fourth face (`docs/rpg/floor-2-design.md` §14) |
 
@@ -236,7 +236,9 @@ Share-proud pass on tip `4243663`. Four scoped items, nothing else: no Floor
   framed empty background with his ear on the badge rim. `vp` is now
   `{ x: 0.685, y: 0.105, zoom: 3.25 }`; Renata (`recruiter`) nudges from
   `x: 0.45` to `0.47` so her eyes, not the handset, sit on centre. Same
-  `headshotPlacement` contract, same house zoom band.
+  `headshotPlacement` contract, same house zoom band. _(Superseded by the
+  house-plate recast below: Office no longer keys `vp` / `recruiter`; those
+  rows now serve Classic-side crops only.)_
 - **F2 environment.** `nameplate_kessler` was a 33px plate in a 32px cell —
   the ink frame fell off both edges. It now uses the seven-glyph tight plate
   (same index, new pixels). Regenerate with `python3 scripts/gen_office_tiles.py`.
@@ -252,8 +254,9 @@ Share-proud pass on tip `4243663`. Four scoped items, nothing else: no Floor
 - **Holloway folder text.** `manager.webp` prints garbled type on the folder
   at y≈0.32–0.39; the `manager` crop bottom sits at 0.291 at every badge
   size, so it never reaches a Headshot or dialogue card. Left as-is (the
-  plate is Classic-shared; battle shows the full body). Guarded in
-  `pass-j-visual.test.ts`.
+  plate was Classic-shared; battle shows the full body). Guarded in
+  `pass-j-visual.test.ts` at the time. _(Retired by the recast below:
+  Holloway wears her own Office-only `holloway` plate, which has no folder.)_
 
 Noted here for the next pass and since closed (see "Pass J — F2 HELP DESK
 sign frame" below): `sign_helpdesk` (F2 `(7,0)`) was a 35px plate in a 32px

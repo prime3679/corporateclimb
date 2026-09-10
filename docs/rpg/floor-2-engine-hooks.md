@@ -55,8 +55,9 @@ spawnPoints }`) and add a `FLOORS: Record<FloorId, FloorContent>` lookup. `floor
   wants pools over the help desk, People Ops, the director's rug, the coffee counter and Finance).
 - `NPC_ACTOR` gains `npc_help_desk_intern → 'teddy'`, `npc_auditor → 'whitlock'`,
   `npc_director → 'kessler'` (`ACTOR_IDS` and `SPRITE_TO_ACTOR` already have them).
-- `HEADSHOT_FOCALS` in `sprites.ts` has no entries for `intern`, `vp`, `boss` — add one each after
-  checking the 40/48/64 px crops.
+- `HEADSHOT_FOCALS` in `sprites.ts` has a row per Office house plate (`teddy`, `whitlock`,
+  `kessler`) in the named-plate band; the Classic `intern` / `vp` / `boss` rows stay for
+  Classic-side crops only (`docs/rpg/fidelity-bar.md` → Pass J house-plate recast).
 
 ## 2. Elevator destinations
 
