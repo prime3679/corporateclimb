@@ -976,13 +976,52 @@ def vent() -> Cell:
 
 
 def sign_room(label: str) -> Cell:
+    """One-line dark room plaque, paper caps, centred in the cell.
+
+    Up to six glyphs get two-pixel margins. Seven glyphs (FINANCE, MEETING,
+    KITCHEN) drop to one-pixel margins so the ink frame closes inside the
+    cell — at two, the frame hung one column past the left edge. Eight glyphs
+    are 31px and cannot frame in 32: that was `sign_helpdesk`, a 35px plate
+    that lost both frame columns. Those labels stack (`sign_stacked`); this
+    refuses them so the bug cannot come back through a new label."""
+    tw = len(label) * 4 - 1
+    pad = 2 if tw + 6 <= CELL_W else 1
+    w = tw + 2 * pad
+    if w + 2 > CELL_W:
+        raise SystemExit(
+            f'sign_room({label!r}): a {w + 2}px frame does not fit a {CELL_W}px cell — '
+            'use sign_stacked() or shorter copy'
+        )
+    x0 = (CELL_W - w) // 2
     c = Cell()
-    w = len(label) * 4 + 3
-    x0 = (32 - w) // 2
     c.rect(x0, 13, w, 9, DARKPL)
     c.hline(x0, 13, w, DARKPL_LIT)
     c.frame(x0 - 1, 12, w + 2, 11, INK)
-    text(c, label, x0 + 2, 15, PAPER)
+    text(c, label, x0 + pad, 15, PAPER)
+    return c
+
+
+def sign_stacked(top: str, bottom: str) -> Cell:
+    """Two-line room plaque for copy that cannot frame on one line (HELP / DESK).
+
+    HELPDESK is eight glyphs — no one-cell sign can frame it — and a two-cell
+    sign has nowhere to hang at F2 `(7,0)`: `(6,1)` is the glass wall, so
+    `(6,0)` has no open floor under it, and `(8–9,0)` is the ticket board.
+    Stacking keeps the exact words in one cell: the plaque hangs from the
+    wall-cap line (y=9) like the ticket board beside it and closes at y=26
+    with the incident board, so the help-desk wall reads as one set. Same
+    plate, frame and paper caps as `sign_room`."""
+    tw = max(len(top), len(bottom)) * 4 - 1
+    w = tw + 4
+    x0 = (CELL_W - w) // 2
+    y0, h = 10, 16
+    c = Cell()
+    c.rect(x0, y0, w, h, DARKPL)
+    c.hline(x0, y0, w, DARKPL_LIT)
+    c.frame(x0 - 1, y0 - 1, w + 2, h + 2, INK)
+    for i, line in enumerate((top, bottom)):
+        lw = len(line) * 4 - 1
+        text(c, line, x0 + 2 + (tw - lw) // 2, y0 + 2 + i * 7, PAPER)
     return c
 
 
@@ -2896,7 +2935,10 @@ def build_floor2() -> None:
     register('breaker_panel', breaker_panel())
     register('calendar', calendar())
     register('server_status', server_status())
-    register('sign_helpdesk', sign_room('HELPDESK'))
+    # Pass J: HELPDESK was a 35px plate in a 32px cell — both frame columns
+    # gone, letters flush to the edges. Stacked HELP / DESK keeps the words
+    # and frames in one cell. Same index, new pixels.
+    register('sign_helpdesk', sign_stacked('HELP', 'DESK'))
     register('sign_people', sign_room('PEOPLE'))
     register('sign_finance', sign_room('FINANCE'))
     register('sign_pantry', sign_room('PANTRY'))

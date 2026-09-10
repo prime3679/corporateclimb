@@ -255,9 +255,54 @@ Share-proud pass on tip `4243663`. Four scoped items, nothing else: no Floor
   plate is Classic-shared; battle shows the full body). Guarded in
   `pass-j-visual.test.ts`.
 
-Not touched, noted for the next pass: `sign_helpdesk` (F2 `(7,0)`) is a
-35px plate in a 32px cell for the same reason as KESSLER — it needs either a
-two-cell sign or shorter copy, and copy is a design call.
+Noted here for the next pass and since closed (see "Pass J — F2 HELP DESK
+sign frame" below): `sign_helpdesk` (F2 `(7,0)`) was a 35px plate in a 32px
+cell for the same reason as KESSLER.
+
+### Pass J — F2 HELP DESK sign frame
+
+The last share-proud leftover from the visual pass, on tip `6a04778`. One
+scoped item: no Floor 6, Classic untouched, demo mp4 not remuxed, no engine
+work, no map change.
+
+**Before.** `sign_room('HELPDESK')` — eight 3×5 glyphs are 31px, so the plate
+was 35px and its ink frame 37px in a 32px cell. Both frame columns fell off
+the cell, the letters sat flush against the cell edges, and the sign ran into
+the ticket board at `(8,0)`. On a phone at playtest size it read as a dark
+strip with text bleeding out of it. The seven-glyph siblings — `FINANCE`
+(F2), `MEETING` and `KITCHEN` (F1) — had the milder version of the same bug:
+a 33px frame, left column gone, plate flush to the left edge.
+
+**Design call: stack, do not shorten or widen.** The roadmap offered shorter
+copy or a two-cell sign. Neither reads best here:
+
+- A two-cell `sign_helpdesk_l/r` has nowhere to hang. The wall-decor rule is
+  "wall tile with open floor south of it": `(6,1)` is the glass partition, so
+  `(6,0)` cannot carry decor, and `(8–9,0)` is the ticket board. Moving the
+  board and extinguisher along the wall would touch the frozen Floor 2 decor
+  layout for a sign.
+- Shorter copy (`SUPPORT`, `IT DESK`, `HELP`) fits a tight seven-glyph plate,
+  but drops the words the zone chip (`HELP DESK`), the directory and every
+  objective banner (`… · HELP DESK`) use for wayfinding.
+- Stacking keeps the exact words in one cell. `sign_stacked('HELP', 'DESK')`
+  is the same dark plate, ink frame and paper caps as `sign_room`, two lines
+  with a two-pixel gap, frame x 5–25 and y 9–26: it hangs from the wall-cap
+  line like the ticket board beside it and closes on the incident board's
+  bottom line, so the help-desk wall reads as one set. Same atlas index
+  `[7, 16]`, new pixels; `FLOOR_2_WALL_DECOR['7,0']` unchanged.
+
+**Siblings.** `sign_room` now drops to one-pixel margins at seven glyphs so
+the frame closes at x 0–30 (one clear column on the right — `sign_finance`
+sits next to the `(19,9)` door), and raises `SystemExit` for anything that
+still cannot frame, pointing at `sign_stacked`. `PEOPLE` / `PANTRY` and the
+F3–5 room signs are ≤ 6 glyphs and are bit-identical. Regenerate with
+`python3 scripts/gen_office_tiles.py`; `tileAtlas.ts` does not change.
+
+**Guard.** `pass-j-visual.test.ts` decodes the sheet: complete frame on all
+four sides of the stacked plaque, transparent wall everywhere outside it, two
+paper-cap bands with clear margins, both frame columns on the seven-glyph
+signs, and a source check that every registered `sign_room` label is ≤ 7
+glyphs and the generator refuses longer ones.
 
 ### Pass J — F1–2 house-plate recast
 

@@ -206,7 +206,7 @@ three tiles between him and the door — stepping in puts you at the far end of 
 
 ### 1.7 Wall decor (keyed by wall tile; only on faces with open floor south)
 
-Landing `(1,0)` vent · `(5,0)` clock. Help desk `(7,0)` HELPDESK sign · `(8–9,0)` ticket board
+Landing `(1,0)` vent · `(5,0)` clock. Help desk `(7,0)` HELP / DESK sign (stacked) · `(8–9,0)` ticket board
 (OPEN full, DONE one card) · `(10,0)` extinguisher · `(11,0)` server status monitor. People Ops
 `(15,0)` PEOPLE sign · `(18–19,0)` org chart (one box crossed out) · `(20,0)` compliance poster ·
 `(21–22,0)` window. Hall north wall `(1,6)` extinguisher · `(5,6)` pinboard · `(7–8,6)` DAYS SINCE
