@@ -301,12 +301,14 @@
   animation: of-wallet 700ms var(--cc-ease-out);
 }
 
+/* Names the currency beside the number so 📈 reads as a wallet, not a chart. */
 .walletUnit {
   font-family: var(--cc-font-body);
   font-size: var(--body-sm);
   font-weight: 600;
   color: var(--cc-text-dim);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .keyRow {

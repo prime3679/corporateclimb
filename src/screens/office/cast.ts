@@ -377,22 +377,35 @@ export function isVendingPoi(id: string): boolean {
   )
 }
 
+export type HudKeyChip = {
+  id: string
+  label: string
+  /** Hover / long-press tooltip; names what a glyph-only chip is holding. */
+  title: string
+}
+
 /** HUD key chips — visitor / employee / product / client plus held quest items. */
-export function hudKeyChips(state: OfficeSave): { id: string; label: string }[] {
-  const chips: { id: string; label: string }[] = []
+export function hudKeyChips(state: OfficeSave): HudKeyChip[] {
+  const chips: HudKeyChip[] = []
   const letters = state.keyItems.key_offer_letter ?? 0
-  if (letters > 0) chips.push({ id: 'letter', label: `📄 ×${letters}` })
-  if ((state.keyItems.key_toner ?? 0) > 0) chips.push({ id: 'toner', label: 'Toner' })
-  if ((state.keyItems.key_access_badge ?? 0) > 0) chips.push({ id: 'access', label: '🪪 Visitor' })
+  if (letters > 0)
+    chips.push({ id: 'letter', label: `📄 ×${letters}`, title: `Offer letter ×${letters}` })
+  if ((state.keyItems.key_toner ?? 0) > 0)
+    chips.push({ id: 'toner', label: 'Toner', title: 'Toner cartridge' })
+  if ((state.keyItems.key_access_badge ?? 0) > 0)
+    chips.push({ id: 'access', label: '🪪 Visitor', title: 'Visitor badge' })
   if ((state.keyItems.key_employee_badge ?? 0) > 0)
-    chips.push({ id: 'employee', label: '🪪 Employee' })
+    chips.push({ id: 'employee', label: '🪪 Employee', title: 'Employee badge' })
   if ((state.keyItems.key_product_badge ?? 0) > 0)
-    chips.push({ id: 'product', label: '🪪 Product' })
-  if ((state.keyItems.key_client_badge ?? 0) > 0) chips.push({ id: 'client', label: '🪪 Client' })
+    chips.push({ id: 'product', label: '🪪 Product', title: 'Product badge' })
+  if ((state.keyItems.key_client_badge ?? 0) > 0)
+    chips.push({ id: 'client', label: '🪪 Client', title: 'Client badge' })
   if (state.run.inventory.length > 0) {
+    const items = state.run.inventory.map((id) => ITEMS[id])
     chips.push({
       id: 'bag',
-      label: state.run.inventory.map((id) => ITEMS[id].emoji).join(' '),
+      label: `Bag ${items.map((item) => item.emoji).join(' ')}`,
+      title: `Bag: ${items.map((item) => item.name).join(', ')}`,
     })
   }
   return chips

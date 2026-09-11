@@ -639,11 +639,14 @@ function Overworld({
               aria-label={`${wallet.shown} Stock Options`}
             >
               {CURRENCY_ICON} {wallet.shown}
+              <span className={styles.walletUnit} aria-hidden>
+                Stock Options
+              </span>
             </span>
             {chips.length > 0 && (
               <div className={styles.keyRow}>
                 {chips.map((chip) => (
-                  <span key={chip.id} className={styles.keyChip}>
+                  <span key={chip.id} className={styles.keyChip} title={chip.title}>
                     {chip.label}
                   </span>
                 ))}

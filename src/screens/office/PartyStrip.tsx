@@ -22,7 +22,8 @@ export function shortName(member: PartyMember): string {
 /**
  * The party as a row of badge chips: headshot + HP number + HP bar, with an
  * open (dotted) slot for every empty seat. `emptyHighlight` outlines the first
- * open seat in gold — the recruit card's "he goes here".
+ * open seat in gold — the recruit card's "he goes here". `hideEmpty` drops the
+ * open slots entirely (the HUD strip: seats appear as they fill).
  */
 export function PartyChips({
   state,
@@ -31,6 +32,7 @@ export function PartyChips({
   size = 54,
   emptyHighlight = false,
   showNames = false,
+  hideEmpty = false,
   className,
 }: {
   state: OfficeState
@@ -39,6 +41,7 @@ export function PartyChips({
   size?: number
   emptyHighlight?: boolean
   showNames?: boolean
+  hideEmpty?: boolean
   className?: string
 }) {
   const headshot = Math.round(size * 0.74)
@@ -51,6 +54,7 @@ export function PartyChips({
       {Array.from({ length: PARTY_MAX }, (_, i) => {
         const m = members[i]
         if (!m) {
+          if (hideEmpty) return null
           const highlight = emptyHighlight && !highlighted
           highlighted = highlighted || highlight
           return (
@@ -96,13 +100,15 @@ export function PartyChips({
   )
 }
 
-/** HUD party strip: the party during the overworld, the battle party in combat. */
+/** HUD party strip: the party during the overworld, the battle party in combat.
+ *  Open seats stay off the HUD until someone fills them — the recruit card and
+ *  the TEAM panel are where "three seats" is taught. */
 export default function PartyStrip({ state }: { state: OfficeState }) {
   const members = state.encounter?.party ?? state.party
   const active = state.encounter ? state.encounter.activeIndex : undefined
   return (
     <div aria-label="Party" className={styles.strip}>
-      <PartyChips state={state} members={members} active={active} />
+      <PartyChips state={state} members={members} active={active} hideEmpty />
     </div>
   )
 }
