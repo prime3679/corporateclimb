@@ -708,6 +708,40 @@ GLORY.` (Anton, 0.14em, full gold) becomes one sentence-case body line:
 - Shots in `docs/rpg/title-uplevel-122/should-*.png` (desktop 1280×720,
   phone 390×844, compact 440×760, plus a 2× phone ring crop).
 
+### Pass J — public: Settings night glass
+
+Settings modal on tip `a6649bc`, Must (3) of the public bar. The panel
+shipped as a **white paper slab** over the night lobby: its CSS still
+read the legacy `--paper` alias, which the token system maps onto the
+light _text_ token (`--cc-text`, `#f2f6fa`), so the one modal every
+screen can open was the only day-paper surface left in the game. A chrome
+change only — same `SettingsPanel.tsx`, same ids, handlers, `aria-*`,
+`Button` DONE and e2e selectors. No engine, no iOS, no remux, night lobby
+untouched.
+
+**After** (`src/components/SettingsPanel.module.css`).
+
+- **Plate.** The `#122` lobby glass verbatim: `rgba(30,38,54,.94)` fill
+  under the plates' 5% top highlight, 1px `rgba(255,255,255,.14)`
+  hairline, 12px radius, `inset 0 1px 0` highlight and the deck's
+  `0 14px 32px` drop shadow. Scrim `rgba(6,8,12,.66)` (frame black, not
+  pure black). `color-scheme: dark` on the plate so the native range
+  tracks and checkbox wells render dark instead of the light-scheme grey.
+- **Type.** Title `--cc-text` between two short gold hairlines (the
+  deck's eyebrow language at `display-sm`); section labels `--cc-text-3`
+  with the `--cc-track-label` eyebrow tracking and `tabular-nums` on the
+  percentages; checkbox copy and idle speed chips `--cc-text-2`. Resolved
+  over lobby + scrim + glass: title 12.2:1, labels 7.9:1, body 10.5:1,
+  idle chips 9.3:1 — every label ≥ 4.5:1 with headroom.
+- **One accent.** Sliders and checkboxes `accent-color: --cc-gold`
+  (was `--amber-deep`); the active speed chip is gold with `--cc-on-accent`
+  ink and a `--cc-gold-bright` stroke (11.9:1); idle chips are
+  `--cc-fill-soft` on `--cc-line-strong` with a 9% hover fill. DONE stays
+  the primary `Button`. No purple, no new hue.
+- **Keyboard legend** (Designer Should: sans) already holds on this tip —
+  `.theater` sets `--cc-font-body`, so the legend labels and keycaps are
+  Space Grotesk; nothing to change.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear

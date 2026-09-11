@@ -1,3 +1,12 @@
+/* ─── Settings ──────────────────────────────────────────────
+   One night glass plate over whatever screen opened it: the same lifted
+   glass fill, 1px light hairline, 12px radius and inset top highlight the
+   Title's cast plates and CTA deck use (#122), so the modal reads as one
+   more piece of lobby furniture rather than a paper sheet. Gold is the one
+   accent — slider fills, the active speed chip and DONE. `color-scheme:
+   dark` makes the native range tracks and checkbox wells render dark so
+   the browser chrome matches the plate. */
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -5,26 +14,47 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(6, 8, 12, 0.66);
 }
 
 .panel {
+  --glass: rgba(30, 38, 54, 0.94);
+  --glass-line: rgba(255, 255, 255, 0.14);
+  color-scheme: dark;
   width: min(340px, calc(100% - 32px));
-  background: var(--paper);
-  border: var(--border-w) solid rgba(10, 13, 19, 0.24);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 36%), var(--glass);
+  border: 1px solid var(--glass-line);
+  border-radius: 12px;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 14px 32px rgba(0, 0, 0, 0.42);
   padding: var(--space-5);
   display: flex;
   flex-direction: column;
   gap: var(--space-4);
+  color: var(--cc-text);
 }
 
+/* Title between two short gold hairlines — the deck's eyebrow language. */
 .title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   font-family: var(--font-display);
   font-size: var(--display-sm);
-  color: var(--ink);
+  letter-spacing: var(--cc-track-chip);
+  color: var(--cc-text);
   text-align: center;
+  white-space: nowrap;
+}
+
+.title::before,
+.title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 193, 7, 0.24);
 }
 
 .row {
@@ -36,14 +66,16 @@
 .label {
   font-family: var(--font-display);
   font-size: var(--display-2xs);
-  color: var(--ink-soft);
+  letter-spacing: var(--cc-track-label);
+  color: var(--cc-text-3);
   display: flex;
   justify-content: space-between;
+  font-variant-numeric: tabular-nums;
 }
 
 .slider {
   width: 100%;
-  accent-color: var(--amber-deep);
+  accent-color: var(--cc-gold);
   height: 24px;
   cursor: pointer;
 }
@@ -57,18 +89,29 @@
   flex: 1;
   font-family: var(--font-display);
   font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-chip);
   padding: 8px 4px;
-  background: var(--paper-dim);
-  border: 1px solid var(--muted-light);
+  background: var(--cc-fill-soft);
+  border: 1px solid var(--cc-line-strong);
   border-radius: var(--radius-sm);
-  color: var(--ink-soft);
+  color: var(--cc-text-2);
   cursor: pointer;
+  transition:
+    background 0.14s var(--cc-ease-out),
+    border-color 0.14s var(--cc-ease-out);
+}
+
+@media (hover: hover) {
+  .speedBtn:hover:not(.speedBtnActive) {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 255, 255, 0.22);
+  }
 }
 
 .speedBtnActive {
-  background: var(--gold);
-  border-color: var(--ink);
-  color: var(--ink);
+  background: var(--cc-gold);
+  border-color: var(--cc-gold-bright);
+  color: var(--cc-on-accent);
 }
 
 .checkRow {
@@ -77,13 +120,14 @@
   gap: var(--space-3);
   font-family: var(--font-body);
   font-size: var(--body-md);
-  color: var(--ink-soft);
+  color: var(--cc-text-2);
   cursor: pointer;
 }
 
 .checkRow input {
   width: 18px;
   height: 18px;
-  accent-color: var(--amber-deep);
+  flex: none;
+  accent-color: var(--cc-gold);
   cursor: pointer;
 }
