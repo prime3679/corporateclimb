@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
-import { PLAYER_CLASSES, getBestAscension } from '@/data'
+import { PLAYER_CLASSES, TYPE_COLORS, getBestAscension } from '@/data'
 import { getDailyStreak, hasPlayedToday } from '@/daily'
 import { getLifetimeStats } from '@/history'
 import {
@@ -130,6 +130,9 @@ export default function TitleScreen({
 
   return (
     <div className={styles.screen}>
+      {/* Field: one warm light pool behind the cast on the night-lobby ground. */}
+      <div aria-hidden="true" className={styles.field} />
+
       <div
         aria-hidden="true"
         onPointerDown={handleSignTap}
@@ -139,6 +142,9 @@ export default function TitleScreen({
       </div>
 
       <div className={styles.header}>
+        <div className={`t-display ${styles.kicker}`}>
+          <span>Q4 LADDER SIMULATION</span>
+        </div>
         <h1 className={`t-display ${styles.wordmark}`}>
           <span className={styles.wordmarkLine}>CORPORATE</span>{' '}
           <span className={styles.wordmarkLine}>CLIMB</span>
@@ -157,10 +163,12 @@ export default function TitleScreen({
         {CAST.map(({ id, role, lead }) => {
           const cls = PLAYER_CLASSES.find((c) => c.id === id)
           if (!cls) return null
+          const accent = lead ? 'var(--cc-gold)' : (TYPE_COLORS[cls.types[0]] ?? TYPE_COLORS.normal)
           return (
             <figure
               key={id}
               className={lead ? `${styles.plate} ${styles.plateLead}` : styles.plate}
+              style={{ '--plate-accent': accent } as CSSProperties}
             >
               <div className={`sprite-idle ${styles.plateArt}`}>
                 <img src={sprites[cls.spriteId]} alt="" draggable={false} />
@@ -199,15 +207,10 @@ export default function TitleScreen({
               Start over? Your saved Classic climb will be erased.
             </div>
             <div className={styles.row}>
-              <Button variant="accent" size="md" onClick={onStart} className={styles.continue}>
+              <Button variant="accent" size="md" onClick={onStart}>
                 ERASE &amp; START
               </Button>
-              <Button
-                variant="ghost"
-                size="md"
-                onClick={() => setConfirmNew(false)}
-                className={`${styles.outline} ${styles.newClimb}`}
-              >
+              <Button variant="secondary" size="md" onClick={() => setConfirmNew(false)}>
                 KEEP SAVE
               </Button>
             </div>
@@ -223,7 +226,7 @@ export default function TitleScreen({
                   variant="secondary"
                   size="md"
                   onClick={onContinue}
-                  className={styles.continue}
+                  className={styles.classic}
                   aria-describedby="classic-climb-label"
                 >
                   CONTINUE
@@ -232,7 +235,7 @@ export default function TitleScreen({
                   variant="ghost"
                   size="md"
                   onClick={handleStart}
-                  className={styles.newClimb}
+                  className={`${styles.classic} ${styles.newClimb}`}
                   aria-describedby="classic-climb-label"
                 >
                   NEW CLIMB
@@ -240,10 +243,10 @@ export default function TitleScreen({
               </div>
             ) : (
               <Button
-                variant="ghost"
+                variant="secondary"
                 size="md"
                 onClick={handleStart}
-                className={`${styles.outline} ${styles.newClimb} ${styles.classicSolo}`}
+                className={`${styles.classic} ${styles.classicSolo}`}
                 aria-describedby="classic-climb-label"
               >
                 START CLIMB

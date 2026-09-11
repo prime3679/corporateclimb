@@ -378,21 +378,6 @@ button {
   right: 20px;
 }
 
-/* On the paper title the chips are ink outlines, matching the FLOOR chip. */
-.top-chrome[data-on-title] button {
-  background: rgba(255, 255, 255, 0.5);
-  color: var(--cc-ink);
-  border-color: rgba(26, 26, 26, 0.28);
-  box-shadow: none;
-}
-
-@media (hover: hover) {
-  .top-chrome[data-on-title] button:hover:not(:disabled) {
-    background: #fff;
-    box-shadow: none;
-  }
-}
-
 @container stage (min-width: 700px) {
   .top-chrome[data-on-title] {
     right: 40px;

@@ -616,80 +616,65 @@ Product code untouched: demo script, mp4 and docs only.
   floor3 67.2 s · floor4 75.8 s · exec 84.4 s · THE CLIMB 94.8 s · end card
   99.2–102.2 s.
 
-### Pass J — welcome: light office plate
+### Pass J — welcome: night lobby midtones
 
-Title uplevel on tip `4d636c0`, after the Captain read the `#118`
-production shot as **off-center, not pretty, too dark**. A refine of the
-Meng composition, not a costume swap for the game: same cast, same labels,
-same e2e selectors, same save continuity; only the welcome changes. No
+Title refinement on tip `71e5cc9`, after the Captain read the `#118`
+production shot as **off-center, not pretty, too dark**. A refine, not a
+costume swap: same lobby, same cast, same labels, same e2e selectors. The
+Designer's first draft (cream / paper ground) was withdrawn before any code
+landed — the field stays a night lobby and lifts its midtones instead. No
 Floor 6, no iOS, no engine work, Classic untouched, demo mp4 not remuxed.
-The pass went through a night-lobby midtone draft (still in the PR
-history) before the Firstmate's GO-SHIP Musts settled it on the light
-plate below.
 
 **Before.** On the 840 desktop canvas the one-line wordmark was a row flex
 box with no `justify-content`, so it sat ~90px left of the FLOOR 30 sign /
 lead plate / deck axis. Around it: a near-black field with a 76px grid, an
 elevator shaft and two neighbour shafts in gold, blue city pools in the
-corners, a 170px two-row skyline with lit windows, a gold-glow brushed
-wordmark under a `Q4 LADDER SIMULATION` kicker, a breathing gold glow on
-the hero, foot pools under every plate, a wider lifted lead plate, a
-400/440px deck that did not match the 348/466px cast row, gold on the
-tagline / eyebrows / floor line / sign, blue CONTINUE and red DAILY, a
-`📈` in the status line, and SOUND / SET floating in the viewport corner
-20px above the sign's row.
+corners, a 170px two-row skyline, a breathing gold glow on the hero, foot
+pools under every plate, a wider lifted lead plate, a 400/440px deck that
+did not match the 348/466px cast row, and SOUND / SET floating in the
+viewport corner 20px above the sign's row.
 
 **After.**
 
 - **Spine.** `justify-content: center` on the row wordmark plus a
   `padding-left` equal to its letter-spacing (the trailing tracking unit
   otherwise pulls the glyph box off-centre). Sign, wordmark glyphs, lead
-  plate and deck share one centre X on both canvases (guarded in
+  plate and deck now share one centre X on both canvases (guarded in
   `e2e/first-three-minutes.spec.ts` at ±2px by glyph range, which fails at
   91px on `#118`).
 - **One column.** `--plate-w` / `--plate-gap` drive everything: three equal
   plates (132 / 32 desktop, 116 / 20 phone, 124 / 20 tall phone, 104 / 16
-  compact), the deck exactly `3 × plate + 2 × gap` wide, the floor line a
-  hair wider. Plates and deck share the 12px radius, the ink hairline and
-  one soft offset shadow; the deck sits 20px under the plates (16
-  compact). The lead plate keeps its size and gets a 2px yellow ring drawn
-  inside its own box (1px border + 1px inset shadow) — no width, no lift,
-  no glow, so selection never reflows its neighbours.
+  compact), the deck is exactly `3 × plate + 2 × gap` wide, the floor line
+  a hair wider. Plates and deck share `--lobby-glass`, `--lobby-line` and a
+  12px radius; the deck sits 20px under the plates (16 compact). The lead
+  plate keeps its size and gets a 2px gold ring drawn inside its own box
+  (1px border + 1px inset shadow) — no width, no lift, no outer glow.
 - **Top row.** `.top-chrome[data-on-title]` (global.css) drops SOUND / SET
   onto the sign's 24px baseline at the column's right edge (20px phone,
-  40px desktop) as ink-outline chips. Every other screen keeps the dark
-  8px-corner chrome; `battle-arena.spec.ts` still passes.
+  40px desktop — the title's own side padding). Every other screen keeps
+  the 8px corner; `battle-arena.spec.ts` still passes.
 - **Bands.** header → cast 24px (32 tall phone, 18 compact), cast → deck
   20 (24 / 16). Heads rise into the header gap by `plate × 0.34` of cast
   padding, so the lede never collides.
-- **Light.** New tokens `--cc-paper` `#f4f1ea`, `--cc-paper-2` `#eef0f2`,
-  `--cc-ink` `#1a1a1a` plus ink-alpha text and hairline steps in
-  `tokens.css`. Ground is paper (to paper-2 at the foot), plate faces
-  white at 72%, deck face paper-2, all type ink. No grid, no shafts, no
-  pools, no haze. Skyline is a quiet footer in ground shades (towers at
-  0.66 scale, band 110 / 120 / 88px, ≤ 12% of the stage, no lit windows).
-- **Yellow in three places.** THE OFFICE (flat `--cc-gold`, ink label, soft
-  shadow), the lead plate ring, and the FLOOR chip once the Golden Badge
-  is found (ink outline before that). Nowhere else: tagline, eyebrows,
-  floor line, captions and the career strip are ink.
-- **No-slop.** Kicker removed; wordmark is ink, weight and size only (no
-  gradient fill, no glow); hero breathing keyframes deleted; plate foot
-  pools and type-colour rails deleted. CTAs: CONTINUE is the Classic row's
-  own primary in solid ink; START CLIMB, NEW CLIMB, DAILY CHALLENGE, CODEX
-  and KEEP SAVE are quiet ink outlines. Status line spells the wallet out
+- **Light.** Field `#1a1e28 → #12141a` (no grid, no shafts, no blue pools),
+  one warm pool behind the cast at 7–8%. Glass fill `rgba(30,38,54,.9)`
+  for plates and deck. Wordmark keeps the brushed fill, loses the gold
+  under-glow, gains a 1px dark hairline drop-shadow. Skyline is a footer:
+  towers drawn at 0.66 scale, band 110 / 120 / 88px (≤ 12% of the stage),
+  tower fills one value above the field, lit windows kept.
+- **Chrome calm.** Hero: brushed gold, soft offset shadow only, breathing
+  glow and keyframes deleted. CONTINUE `#307199` (blue desaturated ~20%)
+  on the ghosts' 1px light stroke; DAILY `#8e3a3e` brick; NEW CLIMB and
+  CODEX near-transparent with a `rgba(255,255,255,.3)` stroke; eyebrows
+  gold at 72% with flat 20% hairlines. Status line spells the wallet out
   (`20 options`, `campaignSummary(save, { plain: true })`) and the career
-  strip drops its emoji; both are `tabular-nums`. Labels and the e2e
-  hierarchy (`officeBox` wider / taller / above `classicBox`) unchanged.
-- **Budgets.** With both saves + a four-item career strip: deck bottom 709
-  / 760 on 1080p, 754 / 815 on 440×760, 905 / 1021 on 390×844. The compact
+  strip drops its emoji; both are `tabular-nums`. Kicker quieter (gold 72%,
+  28 / 56px hairlines); tagline and lede unchanged.
+- **Budgets.** With both saves + a four-item career strip: deck bottom 718
+  / 760 on 1080p, 763 / 815 on 440×760, 915 / 1021 on 390×844. The compact
   block compresses deck padding, hero padding and the strip before any
   plate shrinks; the wide block only sets horizontal padding so it cannot
   undo that on the 840×760 desktop stage.
-
-Known seam for a later pass: the boot splash and the Stage theater frame
-are still `#06080c`, so the paper title lands inside a dark bezel and the
-first paint goes dark → light. Deliberate for now (the frame is shared by
-every screen); revisit if the light plate spreads past the welcome.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
