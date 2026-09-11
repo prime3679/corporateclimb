@@ -1,4 +1,5 @@
 .backdrop {
+  position: relative;
   width: 100%;
   /* dvh tracks the mobile URL bar; the vh line is the older-browser fallback.
      #root already pads the safe-area insets, so they come off the viewport
@@ -25,6 +26,187 @@
   background:
     radial-gradient(ellipse at 50% 12%, rgba(255, 193, 7, 0.06) 0%, transparent 46%),
     radial-gradient(ellipse at 50% 88%, rgba(0, 0, 0, 0.5) 0%, transparent 50%), var(--cc-stage);
+}
+
+/* ── Theater frame (wide desktop only; Stage sets data-stage-frame) ──
+   The phone canvas becomes a lit car in a dark tower: one warm key light
+   spilling from the top of the stage, a faint floor spill under it, and the
+   title screen's 76px floor hairlines carried across the whole backdrop so
+   the gutters read as building, not void. The vignette (::before) sits over
+   the hairlines and under the stage so they fade out toward the edges. */
+.backdrop[data-stage-frame='theater'] {
+  background:
+    radial-gradient(ellipse 46% 42% at 50% 0%, rgba(255, 193, 7, 0.12), transparent 100%),
+    radial-gradient(ellipse 38% 16% at 50% 100%, rgba(255, 193, 7, 0.05), transparent 100%),
+    repeating-linear-gradient(180deg, transparent 0 76px, rgba(255, 255, 255, 0.035) 76px 77px),
+    var(--cc-stage);
+}
+
+.backdrop[data-stage-frame='theater']::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse 72% 84% at 50% 50%,
+    transparent 30%,
+    rgba(2, 4, 8, 0.92) 100%
+  );
+}
+
+/* Soft bezel: a dark ring around the canvas, a gold hairline outside it,
+   and a wider glow so the frame casts light on the wall behind. Rings are
+   in design px (the stage is transformed), so they grow with the scale. */
+.backdrop[data-stage-frame='theater'] .stage {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.1),
+    0 0 0 8px rgba(8, 11, 16, 0.94),
+    0 0 0 9px rgba(255, 211, 77, 0.12),
+    0 0 90px rgba(255, 193, 7, 0.08),
+    0 50px 140px rgba(0, 0, 0, 0.85);
+}
+
+.theater {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  user-select: none;
+  color: var(--cc-text-faint);
+  font-family: var(--cc-font-body);
+}
+
+/* Each wing owns one gutter: full height, exactly the free width beside the
+   scaled stage, content vertically centered and hugging the stage. The
+   ::after is a gold column hairline 22px outside the bezel, fading at both
+   ends — the same shaft borders the title screen draws. */
+.wing {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: calc((100% - var(--stage-w)) / 2);
+  display: flex;
+  align-items: center;
+}
+
+.wing::after {
+  content: '';
+  position: absolute;
+  top: 7%;
+  bottom: 7%;
+  width: 1px;
+  background: linear-gradient(
+    180deg,
+    transparent,
+    rgba(255, 211, 77, 0.22) 18%,
+    rgba(255, 211, 77, 0.22) 82%,
+    transparent
+  );
+}
+
+.wingLeft {
+  left: 0;
+  justify-content: flex-end;
+  padding-right: 52px;
+}
+
+.wingLeft::after {
+  right: 22px;
+}
+
+.wingRight {
+  right: 0;
+  justify-content: flex-start;
+  padding-left: 52px;
+}
+
+.wingRight::after {
+  left: 22px;
+}
+
+/* Wordmark spine: reads bottom-to-top like a book spine or cabinet side art.
+   Small on purpose — the title screen owns the big wordmark. */
+.spine {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  white-space: nowrap;
+}
+
+.spineMark {
+  font-family: var(--cc-font-display);
+  font-size: 15px;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--cc-text-dim);
+}
+
+.spineRule {
+  display: block;
+  width: 1px;
+  height: 28px;
+  background: rgba(255, 211, 77, 0.45);
+}
+
+.spineSub {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-text-faint);
+}
+
+/* Keyboard legend: label column + keycaps, styled like the Office HUD's
+   inline `.kbd` chips so the two legends read as one system. */
+.legend {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.legendTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: var(--cc-track-wide);
+  text-transform: uppercase;
+  color: var(--cc-gold);
+  opacity: 0.8;
+  margin-bottom: 4px;
+}
+
+.legendRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  min-width: 168px;
+}
+
+.legendLabel {
+  font-size: 12px;
+  letter-spacing: 0.02em;
+  color: var(--cc-text-faint);
+}
+
+.legendKeys {
+  display: inline-flex;
+  gap: 3px;
+}
+
+.kbd {
+  display: inline-block;
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--cc-line-strong);
+  border-bottom-width: 2px;
+  background: var(--cc-fill-soft);
+  color: var(--cc-text-3);
+  font: inherit;
+  font-size: 11px;
+  line-height: 16px;
+  text-align: center;
 }
 
 .stage {
