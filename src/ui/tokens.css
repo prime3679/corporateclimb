@@ -32,6 +32,17 @@
   --cc-text-faint: #6b7c8f;
   --cc-on-accent: #0a0d13;
 
+  /* Light office plate (title welcome): paper ground, one tinted shade of
+     it for secondary faces, near-black ink. Hairlines are ink at low alpha
+     so they take the ground's tint. */
+  --cc-paper: #f4f1ea;
+  --cc-paper-2: #eef0f2;
+  --cc-ink: #1a1a1a;
+  --cc-ink-2: rgba(26, 26, 26, 0.68);
+  --cc-ink-3: rgba(26, 26, 26, 0.52);
+  --cc-ink-line: rgba(26, 26, 26, 0.14);
+  --cc-ink-line-faint: rgba(26, 26, 26, 0.08);
+
   /* Gold accent (primary action + highlight) */
   --cc-gold: #ffc107;
   --cc-gold-bright: #ffd54f;
