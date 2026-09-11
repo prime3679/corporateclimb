@@ -72,7 +72,7 @@ describe('player-facing app name', () => {
     ]) {
       // Absolute share URLs contain "corpclimber.com"; strip the public origin
       // first so that host is not a mashed-name false positive.
-      expect(repoText(file).replaceAll('https://corpclimber.com/', ''), file).not.toMatch(
+      expect(repoText(file).replace(/https:\/\/corpclimber\.com\//g, ''), file).not.toMatch(
         /CorpClimb/i,
       )
     }
