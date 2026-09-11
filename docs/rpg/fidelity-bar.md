@@ -447,6 +447,45 @@ and out-battle every manager between you and the board.` Wordmark,
   drops the wordmark to 38px and the cast to 72/80px so the whole stack fits
   the 440×760 playtest viewport with both saves present.
 
+### Pass J — welcome: Meng polish
+
+Title composition on tip `68b5b72`, after the Captain's desktop shot read as
+"not high quality enough": a floating type stack in a void, 70px plates under
+polished chrome, flat buttons, pixel ↔ UI mismatch. Scope is the welcome
+only — no Floor 6, no iOS, no engine work, Classic one tap away, demo mp4
+not remuxed. Labels and e2e selectors are unchanged.
+
+- **Type.** Kicker between two gold hairlines; brushed-paper wordmark with a
+  gold under-glow — one line at 60px on the 840 desktop canvas, two lines on
+  the phone (50 / 56 tall / 42 compact); tagline in gold-bright so the copy
+  carries one accent; lede on a 560px measure at `body-lg` on desktop.
+- **Plates.** The three lead roles stand in glass badge frames (same
+  `--cc-glass` / hairline / plate-shadow language as the Office role cards)
+  with a type-coloured top rail, a light pool at the feet and a role
+  caption. The frame is square and the figure is 34% taller than it, so
+  head and shoulders rise past the rail: 124 / 138px desktop, 100 / 112
+  phone, 90 / 100 compact. A lit lobby floor line runs under the row.
+- **Deck.** THE OFFICE, Classic, Daily + Codex and the career strip share
+  one glass directory panel with a gold top rule and ruled eyebrows. The
+  hero is brushed gold with a lit top edge and a slow breathing glow (off
+  under reduce-motion); Classic and Daily get the same lit edge one step
+  down. Hero is full deck width; START CLIMB solo is 72% so the e2e
+  hierarchy guard (`officeBox.width > classicBox.width`) still holds.
+- **Field.** Two-row skyline (far row dim, near row lit) on a taller haze,
+  full width on desktop; warm key pool behind the wordmark, cool city glow
+  at the bottom corners; the elevator shaft is masked to fade out above the
+  deck instead of cutting through the CTAs; faint neighbour shafts at
+  18% / 82% on the wide canvas.
+- **Budgets.** Every 16:9 desktop is the short stage (840 × 760), so it
+  spends sideways; `@container stage (max-height: 820px)` covers it and the
+  440×760 playtest viewport, `(min-height: 940px) and (max-width: 699px)`
+  covers tall phones. With both saves and the career strip present the deck
+  bottoms out at 745 / 815 (440×760) and 720 / 760 (1080p).
+
+All backdrop decoration moved from inline styles into
+`TitleScreen.module.css`; the skyline, cast and celebration are module
+classes now.
+
 ### Pass J — demo remux
 
 `public/demos/office-demo.mp4` re-recorded on tip `aa89d23` through
