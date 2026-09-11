@@ -1,39 +1,79 @@
-/* The Codex: a scrolling collection browser. Phone values are the ones the
-   screen has always had; the wide-canvas block at the bottom lays the rows
-   out as a two-column card grid. */
+/* The Codex: a scrolling collection browser on the night lobby.
+
+   Chrome is the Title / Settings glass language (#122 / #124): the field
+   is the Title's tinted night lobby (#1a1e28 → #12141a), every row is one
+   lifted glass plate (the plates' fill, 1px light hairline, inset top
+   highlight), the title sits between two short gold hairlines and the
+   section eyebrows run a fading gold rule — gold is the one accent. Phone
+   values are the ones the screen has always had; the wide-canvas block at
+   the bottom lays the rows out as a two-column card grid. */
 
 .screen {
+  --glass: rgba(30, 38, 54, 0.9);
+  --glass-line: rgba(255, 255, 255, 0.14);
   display: flex;
   flex-direction: column;
   align-items: center;
   height: 100%;
   gap: 8px;
   padding: 20px 20px 12px;
-  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  color: var(--cc-text);
+  background: linear-gradient(180deg, #1a1e28 0%, #161a24 56%, #12141a 100%);
   overflow-y: auto;
 }
 
+/* Title between two gold hairlines — the deck's eyebrow language, no
+   drop shadow. */
 .title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  max-width: 420px;
   font-size: var(--display-xs);
-  color: var(--gold-bright);
-  text-shadow: 2px 2px 0 #e65100;
-  letter-spacing: 2px;
+  color: var(--cc-text);
+  letter-spacing: var(--cc-track-chip);
+  white-space: nowrap;
+}
+
+.title::before,
+.title::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: rgba(255, 193, 7, 0.24);
 }
 
 .lede {
   font-size: var(--body-sm);
-  color: var(--muted);
+  color: var(--cc-text-3);
+  text-align: center;
 }
 
 .section {
-  display: contents;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
 }
 
+/* Section eyebrow with a gold rule fading out to the right, the same
+   hairline the desktop grid always drew. */
 .sectionTitle {
-  font-size: var(--display-2xs);
-  color: var(--gold);
-  letter-spacing: 2px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin-top: 10px;
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-label);
+  color: var(--cc-gold);
+}
+
+.sectionTitle::after {
+  content: '';
+  flex: 1 1 auto;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 193, 7, 0.4), transparent);
 }
 
 .list {
@@ -43,22 +83,41 @@
   width: 100%;
 }
 
+/* One glass plate per entry: the Title plates' fill under their 5% top
+   highlight, 1px light hairline, inset highlight and a short black
+   offset shadow so the row lifts off the field. */
 .row {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 6px 10px;
-  background: var(--ink);
-  border: var(--border-w) solid var(--ink-soft);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 50%), var(--glass);
+  border: 1px solid var(--glass-line);
   border-radius: var(--radius-md);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04),
+    0 3px 8px rgba(0, 0, 0, 0.28);
 }
 
+/* Locked: the plate stays a plate — thinner glass, no lift — and only the
+   glyph and copy dim (60%: the hint still clears 4.5:1 on the thin
+   glass), so a gated row reads as an unlit slot rather than fading into
+   the field. */
 .rowLocked {
-  opacity: 0.55;
+  --glass: rgba(30, 38, 54, 0.55);
+  --glass-line: rgba(255, 255, 255, 0.08);
+  box-shadow: none;
+}
+
+.rowLocked .slot,
+.rowLocked .text {
+  opacity: 0.6;
 }
 
 /* One slot for every entry: a raised midtone plinth so the pixel glyphs'
-   plum ink outline reads against it (the row surface is near-black). */
+   plum ink outline reads against it. Lifted a step above the glass row
+   (the #128 values were tuned against a near-black row). */
 .slot {
   flex: none;
   display: flex;
@@ -67,9 +126,9 @@
   width: 36px;
   height: 36px;
   border-radius: var(--radius-sm);
-  background: linear-gradient(180deg, #2f3549 0%, #232838 100%);
-  border: 1px solid #3a4157;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  background: linear-gradient(180deg, #39405a 0%, #2a3044 100%);
+  border: 1px solid #485072;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.07);
 }
 
 .icon {
@@ -87,13 +146,13 @@
 
 .name {
   font-size: var(--display-2xs);
-  color: var(--paper);
+  color: var(--cc-text);
   line-height: 1.4;
 }
 
 .desc {
   font-size: var(--body-sm);
-  color: var(--muted-light);
+  color: var(--cc-text-2);
   line-height: 1.2;
 }
 
@@ -103,8 +162,8 @@
 
 /* Wide stage (desktop canvas): a 760px measure is too long for a one-line
    list row, so each section becomes a two-column card grid — twice the
-   entries per screen of scrolling — under a section rule that spans the
-   width. Title and lede sit on one line each. */
+   entries per screen of scrolling — under the same section rule. Title
+   and lede sit on one line each. */
 @container stage (min-width: 700px) {
   .screen {
     gap: 10px;
@@ -119,26 +178,9 @@
     font-size: var(--body-md);
   }
 
-  .section {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    width: 100%;
-  }
-
   .sectionTitle {
-    display: flex;
-    align-items: center;
-    gap: 12px;
     margin-top: 12px;
     font-size: var(--display-xs);
-  }
-
-  .sectionTitle::after {
-    content: '';
-    flex: 1 1 auto;
-    height: 1px;
-    background: linear-gradient(90deg, rgba(255, 193, 7, 0.45), transparent);
   }
 
   .list {
