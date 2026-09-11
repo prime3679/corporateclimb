@@ -924,6 +924,63 @@ win (`e2e/shop.spec.ts`). Screenshots came from that seeded path at phone
 `CodexScreen` / `DailyPreScreen` (still on the orange shadow) are out of
 scope here.
 
+### Pass J — public: Codex night midtones
+
+Codex chrome on tip `9499504` (`#128` one icon family), Fable lane
+(`corpclimber-fable-public-bar-0911` secondary Must 2). The screen still
+sat on the pre-`#122` **indigo void** (`#1a1a2e → #16213e`), THE CODEX
+carried the arcade `2px 2px 0 #e65100` orange drop shadow, and every row
+was a near-black `--ink` slab on a `--ink-soft` border — the one browsable
+screen a stranger opens from the Title deck did not match the lobby it
+came from. CSS only (`src/screens/CodexScreen.module.css`): same
+`CodexScreen.tsx`, same rows, unlock and copy logic, `PixelIcon` atlas
+untouched, no emoji regression. Night lobby untouched; phone 472 canvas
+untouched; no cream.
+
+**After.**
+
+- **Field.** The Title's tinted night lobby verbatim,
+  `#1a1e28 → #161a24 → #12141a` — the same three stops `TitleScreen` and
+  the OG card draw — so CODEX from the deck is a cut inside one building.
+  The gradient is pinned to the scroll container, so it does not scroll or
+  band with the list. Type is `--cc-text` at the root.
+- **Title.** THE CODEX in `--cc-text` between two gold hairlines
+  (`rgba(255,193,7,.24)`, the Settings title's eyebrow language), capped
+  at the 420px column, `--cc-track-chip` tracking. **The orange
+  text-shadow is gone** — nothing on the Codex draws `#e65100`. The lede
+  is `--cc-text-3`, centred.
+- **Section eyebrows** are `--cc-gold` at `--cc-track-label` with the
+  fading gold rule the desktop grid always had; the phone list gets the
+  same rule now, so PERKS / STATUS SYMBOLS / ITEMS / ACHIEVEMENTS read as
+  the deck's eyebrow rows on both canvases. Gold stays the one accent.
+- **Rows.** Each entry is one `#122` glass plate: `rgba(30,38,54,.9)` fill
+  under the plates' top highlight, 1px `rgba(255,255,255,.14)` hairline,
+  `--radius-md`, `inset 0 1px 0` highlight and the deck's short
+  `0 3px 8px` black offset shadow. Name `--cc-text`, description
+  `--cc-text-2`. Resolved over the field: title 15.3:1, lede 8.6:1,
+  eyebrows 10.2:1, names 14.2:1, descriptions 10.5:1.
+- **Locked rows** used to fade the whole row to 55%, which on glass over
+  a glass-coloured field would have dissolved the plate. The plate now
+  stays a plate — thinner glass (`.55`), 8% hairline, no lift — and only
+  the padlock and copy dim to 60%, so a gated entry reads as an unlit slot;
+  `???` 6.2:1 and the `Unlock: …` hint 4.9:1 on the thin glass.
+- **Slot plinth** lifted one step (`#39405a → #2a3044`, 1px `#485072`) —
+  `#128` tuned the `#2f3549 → #232838` plinth against a near-black row and
+  its foot would have merged into the glass. The pixel glyphs and their
+  plum outline are unchanged.
+- **Keyboard legend** (Should 4: sans) already holds — the theater wing
+  sets `--cc-font-body`, so the legend beside the Codex is Space Grotesk;
+  nothing to change, as on Settings.
+
+Guards: `codex-icons.test.ts` (static render, glyph per id, `locked` for
+gated, never 🤵) and `e2e/codex.spec.ts` (title, base entry, `???`,
+`Unlock: First Day`, BACK) pass unchanged.
+
+After-shots: `docs/rpg/codex-night-midtones/codex-phone.png` (390×844,
+perks), `codex-phone-locked.png` (390×844, scrolled to the gated perks and
+Status Symbols) and `codex-desktop.png` (1920×1080 theater, perks grid with
+the sans keyboard legend in the wing).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
