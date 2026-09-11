@@ -359,6 +359,31 @@ button {
   }
 }
 
+/* ── Top chrome (SOUND / SET / CV) ──
+   Corner buttons on every screen. The title lowers the row onto the FLOOR
+   30 sign's baseline and pulls it in to the content column's right edge
+   (20px on the phone canvas, 40px on the 840 desktop canvas — the title's
+   own side padding) so the top of the lobby reads as one ruled row. */
+.top-chrome {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 100;
+  display: flex;
+  gap: 6px;
+}
+
+.top-chrome[data-on-title] {
+  top: 24px;
+  right: 20px;
+}
+
+@container stage (min-width: 700px) {
+  .top-chrome[data-on-title] {
+    right: 40px;
+  }
+}
+
 /* ── Cinematic screen scaffold ──
    Near-black surface with one soft ambient glow at the top and a
    vignette pooling at the bottom — the dark, glassy stage every

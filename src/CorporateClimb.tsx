@@ -774,8 +774,10 @@ export default function CorporateClimb() {
 
   return (
     <Stage>
-      {/* Mute + settings — always visible */}
-      <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 100, display: 'flex', gap: 6 }}>
+      {/* Mute + settings — always visible. On the title the row drops onto
+          the FLOOR 30 sign's baseline and hugs the content column edge
+          (`.top-chrome` in global.css); every other screen keeps the corner. */}
+      <div className="top-chrome" data-on-title={screen === 'title' ? 'true' : undefined}>
         <Button
           variant="ghost"
           size="sm"
@@ -844,7 +846,7 @@ export default function CorporateClimb() {
             }}
             officeStatus={(() => {
               const save = loadOfficeSave()
-              return save ? campaignSummary(save) : undefined
+              return save ? campaignSummary(save, { plain: true }) : undefined
             })()}
           />
         )}

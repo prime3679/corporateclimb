@@ -20,10 +20,16 @@ const CONFETTI_GLYPHS = ['💰', '🪪', '📈', '☕', '📎', '💼']
 /** Backdrop skyline: the phone canvas shows the nine centre blocks; the
  *  desktop canvas (`@container stage (min-width: 700px)`) also reveals
  *  eight more either side so the city runs the full 840px width instead of
- *  stopping at a 212px huddle. Order is left → right. */
-const SKYLINE_CORE = [64, 104, 78, 118, 86, 96, 70, 112, 82]
-const SKYLINE_WING_LEFT = [58, 90, 66, 108, 74, 96, 60, 100]
-const SKYLINE_WING_RIGHT = [94, 62, 106, 72, 88, 58, 98, 68]
+ *  stopping at a 212px huddle. Order is left → right.
+ *
+ *  The city is a footer silhouette under the deck, not a third stage: the
+ *  tower profile is kept but drawn at SKYLINE_SCALE so the tallest near
+ *  block is ~78px and the whole band stays within ~12% of the stage. */
+const SKYLINE_SCALE = 0.66
+const tower = (h: number) => Math.round(h * SKYLINE_SCALE)
+const SKYLINE_CORE = [64, 104, 78, 118, 86, 96, 70, 112, 82].map(tower)
+const SKYLINE_WING_LEFT = [58, 90, 66, 108, 74, 96, 60, 100].map(tower)
+const SKYLINE_WING_RIGHT = [94, 62, 106, 72, 88, 58, 98, 68].map(tower)
 const SKYLINE: ReadonlyArray<{ h: number; wing: boolean }> = [
   ...SKYLINE_WING_LEFT.map((h) => ({ h, wing: true })),
   ...SKYLINE_CORE.map((h) => ({ h, wing: false })),
@@ -34,9 +40,9 @@ const SKYLINE: ReadonlyArray<{ h: number; wing: boolean }> = [
  *  near row: shorter, dimmer, unlit. Gives the city depth so the bottom of
  *  the stage reads as a skyline rather than a comb of nine blocks. */
 const SKYLINE_FAR: ReadonlyArray<{ h: number; wing: boolean }> = [
-  ...[72, 118, 84, 130, 96, 108, 78, 124].map((h) => ({ h, wing: true })),
-  ...[110, 136, 122, 150, 128, 142, 116, 146, 132, 120].map((h) => ({ h, wing: false })),
-  ...[104, 126, 90, 138, 98, 116, 82, 110].map((h) => ({ h, wing: true })),
+  ...[72, 118, 84, 130, 96, 108, 78, 124].map((h) => ({ h: tower(h), wing: true })),
+  ...[110, 136, 122, 150, 128, 142, 116, 146, 132, 120].map((h) => ({ h: tower(h), wing: false })),
+  ...[104, 126, 90, 138, 98, 116, 82, 110].map((h) => ({ h: tower(h), wing: true })),
 ]
 
 /** The three lead roles, in the order they stand on the lobby floor:
@@ -123,10 +129,9 @@ export default function TitleScreen({
   const hasStats = streak.current > 0 || lifetime.bestFloor > 0 || goldenBadge
 
   return (
-    <div className={`premium-screen ${styles.screen}`}>
-      {/* Field: light pools, the lobby floor line, the elevator shaft. */}
+    <div className={styles.screen}>
+      {/* Field: one warm light pool behind the cast on the night-lobby ground. */}
       <div aria-hidden="true" className={styles.field} />
-      <div aria-hidden="true" className={styles.shaft} />
 
       <div
         aria-hidden="true"
@@ -166,7 +171,6 @@ export default function TitleScreen({
               style={{ '--plate-accent': accent } as CSSProperties}
             >
               <div className={`sprite-idle ${styles.plateArt}`}>
-                <span aria-hidden="true" className={styles.plateGround} />
                 <img src={sprites[cls.spriteId]} alt="" draggable={false} />
               </div>
               <figcaption className={`t-display ${styles.plateRole}`}>{role}</figcaption>
@@ -264,12 +268,12 @@ export default function TitleScreen({
           <div className={`t-body ${styles.stats}`}>
             {streak.current > 0 && (
               <span>
-                🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
+                {streak.current}-day streak{playedToday ? ' ✓' : ''}
               </span>
             )}
             {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
-            {bestReorg > 0 && <span>🌀 Re-Org {bestReorg}</span>}
-            {goldenBadge && <span className={styles.statsGolden}>🪪 Golden Badge</span>}
+            {bestReorg > 0 && <span>Re-Org {bestReorg}</span>}
+            {goldenBadge && <span className={styles.statsGolden}>Golden Badge</span>}
           </div>
         )}
       </div>

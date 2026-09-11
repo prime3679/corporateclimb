@@ -1,78 +1,78 @@
 /* ─── Title / welcome ───────────────────────────────────────
-   One lobby, top to bottom: the FLOOR 30 sign, the wordmark block, the
-   three lead plates standing on a lit floor line, and the CTA deck — a
-   glass directory panel that holds THE OFFICE hero (Campaign · Floors 1–5),
-   the Classic 30-floor climb, and Daily + Codex. The elevator shaft runs
-   from the sign down to the floor line and the city sits behind the deck.
+   One night lobby, top to bottom on a single spine: the FLOOR 30 sign
+   (with SOUND / SET on its baseline at the column edge), the wordmark
+   block, the three lead plates standing on a lobby floor line, and the
+   CTA deck — a glass directory panel exactly as wide as the cast row that
+   holds THE OFFICE hero (Campaign · Floors 1–5), the Classic 30-floor
+   climb, Daily + Codex and the career strip. The city is a footer
+   silhouette under the deck.
+
+   Light architecture: the field is a tinted night lobby (#1a1e28 → #12141a)
+   rather than the near-black stage, with one warm pool behind the cast;
+   plates and deck share one lifted glass value so they read as one piece
+   of furniture. Gold is the one accent and the hero owns it.
 
    Two stages matter: the phone canvas (472 wide, ~815–1060 tall) and the
    desktop canvas (840 wide, 760 tall on every 16:9 monitor). The desktop
    is the short one, so it spends its budget sideways — a one-line
    wordmark, a wider cast row, the full-width skyline — while the phone
-   keeps the two-line wordmark and a compact column. */
+   keeps the two-line wordmark and a compact column.
+
+   Every width below derives from --plate-w / --plate-gap: the deck is
+   3 plates + 2 gaps wide, the floor line a hair wider, so the column
+   cannot drift out of register between breakpoints. */
 
 .screen {
+  --plate-w: 116px;
+  --plate-gap: 20px;
+  --plate-overflow: 0.34; /* how far the figure rises above the frame */
+  --lobby-w: calc(3 * var(--plate-w) + 2 * var(--plate-gap));
+  --lobby-glass: rgba(30, 38, 54, 0.9);
+  --lobby-line: rgba(255, 255, 255, 0.14);
+  --lobby-radius: 12px;
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 14px;
   height: 100%;
-  /* Top padding clears the FLOOR 30 sign (top 30 + 30 tall). */
-  padding: 74px 26px 34px;
-  background: transparent;
-  position: relative;
+  /* Top padding clears the sign row (top 24 + 28 tall). */
+  padding: 64px 20px 24px;
+  color: var(--cc-text);
+  background: linear-gradient(180deg, #1a1e28 0%, #161a24 56%, #12141a 100%);
   overflow: hidden;
 }
 
 /* ── Field ──
-   Ambient light: a warm key pool behind the wordmark, a cool wash at the
-   bottom corners where the city glows, and the 76px floor hairlines the
-   theater backdrop carries across the gutters. */
+   One warm pool behind the cast so the figures stand in light, and a
+   faint top wash so the wordmark has a ground. No grid, no shafts. */
 .field {
   position: absolute;
   inset: 0;
   pointer-events: none;
   background:
-    radial-gradient(52% 26% at 50% 18%, rgba(255, 193, 7, 0.14), transparent 100%),
-    radial-gradient(40% 22% at 8% 96%, rgba(33, 150, 243, 0.1), transparent 100%),
-    radial-gradient(40% 22% at 92% 96%, rgba(33, 150, 243, 0.1), transparent 100%),
-    repeating-linear-gradient(180deg, transparent 0 76px, rgba(255, 255, 255, 0.035) 76px 77px);
+    radial-gradient(48% 24% at 50% 50%, rgba(255, 193, 7, 0.07), transparent 100%),
+    radial-gradient(70% 26% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 100%);
 }
 
-/* Elevator shaft: two gold rails and a rung every 72px, fading in under
-   the sign and out above the deck so it never cuts through the CTAs. */
-.shaft {
-  position: absolute;
-  top: 44px;
-  bottom: 30%;
-  left: 50%;
-  width: 84px;
-  transform: translateX(-50%);
-  pointer-events: none;
-  background:
-    linear-gradient(90deg, rgba(255, 211, 77, 0.3) 0 2px, transparent 2px),
-    linear-gradient(-90deg, rgba(255, 211, 77, 0.3) 0 2px, transparent 2px),
-    repeating-linear-gradient(180deg, transparent 0 70px, rgba(255, 211, 77, 0.2) 70px 72px);
-  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 78%, transparent);
-  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 78%, transparent);
-}
-
+/* FLOOR 30 sign: on the spine, on the same 24px baseline as the SOUND /
+   SET chrome (`.top-chrome[data-on-title]` in global.css). */
 .sign {
   position: absolute;
-  top: 30px;
+  top: 24px;
+  left: 50%;
   z-index: 3;
   display: grid;
   place-items: center;
-  width: 124px;
-  height: 30px;
-  border: 1px solid rgba(255, 211, 77, 0.5);
+  width: 120px;
+  height: 28px;
+  transform: translateX(-50%);
+  border: 1px solid rgba(255, 211, 77, 0.45);
   border-radius: 8px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), rgba(5, 7, 13, 0.86);
+  background: rgba(20, 24, 33, 0.92);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 28px rgba(255, 211, 77, 0.18),
     var(--shadow-sm);
   color: var(--gold-bright);
   font-family: var(--font-display);
@@ -84,8 +84,7 @@
 .signGolden {
   border-color: rgba(255, 211, 77, 0.85);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.08),
-    0 0 34px rgba(255, 211, 77, 0.42),
+    inset 0 0 0 1px rgba(255, 211, 77, 0.45),
     var(--shadow-sm);
 }
 
@@ -96,47 +95,49 @@
   z-index: 1;
 }
 
-/* Kicker between two gold hairlines — the ladder motif, horizontal. */
+/* Kicker between two short gold hairlines — quieter than the tagline so
+   the two caps lines don't compete. */
 .kicker {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 10px;
   font-size: var(--display-2xs);
-  color: var(--gold);
+  color: rgba(255, 193, 7, 0.72);
   letter-spacing: var(--cc-track-wide);
 }
 
 .kicker::before,
 .kicker::after {
   content: '';
-  width: 44px;
+  width: 28px;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.6));
+  background: rgba(255, 193, 7, 0.3);
 }
 
-.kicker::after {
-  transform: scaleX(-1);
-}
-
+/* Wordmark: brushed-paper fill kept, gold under-glow gone. A 1px dark
+   hairline under the glyphs lifts them off the lobby wall. drop-shadow
+   (not text-shadow) so it reads through the clipped fill. Letter-spacing
+   leaves a trailing tracking unit after the last glyph; the matching
+   padding-left keeps the glyph box — not the box plus its tail — on the
+   spine. */
 .wordmark {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   margin: 0;
+  padding-left: 0.02em;
   font-size: 50px;
   line-height: 0.98;
   letter-spacing: 0.02em;
-  /* Brushed-paper fill: white at the cap line to cool grey at the base.
-     drop-shadow (not text-shadow) so the glow reads through the clipped
-     fill instead of showing behind transparent glyphs. */
   color: var(--paper);
-  background: linear-gradient(180deg, #ffffff 0%, #eef3f9 52%, #b8c5d6 100%);
+  background: linear-gradient(180deg, #ffffff 0%, #eef2f7 55%, #cfd8e4 100%);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 10px 30px rgba(255, 193, 7, 0.22));
+  filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7)) drop-shadow(0 8px 18px rgba(0, 0, 0, 0.35));
 }
 
 .wordmarkLine {
@@ -148,17 +149,17 @@
   margin: 12px auto 0;
   font-size: var(--display-2xs);
   color: var(--gold-bright);
-  letter-spacing: 0.16em;
+  letter-spacing: 0.14em;
   line-height: 1.5;
   text-wrap: balance;
 }
 
 .lede {
   max-width: 340px;
-  margin: 7px auto 0;
+  margin: 6px auto 0;
   font-size: var(--body-md);
   color: var(--cc-text-2);
-  line-height: 1.3;
+  line-height: 1.35;
   text-wrap: balance;
 }
 
@@ -168,34 +169,38 @@
 }
 
 /* ── Cast ──
-   Three badge plates standing on the lobby floor: glass frame, a clip
-   notch at the top, the figure breathing over a light pool, the role
-   caption under it. The centre plate is the lead and takes the gold. */
+   Three equal badge plates standing on the lobby floor line: glass frame,
+   the role's type colour as a top rail, the figure rising past the rail,
+   the role caption under it. The lead (centre) gets a gold ring drawn
+   inside its own box so it never inflates the row. Top padding is the
+   head-room the figures rise into, so the header gap above is clear. */
 .cast {
-  --plate-overflow: 0.34; /* how far the figure rises above the frame */
   position: relative;
   z-index: 1;
   display: flex;
-  gap: 18px;
+  gap: var(--plate-gap);
   justify-content: center;
   align-items: flex-end;
-  /* Top padding is the head-room the figures rise into. */
-  padding: 34px 0 4px;
+  margin-top: 24px;
+  padding-top: calc(var(--plate-w) * var(--plate-overflow));
 }
 
-/* Lobby floor: a lit edge the plates stand on and a pool spilling down. */
+/* Lobby floor: one thin gold line the plates stand on. */
 .floor {
   position: absolute;
   left: 50%;
-  bottom: 3px;
-  width: 400px;
-  height: 110px;
+  bottom: 0;
+  width: calc(var(--lobby-w) + 56px);
+  height: 1px;
   transform: translateX(-50%);
   pointer-events: none;
-  border-bottom: 1px solid rgba(255, 211, 77, 0.4);
-  background: radial-gradient(60% 100% at 50% 100%, rgba(255, 193, 7, 0.14), transparent 100%);
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 211, 77, 0.42) 18%,
+    rgba(255, 211, 77, 0.42) 82%,
+    transparent
+  );
 }
 
 .plate {
@@ -203,24 +208,20 @@
   position: relative;
   z-index: 1;
   display: flex;
+  flex: none;
   flex-direction: column;
   align-items: center;
-  width: 100px;
+  width: var(--plate-w);
   margin: 0;
   padding: 6px 6px 7px;
-  border-radius: var(--radius-md);
+  border-radius: var(--lobby-radius);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 45%),
-    linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--plate-accent) 14%, transparent),
-      transparent 30%
-    ),
-    var(--cc-glass);
-  border: 1px solid var(--cc-line-strong);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 42%),
+    var(--lobby-glass);
+  border: 1px solid var(--lobby-line);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    var(--cc-shadow-plate);
+    0 6px 16px rgba(0, 0, 0, 0.36);
 }
 
 /* Accent rail along the top edge: the role's type colour, gold for the
@@ -237,15 +238,13 @@
   opacity: 0.9;
 }
 
+/* Lead: 1px gold border + 1px inset ring = a 2px ring inside the same
+   box. No outer glow, no extra width, no lift. */
 .plateLead {
-  z-index: 2;
-  width: 112px;
-  margin-bottom: 8px;
-  border-color: color-mix(in srgb, var(--cc-gold) 45%, var(--cc-line-strong));
+  border-color: rgba(255, 213, 79, 0.7);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 0 30px rgba(255, 193, 7, 0.14),
-    var(--cc-shadow-plate);
+    inset 0 0 0 1px rgba(255, 213, 79, 0.5),
+    0 6px 16px rgba(0, 0, 0, 0.36);
 }
 
 /* Square frame; the figure is drawn taller than it and anchored to the
@@ -265,28 +264,12 @@
   width: auto;
   transform: translateX(-50%);
   image-rendering: auto;
-  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
-}
-
-.plateGround {
-  position: absolute;
-  left: 50%;
-  bottom: -2px;
-  width: 78%;
-  height: 16px;
-  transform: translateX(-50%);
-  border-radius: 50%;
-  background: radial-gradient(
-    ellipse,
-    color-mix(in srgb, var(--plate-accent) 55%, transparent) 0%,
-    transparent 70%
-  );
-  opacity: 0.55;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.4));
 }
 
 .plateRole {
   margin-top: 6px;
-  font-size: 9px;
+  font-size: var(--display-2xs);
   letter-spacing: var(--cc-track-label);
   color: var(--cc-text-3);
 }
@@ -296,8 +279,8 @@
 }
 
 /* ── Deck ──
-   The lobby directory: one glass panel for every way into the game, with
-   a gold rule across the top edge so it reads as the hero's frame. */
+   The lobby directory: one glass panel, the same width, radius, border
+   and fill as the plates, 20px under them. */
 .deck {
   position: relative;
   z-index: 2;
@@ -305,29 +288,17 @@
   flex-direction: column;
   align-items: stretch;
   gap: 12px;
-  width: min(400px, 100%);
+  width: var(--lobby-w);
+  margin-top: 20px;
   padding: 14px 16px 12px;
-  border-radius: var(--radius-lg);
+  border-radius: var(--lobby-radius);
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 38%), var(--cc-glass);
-  border: 1px solid var(--cc-line-strong);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 36%),
+    var(--lobby-glass);
+  border: 1px solid var(--lobby-line);
   box-shadow:
     inset 0 1px 0 rgba(255, 255, 255, 0.05),
-    0 0 0 1px rgba(255, 211, 77, 0.05),
-    0 18px 44px rgba(0, 0, 0, 0.5);
-}
-
-.deck::before {
-  content: '';
-  position: absolute;
-  top: -1px;
-  left: 50%;
-  width: min(220px, 56%);
-  height: 2px;
-  transform: translateX(-50%);
-  border-radius: 2px;
-  background: linear-gradient(90deg, transparent, var(--cc-gold), transparent);
-  opacity: 0.85;
+    0 14px 32px rgba(0, 0, 0, 0.42);
 }
 
 /* One mode = eyebrow + button (+ optional status), stacked and centred. */
@@ -338,7 +309,7 @@
   gap: 7px;
 }
 
-/* Eyebrow between two hairlines, same rhythm as the kicker. */
+/* Eyebrow between two hairlines: a caption, not a second hero. */
 .eyebrow {
   display: flex;
   align-items: center;
@@ -356,90 +327,52 @@
   content: '';
   flex: 1;
   height: 1px;
-  background: var(--cc-line);
+  background: var(--cc-line-faint);
 }
 
 .eyebrowHero {
-  color: var(--gold);
+  color: rgba(255, 193, 7, 0.72);
 }
 
 .eyebrowHero::before,
 .eyebrowHero::after {
-  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.45));
+  background: rgba(255, 193, 7, 0.2);
 }
 
-.eyebrowHero::after {
-  transform: scaleX(-1);
-}
-
-/* THE OFFICE: brushed gold, a lit top edge, and a slow breathing glow —
-   the one button a first-time player should see first. */
+/* THE OFFICE: the one gold thing on the deck. Soft offset shadow only —
+   no breathing glow — so it wins by value, not by bloom. */
 .hero {
   width: 100%;
   min-width: 250px;
   font-size: 22px;
   letter-spacing: 0.04em;
-  --hero-glow: 0 0 32px rgba(255, 213, 79, 0.28);
-  background: linear-gradient(180deg, #ffe082 0%, var(--gold-bright) 45%, var(--gold) 100%);
+  background: linear-gradient(180deg, #ffe082 0%, var(--gold-bright) 55%, var(--gold) 100%);
   border-color: rgba(255, 224, 130, 0.8);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 1px 0 rgba(255, 255, 255, 0.55),
     inset 0 -2px 0 rgba(0, 0, 0, 0.12),
-    var(--shadow-md),
-    var(--hero-glow);
-  animation: title-hero-breathe 3.2s ease-in-out infinite;
-}
-
-@keyframes title-hero-breathe {
-  0%,
-  100% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
-      var(--shadow-md),
-      0 0 26px rgba(255, 213, 79, 0.22);
-  }
-  50% {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.6),
-      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
-      var(--shadow-md),
-      0 0 44px rgba(255, 213, 79, 0.42);
-  }
+    0 6px 16px rgba(0, 0, 0, 0.36);
 }
 
 @media (hover: hover) {
   .hero:hover:not(:disabled) {
-    animation: none;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 1px 0 rgba(255, 255, 255, 0.65),
       inset 0 -2px 0 rgba(0, 0, 0, 0.12),
-      var(--shadow-lg),
-      0 0 48px rgba(255, 213, 79, 0.48);
+      0 10px 22px rgba(0, 0, 0, 0.4);
   }
 }
 
 .hero:active:not(:disabled) {
-  animation: none;
   box-shadow:
     inset 0 2px 0 rgba(0, 0, 0, 0.14),
-    var(--shadow-sm),
-    var(--hero-glow);
-}
-
-:global(.reduce-motion) .hero {
-  animation: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .hero {
-    animation: none;
-  }
+    0 3px 8px rgba(0, 0, 0, 0.3);
 }
 
 .status {
   font-size: var(--body-sm);
   color: var(--cc-text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .row {
@@ -453,15 +386,14 @@
   flex: 1 1 0;
 }
 
-/* Classic: the blue secondary gets the same lit top edge as the hero so
-   the two read as one family, one step down. */
+/* Classic: keeps its blue identity, desaturated a step and on the same
+   1px light stroke as the ghosts so it sits one rank under the hero. */
 .classic {
-  background: linear-gradient(180deg, #2f82c0 0%, #236ea6 100%);
-  border-color: rgba(120, 190, 240, 0.4);
+  background: #307199;
+  border-color: rgba(255, 255, 255, 0.22);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.22),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.18),
-    var(--shadow-sm);
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 3px 8px rgba(0, 0, 0, 0.28);
 }
 
 /* START CLIMB alone: narrower than the hero so the hierarchy is legible
@@ -471,17 +403,22 @@
   min-width: 210px;
 }
 
-/* NEW CLIMB sits beside CONTINUE in the Classic save row, so it reads as a
-   peer action: keep the ghost colours but set it in the display face like
-   every other climb button. Anton is single-weight, so the ghost's 700 has
-   to go too or the browser fakes a bold. Scoped under .row so it outranks
-   Button's .ghost without touching the global variant (CODEX stays body). */
+/* Ghosts on the lifted deck face: near-transparent fill, a stroke you
+   can see, the full text colour. NEW CLIMB sits beside CONTINUE so it
+   takes the display face too (Anton is single-weight, so the ghost's 700
+   has to go or the browser fakes a bold). Scoped so Button's global
+   .ghost is untouched. */
+.row .newClimb,
+.codex {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--cc-text);
+  box-shadow: none;
+}
+
 .row .newClimb {
   font-family: var(--font-display);
   font-weight: normal;
-  background: rgba(13, 18, 27, 0.9);
-  border-color: rgba(255, 255, 255, 0.16);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 /* Daily + Codex share one row, equal columns. */
@@ -491,17 +428,13 @@
   gap: 10px;
 }
 
+/* Daily: brick, not alarm — red identity kept, gold still wins. */
 .daily {
-  background: linear-gradient(180deg, #c93a40 0%, #b72f34 100%);
-  border-color: rgba(255, 140, 140, 0.3);
+  background: #8e3a3e;
+  border-color: rgba(255, 255, 255, 0.14);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.16),
-    inset 0 -2px 0 rgba(0, 0, 0, 0.16),
-    var(--shadow-sm);
-}
-
-.codex {
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 3px 8px rgba(0, 0, 0, 0.28);
 }
 
 .confirm {
@@ -533,7 +466,8 @@
   padding-top: 9px;
   border-top: 1px solid var(--cc-line-faint);
   font-size: var(--body-sm);
-  color: var(--muted-light);
+  color: var(--cc-text-2);
+  font-variant-numeric: tabular-nums;
 }
 
 .statsGolden {
@@ -541,20 +475,19 @@
 }
 
 /* ── Skyline ──
-   Two rows of towers on a haze gradient: the far row is dim and unlit,
-   the near row carries the lit windows. Both sit behind the deck. */
+   Footer silhouette: two rows of towers on a short haze, one value above
+   the field so it reads under the deck instead of as a black band. */
 .skyline {
   position: absolute;
   bottom: 0;
   left: 0;
   right: 0;
-  height: 150px;
+  height: 110px;
   pointer-events: none;
   background: linear-gradient(
     0deg,
-    rgba(2, 6, 23, 0.98) 0%,
-    rgba(13, 19, 32, 0.82) 52%,
-    rgba(13, 19, 32, 0.3) 82%,
+    rgba(10, 13, 20, 0.92) 0%,
+    rgba(14, 18, 27, 0.7) 55%,
     transparent 100%
   );
 }
@@ -573,13 +506,13 @@
 .skylineFar {
   gap: 6px;
   padding: 0 34px;
-  opacity: 0.55;
+  opacity: 0.6;
 }
 
 .skylineFar .tower {
   width: 16px;
-  background: #0b1220;
-  border-color: rgba(255, 255, 255, 0.04);
+  background: #151b27;
+  border-color: rgba(255, 255, 255, 0.05);
 }
 
 .skylineNear {
@@ -589,8 +522,8 @@
 .tower {
   position: relative;
   width: 20px;
-  background: #0f1724;
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: #1b2231;
+  border: 1px solid rgba(255, 255, 255, 0.09);
   border-radius: 3px 3px 0 0;
 }
 
@@ -600,13 +533,13 @@
   width: 5px;
   height: 5px;
   border-radius: 1px;
-  background: #1d4ed8;
-  opacity: 0.8;
+  background: #2f5fc9;
+  opacity: 0.85;
 }
 
 .windowLit {
   background: #ffd54f;
-  box-shadow: 0 0 6px rgba(255, 213, 79, 0.35);
+  box-shadow: 0 0 4px rgba(255, 213, 79, 0.3);
 }
 
 /* Extra skyline blocks either side of the phone's nine; only the wide
@@ -624,8 +557,10 @@
   padding: 14px 22px;
   border-radius: var(--radius-lg);
   border: 2px solid var(--gold-bright);
-  background: rgba(5, 7, 13, 0.92);
-  box-shadow: 0 0 44px rgba(255, 211, 77, 0.45);
+  background: rgba(16, 20, 28, 0.94);
+  box-shadow:
+    0 0 24px rgba(255, 211, 77, 0.25),
+    0 12px 32px rgba(0, 0, 0, 0.5);
   animation: bonus-pop 0.5s ease-out;
 }
 
@@ -644,11 +579,16 @@
 /* ── Short stages ──
    The 440×760 playtest viewport (815 design px) and every 16:9 desktop
    (760): tighten the column so the deck clears the skyline with both
-   saves present. */
+   saves present. Deck padding compresses before the plates do. */
 @container stage (max-height: 820px) {
   .screen {
-    gap: 10px;
-    padding: 68px 22px 22px;
+    --plate-w: 104px;
+    --plate-gap: 16px;
+    padding: 60px 20px 20px;
+  }
+
+  .kicker {
+    margin-bottom: 8px;
   }
 
   .wordmark {
@@ -656,42 +596,43 @@
   }
 
   .tagline {
-    margin-top: 9px;
+    margin-top: 8px;
   }
 
   .lede {
-    margin-top: 5px;
+    margin-top: 4px;
   }
 
   .cast {
-    padding-top: 30px;
-  }
-
-  .plate {
-    width: 90px;
-  }
-
-  .plateLead {
-    width: 100px;
-    margin-bottom: 6px;
+    margin-top: 18px;
   }
 
   .deck {
-    gap: 10px;
-    padding: 12px 14px 10px;
+    gap: 8px;
+    margin-top: 16px;
+    padding: 10px 14px 8px;
+  }
+
+  .hero {
+    padding-top: 13px;
+    padding-bottom: 13px;
+  }
+
+  .stats {
+    padding-top: 7px;
   }
 
   .skyline {
-    height: 124px;
+    height: 88px;
   }
 }
 
 /* ── Tall phones ──
    A 390×844 phone is a 472×1021 canvas: spend the extra height on the
-   wordmark and the plates instead of on the gap under the sign. */
+   wordmark, the plates and the band gaps (32 instead of 24). */
 @container stage (min-height: 940px) and (max-width: 699px) {
   .screen {
-    gap: 18px;
+    --plate-w: 124px;
   }
 
   .wordmark {
@@ -703,25 +644,17 @@
   }
 
   .cast {
-    gap: 20px;
-    padding-top: 40px;
-  }
-
-  .plate {
-    width: 108px;
-  }
-
-  .plateLead {
-    width: 122px;
-  }
-
-  .plateRole {
-    font-size: var(--display-2xs);
+    margin-top: 32px;
   }
 
   .deck {
     gap: 14px;
+    margin-top: 24px;
     padding: 16px 16px 14px;
+  }
+
+  .skyline {
+    height: 120px;
   }
 }
 
@@ -734,8 +667,9 @@
    canvas is 840 wide × 760 tall). */
 @container stage (min-width: 700px) {
   .screen {
-    gap: 12px;
-    padding: 70px 40px 22px;
+    --plate-w: 132px;
+    --plate-gap: 32px;
+    padding: 60px 40px 20px;
   }
 
   .skylineWing {
@@ -744,33 +678,19 @@
 
   .field {
     background:
-      radial-gradient(38% 30% at 50% 16%, rgba(255, 193, 7, 0.16), transparent 100%),
-      radial-gradient(30% 24% at 6% 96%, rgba(33, 150, 243, 0.12), transparent 100%),
-      radial-gradient(30% 24% at 94% 96%, rgba(33, 150, 243, 0.12), transparent 100%),
-      /* Two faint outer shafts, the neighbours' elevators. */
-        linear-gradient(
-          90deg,
-          transparent calc(18% - 1px),
-          rgba(255, 211, 77, 0.07) 18%,
-          transparent calc(18% + 1px)
-        ),
-      linear-gradient(
-        90deg,
-        transparent calc(82% - 1px),
-        rgba(255, 211, 77, 0.07) 82%,
-        transparent calc(82% + 1px)
-      ),
-      repeating-linear-gradient(180deg, transparent 0 76px, rgba(255, 255, 255, 0.035) 76px 77px);
+      radial-gradient(34% 26% at 50% 52%, rgba(255, 193, 7, 0.08), transparent 100%),
+      radial-gradient(60% 26% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 100%);
   }
 
   .kicker::before,
   .kicker::after {
-    width: 72px;
+    width: 56px;
   }
 
   .wordmark {
     flex-direction: row;
     gap: 0.22em;
+    padding-left: 0.03em;
     font-size: 60px;
     letter-spacing: 0.03em;
   }
@@ -788,36 +708,15 @@
     font-size: var(--body-lg);
   }
 
-  .cast {
-    gap: 40px;
-    padding-top: 42px;
-  }
-
-  .floor {
-    width: 680px;
-    height: 130px;
-  }
-
-  .plate {
-    width: 124px;
-    padding: 6px 8px 8px;
-  }
-
-  .plateLead {
-    width: 138px;
-    margin-bottom: 8px;
-  }
-
-  .plateRole {
-    font-size: var(--display-2xs);
-  }
-
+  /* Horizontal only: the vertical rhythm comes from the base / short-stage
+     blocks, since a wide stage can be either (760 on 16:9, taller on
+     portrait monitors). */
   .deck {
-    width: 440px;
-    padding: 12px 18px 10px;
+    padding-left: 18px;
+    padding-right: 18px;
   }
 
   .skyline {
-    height: 170px;
+    height: 88px;
   }
 }
