@@ -149,8 +149,8 @@ export default function TitleScreen({
           <span className={styles.wordmarkLine}>CORPORATE</span>{' '}
           <span className={styles.wordmarkLine}>CLIMB</span>
         </h1>
-        <div className={`t-display ${styles.tagline}`}>
-          RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.
+        <div className={`t-body ${styles.tagline}`}>
+          Reception to the board. One badge swipe from glory.
         </div>
         <div className={`t-body ${styles.lede}`}>
           Pick a role, work the floor, build your team, and{' '}
