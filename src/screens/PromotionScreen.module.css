@@ -1,7 +1,13 @@
 /* Promotion ceremony: access-card plate, confetti, old title → new title,
    then the pick-1-of-3 perk offer and the career trajectory read-out.
    Phone values match the screen as it has always rendered; the wide-canvas
-   block at the bottom lays the three offers side by side. */
+   block at the bottom lays the three offers side by side.
+
+   Light architecture follows the Title / Settings night glass: one warm
+   pool behind the badge at the Title cast's value (7% gold, not an 18%
+   bloom), the access card in the lobby glass with the plates' black
+   offset shadow, and the gold lines — kicker and new title — on a 1px
+   dark hairline instead of an orange hard shadow. */
 
 .screen {
   display: flex;
@@ -12,7 +18,7 @@
   gap: 10px;
   padding: 56px 20px 18px;
   background:
-    radial-gradient(circle at 50% 16%, rgba(255, 211, 77, 0.18), transparent 28%),
+    radial-gradient(48% 24% at 50% 16%, rgba(255, 193, 7, 0.07), transparent 100%),
     linear-gradient(180deg, rgba(5, 7, 13, 0.18), rgba(5, 7, 13, 0.72));
   position: relative;
   overflow-y: auto;
@@ -29,15 +35,23 @@
   opacity: 1;
 }
 
+/* Access card: a ghost of the Title plates' glass — the 5% top highlight
+   over a translucent lobby-glass fill (the kicker and titles cross it, so
+   it stays see-through), a gold hairline for the frame, inset top
+   highlight and a soft black offset shadow. No inset gold glow. */
 .plate {
   position: absolute;
   top: 14px;
   width: 136px;
   height: 172px;
-  border: 1px solid rgba(255, 211, 77, 0.22);
+  border: 1px solid rgba(255, 211, 77, 0.28);
   border-radius: 18px;
-  background: linear-gradient(180deg, rgba(255, 211, 77, 0.12), rgba(13, 19, 32, 0.28));
-  box-shadow: inset 0 0 30px rgba(255, 211, 77, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0) 42%),
+    rgba(30, 38, 54, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 6px 16px rgba(0, 0, 0, 0.3);
 }
 
 .confetti {
@@ -54,14 +68,18 @@
   transform: translateY(18px) rotate(18deg);
 }
 
+/* Kicker and titles are positioned so they paint above the plate and the
+   confetti (the transformed sprite already does); gold type stays crisp
+   where it crosses the card. */
 .kicker {
+  position: relative;
   font-size: var(--display-2xs);
-  color: var(--gold);
+  color: var(--cc-gold);
   letter-spacing: 2px;
   line-height: 1.6;
   max-width: 330px;
   text-align: center;
-  text-shadow: 1px 1px 0 #e65100;
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
 }
 
 .sprite {
@@ -86,6 +104,7 @@
 }
 
 .titles {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -100,10 +119,10 @@
 
 .newTitle {
   font-size: var(--display-sm);
-  color: var(--gold-bright);
+  color: var(--cc-gold-bright);
   text-align: center;
   line-height: 1.6;
-  text-shadow: 2px 2px 0 #e65100;
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
 }
 
 .evolved {

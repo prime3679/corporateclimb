@@ -1,6 +1,11 @@
 /* The Company Store / Office vending: header, balance chip, stock rows,
    HP · items read-out, leave. Phone values match the screen as it has
-   always rendered; the wide-canvas block lays the stock out as a grid. */
+   always rendered; the wide-canvas block lays the stock out as a grid.
+
+   Light architecture follows the Title / Settings night glass: the field
+   gets the Title's faint top wash (no gold bloom), and the one gold thing
+   on the counter — the title — sits on a 1px dark hairline instead of an
+   orange hard shadow. Gold stays the accent; it wins by value, not bloom. */
 
 .screen {
   display: flex;
@@ -11,7 +16,7 @@
   gap: 14px;
   padding: 26px 22px 24px;
   background:
-    radial-gradient(circle at 50% 0%, rgba(255, 211, 77, 0.14), transparent 32%),
+    radial-gradient(70% 26% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 100%),
     linear-gradient(180deg, rgba(5, 7, 13, 0.18), rgba(5, 7, 13, 0.74));
   position: relative;
   overflow: hidden;
@@ -24,10 +29,12 @@
   display: contents;
 }
 
+/* Hairline only under the glyphs (the Title wordmark's lift), no offset
+   colour. */
 .title {
   font-size: var(--display-sm);
-  color: var(--gold-bright);
-  text-shadow: 2px 2px 0 #e65100;
+  color: var(--cc-gold-bright);
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
   letter-spacing: 2px;
 }
 

@@ -884,6 +884,46 @@ sheet in the Office art language; the face is gone.
 After-shots: `docs/rpg/codex-icon-family/codex-desktop.png` (1920×1080
 theater, perks grid) and `codex-phone.png` (390×844).
 
+### Pass J — public: Shop + Promotion night glass calm
+
+Must (1) of the public bar (Fable lane), rebased onto tip `9499504`
+(`#128` Codex icons; authored against `f9113ba`). The Company
+Store and the Promotion ceremony were the two mid-run screens still
+wearing the **orange hard-shadow costume** — `text-shadow: 2px 2px 0
+#e65100` under every gold title and kicker — plus a 14–18% gold radial
+bloom at the top of the field, both of which the Title (`#122` / `#123`)
+and Settings (`#124`) already dropped. CSS only: `ShopScreen.tsx` and
+`PromotionScreen.tsx`, their handlers, ids and e2e selectors are untouched;
+no engine, no iOS, no remux. Night lobby locked, phone 472 untouched.
+
+**After** (`ShopScreen.module.css`, `PromotionScreen.module.css`).
+
+- **Type.** THE COMPANY STORE, `✦ PROMOTED ✦` and the new-title line lose
+  the orange offset and sit on the Title wordmark's lift instead: one 1px
+  dark hairline (`0 1px 0 rgba(5,7,13,.6)`), no offset colour. Colours move
+  onto the tokens (`--cc-gold` / `--cc-gold-bright`; same values as the
+  `--gold*` aliases). No cream.
+- **Field.** Shop: the gold bloom becomes the Title's faint top wash
+  (`70% 26%` ellipse, white 3.5%). Promotion: one warm pool at the Title
+  cast's value (`48% 24%` ellipse, gold 7%) behind the badge, in place of
+  the 18% circle. Both keep their dark linear fall-off.
+- **Access card.** The Promotion plate drops its inset gold glow for a
+  ghost of the lobby glass — 4% top highlight over `rgba(30,38,54,.4)`, a
+  gold hairline frame at 28%, `inset 0 1px 0` highlight and a soft black
+  offset shadow. It stays translucent because the kicker and titles cross
+  it; those two are now positioned so they paint _above_ the card and the
+  confetti (the transformed sprite already did), so the gold type is crisp
+  where it overlaps instead of dimmed behind the plate.
+- Gold remains the one accent on both screens and wins by value, not
+  bloom. The balance chip, stock rows, perk offers (`--kind` colour) and
+  the trajectory read-out are as they were.
+
+**Reach.** Not on the cold walk — Shop and Promotion chain off the floor-5
+win (`e2e/shop.spec.ts`). Screenshots came from that seeded path at phone
+390×844 and desktop 1280×720; the shop / promotion / smoke specs and
+`CodexScreen` / `DailyPreScreen` (still on the orange shadow) are out of
+scope here.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
