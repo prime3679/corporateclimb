@@ -541,7 +541,8 @@ scene marks. ~102 s at 1280×720; no hand-edited bytes.
 Combat arena fidelity on tip `d20d4c2`, the Meng move queued behind the
 Title polish. Scope is the shared `BattleScreen` presentation (Office and
 Classic both mount it): no Floor 6, no iOS, no engine work, Classic content
-untouched, demo mp4 not remuxed.
+untouched, demo mp4 not remuxed (that lane followed: "Pass J — demo remux:
+battle sprites" below).
 
 **Before.** `#116` / `#117` gave the 840 desktop canvas a theater frame and
 a 4-move hotbar, and the battlefield stretched to an 816 × ~490 arena (the
@@ -583,6 +584,37 @@ player's floated near the top of the arena on every canvas.
 Guards: `src/__tests__/battle-arena.test.ts` (props, wide-block sizes,
 stand positions, StagedSprite var wiring, popup anchors) and
 `e2e/battle-arena.spec.ts` (1920×1080 Classic + Office, 390×844 Classic).
+
+### Pass J — demo remux: battle sprites
+
+`public/demos/office-demo.mp4` re-recorded on tip `71e5cc9` (`#120` larger
+desktop combat sprites) through the same `npm run demo:office` pipeline;
+the `#119` capture predated the arena-scale stands. Same mux — silent
+Playwright video, live beds and stingers at the scene marks, Floor 1 bed
+ducked to 22% across the spar. ~102 s at 1280×720; no hand-edited bytes.
+Product code untouched: demo script, mp4 and docs only.
+
+- **Combat** now records the wide-stage arena: Gavin on the 236 enemy
+  stand up-right under the floor counter, the Senior Engineer on the 224
+  player stand down-left on the floor band, both clear of the dossier and
+  the resource panel. The spar is a one-shot (Lv18 vs 70 HP), so the
+  script's pre-move dwell grows from 1.1 s to 1.9 s to let the stands read
+  before the hit; the `-204 NICE HIT` number then lands beside Gavin's
+  chest on his own stand (the `#120` %-anchored popup) instead of the old
+  phone-px spot 350px left of him. CLEARED stamp and File it follow.
+- **Kept from `#119`.** Meng welcome (kicker hairlines, one-line brushed
+  wordmark, glass cast plates, gold THE OFFICE in the directory panel,
+  two-row skyline) and the desktop theater / 840 canvas on every beat —
+  the 1280×720 viewport is already desktop-class, no viewport change.
+- End card still reads `Pass J · tip`. Office-first welcome, F1 Renata /
+  Gavin on the recast plates, F2 HELP / DESK glass walk to Teddy, F3–5
+  peeks and THE CLIMB carry over. No Floor 6; Classic never entered
+  (blue secondary on the title only).
+- Marks (body offset by the 3.2 s title card): welcome 3.2–7.1 s · floor1
+  12.3 s · combat 39.7 s · hit lands ~41.6–42.4 s · CLEARED 44.5 s · cab
+  50.6 s · FLOOR 1 CLEARED 53.2 s · floor2 56.7 s · helpdesk 61.6 s ·
+  floor3 67.2 s · floor4 75.8 s · exec 84.4 s · THE CLIMB 94.8 s · end card
+  99.2–102.2 s.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
