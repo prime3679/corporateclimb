@@ -9,7 +9,7 @@ import {
   getUnlockedAchievements,
 } from '@/data'
 import type { AchievementId } from '@/types'
-import { Button } from '@/ui'
+import { Button, PixelIcon, type IconName } from '@/ui'
 import styles from './CodexScreen.module.css'
 
 /**
@@ -17,6 +17,10 @@ import styles from './CodexScreen.module.css'
  * achievement — with locked entries shown as silhouettes plus the
  * achievement that unlocks them. Earned achievements ARE the
  * meta-progression keys, so this screen doubles as the unlock map.
+ *
+ * Perks and Status Symbols draw from the pixel icon sheet (one family,
+ * keyed by content id; gated slots share the `locked` padlock). Items and
+ * achievements still show their content emoji in the same slot.
  */
 export default function CodexScreen({ onBack }: { onBack: () => void }) {
   const unlocked = getUnlockedAchievements()
@@ -25,14 +29,21 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
 
   const row = (opts: {
     key: string
-    icon: string
+    sprite?: IconName
+    icon?: string
     name: string
     desc: string
     locked: boolean
     hint?: string
   }) => (
     <div key={opts.key} className={`${styles.row} ${opts.locked ? styles.rowLocked : ''}`}>
-      <span className={styles.icon}>{opts.locked ? '❓' : opts.icon}</span>
+      <span className={styles.slot}>
+        {opts.sprite ? (
+          <PixelIcon name={opts.locked ? 'locked' : opts.sprite} />
+        ) : (
+          <span className={styles.icon}>{opts.locked ? '❓' : opts.icon}</span>
+        )}
+      </span>
       <span className={styles.text}>
         <span className={`t-display ${styles.name}`}>{opts.locked ? '???' : opts.name}</span>
         <span className={`t-body ${styles.desc}`}>
@@ -63,7 +74,7 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
           const locked = !!p.unlockedBy && !unlocked.has(p.unlockedBy)
           return row({
             key: id,
-            icon: p.icon,
+            sprite: id,
             name: p.name,
             desc: p.desc,
             locked,
@@ -79,7 +90,7 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
           const locked = !!r.unlockedBy && !unlocked.has(r.unlockedBy)
           return row({
             key: id,
-            icon: r.icon,
+            sprite: id,
             name: r.name,
             desc: r.desc,
             locked,
