@@ -197,12 +197,16 @@ const PropLayers = memo(function PropLayers({
 
 export default function WorldMap({ state }: { state: OfficeState }) {
   const mapRef = useRef<HTMLDivElement>(null)
-  const [viewH, setViewH] = useState(MAP_H)
+  // The viewport is measured, not assumed: the phone canvas shows 14 tiles
+  // across and the desktop canvas the whole 24-tile floor (WorldMap.module.css
+  // widens `.map` under the wide-stage container query). Height is fluid on
+  // every canvas. Both fall back to the phone-column figures before mount.
+  const [view, setView] = useState({ w: VIEW_W, h: MAP_H })
 
   useLayoutEffect(() => {
     const el = mapRef.current
     if (!el) return
-    const update = () => setViewH(el.clientHeight || MAP_H)
+    const update = () => setView({ w: el.clientWidth || VIEW_W, h: el.clientHeight || MAP_H })
     update()
     if (typeof ResizeObserver === 'undefined') return
     const ro = new ResizeObserver(update)
@@ -216,15 +220,16 @@ export default function WorldMap({ state }: { state: OfficeState }) {
   const zone = zoneAt(state.player.x, state.player.y, state.floorId)
   const npcTiles = npcTilesForFloor(state.floorId)
 
+  const viewW = view.w
+  const viewH = view.h
+  // clientWidth excludes the 1px borders, so round to whole tiles.
+  const viewCols = Math.max(1, Math.min(MAP_WIDTH, Math.round(viewW / T)))
   const viewRows = viewH / T
   const lookAheadX = state.player.facing === 'e' ? 0.5 : state.player.facing === 'w' ? -0.5 : 0
   const lookAheadY = state.player.facing === 's' ? 0.35 : state.player.facing === 'n' ? -0.35 : 0
   const camX = Math.max(
     0,
-    Math.min(
-      state.player.x + lookAheadX - Math.floor(VIEWPORT_TILES_X / 2),
-      MAP_WIDTH - VIEWPORT_TILES_X,
-    ),
+    Math.min(state.player.x + lookAheadX - Math.floor(viewCols / 2), MAP_WIDTH - viewCols),
   )
   const camYMax = Math.max(0, MAP_HEIGHT - viewRows)
   const camY = Math.max(0, Math.min(state.player.y + lookAheadY - viewRows / 2 + 0.5, camYMax))
@@ -247,7 +252,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
 
   const cardOpen = !!ov && ov.kind !== 'coach'
   const nearbyLeft = nearby
-    ? Math.max(4, Math.min(VIEW_W - 4, (outlineTile?.x ?? ahead.x) * T - camPx.x + T / 2))
+    ? Math.max(4, Math.min(viewW - 4, (outlineTile?.x ?? ahead.x) * T - camPx.x + T / 2))
     : 0
   const nearbyTop = nearby ? Math.max(30, (outlineTile?.y ?? ahead.y) * T - camPx.y - 6) : 0
   const zoneChipYields = !!nearby && !cardOpen && nearbyTop < 64 && nearbyLeft < 220
@@ -263,7 +268,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     npcTiles[callout]!.x === obj.pin.x &&
     npcTiles[callout]!.y === obj.pin.y
   const pinOffLeft = obj.pin.x < camX
-  const pinOffRight = obj.pin.x >= camX + VIEWPORT_TILES_X
+  const pinOffRight = obj.pin.x >= camX + viewCols
   const pinRowOnScreen = Math.max(0, Math.min(viewH - 40, obj.pin.y * T - camPx.y))
   const poiFxTile =
     nearby?.kind === 'poi' &&

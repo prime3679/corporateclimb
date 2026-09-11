@@ -16,6 +16,19 @@ import styles from './TitleScreen.module.css'
 
 const CONFETTI_GLYPHS = ['💰', '🪪', '📈', '☕', '📎', '💼']
 
+/** Backdrop skyline: the phone canvas shows the nine centre blocks; the
+ *  desktop canvas (`@container stage (min-width: 700px)`) also reveals
+ *  eight more either side so the city runs the full 840px width instead of
+ *  stopping at a 212px huddle. Order is left → right. */
+const SKYLINE_CORE = [64, 104, 78, 118, 86, 96, 70, 112, 82]
+const SKYLINE_WING_LEFT = [58, 90, 66, 108, 74, 96, 60, 100]
+const SKYLINE_WING_RIGHT = [94, 62, 106, 72, 88, 58, 98, 68]
+const SKYLINE: ReadonlyArray<{ h: number; wing: boolean }> = [
+  ...SKYLINE_WING_LEFT.map((h) => ({ h, wing: true })),
+  ...SKYLINE_CORE.map((h) => ({ h, wing: false })),
+  ...SKYLINE_WING_RIGHT.map((h) => ({ h, wing: true })),
+]
+
 export default function TitleScreen({
   onStart,
   onContinue,
@@ -88,7 +101,6 @@ export default function TitleScreen({
     onStart()
   }
 
-  const skyline = [64, 104, 78, 118, 86, 96, 70, 112, 82]
   const cast = ['product_manager', 'eng', 'design']
 
   return (
@@ -226,9 +238,10 @@ export default function TitleScreen({
           padding: '0 20px',
         }}
       >
-        {skyline.map((h, i) => (
+        {SKYLINE.map(({ h, wing }, i) => (
           <div
             key={i}
+            className={wing ? styles.skylineWing : undefined}
             style={{
               width: 20,
               height: h,
@@ -248,7 +261,9 @@ export default function TitleScreen({
                   width: 5,
                   height: 5,
                   borderRadius: 1,
-                  background: (i + j) % 3 === 0 ? '#FFD54F' : '#1d4ed8',
+                  // Indexed from the first core block so the phone's lit
+                  // windows land exactly where they always have.
+                  background: (i - SKYLINE_WING_LEFT.length + j) % 3 === 0 ? '#FFD54F' : '#1d4ed8',
                   opacity: 0.8,
                 }}
               />

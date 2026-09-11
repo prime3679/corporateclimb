@@ -15,6 +15,15 @@
   isolation: isolate;
 }
 
+/* Desktop canvas: the whole 24-tile floor across (MAP_WIDTH × TILE_SIZE), so
+   the camera only ever pans vertically and the floor reads as one room
+   plan. WorldMap.tsx measures this box, so no camera constant changes. */
+@container stage (min-width: 700px) {
+  .map {
+    width: 768px;
+  }
+}
+
 .map::before {
   content: '';
   position: absolute;

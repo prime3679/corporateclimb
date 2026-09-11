@@ -159,6 +159,16 @@
   animation: ovl-rise 140ms var(--cc-ease-out);
 }
 
+/* Wide stage: the dock spans the 768px floor, which is too long a measure
+   for dialogue. Cap it and centre over the map (auto margins on an
+   over-constrained absolute box). */
+@container stage (min-width: 700px) {
+  .dialogue {
+    max-width: 560px;
+    margin: 0 auto;
+  }
+}
+
 .dlgHead {
   display: flex;
   align-items: center;
