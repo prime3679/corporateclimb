@@ -28,12 +28,17 @@ export function formatFloorTime(ms: number): string {
   return `${m}:${String(s).padStart(2, '0')}`
 }
 
-/** "Floor 1 · Team of 2 · 📈 28 · 11:42 in" — the title/start summary line. */
-export function campaignSummary(save: OfficeSave): string {
+/** "Floor 1 · Team of 2 · 📈 28 · 11:42 in" — the title/start summary line.
+ *  `plain` spells the wallet out ("28 options") for surfaces that carry no
+ *  decorative glyphs, like the status line under THE OFFICE on the title. */
+export function campaignSummary(save: OfficeSave, opts: { plain?: boolean } = {}): string {
+  const wallet = opts.plain
+    ? `${save.run.stockOptions} options`
+    : `${CURRENCY_ICON} ${save.run.stockOptions}`
   return [
     floorLabel(save.floorId),
     `Team of ${save.party.length}`,
-    `${CURRENCY_ICON} ${save.run.stockOptions}`,
+    wallet,
     `${formatFloorTime(save.stats.msOnFloor)} in`,
   ].join(' · ')
 }

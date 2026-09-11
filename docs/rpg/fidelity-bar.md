@@ -616,6 +616,68 @@ Product code untouched: demo script, mp4 and docs only.
   floor3 67.2 s · floor4 75.8 s · exec 84.4 s · THE CLIMB 94.8 s · end card
   99.2–102.2 s.
 
+### Pass J — welcome: night lobby midtones
+
+Title refinement on tip `4d636c0`, after the Captain read the `#118`
+production shot as **off-center, not pretty, too dark**. A refine, not a
+costume swap: same lobby, same cast, same labels, same e2e selectors.
+Locked by Firstmate + Designer as **Option B — night lobby midtone lift**:
+the field stays dark (`#12141a`–`#1a1e28`) and lifts its midtones. A
+cream / paper (`#f4f1ea`) variant was built and reverted on the same
+branch; no light ground ships anywhere. No Floor 6, no iOS, no engine
+work, Classic untouched, demo mp4 not remuxed.
+
+**Before.** On the 840 desktop canvas the one-line wordmark was a row flex
+box with no `justify-content`, so it sat ~90px left of the FLOOR 30 sign /
+lead plate / deck axis. Around it: a near-black field with a 76px grid, an
+elevator shaft and two neighbour shafts in gold, blue city pools in the
+corners, a 170px two-row skyline, a breathing gold glow on the hero, foot
+pools under every plate, a wider lifted lead plate, a 400/440px deck that
+did not match the 348/466px cast row, and SOUND / SET floating in the
+viewport corner 20px above the sign's row.
+
+**After.**
+
+- **Spine.** `justify-content: center` on the row wordmark plus a
+  `padding-left` equal to its letter-spacing (the trailing tracking unit
+  otherwise pulls the glyph box off-centre). Sign, wordmark glyphs, lead
+  plate and deck now share one centre X on both canvases (guarded in
+  `e2e/first-three-minutes.spec.ts` at ±2px by glyph range, which fails at
+  91px on `#118`).
+- **One column.** `--plate-w` / `--plate-gap` drive everything: three equal
+  plates (132 / 32 desktop, 116 / 20 phone, 124 / 20 tall phone, 104 / 16
+  compact), the deck is exactly `3 × plate + 2 × gap` wide, the floor line
+  a hair wider. Plates and deck share `--lobby-glass`, `--lobby-line` and a
+  12px radius; the deck sits 20px under the plates (16 compact). The lead
+  plate keeps its size and gets a 2px gold ring drawn inside its own box
+  (1px border + 1px inset shadow) — no width, no lift, no outer glow.
+- **Top row.** `.top-chrome[data-on-title]` (global.css) drops SOUND / SET
+  onto the sign's 24px baseline at the column's right edge (20px phone,
+  40px desktop — the title's own side padding). Every other screen keeps
+  the 8px corner; `battle-arena.spec.ts` still passes.
+- **Bands.** header → cast 24px (32 tall phone, 18 compact), cast → deck
+  20 (24 / 16). Heads rise into the header gap by `plate × 0.34` of cast
+  padding, so the lede never collides.
+- **Light.** Field `#1a1e28 → #12141a` (no grid, no shafts, no blue pools),
+  one warm pool behind the cast at 7–8%. Glass fill `rgba(30,38,54,.9)`
+  for plates and deck. Wordmark keeps the brushed fill, loses the gold
+  under-glow, gains a 1px dark hairline drop-shadow. Skyline is a footer:
+  towers drawn at 0.66 scale, band 110 / 120 / 88px (≤ 12% of the stage),
+  tower fills one value above the field, lit windows kept.
+- **Chrome calm.** Hero: brushed gold, soft offset shadow only, breathing
+  glow and keyframes deleted. CONTINUE `#307199` (blue desaturated ~20%)
+  on the ghosts' 1px light stroke; DAILY `#8e3a3e` brick; NEW CLIMB and
+  CODEX near-transparent with a `rgba(255,255,255,.3)` stroke; eyebrows
+  gold at 72% with flat 20% hairlines. Status line spells the wallet out
+  (`20 options`, `campaignSummary(save, { plain: true })`) and the career
+  strip drops its emoji; both are `tabular-nums`. Kicker quieter (gold 72%,
+  28 / 56px hairlines); tagline and lede unchanged.
+- **Budgets.** With both saves + a four-item career strip: deck bottom 718
+  / 760 on 1080p, 763 / 815 on 440×760, 915 / 1021 on 390×844. The compact
+  block compresses deck padding, hero padding and the strip before any
+  plate shrinks; the wide block only sets horizontal padding so it cannot
+  undo that on the 840×760 desktop stage.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear

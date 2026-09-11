@@ -29,6 +29,37 @@ test('first three minutes present a stronger hook and clearer choices', async ({
   expect(officeBox!.width).toBeGreaterThan(classicBox!.width)
   expect(officeBox!.height).toBeGreaterThan(classicBox!.height)
 
+  // One spine: the FLOOR 30 sign, the wordmark glyphs, the lead (centre)
+  // plate and the hero share a centre X. The wordmark is measured by its
+  // glyph range, not its flex box, so a left-aligned line can't hide
+  // inside a full-width h1 (the #118 desktop composition sat ~90px left).
+  const sign = page.getByText('▲ FLOOR 30')
+  const centreX = (b: { x: number; width: number }) => b.x + b.width / 2
+  const spine = centreX(officeBox!)
+  const wordmark = await page.locator('h1').evaluate((el) => {
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    const r = range.getBoundingClientRect()
+    return { x: r.x, width: r.width }
+  })
+  const [signBox, leadBox] = await Promise.all([
+    sign.boundingBox(),
+    page.locator('figure').nth(1).boundingBox(),
+  ])
+  expect(Math.abs(centreX(wordmark) - spine)).toBeLessThanOrEqual(2)
+  expect(Math.abs(centreX(signBox!) - spine)).toBeLessThanOrEqual(2)
+  expect(Math.abs(centreX(leadBox!) - spine)).toBeLessThanOrEqual(2)
+
+  // Top chrome shares the sign's row instead of floating in the corner,
+  // and the three role plates are equal — the lead's ring is drawn inside.
+  const soundBox = await page.getByRole('button', { name: 'Mute music' }).boundingBox()
+  expect(Math.abs(soundBox!.y - signBox!.y)).toBeLessThanOrEqual(1)
+  const plateWidths = await page
+    .locator('figure')
+    .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width))
+  expect(plateWidths).toHaveLength(3)
+  expect(Math.max(...plateWidths) - Math.min(...plateWidths)).toBeLessThanOrEqual(0.5)
+
   await classic.click()
   await expect(page.getByText('SELECT CAREER ARCHETYPE')).toBeVisible({ timeout: 10_000 })
 })
