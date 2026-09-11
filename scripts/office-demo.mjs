@@ -6,6 +6,10 @@
  * stingers at scene marks. Combat ducks the Floor 1 bed to 22%.
  * Route: Office-first welcome → offer → F1 Renata + Gavin spar → cab →
  * F2 help desk (Teddy) → F3/F4/F5 cast peeks → THE CLIMB.
+ * The 1280×720 viewport is desktop-class (≥ DESKTOP_MIN_WIDTH), so the
+ * capture runs on the 840 canvas inside the theater frame: one-line
+ * wordmark, glass cast plates, two-row skyline, spine + keyboard wings.
+ * The phone canvas (472) is never what the trailer records.
  * Writes /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
  */
 import { chromium } from '@playwright/test'
@@ -526,7 +530,9 @@ async function main() {
     }, SETTINGS)
     await page.reload()
     await page.getByRole('button', { name: 'THE OFFICE' }).waitFor({ timeout: 25_000 })
-    await hold(page, 2000)
+    // Let the Meng welcome read: plates rise past the rail, the hero glow
+    // breathes one full 3.2 s cycle before the cut into the offer.
+    await hold(page, 3600)
 
     mark('office-title')
     await page.getByRole('button', { name: 'THE OFFICE' }).click()
