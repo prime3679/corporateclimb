@@ -9,7 +9,7 @@ import { BOOT_COLOR } from '@/platform/native'
  *
  * A cold native launch walks LaunchScreen storyboard → SplashScreen plugin →
  * WKWebView background → html/body/#root → .boot-splash → Stage. Every link
- * must be frame black (`--cc-bg`), or the launch shows a color step. The
+ * must be night-lobby midtone (`--cc-bg`), or the launch shows a color step. The
  * Capacitor CLI loads capacitor.config.ts outside Vite, so the value is
  * mirrored as literals rather than imported; this file is what keeps the
  * mirrors honest. The splash PNG is decoded so a regenerated asset that
@@ -24,8 +24,8 @@ const HEX = /#[0-9a-f]{6}\b/gi
 const LEGACY_SHADES = ['#0f172a', '#263238']
 
 describe('boot color chain', () => {
-  it('is the frame black token', () => {
-    expect(BOOT_COLOR).toBe('#06080c')
+  it('is the night-lobby midtone token', () => {
+    expect(BOOT_COLOR).toBe('#12141a')
     expect(repoText('src/ui/tokens.css')).toMatch(new RegExp(`--cc-bg:\\s*${BOOT_COLOR};`))
   })
 
@@ -139,7 +139,7 @@ describe('resources/splash.png', () => {
     expect(png.h).toBe(CANVAS)
   })
 
-  it('is frame black to every edge (the crop can start anywhere)', () => {
+  it('is night-lobby midtone to every edge (the crop can start anywhere)', () => {
     const edge = CANVAS - 1
     for (const [x, y] of [
       [0, 0],

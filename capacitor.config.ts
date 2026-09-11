@@ -1,18 +1,19 @@
 import type { CapacitorConfig } from '@capacitor/cli'
 
 /**
- * Frame black — the one boot color. It is `--cc-bg` in `src/ui/tokens.css`,
- * the surface the ladder sits on in `index.html`'s `.boot-splash` and in the
- * Stage card, so a cold launch is one unbroken black from the LaunchScreen
- * storyboard through the SplashScreen plugin, the WKWebView background,
- * `html/body/#root`, `.boot-splash`, and the React preloader.
+ * Night-lobby midtone / Title field floor — the one boot color. It is
+ * `--cc-bg` in `src/ui/tokens.css`, the surface the ladder sits on in
+ * `index.html`'s `.boot-splash` and in the Stage card, so a cold launch is
+ * one unbroken midtone from the LaunchScreen storyboard through the
+ * SplashScreen plugin, the WKWebView background, `html/body/#root`,
+ * `.boot-splash`, and the React preloader.
  *
  * Keep in step with BOOT_COLOR in `src/platform/native.ts`, the inline
  * `<style>` + `theme-color` in `index.html`, and
  * `public/manifest.webmanifest`. `src/__tests__/boot-splash.test.ts` fails
  * if any link in the chain drifts. See docs/ios-capacitor-plan.md §2.7.
  */
-const BOOT_COLOR = '#06080c'
+const BOOT_COLOR = '#12141a'
 
 // Portrait orientation is Xcode-only (UISupportedInterfaceOrientations on the
 // iOS target). Capacitor config cannot lock it; set it after `npx cap add ios`.
@@ -21,7 +22,7 @@ const config: CapacitorConfig = {
   appName: 'Corporate Climb',
   webDir: 'dist',
   // WKWebView background — visible only in the gap between the native splash
-  // fading out and the first HTML paint. Same black, so there is no gap to see.
+  // fading out and the first HTML paint. Same midtone, so there is no gap to see.
   backgroundColor: BOOT_COLOR,
   ios: {
     // The WebView is full-bleed under the status bar and home indicator;
@@ -40,12 +41,12 @@ const config: CapacitorConfig = {
       showSpinner: false,
     },
     StatusBar: {
-      // Style.Dark = light text on a dark bar, sitting over frame black.
+      // Style.Dark = light text on a dark bar, sitting over night-lobby midtone.
       style: 'DARK',
       // Overlay: the bar is transparent and the WebView draws underneath it;
       // safe-area padding in index.html keeps the game clear of the glyphs.
       // (With overlay off the plugin shrinks the WebView and paints this
-      // backgroundColor behind the bar instead — same black either way.)
+      // backgroundColor behind the bar instead — same midtone either way.)
       overlaysWebView: true,
       backgroundColor: BOOT_COLOR,
     },

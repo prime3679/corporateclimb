@@ -37,6 +37,16 @@ describe('player-facing app name', () => {
     expect(html).toContain(`<div class="boot-wordmark">${APP_NAME.toUpperCase()}</div>`)
   })
 
+  it('link-preview url and images are absolute on corpclimber.com', () => {
+    expect(attr(html, /<meta property="og:url" content="([^"]*)"/)).toBe('https://corpclimber.com/')
+    expect(attr(html, /<meta property="og:image" content="([^"]*)"/)).toBe(
+      'https://corpclimber.com/og.png',
+    )
+    expect(attr(html, /<meta name="twitter:image" content="([^"]*)"/)).toBe(
+      'https://corpclimber.com/og.png',
+    )
+  })
+
   it('the PWA manifest and the native shell agree on the full name', () => {
     expect(manifest.name).toBe(APP_NAME)
     expect(repoText('capacitor.config.ts')).toContain(`appName: '${APP_NAME}'`)
@@ -60,7 +70,11 @@ describe('player-facing app name', () => {
       'src/screens/RunCompleteScreen.tsx',
       'src/screens/DailyResultScreen.tsx',
     ]) {
-      expect(repoText(file), file).not.toMatch(/CorpClimb/i)
+      // Absolute share URLs contain "corpclimber.com"; strip the public origin
+      // first so that host is not a mashed-name false positive.
+      expect(repoText(file).replace(/https:\/\/corpclimber\.com\//g, ''), file).not.toMatch(
+        /CorpClimb/i,
+      )
     }
   })
 })

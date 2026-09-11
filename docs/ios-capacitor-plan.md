@@ -37,9 +37,9 @@ The Capacitor swap is a branch _inside_ each adapter.
 | --------------- | -------------------------------------------------------------------- | ----------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
 | SW registration | `src/main.tsx` (prod only, `/sw.js`)                                 | Precache + network-first navigations; `WARM_MUSIC` after first gesture  | **Skip** when `isNative()` — native shell bundles assets; a SW would fight the local scheme |
 | SW template     | `public/sw.js` (`VERSION` / `__PRECACHE` placeholders)               | `scripts/sw-precache-plugin.ts` injects the manifest at `npm run build` | Leave as-is for the PWA; native never registers it                                          |
-| Manifest        | `public/manifest.webmanifest`                                        | `display: standalone`, `orientation: portrait`, `theme_color: #06080c`  | Native config owns orientation/theme; manifest stays for the web PWA                        |
+| Manifest        | `public/manifest.webmanifest`                                        | `display: standalone`, `orientation: portrait`, `theme_color: #12141a`  | Native config owns orientation/theme; manifest stays for the web PWA                        |
 | Boot splash     | `index.html` `.boot-splash`                                          | Static markup until React mounts                                        | Keep; `resources/splash.png` mirrors it for the storyboard + `@capacitor/splash-screen`     |
-| Boot color      | `#06080c` frame black (`--cc-bg`)                                    | `theme-color`, `html/body/#root`, `.boot-splash`, Stage card            | Same value in `capacitor.config.ts` + `BOOT_COLOR`; `boot-splash.test.ts` guards the chain  |
+| Boot color      | `#12141a` night-lobby midtone (`--cc-bg`)                            | `theme-color`, `html/body/#root`, `.boot-splash`, Stage card            | Same value in `capacitor.config.ts` + `BOOT_COLOR`; `boot-splash.test.ts` guards the chain  |
 | Safe area       | `index.html` `viewport-fit=cover` + `#root` `env(safe-area-inset-*)` | Already pads notches; Stage backdrop subtracts the same insets          | Keep as the **only** inset: `overlaysWebView: true`, `ios.contentInset: 'never'`            |
 | Leaderboard     | `src/leaderboard.ts` `API = '/api/daily-leaderboard'`                | Same-origin Vercel function                                             | Native needs an **absolute** base URL (one constant)                                        |
 | Saves           | guarded `localStorage` via `src/engine/save.ts`                      | Versioned (currently **v8**); migration pipeline                        | Unchanged; `@capacitor/preferences` only if WebView eviction becomes real                   |
@@ -97,9 +97,9 @@ iOS-first: add the iOS platform in the wrap track; Android can wait.
 
 ### 2.7 Splash, boot color, status bar, portrait
 
-**One boot color: frame black `#06080c`** (`--cc-bg` in `src/ui/tokens.css`).
+**One boot color: night-lobby midtone `#12141a`** (`--cc-bg` in `src/ui/tokens.css`, Title field floor).
 It is the surface the ladder sits on in `.boot-splash` and in the Stage card,
-so a cold launch is a single unbroken black:
+so a cold launch is a single unbroken midtone:
 
 ```
 LaunchScreen.storyboard (Splash.imageset, aspect-fill)   resources/splash.png
@@ -136,7 +136,7 @@ transparent overlay, the WebView is full-bleed, and `index.html`'s `#root`
 padding from `env(safe-area-inset-*)` is the **only** inset.
 
 - `capacitor.config.ts`: `StatusBar.overlaysWebView: true`, `style: 'DARK'`
-  (light glyphs), `backgroundColor` frame black (only drawn if overlay is
+  (light glyphs), `backgroundColor` night-lobby midtone (only drawn if overlay is
   ever off); `ios.contentInset: 'never'` so UIKit never adds a scroll inset
   on top of the CSS one. Any other `contentInset` double-insets.
 - `bootstrapNativeChrome()` sets the light style, then re-asserts
@@ -156,16 +156,16 @@ padding from `env(safe-area-inset-*)` is the **only** inset.
 **Simulator checklist (Mac; this is what Fable could not run):**
 
 1. Copy `resources/splash.png` to the three `Splash.imageset` names; set the
-   storyboard root view background to `#06080C` (template ships white).
+   storyboard root view background to `#12141A` (template ships white).
 2. Cold-launch on iPhone 16 Pro Max and iPhone SE (3rd gen): storyboard →
-   plugin → boot splash → title must be one black with **no** grey, slate, or
+   plugin → boot splash → title must be one night-lobby midtone with **no** grey, slate, or
    white frame at any step. Record with the Simulator's screen recording and
    step frames if unsure.
 3. The ladder should hold position through the 200 ms fade. Expected
    residual: the HTML splash centers inside the safe-area-padded `#root`, so
    its hero sits (top − bottom inset) / 2 ≈ 12 pt lower than the screen-centered
    storyboard image. A soft settle is fine; a hop or a size jump is not.
-4. Status bar glyphs are white over frame black; nothing draws under the
+4. Status bar glyphs are white over night-lobby midtone; nothing draws under the
    clock or the home indicator; the battle FIGHT row is fully visible at the
    bottom (that is the backdrop fix above working).
 5. Rotate: portrait lock (§2.6 Xcode) holds; on iPad the aspect-fill crop
@@ -210,14 +210,14 @@ Still not store submit. No IAP, no Swift rewrite.
 - [x] Skip SW (§2.4); absolute leaderboard URL (§2.5)
 - [x] Splash / status plugin _config_ in `capacitor.config.ts` (§2.7 web half)
 - [x] Confirm PWA path still registers SW in production web builds (`!isNative()`)
-- [x] One boot color (`#06080c`) across storyboard config, plugin, WebView, HTML void, boot splash, manifest (§2.7)
+- [x] One boot color (`#12141a`) across storyboard config, plugin, WebView, HTML void, boot splash, manifest (§2.7)
 - [x] Branded splash art `resources/splash.png` + generator + pixel guard (§2.7)
 - [x] Status-bar overlay model pinned (`overlaysWebView`, `contentInset`, runtime re-assert); Stage backdrop honors the insets (§2.7)
 
 **Mac-blocked** (do not run on Linux CI; no `ios/` commit):
 
 - [ ] `npx cap add ios` + `npx cap sync` (§2.6)
-- [ ] Copy `resources/splash.png` into `Splash.imageset`; storyboard background `#06080C` (`resources/README.md`)
+- [ ] Copy `resources/splash.png` into `Splash.imageset`; storyboard background `#12141A` (`resources/README.md`)
 - [ ] Portrait lock in Xcode (`UISupportedInterfaceOrientations`) — not expressible in Capacitor config
 - [ ] Simulator cold-launch pass per the §2.7 checklist (no color step, hero holds, bar glyphs white, FIGHT row visible)
 - [ ] Simulator smoke: title → battle haptic → background music pause → share

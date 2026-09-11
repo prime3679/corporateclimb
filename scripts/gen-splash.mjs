@@ -8,8 +8,9 @@
  * all 2732×2732) through a `scaleAspectFill` image view: the square is scaled
  * until it covers the screen and the overflow is cropped. This script renders
  * the `.boot-splash` from index.html — same ladder rects, same tracking, same
- * frame black — at that canvas size, so the plugin's 200 ms fade lands on
- * identical art and a cold launch reads as one continuous moment.
+ * night-lobby midtone / Title field floor — at that canvas size, so the
+ * plugin's 200 ms fade lands on identical art and a cold launch reads as one
+ * continuous moment.
  *
  * Sizing. A 2732 canvas covers a 2556 px-tall @3x iPhone (15/16 class) at
  * 2556/2732 = 0.9356; the boot splash draws the ladder at 76 CSS px = 228
@@ -39,8 +40,8 @@ import { chromium } from '@playwright/test'
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const require = createRequire(import.meta.url)
 
-/** Frame black — BOOT_COLOR in src/platform/native.ts. */
-const BOOT_COLOR = '#06080c'
+/** Night-lobby midtone / Title field floor — BOOT_COLOR in src/platform/native.ts. */
+const BOOT_COLOR = '#12141a'
 const TEXT = '#f2f6fa'
 const GOLD = '#ffc107'
 const GOLD_BRIGHT = '#ffd54f'

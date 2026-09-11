@@ -1,7 +1,7 @@
 # Native splash source
 
-`splash.png` is the Capacitor splash for the iOS shell: 2732×2732, frame black
-(`#06080c`, the one boot color), the boot ladder and the tracked wordmark from
+`splash.png` is the Capacitor splash for the iOS shell: 2732×2732, night-lobby
+midtone (`#12141a`, the one boot color / Title field floor), the boot ladder and the tracked wordmark from
 `index.html`'s `.boot-splash` at native density. It is generated, and it is the
 committed source of truth — do not hand-edit it.
 
@@ -36,7 +36,7 @@ reads this folder by name (custom mode: `splash.png` ≥ 2732²; drop an
 `icon-only.png` ≥ 1024² beside it when the app icon is ready and the same run
 fills `AppIcon.appiconset`). Either path lands the same pixels.
 
-Also set the storyboard's root view `backgroundColor` to `#06080c` in Xcode:
+Also set the storyboard's root view `backgroundColor` to `#12141a` in Xcode:
 aspect-fill covers it in practice, but the template ships `systemBackground`
 (white), and a white edge under any future letterbox would be the exact flash
 this asset exists to prevent.
