@@ -625,7 +625,8 @@ Locked by Firstmate + Designer as **Option B — night lobby midtone lift**:
 the field stays dark (`#12141a`–`#1a1e28`) and lifts its midtones. A
 cream / paper (`#f4f1ea`) variant was built and reverted on the same
 branch; no light ground ships anywhere. No Floor 6, no iOS, no engine
-work, Classic untouched, demo mp4 not remuxed.
+work, Classic untouched, demo mp4 not remuxed (that lane followed once
+`#123` landed: "Pass J — demo remux: #123 Title" below).
 
 **Before.** On the 840 desktop canvas the one-line wordmark was a row flex
 box with no `justify-content`, so it sat ~90px left of the FLOOR 30 sign /
@@ -683,7 +684,8 @@ viewport corner 20px above the sign's row.
 Designer Shoulds from the `#122` visual second pass, on tip `a6649bc`.
 Three CSS/copy touches on the title only; Option B night lobby, `--cc-*`,
 the optical spine, the Q4 kicker and the officeBox / classicBox hierarchy
-are untouched. No cream, no Floor 6, no iOS, no remux.
+are untouched. No cream, no Floor 6, no iOS, no remux (that lane
+followed: "Pass J — demo remux: #123 Title" below).
 
 - **Lead ring.** `.plateLead` was a soft edge — 1px border at 70% gold
   plus a 1px inset at 50%. Now both are solid `--gold-bright`: a hard 2px
@@ -741,6 +743,42 @@ untouched.
 - **Keyboard legend** (Designer Should: sans) already holds on this tip —
   `.theater` sets `--cc-font-body`, so the legend labels and keycaps are
   Space Grotesk; nothing to change.
+
+### Pass J — demo remux: #123 Title
+
+`public/demos/office-demo.mp4` re-recorded on tip `d32761e` (`#123` Should
+polish over the `#122` night lobby) through the same `npm run demo:office`
+pipeline; the `#121` capture predated both title passes. Same mux — silent
+Playwright video, live beds and stingers at the scene marks, Floor 1 bed
+ducked to 22% across the spar. ~102 s at 1280×720; no hand-edited bytes.
+Product code untouched: demo script, mp4 and docs only.
+
+- **Welcome** now records the locked Option B night lobby with the `#123`
+  Shoulds on top: field `#1a1e28 → #12141a` with the footer skyline (no
+  grid, no shafts, no blue pools, no cream), Q4 kicker kept, wordmark on
+  the optical spine with the sign / lead plate / deck, sentence-case
+  tagline `Reception to the board. One badge swipe from glory.`, three
+  equal glass plates with the hard 2px inset gold ring on the ENGINEER
+  lead (no bloom, no width, no lift), and the gold THE OFFICE hero in the
+  glass deck with no breathing glow. CONTINUE-blue START CLIMB, brick
+  DAILY and the ghost CODEX sit under it; SOUND / SET ride the sign's
+  baseline.
+- **Script.** The 3.6 s welcome dwell stays, but its comment no longer
+  credits the hero breathe cycle `#122` deleted — the dwell is for the
+  static composition to read before the cut into the offer. The header
+  describes the night-lobby title the desktop viewport records. No other
+  script change; no viewport change.
+- **Kept from `#121`.** Desktop theater / 840 canvas on every beat, F1
+  Renata / Gavin on the recast plates, the wide-stage spar (Gavin on the
+  236 stand up-right, `-204 NICE HIT` on his stand), F2 HELP / DESK glass
+  walk to Teddy's transfer-packet line, F3–5 peeks and THE CLIMB.
+- End card still reads `Pass J · tip`. No Floor 6; Classic never entered
+  (blue secondary on the title only).
+- Marks (body offset by the 3.2 s title card): welcome 3.2–7.1 s · floor1
+  12.3 s · combat 39.6 s · hit lands ~41.6 s · CLEARED 44.4 s · cab
+  50.5 s · FLOOR 1 CLEARED 53.2 s · floor2 56.6 s · helpdesk 61.5 s ·
+  floor3 67.1 s · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
+  99.2–102.2 s.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
