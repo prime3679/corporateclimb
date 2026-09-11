@@ -1038,6 +1038,53 @@ Shots in `docs/rpg/office-hud-pad-density/`: `before-hud.png` /
 the latter with the `E · Talk · Renata` prompt over the folded cluster),
 `office-phone.png` (390×844, unchanged pad).
 
+### Pass J — public: Daily night glass calm
+
+Polish DRAFT after the ranked public-bar queue, Fable lane
+(`corpclimber-fable-daily-calm-0911`), authored on tip `84d515d` (`#131`
+HUD labels). `#129` named `DailyPreScreen` as still on the orange shadow;
+this closes that and its sibling. The Daily brief carried `DAILY CHALLENGE
+#n` on the arcade `2px 2px 0 #e65100` hard shadow over the pre-`#122`
+indigo field (`#1a237e → #3949ab`), and a cleared Daily painted the whole
+result screen in an orange-to-gold wash (`#ff6f00 → #ffd54f`) with the
+modifier name in `#e65100` and the verdict / streak flipped to ink to
+survive it. CSS only (`DailyPreScreen.module.css`,
+`DailyResultScreen.module.css`): both `.tsx`, the smoke path
+(`e2e/smoke.spec.ts`) and the daily seeding are untouched. Night lobby
+untouched; phone 472 canvas untouched; no cream.
+
+**After.**
+
+- **Field.** Both screens sit on the Title's tinted night lobby verbatim
+  (`#1a1e28 → #161a24 → #12141a`, the `#130` Codex move) under its faint
+  top wash (`70% 26%` ellipse, white 3.5%) — DAILY from the deck is a cut
+  inside the same building. Root type is `--cc-text`.
+- **Won.** The orange wash becomes one warm pool at the Title cast's value
+  (`48% 24%` ellipse at `50% 16%`, gold 7% — the `#129` Promotion pool)
+  behind the verdict. The `.won` ink overrides on verdict, modifier name and
+  streak are gone: gold reads in either state, so a cleared day is warmer,
+  not louder, than a fallen one.
+- **Type.** `DAILY CHALLENGE #n` and `DAILY #n CLEARED / FAILED` take the
+  Title wordmark's lift — one 1px dark hairline (`0 1px 0 rgba(5,7,13,.6)`),
+  no offset colour — in `--cc-gold-bright`; the streak line moves onto the
+  token. **Nothing on either Daily screen draws `#e65100`.** The modifier
+  card, rules chip, class cards, score card and share grid are as they
+  were; gold stays the one accent and wins by value, not bloom.
+
+**Interlude, deliberately out.** `InterludeScreen.module.css` never draws
+`#e65100`; its `.header` runs a brown `2px 2px 0 rgba(122,55,15,.92)`
+offset and two 16% gold `.glow` blobs — a cousin of the costume, but it is
+the `#50` Classic notice-board look and wraps seven screens (Elevator,
+Game Over, Run Complete, Supply Closet, Route Choice, Hallway, Act
+transition). Left for its own pass, together with the inline `#E65100`
+shadows still in `HallwayEventScreen`, `BattleVictoryScreen`,
+`ClassSelect` and `FloorIntro`.
+
+After-shots in `docs/rpg/daily-night-glass-calm/`: `daily-pre-phone.png`
+(390×844, via the Title deck), `daily-pre-desktop.png` (1280×720 theater),
+`daily-won-phone.png` and `daily-failed-phone.png` (390×844, the result
+screen mounted in the real `Stage` with a seeded 15/15 and 8/15 record).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear

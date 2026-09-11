@@ -1,7 +1,13 @@
 /* Daily result: verdict, modifier, score card, share grid, streak, share,
    leaderboard, back. Phone values match the screen as it has always
    rendered; the wide-canvas block turns the score card into a report card
-   (score | stats) and seats the share grid beside the streak. */
+   (score | stats) and seats the share grid beside the streak.
+
+   Light architecture follows the Title / Settings night glass: both
+   verdicts sit on the Title's tinted night lobby. A loss gets the faint
+   top wash; a win swaps it for one warm pool at the Title cast's value
+   behind the verdict instead of the old orange-to-gold wash, so the gold
+   type stays gold in either state and reads by value, not bloom. */
 
 .screen {
   display: flex;
@@ -11,21 +17,25 @@
   height: 100%;
   gap: 14px;
   padding: 20px;
-  background: linear-gradient(180deg, #263238 0%, #37474f 50%, #455a64 100%);
+  color: var(--cc-text);
+  background:
+    radial-gradient(70% 26% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 100%),
+    linear-gradient(180deg, #1a1e28 0%, #161a24 56%, #12141a 100%);
 }
 
 .won {
-  background: linear-gradient(180deg, #ff6f00 0%, #ffa000 30%, #ffc107 60%, #ffd54f 100%);
+  background:
+    radial-gradient(48% 24% at 50% 16%, rgba(255, 193, 7, 0.07), transparent 100%),
+    linear-gradient(180deg, #1a1e28 0%, #161a24 56%, #12141a 100%);
 }
 
+/* Hairline only under the glyphs (the Title wordmark's lift), no offset
+   colour; the same gold whether the day was cleared or not. */
 .verdict {
   font-size: var(--display-xs);
-  color: var(--gold-bright);
+  color: var(--cc-gold-bright);
   letter-spacing: 3px;
-}
-
-.won .verdict {
-  color: var(--ink);
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
 }
 
 .modIcon {
@@ -35,10 +45,6 @@
 .modName {
   font-size: var(--display-2xs);
   color: var(--amber-deep);
-}
-
-.won .modName {
-  color: #e65100;
 }
 
 .scoreCard {
@@ -90,11 +96,7 @@
 
 .streak {
   font-size: var(--display-2xs);
-  color: var(--gold-bright);
-}
-
-.won .streak {
-  color: var(--ink);
+  color: var(--cc-gold-bright);
 }
 
 /* Wide stage (desktop canvas): the score card widens into a report card —
