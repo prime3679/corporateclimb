@@ -57,7 +57,7 @@ and the remaining roadmap):
 - `src/platform/` — framework-free native-capability adapters (haptics, wake lock,
   lifecycle, install prompt, share). Nothing here may import React; the Capacitor
   store-build swap is documented in `docs/PLATFORM.md`. The boot color (`BOOT_COLOR`,
-  frame black `#06080c`) is mirrored in `capacitor.config.ts`, `index.html`, and the
+  night-lobby midtone `#12141a`) is mirrored in `capacitor.config.ts`, `index.html`, and the
   manifest — `src/__tests__/boot-splash.test.ts` guards the chain, and
   `resources/splash.png` (regenerate with `node scripts/gen-splash.mjs`) must keep
   matching the `.boot-splash` in `index.html`.

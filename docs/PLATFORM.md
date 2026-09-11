@@ -33,7 +33,7 @@ never touch a browser API directly.
 5. **Mac-blocked:** `npm run build && npx cap add ios && npx cap sync`, then copy `resources/splash.png` into `ios/App/App/Assets.xcassets/Splash.imageset/` (three names, see `resources/README.md`).
    iOS-first; Android can wait. Details, Simulator checklist, and STOP-before-submit: [`ios-capacitor-plan.md`](./ios-capacitor-plan.md).
 6. Native niceties that replace web equivalents:
-   - **One boot color, frame black `#06080c`** (`--cc-bg`) — storyboard art,
+   - **One boot color, night-lobby midtone `#12141a`** (`--cc-bg`, Title field floor) — storyboard art,
      SplashScreen plugin, WKWebView background, `html/body/#root`,
      `.boot-splash`, `theme-color`, and the manifest all carry it, so a
      cold launch has no color step. `BOOT_COLOR` in `src/platform/native.ts`
@@ -44,7 +44,7 @@ never touch a browser API directly.
      density; the plugin fades into the identical `.boot-splash` in
      `index.html`.
    - `@capacitor/status-bar` — transparent overlay (`overlaysWebView: true`,
-     re-asserted at runtime), light glyphs, frame-black fallback color.
+     re-asserted at runtime), light glyphs, night-lobby midtone fallback color.
      `index.html`'s `viewport-fit=cover` + `#root` `env(safe-area-inset-*)`
      padding is the only inset (`ios.contentInset: 'never'`); the Stage
      backdrop subtracts the same insets from `100dvh` so nothing is clipped.

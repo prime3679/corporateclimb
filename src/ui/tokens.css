@@ -9,7 +9,7 @@
   /* ═══ CANONICAL SYSTEM (--cc-*) ═══════════════════════════ */
 
   /* Surfaces */
-  --cc-bg: #06080c; /* app frame backdrop (deepest) */
+  --cc-bg: #12141a; /* night-lobby midtone / Title field floor */
   --cc-stage: #0a0d12; /* stage behind the frame */
   --cc-surface-1: #182130; /* primary card */
   --cc-surface-2: #101722; /* dark card */
