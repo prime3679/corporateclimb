@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { getSpriteUrls } from '@/components/PixelSprite'
-import { getBestAscension } from '@/data'
+import { PLAYER_CLASSES, TYPE_COLORS, getBestAscension } from '@/data'
 import { getDailyStreak, hasPlayedToday } from '@/daily'
 import { getLifetimeStats } from '@/history'
 import {
@@ -12,6 +12,7 @@ import {
 } from '@/konami'
 import { SFX } from '@/sfx'
 import { Button } from '@/ui'
+import type { ClassId } from '@/types'
 import styles from './TitleScreen.module.css'
 
 const CONFETTI_GLYPHS = ['💰', '🪪', '📈', '☕', '📎', '💼']
@@ -27,6 +28,24 @@ const SKYLINE: ReadonlyArray<{ h: number; wing: boolean }> = [
   ...SKYLINE_WING_LEFT.map((h) => ({ h, wing: true })),
   ...SKYLINE_CORE.map((h) => ({ h, wing: false })),
   ...SKYLINE_WING_RIGHT.map((h) => ({ h, wing: true })),
+]
+
+/** A second, farther row of towers half a block out of phase with the
+ *  near row: shorter, dimmer, unlit. Gives the city depth so the bottom of
+ *  the stage reads as a skyline rather than a comb of nine blocks. */
+const SKYLINE_FAR: ReadonlyArray<{ h: number; wing: boolean }> = [
+  ...[72, 118, 84, 130, 96, 108, 78, 124].map((h) => ({ h, wing: true })),
+  ...[110, 136, 122, 150, 128, 142, 116, 146, 132, 120].map((h) => ({ h, wing: false })),
+  ...[104, 126, 90, 138, 98, 116, 82, 110].map((h) => ({ h, wing: true })),
+]
+
+/** The three lead roles, in the order they stand on the lobby floor:
+ *  the engineer takes the centre plate. Role captions are short on purpose
+ *  — the badge frame is 96px wide on a phone. */
+const CAST: ReadonlyArray<{ id: ClassId; role: string; lead?: boolean }> = [
+  { id: 'pm', role: 'PRODUCT' },
+  { id: 'eng', role: 'ENGINEER', lead: true },
+  { id: 'design', role: 'DESIGN' },
 ]
 
 export default function TitleScreen({
@@ -101,79 +120,29 @@ export default function TitleScreen({
     onStart()
   }
 
-  const cast = ['product_manager', 'eng', 'design']
+  const hasStats = streak.current > 0 || lifetime.bestFloor > 0 || goldenBadge
 
   return (
     <div className={`premium-screen ${styles.screen}`}>
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          inset: 0,
-          background:
-            'linear-gradient(90deg, transparent 0 49%, rgba(255,211,77,.16) 49% 51%, transparent 51%), repeating-linear-gradient(180deg, transparent 0 76px, rgba(255,255,255,.04) 76px 77px)',
-          opacity: 0.72,
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: 88,
-          bottom: 152,
-          left: '50%',
-          width: 82,
-          transform: 'translateX(-50%)',
-          borderLeft: '2px solid rgba(255,211,77,.28)',
-          borderRight: '2px solid rgba(255,211,77,.28)',
-          opacity: 0.78,
-        }}
-      />
+      {/* Field: light pools, the lobby floor line, the elevator shaft. */}
+      <div aria-hidden="true" className={styles.field} />
+      <div aria-hidden="true" className={styles.shaft} />
+
       <div
         aria-hidden="true"
         onPointerDown={handleSignTap}
-        style={{
-          position: 'absolute',
-          top: 42,
-          width: 120,
-          height: 30,
-          border: goldenBadge ? '1px solid rgba(255,211,77,.8)' : '1px solid rgba(255,211,77,.42)',
-          borderRadius: 8,
-          background: 'rgba(5,7,13,.72)',
-          boxShadow: goldenBadge ? '0 0 34px rgba(255,211,77,.4)' : '0 0 28px rgba(255,211,77,.18)',
-          color: 'var(--gold-bright)',
-          fontFamily: 'var(--font-display)',
-          fontSize: 'var(--display-2xs)',
-          display: 'grid',
-          placeItems: 'center',
-          zIndex: 1,
-          letterSpacing: 2,
-          userSelect: 'none',
-        }}
+        className={goldenBadge ? `${styles.sign} ${styles.signGolden}` : styles.sign}
       >
         {goldenBadge ? '▲ FLOOR 31' : '▲ FLOOR 30'}
       </div>
-      {Array.from({ length: 7 }).map((_, i) => (
-        <div
-          key={i}
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            top: 102 + i * 72,
-            left: 'calc(50% - 41px)',
-            width: 82,
-            height: 2,
-            background: 'rgba(255,211,77,.22)',
-          }}
-        />
-      ))}
 
       <div className={styles.header}>
-        <div className={`t-display ${styles.kicker}`}>Q4 LADDER SIMULATION</div>
+        <div className={`t-display ${styles.kicker}`}>
+          <span>Q4 LADDER SIMULATION</span>
+        </div>
         <h1 className={`t-display ${styles.wordmark}`}>
-          CORPORATE
-          <br />
-          CLIMB
+          <span className={styles.wordmarkLine}>CORPORATE</span>{' '}
+          <span className={styles.wordmarkLine}>CLIMB</span>
         </h1>
         <div className={`t-display ${styles.tagline}`}>
           RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.
@@ -185,188 +154,160 @@ export default function TitleScreen({
       </div>
 
       <div className={styles.cast}>
-        {cast.map((id, i) => (
-          <div
-            key={id}
-            className={i === 1 ? `${styles.castSlot} ${styles.castSlotLead}` : styles.castSlot}
-          >
-            <div className="sprite-idle" style={{ width: '100%', height: '100%' }}>
-              <img
-                src={sprites[id]}
-                alt=""
-                style={{
-                  width: '100%',
-                  height: '100%',
-                  imageRendering: 'auto',
-                  padding: '5% 1% 10% 1%',
-                  objectFit: 'contain',
-                }}
-                draggable={false}
-              />
+        <div aria-hidden="true" className={styles.floor} />
+        {CAST.map(({ id, role, lead }) => {
+          const cls = PLAYER_CLASSES.find((c) => c.id === id)
+          if (!cls) return null
+          const accent = lead ? 'var(--cc-gold)' : (TYPE_COLORS[cls.types[0]] ?? TYPE_COLORS.normal)
+          return (
+            <figure
+              key={id}
+              className={lead ? `${styles.plate} ${styles.plateLead}` : styles.plate}
+              style={{ '--plate-accent': accent } as CSSProperties}
+            >
+              <div className={`sprite-idle ${styles.plateArt}`}>
+                <span aria-hidden="true" className={styles.plateGround} />
+                <img src={sprites[cls.spriteId]} alt="" draggable={false} />
+              </div>
+              <figcaption className={`t-display ${styles.plateRole}`}>{role}</figcaption>
+            </figure>
+          )
+        })}
+      </div>
+
+      <div className={styles.deck}>
+        {onOffice && (
+          <div className={styles.mode}>
+            <span
+              id="office-campaign-label"
+              className={`t-display ${styles.eyebrow} ${styles.eyebrowHero}`}
+            >
+              <span>CAMPAIGN · FLOORS 1–5</span>
+            </span>
+            <Button
+              variant="primary"
+              size="lg"
+              onClick={onOffice}
+              className={styles.hero}
+              aria-describedby="office-campaign-label"
+            >
+              THE OFFICE
+            </Button>
+            {officeStatus && <span className={`t-body ${styles.status}`}>{officeStatus}</span>}
+          </div>
+        )}
+
+        {confirmNew ? (
+          <div className={styles.confirm}>
+            <div className={`t-body ${styles.confirmText}`}>
+              Start over? Your saved Classic climb will be erased.
+            </div>
+            <div className={styles.row}>
+              <Button variant="accent" size="md" onClick={onStart}>
+                ERASE &amp; START
+              </Button>
+              <Button variant="secondary" size="md" onClick={() => setConfirmNew(false)}>
+                KEEP SAVE
+              </Button>
             </div>
           </div>
-        ))}
-        <div
-          aria-hidden="true"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            bottom: 0,
-            width: 220,
-            height: 16,
-            transform: 'translateX(-50%)',
-            borderTop: '1px solid rgba(255,211,77,.32)',
-            background: 'rgba(10,13,19,.72)',
-            clipPath: 'polygon(8% 0, 92% 0, 100% 100%, 0 100%)',
-          }}
-        />
-      </div>
-
-      <div
-        style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: 124,
-          background:
-            'linear-gradient(0deg, rgba(2,6,23,.98) 0%, rgba(13,19,32,.78) 64%, transparent 100%)',
-          display: 'flex',
-          alignItems: 'flex-end',
-          justifyContent: 'center',
-          gap: 4,
-          padding: '0 20px',
-        }}
-      >
-        {SKYLINE.map(({ h, wing }, i) => (
-          <div
-            key={i}
-            className={wing ? styles.skylineWing : undefined}
-            style={{
-              width: 20,
-              height: h,
-              background: '#0f1724',
-              border: '1px solid rgba(255,255,255,.08)',
-              borderRadius: '3px 3px 0 0',
-              position: 'relative',
-            }}
-          >
-            {Array.from({ length: Math.floor(h / 15) }).map((_, j) => (
-              <div
-                key={j}
-                style={{
-                  position: 'absolute',
-                  left: 4,
-                  top: 8 + j * 15,
-                  width: 5,
-                  height: 5,
-                  borderRadius: 1,
-                  // Indexed from the first core block so the phone's lit
-                  // windows land exactly where they always have.
-                  background: (i - SKYLINE_WING_LEFT.length + j) % 3 === 0 ? '#FFD54F' : '#1d4ed8',
-                  opacity: 0.8,
-                }}
-              />
-            ))}
-          </div>
-        ))}
-      </div>
-
-      {onOffice && (
-        <div className={styles.mode}>
-          <span
-            id="office-campaign-label"
-            className={`t-display ${styles.eyebrow} ${styles.eyebrowHero}`}
-          >
-            CAMPAIGN · FLOORS 1–5
-          </span>
-          <Button
-            variant="primary"
-            size="lg"
-            onClick={onOffice}
-            className={styles.hero}
-            aria-describedby="office-campaign-label"
-          >
-            THE OFFICE
-          </Button>
-          {officeStatus && <span className={`t-body ${styles.status}`}>{officeStatus}</span>}
-        </div>
-      )}
-
-      {confirmNew ? (
-        <div className={styles.confirm}>
-          <div className={`t-body ${styles.confirmText}`}>
-            Start over? Your saved Classic climb will be erased.
-          </div>
-          <div style={{ display: 'flex', gap: 10 }}>
-            <Button variant="accent" size="md" onClick={onStart}>
-              ERASE &amp; START
-            </Button>
-            <Button variant="secondary" size="md" onClick={() => setConfirmNew(false)}>
-              KEEP SAVE
-            </Button>
-          </div>
-        </div>
-      ) : (
-        <div className={styles.mode}>
-          <span id="classic-climb-label" className={`t-display ${styles.eyebrow}`}>
-            CLASSIC · 30 FLOORS
-          </span>
-          {onContinue ? (
-            <div className={styles.row}>
+        ) : (
+          <div className={styles.mode}>
+            <span id="classic-climb-label" className={`t-display ${styles.eyebrow}`}>
+              <span>CLASSIC · 30 FLOORS</span>
+            </span>
+            {onContinue ? (
+              <div className={styles.row}>
+                <Button
+                  variant="secondary"
+                  size="md"
+                  onClick={onContinue}
+                  className={styles.classic}
+                  aria-describedby="classic-climb-label"
+                >
+                  CONTINUE
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="md"
+                  onClick={handleStart}
+                  className={`${styles.classic} ${styles.newClimb}`}
+                  aria-describedby="classic-climb-label"
+                >
+                  NEW CLIMB
+                </Button>
+              </div>
+            ) : (
               <Button
                 variant="secondary"
                 size="md"
-                onClick={onContinue}
-                aria-describedby="classic-climb-label"
-              >
-                CONTINUE
-              </Button>
-              <Button
-                variant="ghost"
-                size="md"
                 onClick={handleStart}
-                className={styles.newClimb}
+                className={`${styles.classic} ${styles.classicSolo}`}
                 aria-describedby="classic-climb-label"
               >
-                NEW CLIMB
+                START CLIMB
               </Button>
-            </div>
-          ) : (
-            <Button
-              variant="secondary"
-              size="md"
-              onClick={handleStart}
-              className={styles.classic}
-              aria-describedby="classic-climb-label"
-            >
-              START CLIMB
-            </Button>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
 
-      <div className={styles.row}>
-        <Button variant="accent" size="sm" onClick={onDaily}>
-          DAILY CHALLENGE
-        </Button>
-        <Button variant="ghost" size="sm" onClick={onCodex}>
-          CODEX
-        </Button>
+        <div className={styles.utility}>
+          <Button variant="accent" size="sm" onClick={onDaily} className={styles.daily}>
+            DAILY CHALLENGE
+          </Button>
+          <Button variant="ghost" size="sm" onClick={onCodex} className={styles.codex}>
+            CODEX
+          </Button>
+        </div>
+
+        {hasStats && (
+          <div className={`t-body ${styles.stats}`}>
+            {streak.current > 0 && (
+              <span>
+                🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
+              </span>
+            )}
+            {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
+            {bestReorg > 0 && <span>🌀 Re-Org {bestReorg}</span>}
+            {goldenBadge && <span className={styles.statsGolden}>🪪 Golden Badge</span>}
+          </div>
+        )}
       </div>
 
-      {(streak.current > 0 || lifetime.bestFloor > 0 || goldenBadge) && (
-        <div className={`t-body ${styles.stats}`}>
-          {streak.current > 0 && (
-            <span>
-              🔥 {streak.current}-day streak{playedToday ? ' ✓' : ''}
-            </span>
-          )}
-          {lifetime.bestFloor > 0 && <span>Best: Floor {lifetime.bestFloor}</span>}
-          {bestReorg > 0 && <span>🌀 Re-Org {bestReorg}</span>}
-          {goldenBadge && <span style={{ color: 'var(--gold-bright)' }}>🪪 Golden Badge</span>}
+      <div aria-hidden="true" className={styles.skyline}>
+        <div className={`${styles.skylineRow} ${styles.skylineFar}`}>
+          {SKYLINE_FAR.map(({ h, wing }, i) => (
+            <div
+              key={i}
+              className={wing ? `${styles.tower} ${styles.skylineWing}` : styles.tower}
+              style={{ height: h }}
+            />
+          ))}
         </div>
-      )}
+        <div className={`${styles.skylineRow} ${styles.skylineNear}`}>
+          {SKYLINE.map(({ h, wing }, i) => (
+            <div
+              key={i}
+              className={wing ? `${styles.tower} ${styles.skylineWing}` : styles.tower}
+              style={{ height: h }}
+            >
+              {Array.from({ length: Math.floor(h / 15) }).map((_, j) => (
+                <span
+                  key={j}
+                  className={
+                    // Indexed from the first core block so the phone's lit
+                    // windows land exactly where they always have.
+                    (i - SKYLINE_WING_LEFT.length + j) % 3 === 0
+                      ? `${styles.window} ${styles.windowLit}`
+                      : styles.window
+                  }
+                  style={{ top: 8 + j * 15 }}
+                />
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
 
       {celebrating && (
         <div aria-hidden="true" style={{ position: 'absolute', inset: 0, zIndex: 5 }}>
@@ -389,31 +330,9 @@ export default function TitleScreen({
       )}
 
       {celebrating && (
-        <div
-          role="status"
-          style={{
-            position: 'absolute',
-            top: '30%',
-            zIndex: 6,
-            textAlign: 'center',
-            padding: '14px 22px',
-            borderRadius: 'var(--radius-lg)',
-            border: '2px solid var(--gold-bright)',
-            background: 'rgba(5,7,13,.92)',
-            boxShadow: '0 0 44px rgba(255,211,77,.45)',
-            animation: 'bonus-pop 0.5s ease-out',
-          }}
-        >
-          <div
-            className="t-display"
-            style={{ fontSize: 'var(--display-sm)', color: 'var(--gold-bright)', letterSpacing: 2 }}
-          >
-            🪪 GOLDEN BADGE ACQUIRED
-          </div>
-          <div
-            className="t-body"
-            style={{ fontSize: 'var(--body-md)', color: 'var(--text-main)', marginTop: 6 }}
-          >
+        <div role="status" className={styles.celebration}>
+          <div className={`t-display ${styles.celebrationTitle}`}>🪪 GOLDEN BADGE ACQUIRED</div>
+          <div className={`t-body ${styles.celebrationBody}`}>
             Executive elevator access granted. The board will remember this.
           </div>
         </div>

@@ -1,122 +1,435 @@
-/* Title CTA stack. THE OFFICE (Campaign · Floors 1–5) is the hero; the
-   Classic 30-floor climb sits below it as a labelled secondary path, and
-   Daily + Codex share one row so the stack fits a phone without burying
-   anything. Backdrop decorations stay inline in TitleScreen.tsx. */
+/* ─── Title / welcome ───────────────────────────────────────
+   One lobby, top to bottom: the FLOOR 30 sign, the wordmark block, the
+   three lead plates standing on a lit floor line, and the CTA deck — a
+   glass directory panel that holds THE OFFICE hero (Campaign · Floors 1–5),
+   the Classic 30-floor climb, and Daily + Codex. The elevator shaft runs
+   from the sign down to the floor line and the city sits behind the deck.
+
+   Two stages matter: the phone canvas (472 wide, ~815–1060 tall) and the
+   desktop canvas (840 wide, 760 tall on every 16:9 monitor). The desktop
+   is the short one, so it spends its budget sideways — a one-line
+   wordmark, a wider cast row, the full-width skyline — while the phone
+   keeps the two-line wordmark and a compact column. */
 
 .screen {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 16px;
+  gap: 14px;
   height: 100%;
-  /* Top padding clears the FLOOR 30 sign (top 42 + 30 tall). */
-  padding: 82px 26px 40px;
+  /* Top padding clears the FLOOR 30 sign (top 30 + 30 tall). */
+  padding: 74px 26px 34px;
   background: transparent;
   position: relative;
   overflow: hidden;
 }
 
+/* ── Field ──
+   Ambient light: a warm key pool behind the wordmark, a cool wash at the
+   bottom corners where the city glows, and the 76px floor hairlines the
+   theater backdrop carries across the gutters. */
+.field {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(52% 26% at 50% 18%, rgba(255, 193, 7, 0.14), transparent 100%),
+    radial-gradient(40% 22% at 8% 96%, rgba(33, 150, 243, 0.1), transparent 100%),
+    radial-gradient(40% 22% at 92% 96%, rgba(33, 150, 243, 0.1), transparent 100%),
+    repeating-linear-gradient(180deg, transparent 0 76px, rgba(255, 255, 255, 0.035) 76px 77px);
+}
+
+/* Elevator shaft: two gold rails and a rung every 72px, fading in under
+   the sign and out above the deck so it never cuts through the CTAs. */
+.shaft {
+  position: absolute;
+  top: 44px;
+  bottom: 30%;
+  left: 50%;
+  width: 84px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(255, 211, 77, 0.3) 0 2px, transparent 2px),
+    linear-gradient(-90deg, rgba(255, 211, 77, 0.3) 0 2px, transparent 2px),
+    repeating-linear-gradient(180deg, transparent 0 70px, rgba(255, 211, 77, 0.2) 70px 72px);
+  -webkit-mask-image: linear-gradient(180deg, transparent, #000 10%, #000 78%, transparent);
+  mask-image: linear-gradient(180deg, transparent, #000 10%, #000 78%, transparent);
+}
+
+.sign {
+  position: absolute;
+  top: 30px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 124px;
+  height: 30px;
+  border: 1px solid rgba(255, 211, 77, 0.5);
+  border-radius: 8px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), transparent 55%), rgba(5, 7, 13, 0.86);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 28px rgba(255, 211, 77, 0.18),
+    var(--shadow-sm);
+  color: var(--gold-bright);
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: 2px;
+  user-select: none;
+}
+
+.signGolden {
+  border-color: rgba(255, 211, 77, 0.85);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 0 34px rgba(255, 211, 77, 0.42),
+    var(--shadow-sm);
+}
+
+/* ── Header ── */
 .header {
   text-align: center;
   position: relative;
   z-index: 1;
 }
 
+/* Kicker between two gold hairlines — the ladder motif, horizontal. */
 .kicker {
-  font-size: var(--display-xs);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 8px;
+  font-size: var(--display-2xs);
   color: var(--gold);
-  letter-spacing: 3px;
-  margin-bottom: 10px;
+  letter-spacing: var(--cc-track-wide);
+}
+
+.kicker::before,
+.kicker::after {
+  content: '';
+  width: 44px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.6));
+}
+
+.kicker::after {
+  transform: scaleX(-1);
 }
 
 .wordmark {
-  font-size: var(--display-xl);
-  color: var(--paper);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin: 0;
-  line-height: 1.06;
-  letter-spacing: 1px;
+  font-size: 50px;
+  line-height: 0.98;
+  letter-spacing: 0.02em;
+  /* Brushed-paper fill: white at the cap line to cool grey at the base.
+     drop-shadow (not text-shadow) so the glow reads through the clipped
+     fill instead of showing behind transparent glyphs. */
+  color: var(--paper);
+  background: linear-gradient(180deg, #ffffff 0%, #eef3f9 52%, #b8c5d6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  filter: drop-shadow(0 3px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 10px 30px rgba(255, 193, 7, 0.22));
+}
+
+.wordmarkLine {
+  display: block;
 }
 
 .tagline {
   max-width: 340px;
   margin: 12px auto 0;
   font-size: var(--display-2xs);
-  color: var(--sky-soft);
-  letter-spacing: 2px;
-  line-height: 1.45;
+  color: var(--gold-bright);
+  letter-spacing: 0.16em;
+  line-height: 1.5;
   text-wrap: balance;
 }
 
 .lede {
   max-width: 340px;
-  margin: 8px auto 0;
+  margin: 7px auto 0;
   font-size: var(--body-md);
-  color: var(--text-main);
-  line-height: 1.25;
+  color: var(--cc-text-2);
+  line-height: 1.3;
+  text-wrap: balance;
 }
 
+/* ── Cast ──
+   Three badge plates standing on the lobby floor: glass frame, a clip
+   notch at the top, the figure breathing over a light pool, the role
+   caption under it. The centre plate is the lead and takes the gold. */
 .cast {
+  --plate-overflow: 0.34; /* how far the figure rises above the frame */
+  position: relative;
+  z-index: 1;
   display: flex;
-  gap: 14px;
+  gap: 18px;
   justify-content: center;
   align-items: flex-end;
-  position: relative;
-  z-index: 1;
-  margin: 0 0 6px;
-  padding: 0 18px 12px;
+  /* Top padding is the head-room the figures rise into. */
+  padding: 34px 0 4px;
 }
 
-.castSlot {
-  position: relative;
-  width: 70px;
-  height: 86px;
-  z-index: 1;
+/* Lobby floor: a lit edge the plates stand on and a pool spilling down. */
+.floor {
+  position: absolute;
+  left: 50%;
+  bottom: 3px;
+  width: 400px;
+  height: 110px;
+  transform: translateX(-50%);
+  pointer-events: none;
+  border-bottom: 1px solid rgba(255, 211, 77, 0.4);
+  background: radial-gradient(60% 100% at 50% 100%, rgba(255, 193, 7, 0.14), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
+  mask-image: linear-gradient(90deg, transparent, #000 18%, #000 82%, transparent);
 }
 
-.castSlotLead {
-  width: 78px;
-  height: 94px;
+.plate {
+  --plate-accent: var(--cc-gold);
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 100px;
+  margin: 0;
+  padding: 6px 6px 7px;
+  border-radius: var(--radius-md);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.06), rgba(255, 255, 255, 0) 45%),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--plate-accent) 14%, transparent),
+      transparent 30%
+    ),
+    var(--cc-glass);
+  border: 1px solid var(--cc-line-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    var(--cc-shadow-plate);
+}
+
+/* Accent rail along the top edge: the role's type colour, gold for the
+   lead. Sits under the figure so the head crosses it. */
+.plate::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 14%;
+  right: 14%;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--plate-accent);
+  opacity: 0.9;
+}
+
+.plateLead {
   z-index: 2;
+  width: 112px;
+  margin-bottom: 8px;
+  border-color: color-mix(in srgb, var(--cc-gold) 45%, var(--cc-line-strong));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 0 30px rgba(255, 193, 7, 0.14),
+    var(--cc-shadow-plate);
 }
 
-/* One mode = eyebrow + button (+ optional status), stacked and centred. */
-.mode {
+/* Square frame; the figure is drawn taller than it and anchored to the
+   floor, so head and shoulders rise past the top rail. */
+.plateArt {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1;
+}
+
+.plateArt img {
+  position: absolute;
+  z-index: 1;
+  left: 50%;
+  bottom: 0;
+  height: calc(100% * (1 + var(--plate-overflow)));
+  width: auto;
+  transform: translateX(-50%);
+  image-rendering: auto;
+  filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45));
+}
+
+.plateGround {
+  position: absolute;
+  left: 50%;
+  bottom: -2px;
+  width: 78%;
+  height: 16px;
+  transform: translateX(-50%);
+  border-radius: 50%;
+  background: radial-gradient(
+    ellipse,
+    color-mix(in srgb, var(--plate-accent) 55%, transparent) 0%,
+    transparent 70%
+  );
+  opacity: 0.55;
+}
+
+.plateRole {
+  margin-top: 6px;
+  font-size: 9px;
+  letter-spacing: var(--cc-track-label);
+  color: var(--cc-text-3);
+}
+
+.plateLead .plateRole {
+  color: var(--gold-bright);
+}
+
+/* ── Deck ──
+   The lobby directory: one glass panel for every way into the game, with
+   a gold rule across the top edge so it reads as the hero's frame. */
+.deck {
   position: relative;
   z-index: 2;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 6px;
+  align-items: stretch;
+  gap: 12px;
+  width: min(400px, 100%);
+  padding: 14px 16px 12px;
+  border-radius: var(--radius-lg);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 38%), var(--cc-glass);
+  border: 1px solid var(--cc-line-strong);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.05),
+    0 0 0 1px rgba(255, 211, 77, 0.05),
+    0 18px 44px rgba(0, 0, 0, 0.5);
 }
 
+.deck::before {
+  content: '';
+  position: absolute;
+  top: -1px;
+  left: 50%;
+  width: min(220px, 56%);
+  height: 2px;
+  transform: translateX(-50%);
+  border-radius: 2px;
+  background: linear-gradient(90deg, transparent, var(--cc-gold), transparent);
+  opacity: 0.85;
+}
+
+/* One mode = eyebrow + button (+ optional status), stacked and centred. */
+.mode {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+}
+
+/* Eyebrow between two hairlines, same rhythm as the kicker. */
 .eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
   font-size: var(--display-2xs);
   letter-spacing: var(--cc-track-label);
   text-transform: uppercase;
   color: var(--cc-text-dim);
+  white-space: nowrap;
+}
+
+.eyebrow::before,
+.eyebrow::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--cc-line);
 }
 
 .eyebrowHero {
   color: var(--gold);
 }
 
+.eyebrowHero::before,
+.eyebrowHero::after {
+  background: linear-gradient(90deg, transparent, rgba(255, 193, 7, 0.45));
+}
+
+.eyebrowHero::after {
+  transform: scaleX(-1);
+}
+
+/* THE OFFICE: brushed gold, a lit top edge, and a slow breathing glow —
+   the one button a first-time player should see first. */
 .hero {
+  width: 100%;
   min-width: 250px;
-  /* A touch more presence than the stock lg shadow: this is the one button
-     a first-time player should see first. */
-  --hero-glow: 0 0 32px rgba(255, 213, 79, 0.22);
-  box-shadow: var(--shadow-md), var(--hero-glow);
+  font-size: 22px;
+  letter-spacing: 0.04em;
+  --hero-glow: 0 0 32px rgba(255, 213, 79, 0.28);
+  background: linear-gradient(180deg, #ffe082 0%, var(--gold-bright) 45%, var(--gold) 100%);
+  border-color: rgba(255, 224, 130, 0.8);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.6),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+    var(--shadow-md),
+    var(--hero-glow);
+  animation: title-hero-breathe 3.2s ease-in-out infinite;
+}
+
+@keyframes title-hero-breathe {
+  0%,
+  100% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+      var(--shadow-md),
+      0 0 26px rgba(255, 213, 79, 0.22);
+  }
+  50% {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.6),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+      var(--shadow-md),
+      0 0 44px rgba(255, 213, 79, 0.42);
+  }
 }
 
 @media (hover: hover) {
   .hero:hover:not(:disabled) {
-    box-shadow: var(--shadow-lg), var(--hero-glow);
+    animation: none;
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.7),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.12),
+      var(--shadow-lg),
+      0 0 48px rgba(255, 213, 79, 0.48);
   }
 }
 
 .hero:active:not(:disabled) {
-  box-shadow: var(--shadow-sm), var(--hero-glow);
+  animation: none;
+  box-shadow:
+    inset 0 2px 0 rgba(0, 0, 0, 0.14),
+    var(--shadow-sm),
+    var(--hero-glow);
+}
+
+:global(.reduce-motion) .hero {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    animation: none;
+  }
 }
 
 .status {
@@ -125,14 +438,31 @@
 }
 
 .row {
-  position: relative;
-  z-index: 2;
   display: flex;
   justify-content: center;
   gap: 10px;
+  width: 100%;
 }
 
+.row > * {
+  flex: 1 1 0;
+}
+
+/* Classic: the blue secondary gets the same lit top edge as the hero so
+   the two read as one family, one step down. */
 .classic {
+  background: linear-gradient(180deg, #2f82c0 0%, #236ea6 100%);
+  border-color: rgba(120, 190, 240, 0.4);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.18),
+    var(--shadow-sm);
+}
+
+/* START CLIMB alone: narrower than the hero so the hierarchy is legible
+   (the e2e guard reads the two widths). */
+.classicSolo {
+  width: 72%;
   min-width: 210px;
 }
 
@@ -144,6 +474,29 @@
 .row .newClimb {
   font-family: var(--font-display);
   font-weight: normal;
+  background: rgba(13, 18, 27, 0.9);
+  border-color: rgba(255, 255, 255, 0.16);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+/* Daily + Codex share one row, equal columns. */
+.utility {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.daily {
+  background: linear-gradient(180deg, #c93a40 0%, #b72f34 100%);
+  border-color: rgba(255, 140, 140, 0.3);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -2px 0 rgba(0, 0, 0, 0.16),
+    var(--shadow-sm);
+}
+
+.codex {
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
 .confirm {
@@ -151,11 +504,10 @@
   flex-direction: column;
   align-items: center;
   gap: 10px;
-  z-index: 2;
   background: var(--cc-surface-2);
   border: 1px solid var(--gold-bright);
-  border-radius: var(--radius-lg);
-  padding: 14px 18px;
+  border-radius: var(--radius-md);
+  padding: 12px 14px;
   box-shadow: var(--shadow-lg);
 }
 
@@ -165,16 +517,91 @@
   text-align: center;
 }
 
+/* Career strip: streak / best floor / Re-Org / Golden Badge, as the deck's
+   footer row over a hairline. */
 .stats {
-  z-index: 2;
   display: flex;
-  gap: 12px;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  margin-top: -2px;
+  padding-top: 9px;
+  border-top: 1px solid var(--cc-line-faint);
   font-size: var(--body-sm);
   color: var(--muted-light);
-  padding: 3px 12px;
-  border-radius: 999px;
-  background: rgba(5, 7, 13, 0.72);
-  border: 1px solid var(--cc-line-faint);
+}
+
+.statsGolden {
+  color: var(--gold-bright);
+}
+
+/* ── Skyline ──
+   Two rows of towers on a haze gradient: the far row is dim and unlit,
+   the near row carries the lit windows. Both sit behind the deck. */
+.skyline {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 150px;
+  pointer-events: none;
+  background: linear-gradient(
+    0deg,
+    rgba(2, 6, 23, 0.98) 0%,
+    rgba(13, 19, 32, 0.82) 52%,
+    rgba(13, 19, 32, 0.3) 82%,
+    transparent 100%
+  );
+}
+
+.skylineRow {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0 20px;
+}
+
+.skylineFar {
+  gap: 6px;
+  padding: 0 34px;
+  opacity: 0.55;
+}
+
+.skylineFar .tower {
+  width: 16px;
+  background: #0b1220;
+  border-color: rgba(255, 255, 255, 0.04);
+}
+
+.skylineNear {
+  gap: 4px;
+}
+
+.tower {
+  position: relative;
+  width: 20px;
+  background: #0f1724;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 3px 3px 0 0;
+}
+
+.window {
+  position: absolute;
+  left: 4px;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: #1d4ed8;
+  opacity: 0.8;
+}
+
+.windowLit {
+  background: #ffd54f;
+  box-shadow: 0 0 6px rgba(255, 213, 79, 0.35);
 }
 
 /* Extra skyline blocks either side of the phone's nine; only the wide
@@ -183,69 +610,209 @@
   display: none;
 }
 
-/* Short stages (the 440×760 playtest viewport, landscape phones): tighten
-   the stack so Codex and the stats pill never fall behind the skyline. */
+/* ── Golden badge celebration ── */
+.celebration {
+  position: absolute;
+  top: 30%;
+  z-index: 6;
+  text-align: center;
+  padding: 14px 22px;
+  border-radius: var(--radius-lg);
+  border: 2px solid var(--gold-bright);
+  background: rgba(5, 7, 13, 0.92);
+  box-shadow: 0 0 44px rgba(255, 211, 77, 0.45);
+  animation: bonus-pop 0.5s ease-out;
+}
+
+.celebrationTitle {
+  font-size: var(--display-sm);
+  color: var(--gold-bright);
+  letter-spacing: 2px;
+}
+
+.celebrationBody {
+  font-size: var(--body-md);
+  color: var(--text-main);
+  margin-top: 6px;
+}
+
+/* ── Short stages ──
+   The 440×760 playtest viewport (815 design px) and every 16:9 desktop
+   (760): tighten the column so the deck clears the skyline with both
+   saves present. */
 @container stage (max-height: 820px) {
   .screen {
-    gap: 11px;
-    padding: 76px 22px 28px;
+    gap: 10px;
+    padding: 68px 22px 22px;
   }
 
   .wordmark {
-    font-size: 38px;
+    font-size: 42px;
   }
 
   .tagline {
-    margin-top: 8px;
+    margin-top: 9px;
   }
 
   .lede {
-    margin-top: 6px;
+    margin-top: 5px;
   }
 
   .cast {
-    margin-bottom: 2px;
-    padding-bottom: 8px;
+    padding-top: 30px;
   }
 
-  .castSlot {
-    width: 58px;
-    height: 72px;
+  .plate {
+    width: 90px;
   }
 
-  .castSlotLead {
-    width: 66px;
-    height: 80px;
+  .plateLead {
+    width: 100px;
+    margin-bottom: 6px;
+  }
+
+  .deck {
+    gap: 10px;
+    padding: 12px 14px 10px;
+  }
+
+  .skyline {
+    height: 124px;
   }
 }
 
-/* Wide stage (desktop canvas): the stack stays a centred column — a title
-   screen wants a spine, not a spread — but the copy takes a longer measure
-   so the tagline and lede each sit on one or two lines, the wordmark and
-   cast get the presence the extra width invites, and the skyline runs the
-   full width so the city reads as a city. After the short-stage block so it
-   wins where both apply (a 1080p canvas is 840 wide × 760 tall). */
+/* ── Tall phones ──
+   A 390×844 phone is a 472×1021 canvas: spend the extra height on the
+   wordmark and the plates instead of on the gap under the sign. */
+@container stage (min-height: 940px) and (max-width: 699px) {
+  .screen {
+    gap: 18px;
+  }
+
+  .wordmark {
+    font-size: 56px;
+  }
+
+  .tagline {
+    margin-top: 14px;
+  }
+
+  .cast {
+    gap: 20px;
+    padding-top: 40px;
+  }
+
+  .plate {
+    width: 108px;
+  }
+
+  .plateLead {
+    width: 122px;
+  }
+
+  .plateRole {
+    font-size: var(--display-2xs);
+  }
+
+  .deck {
+    gap: 14px;
+    padding: 16px 16px 14px;
+  }
+}
+
+/* ── Wide stage (desktop canvas) ──
+   The stack stays a centred column — a title screen wants a spine — but
+   the wordmark goes to one line so the short 760 canvas has room for a
+   taller cast row, the copy takes a longer measure, the plates spread on a
+   wider floor and the skyline runs the full width so the city reads as a
+   city. After the short-stage block so it wins where both apply (a 1080p
+   canvas is 840 wide × 760 tall). */
 @container stage (min-width: 700px) {
+  .screen {
+    gap: 12px;
+    padding: 70px 40px 22px;
+  }
+
   .skylineWing {
     display: block;
   }
 
+  .field {
+    background:
+      radial-gradient(38% 30% at 50% 16%, rgba(255, 193, 7, 0.16), transparent 100%),
+      radial-gradient(30% 24% at 6% 96%, rgba(33, 150, 243, 0.12), transparent 100%),
+      radial-gradient(30% 24% at 94% 96%, rgba(33, 150, 243, 0.12), transparent 100%),
+      /* Two faint outer shafts, the neighbours' elevators. */
+        linear-gradient(
+          90deg,
+          transparent calc(18% - 1px),
+          rgba(255, 211, 77, 0.07) 18%,
+          transparent calc(18% + 1px)
+        ),
+      linear-gradient(
+        90deg,
+        transparent calc(82% - 1px),
+        rgba(255, 211, 77, 0.07) 82%,
+        transparent calc(82% + 1px)
+      ),
+      repeating-linear-gradient(180deg, transparent 0 76px, rgba(255, 255, 255, 0.035) 76px 77px);
+  }
+
+  .kicker::before,
+  .kicker::after {
+    width: 72px;
+  }
+
   .wordmark {
-    font-size: 48px;
+    flex-direction: row;
+    gap: 0.22em;
+    font-size: 60px;
+    letter-spacing: 0.03em;
   }
 
   .tagline,
   .lede {
-    max-width: 520px;
+    max-width: 560px;
   }
 
-  .castSlot {
-    width: 70px;
-    height: 86px;
+  .tagline {
+    margin-top: 10px;
   }
 
-  .castSlotLead {
-    width: 78px;
-    height: 94px;
+  .lede {
+    font-size: var(--body-lg);
+  }
+
+  .cast {
+    gap: 40px;
+    padding-top: 42px;
+  }
+
+  .floor {
+    width: 680px;
+    height: 130px;
+  }
+
+  .plate {
+    width: 124px;
+    padding: 6px 8px 8px;
+  }
+
+  .plateLead {
+    width: 138px;
+    margin-bottom: 8px;
+  }
+
+  .plateRole {
+    font-size: var(--display-2xs);
+  }
+
+  .deck {
+    width: 440px;
+    padding: 12px 18px 10px;
+  }
+
+  .skyline {
+    height: 170px;
   }
 }
