@@ -5,11 +5,8 @@ test('first three minutes present a stronger hook and clearer choices', async ({
   await page.evaluate(() => localStorage.clear())
   await page.reload()
 
-  await expect(
-    page.getByText('RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.'),
-  ).toBeVisible({
-    timeout: 15_000,
-  })
+  const tagline = page.getByText('Reception to the board. One badge swipe from glory.')
+  await expect(tagline).toBeVisible({ timeout: 15_000 })
   await expect(
     page.getByText(
       'Pick a role, work the floor, build your team, and out-battle every manager between you and the board.',
@@ -59,6 +56,34 @@ test('first three minutes present a stronger hook and clearer choices', async ({
     .evaluateAll((els) => els.map((el) => el.getBoundingClientRect().width))
   expect(plateWidths).toHaveLength(3)
   expect(Math.max(...plateWidths) - Math.min(...plateWidths)).toBeLessThanOrEqual(0.5)
+
+  // #122 Designer Shoulds. The lead's ring is a hard inset line: every
+  // gold shadow on the plate is `inset`, so nothing blooms outside its
+  // box. The tagline is one sentence-case line, not a caps shout. THE
+  // OFFICE wins by value, not by a breathing glow.
+  const leadRing = await page
+    .locator('figure')
+    .nth(1)
+    .evaluate((el) => {
+      const cs = getComputedStyle(el)
+      const shadows = cs.boxShadow.split(/,(?![^(]*\))/).map((s) => s.trim())
+      const gold = shadows.filter((s) => /rgba?\(255, 21\d, \d+/.test(s))
+      return { shadows, gold, border: cs.borderTopWidth, borderColor: cs.borderTopColor }
+    })
+  expect(leadRing.gold.length).toBeGreaterThan(0)
+  for (const s of leadRing.gold) expect(s).toContain('inset')
+  expect(leadRing.border).toBe('1px')
+  expect(leadRing.borderColor).toMatch(/^rgb\(255, 21\d, \d+\)$/)
+
+  const taglineStyle = await tagline.evaluate((el) => {
+    const range = document.createRange()
+    range.selectNodeContents(el)
+    return { transform: getComputedStyle(el).textTransform, lines: range.getClientRects().length }
+  })
+  expect(taglineStyle.transform).toBe('none')
+  expect(taglineStyle.lines).toBe(1)
+
+  await expect(office).toHaveCSS('animation-name', 'none')
 
   await classic.click()
   await expect(page.getByText('SELECT CAREER ARCHETYPE')).toBeVisible({ timeout: 10_000 })

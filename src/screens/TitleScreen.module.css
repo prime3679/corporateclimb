@@ -144,14 +144,17 @@
   display: block;
 }
 
+/* Tagline: one sentence-case line in the body face, gold at the kicker's
+   volume — the wordmark is the only thing on the header that shouts. It
+   never wraps: the copy is kept short enough for the phone column. */
 .tagline {
-  max-width: 340px;
   margin: 12px auto 0;
-  font-size: var(--display-2xs);
-  color: var(--gold-bright);
-  letter-spacing: 0.14em;
-  line-height: 1.5;
-  text-wrap: balance;
+  font-size: var(--body-md);
+  font-weight: 600;
+  color: rgba(255, 213, 79, 0.78);
+  letter-spacing: 0.01em;
+  line-height: 1.4;
+  white-space: nowrap;
 }
 
 .lede {
@@ -238,12 +241,14 @@
   opacity: 0.9;
 }
 
-/* Lead: 1px gold border + 1px inset ring = a 2px ring inside the same
-   box. No outer glow, no extra width, no lift. */
+/* Lead: a hard 2px gold ring drawn inside the same box — the 1px border
+   plus a 1px inset shadow, both solid, so the ring reads as one crisp
+   line rather than a soft edge. The only outer shadow is the plates'
+   shared black offset shadow: no gold bloom, no extra width, no lift. */
 .plateLead {
-  border-color: rgba(255, 213, 79, 0.7);
+  border-color: var(--gold-bright);
   box-shadow:
-    inset 0 0 0 1px rgba(255, 213, 79, 0.5),
+    inset 0 0 0 1px var(--gold-bright),
     0 6px 16px rgba(0, 0, 0, 0.36);
 }
 
@@ -695,7 +700,6 @@
     letter-spacing: 0.03em;
   }
 
-  .tagline,
   .lede {
     max-width: 620px;
   }
