@@ -10,6 +10,7 @@ import {
 } from '@/data'
 import type { AchievementId } from '@/types'
 import { Button } from '@/ui'
+import styles from './CodexScreen.module.css'
 
 /**
  * The collection browser: every perk, Status Symbol, item, and
@@ -30,33 +31,11 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
     locked: boolean
     hint?: string
   }) => (
-    <div
-      key={opts.key}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        padding: '6px 10px',
-        background: 'var(--ink)',
-        border: 'var(--border-w) solid var(--ink-soft)',
-        borderRadius: 'var(--radius-md)',
-        opacity: opts.locked ? 0.55 : 1,
-      }}
-    >
-      <span style={{ fontSize: 20, width: 26, textAlign: 'center' }}>
-        {opts.locked ? '❓' : opts.icon}
-      </span>
-      <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span
-          className="t-display"
-          style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', lineHeight: 1.4 }}
-        >
-          {opts.locked ? '???' : opts.name}
-        </span>
-        <span
-          className="t-body"
-          style={{ fontSize: 'var(--body-sm)', color: 'var(--muted-light)', lineHeight: 1.2 }}
-        >
+    <div key={opts.key} className={`${styles.row} ${opts.locked ? styles.rowLocked : ''}`}>
+      <span className={styles.icon}>{opts.locked ? '❓' : opts.icon}</span>
+      <span className={styles.text}>
+        <span className={`t-display ${styles.name}`}>{opts.locked ? '???' : opts.name}</span>
+        <span className={`t-body ${styles.desc}`}>
           {opts.locked ? (opts.hint ?? 'Keep climbing.') : opts.desc}
         </span>
       </span>
@@ -64,49 +43,16 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
   )
 
   const section = (title: string, children: React.ReactNode) => (
-    <>
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: 'var(--gold)',
-          letterSpacing: 2,
-          marginTop: 10,
-        }}
-      >
-        {title}
-      </div>
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 6, width: '100%' }}>
-        {children}
-      </div>
-    </>
+    <section className={styles.section}>
+      <div className={`t-display ${styles.sectionTitle}`}>{title}</div>
+      <div className={styles.list}>{children}</div>
+    </section>
   )
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        height: '100%',
-        gap: 8,
-        padding: '20px 20px 12px',
-        background: 'linear-gradient(180deg, #1A1A2E 0%, #16213E 100%)',
-        overflowY: 'auto',
-      }}
-    >
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-xs)',
-          color: 'var(--gold-bright)',
-          textShadow: '2px 2px 0 #E65100',
-          letterSpacing: 2,
-        }}
-      >
-        THE CODEX
-      </div>
-      <div className="t-body" style={{ fontSize: 'var(--body-sm)', color: 'var(--muted)' }}>
+    <div className={styles.screen}>
+      <div className={`t-display ${styles.title}`}>THE CODEX</div>
+      <div className={`t-body ${styles.lede}`}>
         Achievements unlock new perks and Status Symbols for future runs.
       </div>
 
@@ -164,7 +110,7 @@ export default function CodexScreen({ onBack }: { onBack: () => void }) {
         ),
       )}
 
-      <div style={{ marginTop: 12, marginBottom: 8 }}>
+      <div className={styles.foot}>
         <Button variant="primary" size="md" onClick={onBack}>
           BACK
         </Button>

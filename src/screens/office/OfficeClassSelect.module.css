@@ -158,6 +158,20 @@
   color: var(--cc-gold-bright);
 }
 
+/* Key hint: only the wide canvas has a rail with room for it. */
+.roleKey {
+  display: none;
+  min-width: 18px;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid var(--cc-line-strong);
+  background: var(--cc-fill-soft);
+  color: var(--cc-text-dim);
+  font-family: var(--cc-font-body);
+  font-size: 11px;
+  text-align: center;
+}
+
 .plate {
   flex: 1 1 auto;
   min-height: 0;
@@ -320,4 +334,128 @@
 .accept {
   align-self: center;
   min-width: 220px;
+}
+
+/* Wide stage (desktop canvas): the phone stack becomes a two-column
+   spread. The header still spans the top; below it the three roles stand in
+   a rail on the left (headshot, name, key hint) with the floor strip and
+   blurb under them, and the dossier plate takes the right column at full
+   height so stats, perk and all four moves are visible without scrolling.
+   Grid areas re-order the existing elements — no phone markup moves. */
+@container stage (min-width: 700px) {
+  .screen {
+    display: grid;
+    grid-template-columns: 292px minmax(0, 1fr);
+    grid-template-rows: auto auto auto auto auto minmax(0, 1fr) auto;
+    grid-template-areas:
+      'eyebrow eyebrow'
+      'title title'
+      'rule rule'
+      'roles plate'
+      'climb plate'
+      'blurb plate'
+      'accept accept';
+    column-gap: 20px;
+    row-gap: 10px;
+    padding: 20px 36px 18px;
+  }
+
+  .eyebrow {
+    grid-area: eyebrow;
+    margin-top: 16px;
+  }
+
+  .title {
+    grid-area: title;
+    font-size: var(--display-lg);
+  }
+
+  .rule {
+    grid-area: rule;
+    margin-bottom: 6px;
+  }
+
+  .roles {
+    grid-area: roles;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .role {
+    width: auto;
+    flex-direction: row;
+    justify-content: flex-start;
+    gap: 12px;
+    padding: 9px 12px 9px 10px;
+    text-align: left;
+  }
+
+  .roleName {
+    flex: 1 1 auto;
+    text-align: left;
+    font-size: var(--display-xs);
+  }
+
+  .roleKey {
+    display: inline-block;
+  }
+
+  .roleOn .roleKey {
+    border-color: color-mix(in srgb, var(--cc-gold) 55%, var(--cc-line-strong));
+    color: var(--cc-gold-bright);
+  }
+
+  .climb {
+    grid-area: climb;
+    width: 100%;
+    margin: 0;
+  }
+
+  .blurb {
+    grid-area: blurb;
+    align-self: start;
+    max-width: none;
+    text-align: left;
+  }
+
+  .plate {
+    grid-area: plate;
+    width: 100%;
+    margin: 0;
+    padding: 16px 18px 14px;
+    gap: 12px;
+  }
+
+  .heroName {
+    font-size: var(--display-md);
+  }
+
+  .stats {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .perk {
+    padding: 10px 12px;
+  }
+
+  .perkDesc,
+  .moveDesc {
+    font-size: var(--body-md);
+  }
+
+  .moves {
+    gap: 8px;
+  }
+
+  .move {
+    gap: 5px;
+    padding: 10px 12px;
+  }
+
+  .accept {
+    grid-area: accept;
+    justify-self: center;
+    min-width: 260px;
+  }
 }

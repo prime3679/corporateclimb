@@ -12,6 +12,7 @@ import {
   getDailyDayNumber,
 } from '@/daily'
 import { Button } from '@/ui'
+import styles from './DailyPreScreen.module.css'
 
 export default function DailyPreScreen({
   onStart,
@@ -33,216 +34,89 @@ export default function DailyPreScreen({
   const history = getRecentDailyHistory(7)
 
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 16,
-        padding: 20,
-        background: 'linear-gradient(180deg, #1A237E 0%, #283593 50%, #3949AB 100%)',
-      }}
-    >
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-xs)',
-          color: 'var(--gold-bright)',
-          letterSpacing: 3,
-          textShadow: '2px 2px 0 #E65100',
-        }}
-      >
-        DAILY CHALLENGE #{dayNum}
-      </div>
+    <div className={styles.screen}>
+      <div className={`t-display ${styles.title}`}>DAILY CHALLENGE #{dayNum}</div>
 
-      {/* Modifier card */}
-      <div
-        style={{
-          background: 'rgba(0,0,0,0.6)',
-          borderRadius: 'var(--radius-lg)',
-          padding: 16,
-          border: 'var(--border-w) solid var(--amber-deep)',
-          maxWidth: 300,
-          width: '100%',
-          textAlign: 'center',
-        }}
-      >
-        <div style={{ fontSize: 28 }}>{modifier.icon}</div>
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-xs)',
-            color: 'var(--amber-deep)',
-            marginTop: 8,
-          }}
-        >
-          {modifier.name.toUpperCase()}
+      {/* Brief (left on the wide canvas) and roster (right) are `display:
+          contents` on the phone column, so the stack there is untouched. */}
+      <div className={styles.brief}>
+        {/* Modifier card */}
+        <div className={styles.modCard}>
+          <div className={styles.modIcon}>{modifier.icon}</div>
+          <div className={`t-display ${styles.modName}`}>{modifier.name.toUpperCase()}</div>
+          <div className={`t-body ${styles.modDesc}`}>{modifier.desc}</div>
         </div>
-        <div
-          className="t-body"
-          style={{
-            fontSize: 'var(--body-md)',
-            color: 'var(--muted-light)',
-            marginTop: 8,
-            lineHeight: 1.2,
-          }}
-        >
-          {modifier.desc}
+
+        <div className={`t-display ${styles.rules}`}>
+          NG+1 DIFFICULTY &bull; 15 FLOORS &bull; NO SAVES
         </div>
-      </div>
 
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: '#EF5350',
-          background: 'rgba(229,57,53,0.15)',
-          padding: '6px 12px',
-          borderRadius: 'var(--radius-sm)',
-        }}
-      >
-        NG+1 DIFFICULTY &bull; 15 FLOORS &bull; NO SAVES
-      </div>
-
-      {/* Streak + last-7-days strip */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-        {streak.current > 0 && (
+        {/* Streak + last-7-days strip */}
+        <div className={styles.streakRow}>
+          {streak.current > 0 && (
+            <div className={`t-display ${styles.streak}`}>
+              STREAK {streak.current} DAY{streak.current === 1 ? '' : 'S'}
+            </div>
+          )}
           <div
-            className="t-display"
-            style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold-bright)' }}
+            className={styles.days}
+            role="img"
+            aria-label={`Last 7 days: ${history.filter((h) => h.result).length} played`}
           >
-            STREAK {streak.current} DAY{streak.current === 1 ? '' : 'S'}
+            {history.map(({ seed: s, result }) => (
+              <span
+                key={s}
+                title={`Daily #${getDailyDayNumber(s)}`}
+                className={`${styles.day} ${
+                  result ? (result.won ? styles.dayWon : styles.dayLost) : ''
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className={styles.roster}>
+        {/* Class selection (unless reorg) */}
+        {!isReorg && !alreadyPlayed && (
+          <div className={styles.classes}>
+            {PLAYER_CLASSES.map((c, i) => (
+              <button
+                key={c.id}
+                onClick={() => setSelected(i)}
+                aria-pressed={selected === i}
+                className={`${styles.classCard} ${selected === i ? styles.classOn : ''}`}
+              >
+                <div className={`sprite-idle ${styles.classSprite}`}>
+                  <img src={sprites[c.spriteId]} alt="" draggable={false} />
+                </div>
+                <span className={`t-display ${styles.classLabel}`}>{c.name}</span>
+              </button>
+            ))}
           </div>
         )}
-        <div
-          style={{ display: 'flex', gap: 4 }}
-          role="img"
-          aria-label={`Last 7 days: ${history.filter((h) => h.result).length} played`}
-        >
-          {history.map(({ seed: s, result }) => (
-            <span
-              key={s}
-              title={`Daily #${getDailyDayNumber(s)}`}
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 3,
-                border: '1px solid rgba(255,255,255,0.3)',
-                background: result
-                  ? result.won
-                    ? 'var(--green)'
-                    : 'var(--amber-deep)'
-                  : 'rgba(255,255,255,0.12)',
-              }}
-            />
-          ))}
-        </div>
+
+        {alreadyPlayed && pastResult ? (
+          <div className={styles.result}>
+            <div className={`t-display ${styles.resultLabel}`}>TODAY'S RESULT</div>
+            <div className={`t-body ${styles.resultLine}`}>
+              {pastResult.won ? 'CLEARED' : 'FELL'} &bull; Floor {pastResult.floorsCleared}/15
+            </div>
+            <div className={`t-display ${styles.resultScore}`}>
+              {pastResult.score.toLocaleString()}
+            </div>
+            <div className={`t-body ${styles.resultNote}`}>
+              Come back tomorrow for a new challenge
+            </div>
+          </div>
+        ) : (
+          <Button variant="accent" size="lg" onClick={() => onStart(PLAYER_CLASSES[selected])}>
+            BEGIN CHALLENGE
+          </Button>
+        )}
       </div>
 
-      {/* Class selection (unless reorg) */}
-      {!isReorg && !alreadyPlayed && (
-        <div style={{ display: 'flex', gap: 8 }}>
-          {PLAYER_CLASSES.map((c, i) => (
-            <button
-              key={c.id}
-              onClick={() => setSelected(i)}
-              aria-pressed={selected === i}
-              style={{
-                width: 80,
-                padding: '8px 6px',
-                background: selected === i ? '#FFF8E1' : 'var(--ink-soft)',
-                border: `var(--border-w) solid ${selected === i ? 'var(--gold)' : '#546E7A'}`,
-                borderRadius: 'var(--radius-md)',
-                cursor: 'pointer',
-                boxShadow: selected === i ? 'var(--shadow-md)' : '2px 2px 0 var(--ink)',
-                display: 'flex',
-                flexDirection: 'column',
-                alignItems: 'center',
-                gap: 6,
-              }}
-            >
-              <div className="sprite-idle" style={{ width: 40, height: 46 }}>
-                <img
-                  src={sprites[c.spriteId]}
-                  alt=""
-                  style={{
-                    width: '100%',
-                    height: '100%',
-                    imageRendering: 'auto',
-                    padding: '8% 2% 0 2%',
-                    objectFit: 'contain',
-                  }}
-                  draggable={false}
-                />
-              </div>
-              <span
-                className="t-display"
-                style={{
-                  fontSize: 'var(--display-2xs)',
-                  color: selected === i ? 'var(--ink)' : 'var(--muted-light)',
-                }}
-              >
-                {c.name}
-              </span>
-            </button>
-          ))}
-        </div>
-      )}
-
-      {alreadyPlayed && pastResult ? (
-        <div
-          style={{
-            background: 'rgba(0,0,0,0.6)',
-            borderRadius: 'var(--radius-lg)',
-            padding: 16,
-            border: '2px solid var(--gold-bright)',
-            maxWidth: 300,
-            width: '100%',
-            textAlign: 'center',
-          }}
-        >
-          <div
-            className="t-display"
-            style={{
-              fontSize: 'var(--display-2xs)',
-              color: 'var(--gold-bright)',
-              marginBottom: 8,
-            }}
-          >
-            TODAY'S RESULT
-          </div>
-          <div
-            className="t-body"
-            style={{ fontSize: 'var(--body-md)', color: '#FFF', lineHeight: 1.2 }}
-          >
-            {pastResult.won ? 'CLEARED' : 'FELL'} &bull; Floor {pastResult.floorsCleared}/15
-          </div>
-          <div
-            className="t-display"
-            style={{
-              fontSize: 'var(--display-md)',
-              color: 'var(--gold-bright)',
-              margin: '8px 0',
-            }}
-          >
-            {pastResult.score.toLocaleString()}
-          </div>
-          <div
-            className="t-body"
-            style={{ fontSize: 'var(--body-sm)', color: 'var(--muted)', lineHeight: 1.2 }}
-          >
-            Come back tomorrow for a new challenge
-          </div>
-        </div>
-      ) : (
-        <Button variant="accent" size="lg" onClick={() => onStart(PLAYER_CLASSES[selected])}>
-          BEGIN CHALLENGE
-        </Button>
-      )}
-
-      <Button variant="ghost" size="sm" onClick={onBack}>
+      <Button variant="ghost" size="sm" className={styles.back} onClick={onBack}>
         BACK
       </Button>
     </div>

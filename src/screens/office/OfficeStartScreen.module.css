@@ -11,6 +11,13 @@
     radial-gradient(120% 130% at 50% 60%, #121b2a, #070b12 68%);
 }
 
+/* Phone column: the pitch / desk wrappers are transparent to layout so the
+   stack reads exactly as before. The wide canvas turns them into columns. */
+.pitch,
+.desk {
+  display: contents;
+}
+
 .back {
   position: absolute;
   top: 14px;
@@ -211,5 +218,84 @@
   .back {
     top: 10px;
     left: 10px;
+  }
+}
+
+/* Wide stage (desktop canvas): the pitch — eyebrow, wordmark, floor tower,
+   blurb — takes the left column, left-aligned like a lobby directory, and
+   the campaign card with its actions sits at a desk on the right, behind a
+   hairline spine. Two columns read as a spread, not a stretched card.
+   After the short-stage block so it wins where both apply (1080p is
+   840 wide × 760 tall). */
+@container stage (min-width: 700px) {
+  .screen {
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    padding: 48px 36px;
+    overflow: hidden;
+  }
+
+  .pitch {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    flex: 0 1 330px;
+    min-width: 0;
+    padding-right: 40px;
+  }
+
+  .desk {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+    flex: 0 1 380px;
+    min-width: 0;
+    padding-left: 40px;
+    border-left: 1px solid var(--cc-line);
+  }
+
+  .title {
+    font-size: 56px;
+    line-height: 1;
+    text-align: left;
+  }
+
+  .rule {
+    width: 220px;
+    background: linear-gradient(90deg, var(--cc-gold), transparent);
+  }
+
+  .tower {
+    width: 100%;
+    gap: 4px;
+  }
+
+  .fl {
+    min-height: 26px;
+    padding: 4px 12px;
+    font-size: var(--display-xs);
+  }
+
+  .fl b {
+    width: 14px;
+  }
+
+  .blurb {
+    max-width: 320px;
+    text-align: left;
+    font-size: var(--body-lg);
+  }
+
+  .card,
+  .actions {
+    width: 100%;
+  }
+
+  .actions {
+    margin-top: 0;
   }
 }

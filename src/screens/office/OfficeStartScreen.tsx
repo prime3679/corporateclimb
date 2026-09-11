@@ -51,120 +51,131 @@ export default function OfficeStartScreen({
         ‹ Title
       </button>
 
-      <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
-      <h1 className={styles.title}>THE OFFICE</h1>
-      <div className={styles.rule} aria-hidden />
-      <div className={styles.tower} aria-hidden>
-        {ELEVATOR_FLOORS.map((row) => (
-          <span
-            key={row.id}
-            className={styles.fl}
-            style={{ '--fl': FLOOR_INK[row.number] } as CSSProperties}
-          >
-            <b>{row.number}</b>
-            {row.name}
-          </span>
-        ))}
+      {/* Pitch (left on the wide canvas) and desk (right) are `display:
+          contents` on the phone column, so the stack there is untouched. */}
+      <div className={styles.pitch}>
+        <div className={styles.eyebrow}>Campaign · Floors 1–5</div>
+        <h1 className={styles.title}>THE OFFICE</h1>
+        <div className={styles.rule} aria-hidden />
+        <div className={styles.tower} aria-hidden>
+          {ELEVATOR_FLOORS.map((row) => (
+            <span
+              key={row.id}
+              className={styles.fl}
+              style={{ '--fl': FLOOR_INK[row.number] } as CSSProperties}
+            >
+              <b>{row.number}</b>
+              {row.name}
+            </span>
+          ))}
+        </div>
+        <p className={styles.blurb}>
+          Five floors. Reception to the board. The badge they handed you is a visitor badge.
+        </p>
       </div>
-      <p className={styles.blurb}>
-        Five floors. Reception to the board. The badge they handed you is a visitor badge.
-      </p>
 
-      {save && (
-        <div className={styles.card} aria-label="Campaign summary">
-          <div className={styles.cardHead}>
-            <div className={styles.headshots}>
-              {save.party.map((m) => (
-                <Headshot key={m.slot} spriteId={memberSprite(m)} size={44} ring={memberRing(m)} />
-              ))}
-              {Array.from({ length: Math.max(0, 3 - save.party.length) }, (_, i) => (
-                <span key={`open-${i}`} className={styles.openSeat} aria-label="Open seat">
-                  +
-                </span>
-              ))}
+      <div className={styles.desk}>
+        {save && (
+          <div className={styles.card} aria-label="Campaign summary">
+            <div className={styles.cardHead}>
+              <div className={styles.headshots}>
+                {save.party.map((m) => (
+                  <Headshot
+                    key={m.slot}
+                    spriteId={memberSprite(m)}
+                    size={44}
+                    ring={memberRing(m)}
+                  />
+                ))}
+                {Array.from({ length: Math.max(0, 3 - save.party.length) }, (_, i) => (
+                  <span key={`open-${i}`} className={styles.openSeat} aria-label="Open seat">
+                    +
+                  </span>
+                ))}
+              </div>
+              <div>
+                <div className={styles.cardTitle}>{memberName(save.party[0])}</div>
+                <div className={styles.cardSub}>{campaignSummary(save)}</div>
+              </div>
             </div>
-            <div>
-              <div className={styles.cardTitle}>{memberName(save.party[0])}</div>
-              <div className={styles.cardSub}>{campaignSummary(save)}</div>
+            <div className={styles.stats}>
+              <span>
+                Wallet{' '}
+                <b>
+                  {CURRENCY_ICON} {save.run.stockOptions}
+                </b>
+              </span>
+              <span>
+                Team <b>{save.party.length} / 3</b>
+              </span>
+              <span>
+                On floor <b>{formatFloorTime(save.stats.msOnFloor)}</b>
+              </span>
+              <span>
+                Battles won <b>{save.stats.battlesWon}</b>
+              </span>
             </div>
           </div>
-          <div className={styles.stats}>
-            <span>
-              Wallet{' '}
-              <b>
-                {CURRENCY_ICON} {save.run.stockOptions}
-              </b>
-            </span>
-            <span>
-              Team <b>{save.party.length} / 3</b>
-            </span>
-            <span>
-              On floor <b>{formatFloorTime(save.stats.msOnFloor)}</b>
-            </span>
-            <span>
-              Battles won <b>{save.stats.battlesWon}</b>
-            </span>
-          </div>
-        </div>
-      )}
+        )}
 
-      {corrupt && (
-        <div className={`${styles.card} ${styles.cardWarn}`} role="alert">
-          <div className={styles.cardTitle}>Couldn't read this campaign.</div>
-          <div className={styles.cardSub}>
-            Start a new one — the Classic climb save is untouched.
+        {corrupt && (
+          <div className={`${styles.card} ${styles.cardWarn}`} role="alert">
+            <div className={styles.cardTitle}>Couldn't read this campaign.</div>
+            <div className={styles.cardSub}>
+              Start a new one — the Classic climb save is untouched.
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {confirmErase ? (
-        <div className={styles.card} role="dialog" aria-label="Erase campaign?">
-          <div className={styles.cardTitle}>Erase this campaign?</div>
-          <div className={styles.cardSub}>The team goes back to being coworkers.</div>
+        {confirmErase ? (
+          <div className={styles.card} role="dialog" aria-label="Erase campaign?">
+            <div className={styles.cardTitle}>Erase this campaign?</div>
+            <div className={styles.cardSub}>The team goes back to being coworkers.</div>
+            <div className={styles.actions}>
+              <button
+                type="button"
+                className={styles.danger}
+                onClick={() => {
+                  SFX.menuConfirm()
+                  onNew()
+                }}
+              >
+                Erase
+              </button>
+              <Button
+                variant="ghost"
+                autoFocus
+                onClick={() => {
+                  SFX.menuBack()
+                  setConfirmErase(false)
+                }}
+              >
+                Keep it
+              </Button>
+            </div>
+          </div>
+        ) : (
           <div className={styles.actions}>
-            <button
-              type="button"
-              className={styles.danger}
-              onClick={() => {
-                SFX.menuConfirm()
-                onNew()
-              }}
-            >
-              Erase
-            </button>
+            {save && (
+              <Button variant="primary" size="lg" onClick={onContinue} autoFocus>
+                CONTINUE
+              </Button>
+            )}
             <Button
-              variant="ghost"
-              autoFocus
+              variant={save ? 'secondary' : 'primary'}
+              size={save ? 'md' : 'lg'}
               onClick={() => {
-                SFX.menuBack()
-                setConfirmErase(false)
+                if (save) {
+                  SFX.menuSelect()
+                  setConfirmErase(true)
+                } else onNew()
               }}
             >
-              Keep it
+              NEW CAMPAIGN
             </Button>
           </div>
-        </div>
-      ) : (
-        <div className={styles.actions}>
-          {save && (
-            <Button variant="primary" size="lg" onClick={onContinue} autoFocus>
-              CONTINUE
-            </Button>
-          )}
-          <Button
-            variant={save ? 'secondary' : 'primary'}
-            size={save ? 'md' : 'lg'}
-            onClick={() => {
-              if (save) {
-                SFX.menuSelect()
-                setConfirmErase(true)
-              } else onNew()
-            }}
-          >
-            NEW CAMPAIGN
-          </Button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   )
 }
