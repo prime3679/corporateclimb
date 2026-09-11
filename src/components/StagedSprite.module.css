@@ -1,7 +1,13 @@
 .stage {
+  /* `size` prop → --staged-size-default. An ancestor sets --staged-size to
+     resize responsively (the arena does, per stage width); the ring and
+     shadow are derived from the resolved width so they keep reading. */
+  --staged-w: var(--staged-size, var(--staged-size-default));
+  --staged-ring-w: calc(var(--staged-w) * 0.82 * var(--staged-ring-scale, 1));
   position: relative;
   display: flex;
   justify-content: center;
+  width: var(--staged-w);
 }
 
 .sprite {
@@ -14,6 +20,8 @@
   position: absolute;
   left: 50%;
   bottom: 2px;
+  width: calc(var(--staged-ring-w) * 1.15);
+  height: calc(var(--staged-ring-w) * 0.3);
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse, rgba(0, 0, 0, 0.5) 0%, transparent 70%);
@@ -26,6 +34,8 @@
   position: absolute;
   left: 50%;
   bottom: 4px;
+  width: var(--staged-ring-w);
+  height: calc(var(--staged-ring-w) * 0.34);
   transform: translateX(-50%);
   border-radius: 50%;
   background: radial-gradient(ellipse, var(--ring) 0%, transparent 68%);

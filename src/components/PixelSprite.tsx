@@ -15,7 +15,9 @@ export default function PixelSprite({
   flip = false,
 }: {
   spriteId: string
-  size?: number
+  /** Rendered width — a design-px number, or a CSS length such as `'100%'`
+   *  when a parent (StagedSprite) owns the size. */
+  size?: number | string
   animState?: AnimState
   flip?: boolean
 }) {
