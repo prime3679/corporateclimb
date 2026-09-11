@@ -20,7 +20,7 @@ export function injectPrecache(swSource: string, entries: string[], version: str
 export function collectPrecacheEntries(outDir: string): string[] {
   const entries = ['/', '/index.html', '/manifest.webmanifest']
   for (const f of readdirSync(outDir)) {
-    if (/^(icon-|apple-touch-icon)/.test(f)) entries.push(`/${f}`)
+    if (/^(icon-|apple-touch-icon|favicon)/.test(f)) entries.push(`/${f}`)
   }
   const assetsDir = join(outDir, 'assets')
   if (existsSync(assetsDir)) {
