@@ -53,6 +53,15 @@ import styles from './office/OfficeScreen.module.css'
 const OFFICE_OLD = { floor: 0, title: 'New Hire' }
 const OFFICE_NEW = { floor: 1, title: 'Cleared Probation' }
 
+/** Pointer-first keyboard legend in the thumb band — the overworld rows of
+ *  the Stage theater-wing `KEY_LEGEND`, in the same label + keycap language. */
+const HUD_KEY_LEGEND: ReadonlyArray<{ label: string; keys: readonly string[] }> = [
+  { label: 'Move', keys: ['↑↓←→'] },
+  { label: 'Interact', keys: ['E'] },
+  { label: 'Team', keys: ['P'] },
+  { label: 'Menu', keys: ['Esc'] },
+]
+
 /** ACT's label becomes the verb of the faced prompt so the thumb knows first. */
 function actVerb(prompt: string | null, state: OfficeState): string {
   if (state.overlay && state.overlay.kind !== 'coach') {
@@ -639,11 +648,14 @@ function Overworld({
               aria-label={`${wallet.shown} Stock Options`}
             >
               {CURRENCY_ICON} {wallet.shown}
+              <span className={styles.walletUnit} aria-hidden>
+                Stock Options
+              </span>
             </span>
             {chips.length > 0 && (
               <div className={styles.keyRow}>
                 {chips.map((chip) => (
-                  <span key={chip.id} className={styles.keyChip}>
+                  <span key={chip.id} className={styles.keyChip} title={chip.title}>
                     {chip.label}
                   </span>
                 ))}
@@ -705,16 +717,23 @@ function Overworld({
           <span className={styles.legendNearby}>
             {prompt && !overlayOpen ? (
               <>
-                <span className={styles.kbd}>E</span> · {prompt}
+                <kbd className={styles.kbd}>E</kbd> · {prompt}
               </>
             ) : (
               ' '
             )}
           </span>
           <span className={styles.legendKeys}>
-            Move <span className={styles.kbd}>↑↓←→</span> · Interact{' '}
-            <span className={styles.kbd}>E</span> · Team <span className={styles.kbd}>P</span> ·
-            Menu <span className={styles.kbd}>Esc</span>
+            {HUD_KEY_LEGEND.map((row) => (
+              <span key={row.label} className={styles.legendItem}>
+                {row.label}
+                {row.keys.map((k) => (
+                  <kbd key={k} className={styles.kbd}>
+                    {k}
+                  </kbd>
+                ))}
+              </span>
+            ))}
           </span>
         </div>
 

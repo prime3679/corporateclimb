@@ -301,12 +301,14 @@
   animation: of-wallet 700ms var(--cc-ease-out);
 }
 
+/* Names the currency beside the number so 📈 reads as a wallet, not a chart. */
 .walletUnit {
   font-family: var(--cc-font-body);
   font-size: var(--body-sm);
   font-weight: 600;
   color: var(--cc-text-dim);
   letter-spacing: 0.04em;
+  white-space: nowrap;
 }
 
 .keyRow {
@@ -612,23 +614,41 @@
   white-space: nowrap;
 }
 
+/* Label + keycap rows in the Stage theater-wing legend's language
+   (Stage.module.css `.legendLabel` / `.kbd`): one sans, 12px labels,
+   gapped instead of dot-separated, so the band legend and the Keyboard
+   column read as the same system. */
 .legendKeys {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
   font-family: var(--cc-font-body);
-  font-size: var(--body-sm);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--cc-text-faint);
   white-space: nowrap;
 }
 
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .kbd {
   display: inline-block;
-  min-width: 16px;
-  padding: 0 4px;
-  margin: 0 1px;
-  border-radius: 3px;
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: 4px;
   border: 1px solid var(--cc-line-strong);
+  border-bottom-width: 2px;
   background: var(--cc-fill-soft);
-  color: var(--cc-text-2);
+  color: var(--cc-text-3);
+  font: inherit;
   font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
   text-align: center;
 }
 
@@ -983,25 +1003,67 @@
   }
 
   /* Pointer-first canvas: a slimmer thumb band buys the map another row.
-     48px pads still clear the 44px physical bar at every desktop scale
-     (the canvas never renders below ~0.95×, and touch tablets land ≥ 1×). */
+     The band is exactly the 3×44 D-pad tall (44px cells clear the 44px
+     physical bar at 1× and up; the desktop canvas never renders below
+     ~0.95×, and touch tablets land ≥ 1×). The right cluster folds into
+     one row — Title · TEAM · a 64px ACT — so the disc stops reading as a
+     phone thumb target under a theater stage, and the legend stacks above
+     it (keys, then the E prompt) instead of straddling the whole band. */
   .ctl {
-    height: 160px;
-    padding-top: 12px;
+    height: 144px;
+    padding-top: 8px;
   }
 
   .dpad {
-    grid-template-columns: repeat(3, 48px);
-    grid-template-rows: repeat(3, 48px);
+    grid-template-columns: repeat(3, 44px);
+    grid-template-rows: repeat(3, 44px);
+  }
+
+  .pad {
+    font-size: var(--display-xs);
+  }
+
+  .legend {
+    left: auto;
+    top: 8px;
+    flex-direction: column-reverse;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .ctlRight {
+    flex-direction: row;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .act {
+    width: 64px;
+    height: 64px;
+    padding: 0 5px;
+    box-shadow:
+      0 3px 0 rgba(140, 90, 0, 0.9),
+      0 0 14px rgba(255, 193, 7, 0.2),
+      var(--cc-shadow-plate);
+  }
+
+  .team {
+    width: 44px;
+    height: 44px;
+  }
+
+  .exit {
+    min-height: 30px;
+    padding: 0 10px;
   }
 
   .coachMove {
-    --coach-pointer: 74px; /* the smaller D-pad's ▲ */
+    --coach-pointer: 68px; /* the smaller D-pad's ▲ */
   }
 
   .coachMove,
   .coachInteract {
-    bottom: 148px;
+    bottom: 132px;
   }
 }
 
