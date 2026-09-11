@@ -177,6 +177,12 @@
   border: 1px solid var(--cc-line-faint);
 }
 
+/* Extra skyline blocks either side of the phone's nine; only the wide
+   desktop canvas has the width for them (see SKYLINE in TitleScreen.tsx). */
+.skylineWing {
+  display: none;
+}
+
 /* Short stages (the 440×760 playtest viewport, landscape phones): tighten
    the stack so Codex and the stats pill never fall behind the skyline. */
 @container stage (max-height: 820px) {
@@ -210,5 +216,36 @@
   .castSlotLead {
     width: 66px;
     height: 80px;
+  }
+}
+
+/* Wide stage (desktop canvas): the stack stays a centred column — a title
+   screen wants a spine, not a spread — but the copy takes a longer measure
+   so the tagline and lede each sit on one or two lines, the wordmark and
+   cast get the presence the extra width invites, and the skyline runs the
+   full width so the city reads as a city. After the short-stage block so it
+   wins where both apply (a 1080p canvas is 840 wide × 760 tall). */
+@container stage (min-width: 700px) {
+  .skylineWing {
+    display: block;
+  }
+
+  .wordmark {
+    font-size: 48px;
+  }
+
+  .tagline,
+  .lede {
+    max-width: 520px;
+  }
+
+  .castSlot {
+    width: 70px;
+    height: 86px;
+  }
+
+  .castSlotLead {
+    width: 78px;
+    height: 94px;
   }
 }

@@ -212,6 +212,30 @@
   }
 }
 
+/* Wide stage (desktop canvas): the deck lays its four moves in one row —
+   keys 1–4 read left to right like a hotbar — and gives the row it saves
+   back to the battlefield, which stretches into a proper arena with the
+   combatants in opposite corners. */
+@container stage (min-width: 700px) {
+  .cardGrid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .commandDeck {
+    min-height: 250px;
+  }
+
+  .battlefield {
+    margin: 10px 12px 0;
+  }
+
+  /* Clear the SOUND / SET / CV chrome, which the phone column has to
+     tuck under; here there is room to sit beside it. */
+  .floorCounter {
+    right: 184px;
+  }
+}
+
 .itemName {
   display: flex;
   align-items: center;

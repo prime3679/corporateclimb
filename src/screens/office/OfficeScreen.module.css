@@ -948,6 +948,63 @@
   }
 }
 
+/* Wide stage (desktop canvas, DESKTOP_DESIGN_WIDTH): the HUD folds into one
+   row — work ticket left, roster and wallet right — so the extra columns go
+   to the map, which shows the whole 24-tile floor (WorldMap.module.css) and
+   gains the row the second HUD line used to take. Declared after the short-
+   stage block so it wins where both apply (1080p is 840 wide × 760 tall). */
+@container stage (min-width: 700px) {
+  .hud {
+    flex-direction: row;
+    align-items: stretch;
+    gap: 12px;
+    /* The global SOUND / SET chrome owns the top-right corner. */
+    padding-right: 124px;
+  }
+
+  .objective {
+    flex: 1 1 auto;
+    min-width: 0;
+    min-height: 0;
+    margin-right: 0;
+  }
+
+  .hudRow {
+    flex: none;
+    gap: 12px;
+  }
+
+  .wallet {
+    justify-content: center;
+  }
+
+  .coachPin {
+    top: 72px;
+  }
+
+  /* Pointer-first canvas: a slimmer thumb band buys the map another row.
+     48px pads still clear the 44px physical bar at every desktop scale
+     (the canvas never renders below ~0.95×, and touch tablets land ≥ 1×). */
+  .ctl {
+    height: 160px;
+    padding-top: 12px;
+  }
+
+  .dpad {
+    grid-template-columns: repeat(3, 48px);
+    grid-template-rows: repeat(3, 48px);
+  }
+
+  .coachMove {
+    --coach-pointer: 74px; /* the smaller D-pad's ▲ */
+  }
+
+  .coachMove,
+  .coachInteract {
+    bottom: 148px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .objectiveSwap,
   .walletPulse,
