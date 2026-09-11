@@ -614,23 +614,41 @@
   white-space: nowrap;
 }
 
+/* Label + keycap rows in the Stage theater-wing legend's language
+   (Stage.module.css `.legendLabel` / `.kbd`): one sans, 12px labels,
+   gapped instead of dot-separated, so the band legend and the Keyboard
+   column read as the same system. */
 .legendKeys {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
   font-family: var(--cc-font-body);
-  font-size: var(--body-sm);
+  font-size: 12px;
+  font-weight: 400;
+  letter-spacing: 0.02em;
   color: var(--cc-text-faint);
   white-space: nowrap;
 }
 
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
 .kbd {
   display: inline-block;
-  min-width: 16px;
-  padding: 0 4px;
-  margin: 0 1px;
-  border-radius: 3px;
+  min-width: 20px;
+  padding: 1px 5px;
+  border-radius: 4px;
   border: 1px solid var(--cc-line-strong);
+  border-bottom-width: 2px;
   background: var(--cc-fill-soft);
-  color: var(--cc-text-2);
+  color: var(--cc-text-3);
+  font: inherit;
   font-size: 11px;
+  font-weight: 400;
+  line-height: 16px;
   text-align: center;
 }
 
