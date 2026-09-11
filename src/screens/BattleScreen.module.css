@@ -25,6 +25,25 @@
   left: 10px;
 }
 
+/* Combatant stands: enemy up-right on the far wall, player down-left on
+   the floor. Sprite sizes live on the StagedSprite `size` prop for the
+   phone canvas; the wide-stage block below overrides them. */
+.enemyStand,
+.playerStand {
+  position: absolute;
+  z-index: 2;
+}
+
+.enemyStand {
+  top: 4%;
+  right: 8px;
+}
+
+.playerStand {
+  bottom: 2%;
+  left: 12px;
+}
+
 .playerResourcePanel {
   right: 10px;
   bottom: 10px;
@@ -233,6 +252,24 @@
      tuck under; here there is room to sit beside it. */
   .floorCounter {
     right: 184px;
+  }
+
+  /* Combatants at arena scale. The 816-wide battlefield is ~490 tall on
+     every 16:9 desktop (the stage height clamps at 760), so the phone
+     164 / 154 read as chibi under the desktop chrome. Sizes are fixed px
+     so the pixel art never lands on a fractional scale; the offsets keep
+     the enemy's head under the SOUND / SET chrome and the floor counter,
+     and both figures clear of the dossier and resource panels. */
+  .enemyStand {
+    --staged-size: 236px;
+    top: 44px;
+    right: 40px;
+  }
+
+  .playerStand {
+    --staged-size: 224px;
+    bottom: 14px;
+    left: 40px;
   }
 }
 

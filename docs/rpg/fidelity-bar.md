@@ -536,6 +536,54 @@ scene marks. ~102 s at 1280×720; no hand-edited bytes.
   56.0 s · helpdesk 61.0 s · floor3 66.7 s · floor4 75.6 s · exec 84.4 s ·
   THE CLIMB 95.0 s · end card 99.5–102.5 s.
 
+### Pass J — battle: larger desktop combat sprites
+
+Combat arena fidelity on tip `d20d4c2`, the Meng move queued behind the
+Title polish. Scope is the shared `BattleScreen` presentation (Office and
+Classic both mount it): no Floor 6, no iOS, no engine work, Classic content
+untouched, demo mp4 not remuxed.
+
+**Before.** `#116` / `#117` gave the 840 desktop canvas a theater frame and
+a 4-move hotbar, and the battlefield stretched to an 816 × ~490 arena (the
+stage height clamps at 760 on every 16:9 desktop) — but the combatants were
+hardcoded at the phone 164 / 154, hugging the arena edges. Under the polished
+chrome they read as chibi, the same class of problem the Title plates had.
+Damage numbers were fixed battlefield px tuned for the 456-wide phone arena,
+so on desktop the enemy's numbers spawned ~350px left of the enemy and the
+player's floated near the top of the arena on every canvas.
+
+**After.**
+
+- **Sizes.** `@container stage (min-width: 700px)` sets `--staged-size` to
+  236px on the enemy stand and 224px on the player (from 164 / 154 —
+  ~+44%). Fixed px, not a percentage, so the art never lands on a
+  fractional scale; at 1080p (1.42×) that is ~335 / 318 real px, still
+  downscaled from the 512 masters. The phone canvas keeps the `size` props
+  bit-for-bit: `e2e/battle-arena.spec.ts` pins the 390×844 stand boxes
+  (`291,33 → 455,204` and `21,448 → 175,608`).
+- **Composition.** Enemy up-right at `top: 44px / right: 40px`, player
+  down-left at `bottom: 14px / left: 40px` — opposite corners with the
+  far / near perspective the phone already had. The enemy's head starts
+  below the floor counter and the SOUND / SET chrome; neither stand touches
+  the dossier or the resource panel (the e2e asserts all four). The player
+  stands on the floor band in both Office and Classic rooms.
+- **`StagedSprite` is CSS-sized.** The `size` prop becomes
+  `--staged-size-default`; an ancestor may set `--staged-size` inside a
+  container query and the ring / shadow follow through `--staged-ring-w`.
+  `PixelSprite` accepts a CSS length (`'100%'`) so the staged image fills
+  the stand. FloorIntro / class select render identically (212 → ring 174 /
+  shadow 200, the old JS math).
+- **Popups land on the sprite.** `DamagePopup` carries `target`, and `x` /
+  `y` are percentages of that stand; `BattleScreen` mounts each number
+  inside its stand. Enemy numbers spill left from the chest (`x −20…10%`,
+  `y 22…40%`), player numbers right from the upper body (`55…85%`,
+  `12…30%`). Jitter is presentation-only (`popupAnchor(target, rand)`), so
+  seeded runs are untouched.
+
+Guards: `src/__tests__/battle-arena.test.ts` (props, wide-block sizes,
+stand positions, StagedSprite var wiring, popup anchors) and
+`e2e/battle-arena.spec.ts` (1920×1080 Classic + Office, 390×844 Classic).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear

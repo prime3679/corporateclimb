@@ -66,17 +66,28 @@ const POPUP_LIFETIME = 1100
 
 let popupId = 0
 
+/**
+ * Where a damage number spawns, as a percentage of the target's stand: the
+ * enemy stands on the right, so its numbers spill left toward the arena
+ * centre at chest height; the player's spill right from the upper body.
+ * The jitter is presentation only (never the engine RNG).
+ */
+export function popupAnchor(target: Side, rand: () => number = Math.random) {
+  return target === 'enemy'
+    ? { x: -20 + rand() * 30, y: 22 + rand() * 18 }
+    : { x: 55 + rand() * 30, y: 12 + rand() * 18 }
+}
+
 function makePopup(
   value: number,
   target: Side,
   opts: { crit?: boolean; heal?: boolean; label?: string; labelColor?: string } = {},
 ): DamagePopup {
-  const isEnemy = target === 'enemy'
   return {
     id: popupId++,
     value,
-    x: isEnemy ? 200 + Math.random() * 60 : 60 + Math.random() * 60,
-    y: isEnemy ? 70 + Math.random() * 30 : 130 + Math.random() * 30,
+    target,
+    ...popupAnchor(target),
     isCrit: opts.crit ?? false,
     isHeal: opts.heal ?? false,
     label: opts.label,

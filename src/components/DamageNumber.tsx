@@ -16,8 +16,8 @@ export default function DamageNumber({ popup }: { popup: DamagePopup }) {
       className="t-display"
       style={{
         position: 'absolute',
-        left: popup.x,
-        top: popup.y,
+        left: `${popup.x}%`,
+        top: `${popup.y}%`,
         fontSize: popup.isCrit ? 16 : 12,
         color: popup.isHeal ? 'var(--green)' : popup.isCrit ? 'var(--gold-bright)' : '#F44336',
         textShadow: '2px 2px 0 #263238, -1px -1px 0 #263238',

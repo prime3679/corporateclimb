@@ -239,7 +239,7 @@ export default function BattleScreen({
       )}
 
       <div className={styles.battlefield}>
-        <div className={styles.enemyDossier}>
+        <div className={styles.enemyDossier} data-testid="enemy-dossier">
           <div className={styles.dossierKicker}>{enemyKicker}</div>
           <HpBar
             current={enemyHp}
@@ -257,7 +257,11 @@ export default function BattleScreen({
           <div className={styles.intentLine}>{intent}</div>
         </div>
 
-        <div style={{ position: 'absolute', top: '4%', right: 8, zIndex: 2 }}>
+        {/* Combatant stands. `size` is the phone canvas; the desktop canvas
+            scales both through `--staged-size` in BattleScreen.module.css.
+            Damage numbers mount inside the stand they belong to so they
+            land on the sprite at any size or position. */}
+        <div className={styles.enemyStand} data-testid="enemy-stand">
           <StagedSprite
             spriteId={enemy.spriteId}
             size={164}
@@ -266,9 +270,14 @@ export default function BattleScreen({
             ring={TYPE_COLORS[enemy.types[0]]}
             active={turn === 'enemy'}
           />
+          {damagePopups
+            .filter((p) => p.target === 'enemy')
+            .map((p) => (
+              <DamageNumber key={p.id} popup={p} />
+            ))}
         </div>
 
-        <div style={{ position: 'absolute', bottom: '2%', left: 12, zIndex: 2 }}>
+        <div className={styles.playerStand} data-testid="player-stand">
           <StagedSprite
             spriteId={player.spriteId}
             size={154}
@@ -276,9 +285,14 @@ export default function BattleScreen({
             ring={TYPE_COLORS[player.types[0]]}
             active={turn === 'player'}
           />
+          {damagePopups
+            .filter((p) => p.target === 'player')
+            .map((p) => (
+              <DamageNumber key={p.id} popup={p} />
+            ))}
         </div>
 
-        <div className={styles.playerResourcePanel}>
+        <div className={styles.playerResourcePanel} data-testid="player-resources">
           <div className={styles.dossierKicker}>{playerKicker}</div>
           <HpBar
             current={playerHp}
@@ -293,7 +307,7 @@ export default function BattleScreen({
           </div>
         </div>
 
-        <div className={styles.floorCounter}>
+        <div className={styles.floorCounter} data-testid="floor-counter">
           <span className={styles.floorNum}>
             FLOOR <b>{floor}</b>/{floorTotal}
           </span>
@@ -307,10 +321,6 @@ export default function BattleScreen({
             {turnBanner}
           </div>
         )}
-
-        {damagePopups.map((p) => (
-          <DamageNumber key={p.id} popup={p} />
-        ))}
       </div>
 
       {showLog && (

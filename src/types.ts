@@ -206,6 +206,10 @@ export type AnimState = 'idle' | 'attacking' | 'hit' | 'faint'
 export interface DamagePopup {
   id: number
   value: number
+  /** Whose stand the number floats over. */
+  target: 'player' | 'enemy'
+  /** Offsets as a percentage of that stand's box, so the number lands on
+   *  the sprite whatever size the arena renders it at. */
   x: number
   y: number
   isCrit: boolean
