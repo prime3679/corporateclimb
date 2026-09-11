@@ -1,6 +1,11 @@
 /* Daily challenge briefing: today's modifier, the rules line, streak strip,
    class pick, begin. Phone values match the screen as it has always
-   rendered; the wide-canvas block splits it into brief | roster columns. */
+   rendered; the wide-canvas block splits it into brief | roster columns.
+
+   Light architecture follows the Title / Settings night glass: the field
+   is the Title's tinted night lobby under its faint top wash (no indigo,
+   no gold bloom), and the one gold headline sits on a 1px dark hairline
+   instead of an orange hard shadow. Gold wins by value, not bloom. */
 
 .screen {
   display: flex;
@@ -10,7 +15,10 @@
   height: 100%;
   gap: 16px;
   padding: 20px;
-  background: linear-gradient(180deg, #1a237e 0%, #283593 50%, #3949ab 100%);
+  color: var(--cc-text);
+  background:
+    radial-gradient(70% 26% at 50% 0%, rgba(255, 255, 255, 0.035), transparent 100%),
+    linear-gradient(180deg, #1a1e28 0%, #161a24 56%, #12141a 100%);
 }
 
 /* Column wrappers: transparent on the phone stack. */
@@ -19,11 +27,13 @@
   display: contents;
 }
 
+/* Hairline only under the glyphs (the Title wordmark's lift), no offset
+   colour. */
 .title {
   font-size: var(--display-xs);
-  color: var(--gold-bright);
+  color: var(--cc-gold-bright);
   letter-spacing: 3px;
-  text-shadow: 2px 2px 0 #e65100;
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
 }
 
 .modCard {
