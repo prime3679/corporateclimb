@@ -8,7 +8,9 @@
  * F2 help desk (Teddy) → F3/F4/F5 cast peeks → THE CLIMB.
  * The 1280×720 viewport is desktop-class (≥ DESKTOP_MIN_WIDTH), so the
  * capture runs on the 840 canvas inside the theater frame: one-line
- * wordmark, glass cast plates, two-row skyline, spine + keyboard wings.
+ * wordmark on the optical spine, glass cast plates with the hard 2px gold
+ * lead ring, night-lobby field with the footer skyline, spine + keyboard
+ * wings.
  * Combat records the wide-stage arena (`@container stage (min-width:
  * 700px)`): enemy stand 236 up-right, player 224 down-left, damage numbers
  * mounted on the stand they hit.
@@ -533,8 +535,10 @@ async function main() {
     }, SETTINGS)
     await page.reload()
     await page.getByRole('button', { name: 'THE OFFICE' }).waitFor({ timeout: 25_000 })
-    // Let the Meng welcome read: plates rise past the rail, the hero glow
-    // breathes one full 3.2 s cycle before the cut into the offer.
+    // Let the night-lobby welcome read before the cut into the offer. The
+    // hero no longer breathes (#122), so the dwell is for the static
+    // composition: Q4 kicker, wordmark on the spine, sentence-case tagline,
+    // the hard 2px lead ring and the gold THE OFFICE in the glass deck.
     await hold(page, 3600)
 
     mark('office-title')
