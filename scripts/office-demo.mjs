@@ -9,6 +9,9 @@
  * The 1280×720 viewport is desktop-class (≥ DESKTOP_MIN_WIDTH), so the
  * capture runs on the 840 canvas inside the theater frame: one-line
  * wordmark, glass cast plates, two-row skyline, spine + keyboard wings.
+ * Combat records the wide-stage arena (`@container stage (min-width:
+ * 700px)`): enemy stand 236 up-right, player 224 down-left, damage numbers
+ * mounted on the stand they hit.
  * The phone canvas (472) is never what the trailer records.
  * Writes /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
  */
@@ -631,7 +634,10 @@ async function main() {
       .first()
       .waitFor({ timeout: 12_000 })
     mark('combat')
-    await hold(page, 1100)
+    // The spar is a one-shot (Lv18 vs Gavin's 70 HP), so the arena only
+    // reads before the move fires: let the 236 / 224 stands and the
+    // dossier / resource chrome settle before the hit lands on Gavin.
+    await hold(page, 1900)
     await seen(page, /YOUR MOVE|SPAR|PROVE IT/, 4000)
     for (let i = 0; i < 10; i++) {
       if (
