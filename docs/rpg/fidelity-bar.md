@@ -453,7 +453,8 @@ Title composition on tip `68b5b72`, after the Captain's desktop shot read as
 "not high quality enough": a floating type stack in a void, 70px plates under
 polished chrome, flat buttons, pixel ↔ UI mismatch. Scope is the welcome
 only — no Floor 6, no iOS, no engine work, Classic one tap away, demo mp4
-not remuxed. Labels and e2e selectors are unchanged.
+not remuxed (that lane followed: "Pass J — demo remux: Meng title" below).
+Labels and e2e selectors are unchanged.
 
 - **Type.** Kicker between two gold hairlines; brushed-paper wordmark with a
   gold under-glow — one line at 60px on the 840 desktop canvas, two lines on
@@ -505,6 +506,35 @@ beds and cab / stamp / hit stingers at the scene marks. ~100 s at 1280×720.
   the Ops bed just runs longer.
 - End card reads `Pass J · tip`. F3 / F4 / F5 peeks and THE CLIMB are
   unchanged. No Floor 6; Classic stays out of the trailer.
+
+### Pass J — demo remux: Meng title
+
+`public/demos/office-demo.mp4` re-recorded again on tip `e562dc1` (`#118`
+Meng welcome polish) through the same `npm run demo:office` pipeline; the
+`#113` capture predated the 840 canvas (`#116` / `#117`) and the Meng
+title. Same mux — silent Playwright video, live beds and stingers at the
+scene marks. ~102 s at 1280×720; no hand-edited bytes.
+
+- **Welcome** now shows the Meng composition: kicker between gold
+  hairlines, one-line brushed-paper wordmark with the gold under-glow, the
+  three glass cast plates with heads past the rail, THE OFFICE as a brushed
+  gold hero inside the glass directory panel, two-row skyline running the
+  full width. The dwell grows from 2.0 s to 3.6 s so the hero glow breathes
+  one full cycle before the cut.
+- **Desktop theater.** The trailer's 1280×720 viewport is desktop-class
+  (`DESKTOP_MIN_WIDTH` 1024), so every beat records on the
+  `DESKTOP_DESIGN_WIDTH` 840 canvas at 0.95× inside the theater frame —
+  wordmark spine on the left, keyboard legend on the right, the full 24-tile
+  Office floor on F1–F5, the four-move battle deck in one row. No viewport
+  change was needed; the script only documents it. The phone canvas (472)
+  is untouched and is not what the trailer records.
+- End card still reads `Pass J · tip`. F1 spar, F2 HELP / DESK walk, F3–5
+  peeks and THE CLIMB carry over from `#113`. No Floor 6; Classic stays
+  out of the trailer (visible only as the blue secondary on the title).
+- Marks (body offset by the 3.2 s title card): welcome 3.2–7.3 s · floor1
+  12.7 s · combat 40.3 s · cab 49.9 s · FLOOR 1 CLEARED 52.5 s · floor2
+  56.0 s · helpdesk 61.0 s · floor3 66.7 s · floor4 75.6 s · exec 84.4 s ·
+  THE CLIMB 95.0 s · end card 99.5–102.5 s.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
