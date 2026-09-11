@@ -983,6 +983,61 @@ perks), `codex-phone-locked.png` (390×844, scrolled to the gated perks and
 Status Symbols) and `codex-desktop.png` (1920×1080 theater, perks grid with
 the sans keyboard legend in the wing).
 
+### Pass J — public: HUD labels + keyboard sans + pad density
+
+Designer Shoulds 3–5 of the public bar (Fable lane,
+`corpclimber-fable-public-bar-0911`), on tip `f58109f` (`#130` Codex
+midtones). Three Office-overworld chrome touches; CSS, one prop and
+tooltip copy only. No engine, no save shape, no content, no iOS, no remux;
+night lobby untouched; the phone 472 canvas — D-pad 58, ACT 84, TEAM 54,
+204px band — is bit-for-bit the same rule set, guarded.
+
+- **Should 3 — HUD chrome that says what it is.** Beside the work ticket
+  the top-right cluster read as mystery chrome: a `📈 10` chip (a chart?),
+  a lone `💼` (the inventory chip, emoji only) and two dotted `+` circles
+  (the open party seats). Now: the wallet chip names its unit —
+  `📈 10 Stock Options` in the dormant `.walletUnit` style (Space Grotesk
+  600, `--cc-text-dim`); the bag chip reads `Bag 💼` and every key chip
+  carries a `title` tooltip (`Bag: Networking Card`, `Offer letter ×2`,
+  `Visitor badge`, `Toner cartridge` …) via `hudKeyChips` → `HudKeyChip`;
+  and the HUD `PartyStrip` passes `hideEmpty`, so open seats stay off the
+  strip until someone fills them — a seat appearing is the recruit
+  moment. `PartyChips` elsewhere (recruit card's gold "he goes here", TEAM
+  panel) still draws the dotted seats, and the `coach_roster` copy ("three
+  seats") still lands beside the TEAM button.
+- **Should 4 — one sans for the band legend.** The theater-wing Keyboard
+  column was already Space Grotesk (`#124`, `#130` confirmed); the fight
+  was the Office thumb band's own `Move ↑↓←→ · Interact E · Team P · Menu
+Esc` line — 13px labels, dot separators and a flatter 16px-min keycap,
+  sitting against Anton TEAM / ACT / Title. It now renders from
+  `HUD_KEY_LEGEND` in the wing's exact row language: 12px / 0.02em
+  `--cc-text-faint` labels, gap-separated, `<kbd>` keycaps with the wing's
+  `min-width 20px · 1px 5px · radius 4 · 2px bottom edge · --cc-text-3 ·
+11px / 16px` and `font: inherit` so the nearby `E · Talk · Renata` line's
+  600 weight does not leak into the cap. Pointer-only as before.
+- **Should 5 — desktop pad density.** Under `@container stage (min-width:
+700px)` only: the band drops 160 → 144px (exactly the 3×44 D-pad, 44px
+  cells still clear the 44px physical bar at 1×; the desktop canvas never
+  renders below ~0.95×), the right cluster folds into one row — Title (30px)
+  · TEAM (44px) · ACT (64px disc, 3px bevel) — and the legend stacks above
+  it right-aligned (keys row, then the E prompt) instead of straddling the
+  whole band above the D-pad. The map gains the rows. Coach anchors follow
+  (`--coach-pointer` 68px, `bottom` 132px). Verbs up to `INSTALL TONER`
+  still fit the 64px disc at `display-xs`.
+
+Guards: `src/__tests__/office/pass-j-hud-chrome.test.ts` — bag chip is
+`Bag …` with item names in its title, every key chip has a title, the HUD
+strip renders no `Open seat` while `PartyChips` still does, the base `.act`
+/ `.team` / `.dpad` / `.ctl` rules keep 84 / 54 / 58 / 204 and only the
+wide-stage block carries 64 / 44 / 44 / 144, and the band legend keeps the
+wing's keycap declarations.
+
+Shots in `docs/rpg/office-hud-pad-density/`: `before-hud.png` /
+`before-pad.png` (1920×1080 crops, tip `9499504`), `office-desktop.png`
+(1920×1080 theater), `office-hud-2x.png` and `office-pad-2x.png` (2× crops,
+the latter with the `E · Talk · Renata` prompt over the folded cluster),
+`office-phone.png` (390×844, unchanged pad).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
