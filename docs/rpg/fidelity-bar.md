@@ -618,12 +618,14 @@ Product code untouched: demo script, mp4 and docs only.
 
 ### Pass J — welcome: night lobby midtones
 
-Title refinement on tip `71e5cc9`, after the Captain read the `#118`
+Title refinement on tip `4d636c0`, after the Captain read the `#118`
 production shot as **off-center, not pretty, too dark**. A refine, not a
-costume swap: same lobby, same cast, same labels, same e2e selectors. The
-Designer's first draft (cream / paper ground) was withdrawn before any code
-landed — the field stays a night lobby and lifts its midtones instead. No
-Floor 6, no iOS, no engine work, Classic untouched, demo mp4 not remuxed.
+costume swap: same lobby, same cast, same labels, same e2e selectors.
+Locked by Firstmate + Designer as **Option B — night lobby midtone lift**:
+the field stays dark (`#12141a`–`#1a1e28`) and lifts its midtones. A
+cream / paper (`#f4f1ea`) variant was built and reverted on the same
+branch; no light ground ships anywhere. No Floor 6, no iOS, no engine
+work, Classic untouched, demo mp4 not remuxed.
 
 **Before.** On the 840 desktop canvas the one-line wordmark was a row flex
 box with no `justify-content`, so it sat ~90px left of the FLOOR 30 sign /
