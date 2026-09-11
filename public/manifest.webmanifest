@@ -2,7 +2,7 @@
   "id": "/",
   "name": "Corporate Climb",
   "short_name": "Corp Climb",
-  "description": "A satirical turn-based RPG about climbing the corporate ladder.",
+  "description": "Reception to the board in five floors. A satirical turn-based RPG about climbing the corporate ladder.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

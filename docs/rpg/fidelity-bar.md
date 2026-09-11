@@ -780,6 +780,54 @@ Product code untouched: demo script, mp4 and docs only.
   floor3 67.1 s · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
   99.2–102.2 s.
 
+### Pass J — public: gold favicon + Office-first OG
+
+Large-public-distribution pass, rebased onto tip `dd9c4b6` (`#125` absolute
+OG URLs + `#12141a` boot), for the cold stranger who meets the game as a
+browser tab and a link unfurl before they meet the lobby. Art and copy
+only: no Floor 6, no iOS, no engine work, Classic untouched, night lobby
+stays, phone 472 untouched. Absolute `og:image` / `og:url` and
+`theme-color` / manifest midtone are `#125`'s (Astra) and are kept as
+merged, not re-wired here.
+
+- **Favicon.** The tab shipped an inline indigo ladder (`#4F46E5` /
+  `#818CF8`, a data URI) — a generic SaaS mark next to the gold
+  `icon-512` / `apple-touch-icon`. It is now `public/favicon.svg`: the
+  icon-512 geometry (slate `#263238` plate, `#ffc107` rails, `#ffd54f`
+  rungs) as a real file, so Slack / Discord unfurl bots can fetch it,
+  with `/icon-192.png` as the PNG fallback. `sw-precache-plugin` precaches
+  it with the other icons.
+- **Share card.** `public/og.png` said **"Thirty floors. Three acts."** on
+  a cold navy void — Classic-first, and a one-off PNG nobody could
+  regenerate. `scripts/gen-og.mjs` (Playwright, same pipeline as
+  `gen-splash.mjs`) now renders it from shipped assets on the Title's own
+  stack, in the Title's words (`#123`): night-lobby gradient
+  (`#1a1e28 → #12141a`), kicker between gold hairlines, brushed-paper
+  Anton wordmark, the one-sentence tagline `Reception to the board. One
+badge swipe from glory.` broken at the full stop, the lede in one line,
+  the `CAMPAIGN · FLOORS 1–5` eyebrow (where "five floors" lives, as on
+  the Title), a brushed-gold PLAY FREE IN BROWSER, `Plus the Classic
+30-floor tower.` as the muted last line, the three lead plates in Title
+  glass frames (PRODUCT / ENGINEER lead / DESIGN) and the favicon mark at
+  top right. `--preview <dir>` writes a 512-wide unfurl crop for a
+  legibility read.
+- **Meta copy.** `description`, `og:description`, `twitter:description`
+  and the manifest description lead with _Reception to the board in five
+  floors_; `og:image:alt` added. `og:title` / `twitter:title` stay
+  "Corporate Climb" (`app-name.test.ts`).
+
+**Guard.** `src/__tests__/public-share.test.ts`: favicon is the SVG file +
+PNG fallback and exactly the three icon colors, sampled against the shipped
+PNG icons; no `4f46e5` / `818cf8` on any public surface (bare, so encoded
+data URIs match); all descriptions match _five floors_ and never _thirty
+floors_ / _three acts_ / Floor 6; the generator carries the Title tagline
+and eyebrow verbatim (both checked against `TitleScreen.tsx`); the rendered
+card is 1280×720 on the night midtones (not the old `#070d17`), with the
+ladder mark, gold and paper pixel counts, and zero indigo. `og:image` may
+be relative or `https://corpclimber.com/og.png` here — the absolute form is
+`app-name.test.ts`'s pin. The PNG decoder moved to
+`src/__tests__/helpers/png.ts`, shared with `boot-splash.test.ts`.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
