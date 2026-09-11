@@ -162,6 +162,11 @@
   text-wrap: balance;
 }
 
+/* "out-battle" would otherwise break at its hyphen on the desktop measure. */
+.nowrap {
+  white-space: nowrap;
+}
+
 /* ── Cast ──
    Three badge plates standing on the lobby floor: glass frame, a clip
    notch at the top, the figure breathing over a light pool, the role
@@ -772,7 +777,7 @@
 
   .tagline,
   .lede {
-    max-width: 560px;
+    max-width: 620px;
   }
 
   .tagline {

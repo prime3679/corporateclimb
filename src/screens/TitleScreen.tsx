@@ -148,8 +148,8 @@ export default function TitleScreen({
           RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.
         </div>
         <div className={`t-body ${styles.lede}`}>
-          Pick a role, work the floor, build your team, and out-battle every manager between you and
-          the board.
+          Pick a role, work the floor, build your team, and{' '}
+          <span className={styles.nowrap}>out-battle</span> every manager between you and the board.
         </div>
       </div>
 
