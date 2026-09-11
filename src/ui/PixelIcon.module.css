@@ -1,0 +1,15 @@
+/* One cell of the Codex icon sheet. PixelIcon sets --pi-* from the atlas;
+   nearest-neighbour sampling keeps the 1px ink outline crisp at 2× and 3×. */
+
+.icon {
+  display: inline-block;
+  flex: none;
+  width: var(--pi-size);
+  height: var(--pi-size);
+  background-image: var(--pi-url);
+  background-repeat: no-repeat;
+  background-size: var(--pi-sheet-w) var(--pi-sheet-h);
+  background-position: var(--pi-x) var(--pi-y);
+  image-rendering: pixelated;
+  image-rendering: crisp-edges;
+}

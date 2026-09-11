@@ -70,6 +70,11 @@ and the remaining roadmap):
 - Office music/SFX are a second catalog on the same `Music` / `SFX` facades
   (`docs/rpg/office-audio.md`). Do not retarget Classic `CLASSIC_TRACKS` filenames;
   regenerate Office files with `python3 scripts/gen_office_audio.py`.
+- Codex perk / Status Symbol icons are one hand-authored pixel sheet
+  (`public/office/icons.png` + generated `src/ui/iconAtlas.ts`, drawn by `PixelIcon`).
+  Edit the ASCII templates in `scripts/gen_office_icons.py` and regenerate — never
+  hand-edit the PNG or the atlas; `src/__tests__/codex-icons.test.ts` decodes the sheet.
+  A new perk or relic needs a cell keyed by its id (the Codex row makes this a type error).
 
 ## Conventions
 
