@@ -828,6 +828,62 @@ be relative or `https://corpclimber.com/og.png` here — the absolute form is
 `app-name.test.ts`'s pin. The PNG decoder moved to
 `src/__tests__/helpers/png.ts`, shared with `boot-splash.test.ts`.
 
+### Pass J — Codex: one icon family
+
+Codex pass on tip `a6649bc`, Fable lane (`corpclimber-fable-public-bar-0911`
+Must 5). The Perks grid fronted every entry with its content emoji, so the
+grid mixed whatever the platform font shipped: flat silhouettes (🏋️ 🗣️),
+scenic illustrations (🌅 🌙), cash stacks (💵 🪙) and — on Executive
+Presence — a **costume-display face** (🤵). Status Symbols had the same
+problem one section down. Presentation only: no perk copy, no unlock logic,
+no engine, no save shape. Night lobby untouched; phone 472 canvas untouched.
+
+**After.** Perks and Status Symbols draw from one hand-authored pixel icon
+sheet in the Office art language; the face is gone.
+
+- **Sheet.** `scripts/gen_office_icons.py` → `public/office/icons.png`
+  (144×72) + `src/ui/iconAtlas.ts` (generated name → cell). 29 cells: one
+  per perk (17) and Status Symbol (11), keyed by content id, plus `locked`.
+  Same pipeline shape as the actor and tile generators — ASCII templates,
+  Pillow, `--preview` dumps a 4× contact sheet to `/tmp` — so the family
+  regenerates from source and never mixes packs.
+- **Language.** 16×16, body inside a 14×14 interior, the generator inks the
+  4-neighbour outline in the tileset's plum `#1b1726` and refuses a template
+  whose outline would leave the cell. Top-left light, lit / base / shadow
+  ramp per material (the tileset's gold, steel, paper, wood, laminate,
+  dark-plastic, navy, leaf, water swatches plus a signage blue, a yellow and
+  a locked grey), no anti-aliasing, no gradients. Every glyph is an object:
+  dumbbell, speech bubble, taped box, moon, magnifier, wired nodes, sunrise,
+  heart, chart, price tag, handset, banknote, star, chain links, fin over
+  water, coin stack; stapler, key, P sign, card, task chair, tie, stress
+  ball, desk, fountain pen, lanyard badge, trophy on a shelf. **No faces, no
+  figures** — the keycard carries a colour band where a photo would go.
+- **Executive Presence** is a steel shield with a gold band (its effect is
+  +DEF); the 🤵 is not drawn anywhere on the Codex. `PERKS[*].icon` and
+  `RELICS[*].icon` are untouched — Promotion, CareerPanel, Victory and the
+  `IconChip` glyph map still read them — so nothing outside the Codex moves.
+- **Locked slots** share the `locked` padlock (muted grey ramp) with the
+  existing `???` / `Unlock: …` copy; the row still dims to 55%.
+- **Slot.** `PixelIcon` (`src/ui/PixelIcon.tsx`) paints one cell as a
+  background at an integer scale (2× → 32px) through `--pi-*` custom
+  properties, `image-rendering: pixelated`, `aria-hidden` (the name sits
+  beside it). Every Codex row — items and achievements included — sits its
+  icon on the same 36px (40px wide) raised midtone plinth
+  (`#2f3549 → #232838`, 1px `#3a4157`) so the plum outline reads against the
+  near-black row; the desktop two-column grid and phone list are otherwise
+  unchanged. Items and achievements keep their emoji in that slot — out of
+  this Must's scope, and the obvious follow-up (24 more templates).
+- **Guards.** `src/__tests__/codex-icons.test.ts` decodes the committed PNG:
+  atlas covers every perk / relic id + `locked`, sheet dimensions match, every
+  cell has body and ink pixels, alpha is only 0 / 255, the 1px gutter is
+  clear; `PixelIcon` emits the right cell offsets; a static render of
+  `CodexScreen` shows each base-pool id's own glyph, `locked` for every gated
+  one, and never the 🤵. Adding a perk without a cell is also a type error at
+  the Codex row (`sprite: id` requires `PerkId ⊆ IconName`).
+
+After-shots: `docs/rpg/codex-icon-family/codex-desktop.png` (1920×1080
+theater, perks grid) and `codex-phone.png` (390×844).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
