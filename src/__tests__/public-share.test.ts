@@ -20,7 +20,8 @@ import { decodePng, hexToRgb, near } from './helpers/png'
  * tags agreeing so a regenerated card or a copy edit cannot drift back to
  * "Thirty floors. Three acts." or to a generic purple.
  *
- * Absolute og:image URLs and theme-color live in the wiring lane, not here.
+ * Absolute og:image URLs and theme-color are pinned by app-name.test.ts and
+ * boot-splash.test.ts (the wiring lane, #125), not here.
  */
 
 const repoFile = (...parts: string[]) => readFileSync(join(process.cwd(), ...parts))
@@ -35,7 +36,9 @@ const LEGACY_INDIGO = ['4f46e5', '818cf8']
 
 const CLASSIC_FIRST = /thirty floors|three acts/i
 const FLOOR_SIX = /floor 6|six floors|floors 1[–-]6/i
-const TITLE_TAGLINE = 'RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.'
+/** The live Title copy (#123): one-sentence tagline; "five floors" lives in the eyebrow. */
+const TITLE_TAGLINE = 'Reception to the board. One badge swipe from glory.'
+const TITLE_EYEBROW = 'CAMPAIGN · FLOORS 1–5'
 
 const html = repoText('index.html')
 const meta = (sel: string) =>
@@ -99,8 +102,10 @@ describe('favicon', () => {
 describe('share copy is Office-first', () => {
   const generator = repoText('scripts/gen-og.mjs')
 
-  it('the Title tagline is the source of truth', () => {
-    expect(repoText('src/screens/TitleScreen.tsx')).toContain(TITLE_TAGLINE)
+  it('the Title tagline and campaign eyebrow are the source of truth', () => {
+    const title = repoText('src/screens/TitleScreen.tsx')
+    expect(title).toContain(TITLE_TAGLINE)
+    expect(title).toContain(TITLE_EYEBROW)
   })
 
   it('index.html descriptions pitch the five-floor campaign, not the Classic tower', () => {
@@ -123,10 +128,9 @@ describe('share copy is Office-first', () => {
     expect(manifest.description).not.toMatch(CLASSIC_FIRST)
   })
 
-  it('the card generator carries the Title tagline verbatim and keeps Classic second', () => {
-    const taglines = [...generator.matchAll(/TAGLINE = \[([^\]]*)\]/g)][0]?.[1] ?? ''
-    const halves = [...taglines.matchAll(/'([^']*)'/g)].map((m) => m[1])
-    expect(halves.join(' ')).toBe(TITLE_TAGLINE)
+  it('the card generator carries the Title tagline + eyebrow verbatim and keeps Classic second', () => {
+    expect(generator.match(/TAGLINE = '([^']*)'/)?.[1]).toBe(TITLE_TAGLINE)
+    expect(generator.match(/EYEBROW = '([^']*)'/)?.[1]).toBe(TITLE_EYEBROW)
     expect(generator).toMatch(/CLASSIC_LINE = '[^']*Classic 30-floor[^']*'/)
     expect(generator).not.toMatch(CLASSIC_FIRST)
     expect(generator).not.toMatch(FLOOR_SIX)

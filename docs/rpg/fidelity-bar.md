@@ -782,12 +782,13 @@ Product code untouched: demo script, mp4 and docs only.
 
 ### Pass J — public: gold favicon + Office-first OG
 
-Large-public-distribution pass on tip `a6649bc` (`#122` night lobby), for
-the cold stranger who meets the game as a browser tab and a link unfurl
-before they meet the lobby. Art and copy only: no Floor 6, no iOS, no
-engine work, Classic untouched, night lobby stays, phone 472 untouched.
-Absolute `og:image` URLs and `theme-color` / manifest midtone alignment
-are the wiring lane's (Astra) and are not touched here.
+Large-public-distribution pass, rebased onto tip `dd9c4b6` (`#125` absolute
+OG URLs + `#12141a` boot), for the cold stranger who meets the game as a
+browser tab and a link unfurl before they meet the lobby. Art and copy
+only: no Floor 6, no iOS, no engine work, Classic untouched, night lobby
+stays, phone 472 untouched. Absolute `og:image` / `og:url` and
+`theme-color` / manifest midtone are `#125`'s (Astra) and are kept as
+merged, not re-wired here.
 
 - **Favicon.** The tab shipped an inline indigo ladder (`#4F46E5` /
   `#818CF8`, a data URI) — a generic SaaS mark next to the gold
@@ -799,15 +800,17 @@ are the wiring lane's (Astra) and are not touched here.
 - **Share card.** `public/og.png` said **"Thirty floors. Three acts."** on
   a cold navy void — Classic-first, and a one-off PNG nobody could
   regenerate. `scripts/gen-og.mjs` (Playwright, same pipeline as
-  `gen-splash.mjs`) now renders it from shipped assets: night-lobby
-  gradient (`#1a1e28 → #12141a`), kicker between gold hairlines,
-  brushed-paper Anton wordmark, the Title tagline verbatim (`RECEPTION TO
-THE BOARD. FIVE FLOORS. / ONE BADGE SWIPE FROM GLORY.`), the lede in one
-  line, `Plus the Classic 30-floor tower.` as the muted second line, a
-  brushed-gold PLAY FREE IN BROWSER, the three lead plates in Title glass
-  frames (PRODUCT / ENGINEER lead / DESIGN) and the favicon mark at top
-  right with `CAMPAIGN · FLOORS 1–5`. `--preview <dir>` writes a 512-wide
-  unfurl crop for a legibility read.
+  `gen-splash.mjs`) now renders it from shipped assets on the Title's own
+  stack, in the Title's words (`#123`): night-lobby gradient
+  (`#1a1e28 → #12141a`), kicker between gold hairlines, brushed-paper
+  Anton wordmark, the one-sentence tagline `Reception to the board. One
+badge swipe from glory.` broken at the full stop, the lede in one line,
+  the `CAMPAIGN · FLOORS 1–5` eyebrow (where "five floors" lives, as on
+  the Title), a brushed-gold PLAY FREE IN BROWSER, `Plus the Classic
+30-floor tower.` as the muted last line, the three lead plates in Title
+  glass frames (PRODUCT / ENGINEER lead / DESIGN) and the favicon mark at
+  top right. `--preview <dir>` writes a 512-wide unfurl crop for a
+  legibility read.
 - **Meta copy.** `description`, `og:description`, `twitter:description`
   and the manifest description lead with _Reception to the board in five
   floors_; `og:image:alt` added. `og:title` / `twitter:title` stay
@@ -818,10 +821,12 @@ PNG fallback and exactly the three icon colors, sampled against the shipped
 PNG icons; no `4f46e5` / `818cf8` on any public surface (bare, so encoded
 data URIs match); all descriptions match _five floors_ and never _thirty
 floors_ / _three acts_ / Floor 6; the generator carries the Title tagline
-verbatim; the rendered card is 1280×720 on the night midtones (not the old
-`#070d17`), with the ladder mark, gold and paper pixel counts, and zero
-indigo. The PNG decoder moved to `src/__tests__/helpers/png.ts`, shared
-with `boot-splash.test.ts`.
+and eyebrow verbatim (both checked against `TitleScreen.tsx`); the rendered
+card is 1280×720 on the night midtones (not the old `#070d17`), with the
+ladder mark, gold and paper pixel counts, and zero indigo. `og:image` may
+be relative or `https://corpclimber.com/og.png` here — the absolute form is
+`app-name.test.ts`'s pin. The PNG decoder moved to
+`src/__tests__/helpers/png.ts`, shared with `boot-splash.test.ts`.
 
 ## Still Fable's (do not treat this PR as §14 done)
 

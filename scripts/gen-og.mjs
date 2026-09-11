@@ -15,9 +15,9 @@
  * baked into a one-off PNG.
  *
  * Copy is Office-first: the five-floor campaign is the pitch, the Classic
- * 30-floor tower is the second line. `TAGLINE` mirrors the live Title
- * tagline; `src/__tests__/public-share.test.ts` keeps this file, the
- * rendered PNG and the meta tags in index.html in agreement.
+ * 30-floor tower is the second line. `TAGLINE` and `EYEBROW` are the live
+ * Title's, verbatim; `src/__tests__/public-share.test.ts` keeps this file,
+ * the rendered PNG and the meta tags in index.html in agreement.
  *
  * Rendering uses Playwright's Chromium (the same browser CI installs for
  * the smoke suite): `npx playwright install chromium`.
@@ -54,10 +54,15 @@ const INK = '#1b1726'
 /** icon-512 plate — the favicon / app icon slate. */
 const ICON_PLATE = '#263238'
 
-/** Copy. KICKER and the wordmark are the Title's; TAGLINE is the Title tagline verbatim. */
+/**
+ * Copy — the Title stack, in the Title's words (TitleScreen.tsx): kicker,
+ * wordmark, the one-sentence tagline, the lede, then the campaign eyebrow
+ * that carries "five floors" (`#123` moved it there from the tagline).
+ */
 export const KICKER = 'Q4 LADDER SIMULATION'
-export const TAGLINE = ['RECEPTION TO THE BOARD. FIVE FLOORS.', 'ONE BADGE SWIPE FROM GLORY.']
+export const TAGLINE = 'Reception to the board. One badge swipe from glory.'
 export const SUBLINE = 'Pick a role, work the floor, out-battle every manager.'
+export const EYEBROW = 'CAMPAIGN · FLOORS 1–5'
 export const CLASSIC_LINE = 'Plus the Classic 30-floor tower.'
 export const CTA = 'PLAY FREE IN BROWSER'
 
@@ -152,7 +157,7 @@ export function page() {
   }
 
   .copy {
-    position: absolute; left: 80px; top: 96px; width: 620px;
+    position: absolute; left: 80px; top: 80px; width: 620px;
     display: flex; flex-direction: column; align-items: flex-start;
   }
   .kicker {
@@ -162,10 +167,10 @@ export function page() {
   }
   .kicker::before, .kicker::after { content: ''; width: 36px; height: 1px; background: rgba(255, 193, 7, 0.35); }
   .wordmark {
-    margin-top: 18px;
+    margin-top: 14px;
     font-family: 'Anton', system-ui, sans-serif;
     font-weight: 400;
-    font-size: 132px;
+    font-size: 120px;
     line-height: 0.92;
     letter-spacing: 0.02em;
     background: linear-gradient(180deg, #ffffff 0%, #eef2f7 55%, #cfd8e4 100%);
@@ -173,23 +178,32 @@ export function page() {
     -webkit-text-fill-color: transparent;
     filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.7)) drop-shadow(0 10px 22px rgba(0, 0, 0, 0.4));
   }
+  /* Title .tagline: one sentence-case body line, gold at the kicker's volume. */
   .tagline {
-    margin-top: 26px;
-    font-weight: 700; font-size: 24px; line-height: 1.45; letter-spacing: 0.12em;
+    margin-top: 20px;
+    font-weight: 700; font-size: 27px; line-height: 1.3; letter-spacing: 0.01em;
     color: ${GOLD_BRIGHT};
   }
   .subline {
-    margin-top: 14px;
-    font-weight: 500; font-size: 22px; line-height: 1.35;
+    margin-top: 8px;
+    font-weight: 500; font-size: 21px; line-height: 1.35;
     color: ${TEXT_2};
   }
+  /* Title .eyebrow: ruled gold caps over the hero — this is where "five floors" lives. */
+  .eyebrow {
+    margin-top: 22px;
+    display: flex; align-items: center; gap: 14px;
+    font-weight: 700; font-size: 17px; letter-spacing: 0.22em;
+    color: rgba(255, 193, 7, 0.85);
+  }
+  .eyebrow::after { content: ''; width: 120px; height: 1px; background: rgba(255, 193, 7, 0.35); }
   .classic {
-    margin-top: 4px;
+    margin-top: 12px;
     font-weight: 500; font-size: 18px; line-height: 1.35;
     color: rgba(205, 214, 226, 0.62);
   }
   .cta {
-    margin-top: 34px;
+    margin-top: 14px;
     display: inline-flex; align-items: center; gap: 14px;
     padding: 0 30px; height: 62px;
     font-weight: 700; font-size: 22px; letter-spacing: 0.1em;
@@ -247,13 +261,6 @@ export function page() {
   /* The app icon, so the card and the tab / home screen read as one mark. */
   .mark { position: absolute; right: 88px; top: 84px; width: 84px; height: 84px; filter: drop-shadow(0 8px 16px rgba(0, 0, 0, 0.5)); }
   .mark svg { width: 100%; height: 100%; display: block; }
-  .floors {
-    position: absolute; right: 196px; top: 118px;
-    display: flex; align-items: center; gap: 14px;
-    font-weight: 700; font-size: 17px; letter-spacing: 0.22em;
-    color: rgba(255, 193, 7, 0.78);
-  }
-  .floors::before { content: ''; width: 36px; height: 1px; background: rgba(255, 193, 7, 0.35); }
 </style></head>
 <body>
   <div class="field"></div>
@@ -262,13 +269,13 @@ export function page() {
   <div class="copy">
     <div class="kicker">${KICKER}</div>
     <div class="wordmark">CORPORATE<br>CLIMB</div>
-    <div class="tagline">${TAGLINE[0]}<br>${TAGLINE[1]}</div>
+    <div class="tagline">${TAGLINE.replace('. ', '.<br>')}</div>
     <div class="subline">${SUBLINE}</div>
-    <div class="classic">${CLASSIC_LINE}</div>
+    <div class="eyebrow">${EYEBROW}</div>
     <div class="cta"><svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg"><path d="M10 6v20l16-10z" fill="${INK}"/></svg>${CTA}</div>
+    <div class="classic">${CLASSIC_LINE}</div>
   </div>
 
-  <div class="floors">CAMPAIGN · FLOORS 1–5</div>
   <div class="mark">${LADDER_MARK}</div>
 
   <div class="floorline"></div>
