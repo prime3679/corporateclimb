@@ -23,8 +23,7 @@
   color-scheme: dark;
   width: min(340px, calc(100% - 32px));
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 36%),
-    var(--glass);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 36%), var(--glass);
   border: 1px solid var(--glass-line);
   border-radius: 12px;
   box-shadow:
