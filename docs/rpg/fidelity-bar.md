@@ -926,8 +926,10 @@ scope here.
 
 ### Pass J — public: Codex night midtones
 
-Codex chrome on tip `9499504` (`#128` one icon family), Fable lane
-(`corpclimber-fable-public-bar-0911` secondary Must 2). The screen still
+Codex chrome authored on tip `9499504` (`#128` one icon family), rebased
+onto `349e719` (`#129` Shop + Promotion, which named the Codex as the next
+orange-shadow screen), Fable lane (`corpclimber-fable-public-bar-0911`
+secondary Must 2). The screen still
 sat on the pre-`#122` **indigo void** (`#1a1a2e → #16213e`), THE CODEX
 carried the arcade `2px 2px 0 #e65100` orange drop shadow, and every row
 was a near-black `--ink` slab on a `--ink-soft` border — the one browsable
