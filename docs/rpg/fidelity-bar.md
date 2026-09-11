@@ -678,6 +678,36 @@ viewport corner 20px above the sign's row.
   plate shrinks; the wide block only sets horizontal padding so it cannot
   undo that on the 840×760 desktop stage.
 
+### Pass J — welcome: #122 Should polish
+
+Designer Shoulds from the `#122` visual second pass, on tip `a6649bc`.
+Three CSS/copy touches on the title only; Option B night lobby, `--cc-*`,
+the optical spine, the Q4 kicker and the officeBox / classicBox hierarchy
+are untouched. No cream, no Floor 6, no iOS, no remux.
+
+- **Lead ring.** `.plateLead` was a soft edge — 1px border at 70% gold
+  plus a 1px inset at 50%. Now both are solid `--gold-bright`: a hard 2px
+  ring drawn inside the same box. The only outer shadow is the black
+  offset shadow every plate shares; no gold bloom on any canvas, no width,
+  no lift (plate widths still equal to 0.5px).
+- **Tagline.** `RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM
+GLORY.` (Anton, 0.14em, full gold) becomes one sentence-case body line:
+  `Reception to the board. One badge swipe from glory.` — Space Grotesk
+  600 / 14px, gold at 78% (the kicker's volume), `white-space: nowrap`.
+  The full sentence measured 373px against the phone header's 350; the
+  tightened line sits at 88% of the phone column and one line on compact.
+  "Five floors" is carried by the `CAMPAIGN · FLOORS 1–5` eyebrow directly
+  below, so nothing is lost.
+- **THE OFFICE.** Confirmed: no breathing keyframes remain anywhere in
+  `src/` (deleted in `#122`); the hero keeps its soft offset shadow only,
+  `animation-name: none`.
+- **Guards.** `e2e/first-three-minutes.spec.ts` now asserts every gold
+  shadow on the lead plate is `inset` and its border is solid 1px gold,
+  the tagline has `text-transform: none` and one line fragment, and the
+  hero's `animation-name` is `none`.
+- Shots in `docs/rpg/title-uplevel-122/should-*.png` (desktop 1280×720,
+  phone 390×844, compact 440×760, plus a 2× phone ring crop).
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
