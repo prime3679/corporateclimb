@@ -53,6 +53,20 @@
   opacity: 0.42;
 }
 
+/* Wide stage (desktop canvas): the Classic interludes stay centred
+   columns, so the notice board frames that column at a portrait width
+   instead of stretching hollow across the whole canvas. The column
+   hairlines follow it. */
+@container stage (min-width: 700px) {
+  .board,
+  .columns {
+    left: 50%;
+    right: auto;
+    width: 600px;
+    transform: translateX(-50%);
+  }
+}
+
 .glow {
   position: absolute;
   inset: auto;
