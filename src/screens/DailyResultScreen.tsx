@@ -10,6 +10,7 @@ import { Button } from '@/ui'
 import DailyLeaderboard from '@/components/DailyLeaderboard'
 import InstallNudge from '@/components/InstallNudge'
 import { useShareFeedback } from './useShareFeedback'
+import styles from './DailyResultScreen.module.css'
 
 export default function DailyResultScreen({
   player,
@@ -59,116 +60,49 @@ export default function DailyResultScreen({
 
   const { handleShare, shared, shareLabel } = useShareFeedback(shareText, 'SHARE RESULT')
 
+  const stat = (label: string, value: React.ReactNode) => (
+    <>
+      <div className={styles.statLabel}>{label}</div>
+      <div className={styles.statValue}>{value}</div>
+    </>
+  )
+
   return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 14,
-        padding: 20,
-        background: won
-          ? 'linear-gradient(180deg, #FF6F00 0%, #FFA000 30%, #FFC107 60%, #FFD54F 100%)'
-          : 'linear-gradient(180deg, #263238 0%, #37474F 50%, #455A64 100%)',
-      }}
-    >
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-xs)',
-          color: won ? 'var(--ink)' : 'var(--gold-bright)',
-          letterSpacing: 3,
-        }}
-      >
+    <div className={`${styles.screen} ${won ? styles.won : ''}`}>
+      <div className={`t-display ${styles.verdict}`}>
         DAILY #{dayNum} {won ? 'CLEARED' : 'FAILED'}
       </div>
 
-      <div style={{ fontSize: 28 }}>{modifier.icon}</div>
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: won ? '#E65100' : 'var(--amber-deep)',
-        }}
-      >
-        {modifier.name.toUpperCase()}
-      </div>
+      <div className={styles.modIcon}>{modifier.icon}</div>
+      <div className={`t-display ${styles.modName}`}>{modifier.name.toUpperCase()}</div>
 
       {/* Score card */}
-      <div
-        style={{
-          background: 'rgba(0,0,0,0.85)',
-          borderRadius: 'var(--radius-lg)',
-          padding: '14px 18px',
-          maxWidth: 300,
-          width: '100%',
-          border: 'var(--border-w) solid var(--amber-deep)',
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-        }}
-      >
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-lg)',
-            color: 'var(--gold-bright)',
-            textAlign: 'center',
-          }}
-        >
-          {score.toLocaleString()}
-        </div>
-        <div
-          className="t-display"
-          style={{
-            display: 'grid',
-            gridTemplateColumns: '1fr 1fr',
-            gap: 6,
-            fontSize: 'var(--display-2xs)',
-          }}
-        >
-          <div style={{ color: 'var(--muted)' }}>CLASS</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
-            {player.emoji} {player.name}
-          </div>
-          <div style={{ color: 'var(--muted)' }}>FLOORS</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{floorsCleared}/15</div>
-          <div style={{ color: 'var(--muted)' }}>TURNS</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{totalTurns}</div>
-          <div style={{ color: 'var(--muted)' }}>DAMAGE</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>
-            {totalDamageDealt.toLocaleString()}
-          </div>
-          <div style={{ color: 'var(--muted)' }}>HP LEFT</div>
-          <div style={{ color: 'var(--paper)', textAlign: 'right' }}>{hpRemaining}</div>
+      <div className={styles.scoreCard}>
+        <div className={`t-display ${styles.score}`}>{score.toLocaleString()}</div>
+        <div className={`t-display ${styles.stats}`}>
+          {stat(
+            'CLASS',
+            <>
+              {player.emoji} {player.name}
+            </>,
+          )}
+          {stat('FLOORS', `${floorsCleared}/15`)}
+          {stat('TURNS', totalTurns)}
+          {stat('DAMAGE', totalDamageDealt.toLocaleString())}
+          {stat('HP LEFT', hpRemaining)}
         </div>
       </div>
 
-      {/* Shareable floor grid */}
-      <pre
-        aria-label={`Floor grid: ${floorsCleared} of 15 cleared`}
-        style={{
-          margin: 0,
-          fontSize: 13,
-          lineHeight: 1.3,
-          letterSpacing: 1,
-          textAlign: 'center',
-        }}
-      >
-        {grid}
-      </pre>
+      {/* Shareable floor grid + streak; one line on the wide canvas. */}
+      <div className={styles.strip}>
+        <pre aria-label={`Floor grid: ${floorsCleared} of 15 cleared`} className={styles.grid}>
+          {grid}
+        </pre>
 
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: won ? 'var(--ink)' : 'var(--gold-bright)',
-        }}
-      >
-        STREAK: {streak.current}
-        {streak.best > streak.current ? ` (BEST ${streak.best})` : ''}
+        <div className={`t-display ${styles.streak}`}>
+          STREAK: {streak.current}
+          {streak.best > streak.current ? ` (BEST ${streak.best})` : ''}
+        </div>
       </div>
 
       <Button

@@ -107,6 +107,10 @@ export default function OfficeClassSelect({
           >
             <Headshot spriteId={c.spriteId} size={44} ring={ringColorFor(c.types, true)} />
             <span className={styles.roleName}>{c.name}</span>
+            {/* Keys 1–3 already select; the wide canvas has room to say so. */}
+            <kbd className={styles.roleKey} aria-hidden="true">
+              {i + 1}
+            </kbd>
           </button>
         ))}
       </div>

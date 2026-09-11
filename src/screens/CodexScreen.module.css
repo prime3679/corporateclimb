@@ -1,0 +1,152 @@
+/* The Codex: a scrolling collection browser. Phone values are the ones the
+   screen has always had; the wide-canvas block at the bottom lays the rows
+   out as a two-column card grid. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  gap: 8px;
+  padding: 20px 20px 12px;
+  background: linear-gradient(180deg, #1a1a2e 0%, #16213e 100%);
+  overflow-y: auto;
+}
+
+.title {
+  font-size: var(--display-xs);
+  color: var(--gold-bright);
+  text-shadow: 2px 2px 0 #e65100;
+  letter-spacing: 2px;
+}
+
+.lede {
+  font-size: var(--body-sm);
+  color: var(--muted);
+}
+
+.section {
+  display: contents;
+}
+
+.sectionTitle {
+  font-size: var(--display-2xs);
+  color: var(--gold);
+  letter-spacing: 2px;
+  margin-top: 10px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  background: var(--ink);
+  border: var(--border-w) solid var(--ink-soft);
+  border-radius: var(--radius-md);
+}
+
+.rowLocked {
+  opacity: 0.55;
+}
+
+.icon {
+  font-size: 20px;
+  width: 26px;
+  text-align: center;
+}
+
+.text {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.name {
+  font-size: var(--display-2xs);
+  color: var(--paper);
+  line-height: 1.4;
+}
+
+.desc {
+  font-size: var(--body-sm);
+  color: var(--muted-light);
+  line-height: 1.2;
+}
+
+.foot {
+  margin: 12px 0 8px;
+}
+
+/* Wide stage (desktop canvas): a 760px measure is too long for a one-line
+   list row, so each section becomes a two-column card grid — twice the
+   entries per screen of scrolling — under a section rule that spans the
+   width. Title and lede sit on one line each. */
+@container stage (min-width: 700px) {
+  .screen {
+    gap: 10px;
+    padding: 24px 40px 20px;
+  }
+
+  .title {
+    font-size: var(--display-sm);
+  }
+
+  .lede {
+    font-size: var(--body-md);
+  }
+
+  .section {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+  }
+
+  .sectionTitle {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 12px;
+    font-size: var(--display-xs);
+  }
+
+  .sectionTitle::after {
+    content: '';
+    flex: 1 1 auto;
+    height: 1px;
+    background: linear-gradient(90deg, rgba(255, 193, 7, 0.45), transparent);
+  }
+
+  .list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .row {
+    gap: 12px;
+    padding: 9px 12px;
+  }
+
+  .icon {
+    font-size: 22px;
+    width: 30px;
+  }
+
+  .name {
+    font-size: var(--display-xs);
+  }
+
+  .desc {
+    font-size: var(--body-md);
+  }
+}

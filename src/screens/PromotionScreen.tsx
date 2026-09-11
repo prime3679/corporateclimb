@@ -1,7 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, type CSSProperties } from 'react'
 import type { PerkDef, PerkId, PromotionTier, PlayerClass } from '@/types'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { getCareerArchetype } from '@/engine'
+import styles from './PromotionScreen.module.css'
 
 const KIND_LABELS: Record<PerkDef['kind'], string> = {
   stat: 'STATS',
@@ -14,6 +15,8 @@ const KIND_COLORS: Record<PerkDef['kind'], string> = {
   passive: 'var(--sky)',
   economy: 'var(--gold)',
 }
+
+const delay = (s: number) => ({ '--delay': `${s}s` }) as CSSProperties
 
 export default function PromotionScreen({
   player,
@@ -49,316 +52,103 @@ export default function PromotionScreen({
   }, [offers, onPick])
 
   const upgrades = newTier.moveUpgrades
+  const archetype = getCareerArchetype(ownedPerks)
 
   return (
-    <div
-      className="premium-screen"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'flex-start',
-        minHeight: '100%',
-        gap: 10,
-        padding: '56px 20px 18px',
-        background:
-          'radial-gradient(circle at 50% 16%, rgba(255,211,77,.18), transparent 28%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.72))',
-        position: 'relative',
-        overflowY: 'auto',
-        overflowX: 'hidden',
-      }}
-    >
-      <div
-        aria-hidden="true"
-        style={{
-          position: 'absolute',
-          top: 14,
-          width: 136,
-          height: 172,
-          border: '1px solid rgba(255,211,77,.22)',
-          borderRadius: 18,
-          background: 'linear-gradient(180deg, rgba(255,211,77,.12), rgba(13,19,32,.28))',
-          boxShadow: 'inset 0 0 30px rgba(255,211,77,.10)',
-        }}
-      />
+    <div className={`premium-screen ${styles.screen} ${show ? styles.shown : ''}`}>
+      <div aria-hidden="true" className={styles.plate} />
       {Array.from({ length: 18 }).map((_, i) => (
         <span
           key={i}
           aria-hidden="true"
+          className={styles.confetti}
           style={{
-            position: 'absolute',
             left: `${6 + ((i * 17) % 88)}%`,
             top: `${8 + ((i * 23) % 48)}%`,
             width: i % 2 ? 7 : 3,
             height: i % 2 ? 3 : 7,
             background: i % 3 === 0 ? 'var(--gold)' : 'var(--compliance-blue)',
-            opacity: show ? 0.62 : 0,
-            transform: show ? 'translateY(18px) rotate(18deg)' : 'translateY(-16px)',
-            transition: `opacity .4s ease ${i * 0.03}s, transform 1.4s ease ${i * 0.03}s`,
+            ...delay(i * 0.03),
           }}
         />
       ))}
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: 'var(--gold)',
-          letterSpacing: 2,
-          lineHeight: 1.6,
-          maxWidth: 330,
-          textAlign: 'center',
-          opacity: show ? 1 : 0,
-          transition: 'opacity 0.5s ease',
-          textShadow: '1px 1px 0 #E65100',
-        }}
-      >
+      <div className={`t-display ${styles.fade} ${styles.kicker}`}>
         ✦ PROMOTED ✦ ACCESS CARD UPGRADED
       </div>
 
-      <div
-        className="sprite-idle"
-        style={{
-          width: 60,
-          height: 70,
-          opacity: show ? 1 : 0,
-          transition: 'opacity 0.6s ease 0.2s, transform 0.6s ease 0.2s',
-          transform: show ? 'scale(1)' : 'scale(0.8)',
-        }}
-      >
-        <img
-          src={sprites[player.spriteId]}
-          alt=""
-          style={{
-            width: '100%',
-            height: '100%',
-            imageRendering: 'auto',
-            padding: '8% 2% 0 2%',
-            objectFit: 'contain',
-          }}
-          draggable={false}
-        />
+      <div className={`sprite-idle ${styles.fade} ${styles.sprite}`}>
+        <img src={sprites[player.spriteId]} alt="" draggable={false} />
       </div>
 
       {/* Old title → new title */}
-      <div
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          gap: 4,
-          opacity: show ? 1 : 0,
-          transition: 'opacity 0.5s ease 0.3s',
-        }}
-      >
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-2xs)',
-            color: 'var(--muted)',
-            textDecoration: 'line-through',
-          }}
-        >
-          {oldTier.title}
-        </div>
-        <div
-          className="t-display"
-          style={{
-            fontSize: 'var(--display-sm)',
-            color: 'var(--gold-bright)',
-            textAlign: 'center',
-            lineHeight: 1.6,
-            textShadow: '2px 2px 0 #E65100',
-          }}
-        >
-          {newTier.title}
-        </div>
+      <div className={`${styles.fade} ${styles.titles}`} style={delay(0.3)}>
+        <div className={`t-display ${styles.oldTitle}`}>{oldTier.title}</div>
+        <div className={`t-display ${styles.newTitle}`}>{newTier.title}</div>
       </div>
 
       {/* Move upgrades (automatic at floors 10/20) */}
       {upgrades && upgrades.length > 0 && (
-        <div
-          style={{
-            background: 'rgba(255,193,7,0.1)',
-            border: '2px solid var(--gold)',
-            borderRadius: 'var(--radius-md)',
-            padding: '8px 12px',
-            maxWidth: 320,
-            width: '100%',
-            opacity: show ? 1 : 0,
-            transition: 'opacity 0.5s ease 0.4s',
-          }}
-        >
-          <div
-            className="t-display"
-            style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold)', marginBottom: 4 }}
-          >
-            MOVE EVOLVED!
-          </div>
+        <div className={`${styles.fade} ${styles.evolved}`} style={delay(0.4)}>
+          <div className={`t-display ${styles.evolvedTitle}`}>MOVE EVOLVED!</div>
           {upgrades.map((u) => (
-            <div
-              key={u.fromName}
-              className="t-body"
-              style={{ fontSize: 'var(--body-md)', color: 'var(--paper)', lineHeight: 1.2 }}
-            >
+            <div key={u.fromName} className={`t-body ${styles.evolvedLine}`}>
               {u.fromName} &rarr; {u.to.name}
             </div>
           ))}
         </div>
       )}
 
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-2xs)',
-          color: 'var(--sky-soft)',
-          letterSpacing: 2,
-          marginTop: 4,
-          opacity: show ? 1 : 0,
-          transition: 'opacity 0.5s ease 0.5s',
-        }}
-      >
+      <div className={`t-display ${styles.fade} ${styles.chooser}`} style={delay(0.5)}>
         CHOOSE A PERK • PICK YOUR ADVANTAGE
       </div>
 
       <div
         aria-label="Promotion reward choices"
-        style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 8,
-          width: '100%',
-          maxWidth: 340,
-          opacity: show ? 1 : 0,
-          transition: 'opacity 0.5s ease 0.6s',
-        }}
+        className={`${styles.fade} ${styles.offers}`}
+        style={delay(0.6)}
       >
         {offers.map((perk, i) => (
           <button
             key={perk.id}
             onClick={() => onPick(perk.id)}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 12,
-              minHeight: 82,
-              padding: '12px 12px',
-              background: 'rgba(13, 19, 32, 0.92)',
-              border: `var(--border-w) solid ${KIND_COLORS[perk.kind]}`,
-              borderRadius: 'var(--radius-lg)',
-              cursor: 'pointer',
-              textAlign: 'left',
-              boxShadow: 'var(--shadow-md)',
-            }}
+            className={styles.offer}
+            style={{ '--kind': KIND_COLORS[perk.kind] } as CSSProperties}
           >
-            <span style={{ fontSize: 26 }}>{perk.icon}</span>
-            <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-              <span
-                className="t-display"
-                style={{ fontSize: '10px', color: KIND_COLORS[perk.kind], letterSpacing: 1.2 }}
-              >
+            <span className={styles.offerIcon}>{perk.icon}</span>
+            <span className={styles.offerBody}>
+              <span className={`t-display ${styles.offerLabel}`}>
                 OPTION {i + 1} • {KIND_LABELS[perk.kind]}
               </span>
-              <span
-                className="t-display"
-                style={{ fontSize: 'var(--display-2xs)', color: 'var(--paper)', lineHeight: 1.4 }}
-              >
-                {perk.name}
-              </span>
-              <span
-                style={{ display: 'flex', flexWrap: 'wrap', gap: 4, marginTop: 1 }}
-                aria-label={`${perk.name} choice tags`}
-              >
+              <span className={`t-display ${styles.offerName}`}>{perk.name}</span>
+              <span className={styles.tags} aria-label={`${perk.name} choice tags`}>
                 {perk.choiceTags.map((tag) => (
-                  <span
-                    key={tag}
-                    className="t-display"
-                    style={{
-                      fontSize: 10.5,
-                      color: '#05070d',
-                      background: KIND_COLORS[perk.kind],
-                      borderRadius: 999,
-                      padding: '2px 6px',
-                      lineHeight: 1.2,
-                      letterSpacing: 0.7,
-                    }}
-                  >
+                  <span key={tag} className={`t-display ${styles.tag}`}>
                     {tag}
                   </span>
                 ))}
               </span>
-              <span
-                className="t-body"
-                style={{ fontSize: 'var(--body-sm)', color: 'var(--text-main)', lineHeight: 1.2 }}
-              >
-                {perk.desc}
-              </span>
-              <span
-                className="t-body"
-                style={{
-                  fontSize: 'var(--body-xs)',
-                  color: 'var(--muted-light)',
-                  lineHeight: 1.15,
-                }}
-              >
+              <span className={`t-body ${styles.offerDesc}`}>{perk.desc}</span>
+              <span className={`t-body ${styles.offerHint}`}>
                 <strong>BEST FOR:</strong> {perk.buildHint}
               </span>
             </span>
-            <span
-              className="t-display"
-              style={{
-                fontSize: 'var(--display-2xs)',
-                color: KIND_COLORS[perk.kind],
-                whiteSpace: 'nowrap',
-              }}
-            >
-              [{i + 1}] TAP
-            </span>
+            <span className={`t-display ${styles.offerKey}`}>[{i + 1}] TAP</span>
           </button>
         ))}
       </div>
 
-      {(() => {
-        const archetype = getCareerArchetype(ownedPerks)
-        return (
-          <div
-            aria-label="Current career trajectory"
-            data-testid="trajectory-panel"
-            style={{
-              marginTop: 14,
-              width: '100%',
-              maxWidth: 340,
-              padding: '10px 12px',
-              borderRadius: 'var(--radius)',
-              border: 'var(--border-w) solid var(--line)',
-              background: 'var(--surface-2, rgba(0,0,0,0.18))',
-              opacity: show ? 1 : 0,
-              transition: 'opacity 0.5s ease 0.7s',
-            }}
-          >
-            <div
-              className="t-display"
-              style={{
-                fontSize: '10px',
-                letterSpacing: 1.2,
-                color: 'var(--muted)',
-                marginBottom: 4,
-              }}
-            >
-              CURRENT TRAJECTORY
-            </div>
-            <div
-              className="t-display"
-              data-testid="trajectory-name"
-              style={{ fontSize: 'var(--display-sm)', color: 'var(--ink)' }}
-            >
-              {archetype.name}
-            </div>
-            <div style={{ fontSize: 'var(--text-sm)', color: 'var(--muted)', marginTop: 2 }}>
-              {archetype.description}
-            </div>
-          </div>
-        )
-      })()}
+      <div
+        aria-label="Current career trajectory"
+        data-testid="trajectory-panel"
+        className={`${styles.fade} ${styles.trajectory}`}
+        style={delay(0.7)}
+      >
+        <div className={`t-display ${styles.trajectoryLabel}`}>CURRENT TRAJECTORY</div>
+        <div className={`t-display ${styles.trajectoryName}`} data-testid="trajectory-name">
+          {archetype.name}
+        </div>
+        <div className={`t-body ${styles.trajectoryDesc}`}>{archetype.description}</div>
+      </div>
     </div>
   )
 }

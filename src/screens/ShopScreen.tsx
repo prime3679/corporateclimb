@@ -3,6 +3,7 @@ import { CURRENCY_ICON, ITEMS } from '@/data'
 import { WELLNESS_DAY, shopPrice, wellnessPrice as wellnessPriceFor } from '@/engine'
 import type { RunState } from '@/engine'
 import { Button, Panel } from '@/ui'
+import styles from './ShopScreen.module.css'
 
 /**
  * The Company Store — the mid-act spend stop. Stock and prices come
@@ -48,37 +49,12 @@ export default function ShopScreen({
   }) => (
     <div
       key={opts.key}
-      className="premium-screen"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 12,
-        padding: '12px 12px',
-        background: opts.disabled
-          ? 'rgba(13,19,32,.62)'
-          : 'linear-gradient(180deg, rgba(17,24,39,.96), rgba(5,7,13,.94))',
-        border: `var(--border-w) solid ${opts.disabled ? 'rgba(255,255,255,.08)' : 'rgba(255,211,77,.24)'}`,
-        borderRadius: 'var(--radius-lg)',
-        opacity: opts.disabled ? 0.6 : 1,
-        boxShadow: opts.disabled ? 'none' : 'var(--shadow-md), inset 0 1px 0 rgba(255,255,255,.08)',
-      }}
+      className={`premium-screen ${styles.row} ${opts.disabled ? styles.rowOff : ''}`}
     >
-      <span style={{ fontSize: 28, filter: 'drop-shadow(0 4px 8px rgba(0,0,0,.34))' }}>
-        {opts.emoji}
-      </span>
-      <span style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <span
-          className="t-display"
-          style={{ fontSize: 'var(--display-xs)', color: 'var(--paper)', lineHeight: 1.2 }}
-        >
-          {opts.name}
-        </span>
-        <span
-          className="t-body"
-          style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)', lineHeight: 1.25 }}
-        >
-          {opts.disabledReason ?? opts.desc}
-        </span>
+      <span className={styles.emoji}>{opts.emoji}</span>
+      <span className={styles.body}>
+        <span className={`t-display ${styles.name}`}>{opts.name}</span>
+        <span className={`t-body ${styles.desc}`}>{opts.disabledReason ?? opts.desc}</span>
       </span>
       <Button
         variant="primary"
@@ -93,55 +69,26 @@ export default function ShopScreen({
   )
 
   return (
-    <div
-      className="premium-screen"
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        height: '100%',
-        gap: 14,
-        padding: '26px 22px 24px',
-        background:
-          'radial-gradient(circle at 50% 0%, rgba(255,211,77,.14), transparent 32%), linear-gradient(180deg, rgba(5,7,13,.18), rgba(5,7,13,.74))',
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
-      <div
-        className="t-display"
-        style={{
-          fontSize: 'var(--display-sm)',
-          color: 'var(--gold-bright)',
-          textShadow: '2px 2px 0 #E65100',
-          letterSpacing: 2,
-        }}
-      >
-        {title ?? 'THE COMPANY STORE'}
-      </div>
-      <div
-        className="t-body"
-        style={{ fontSize: 'var(--body-md)', color: 'var(--muted)', textAlign: 'center' }}
-      >
-        {subtitle ??
-          (title === 'VENDING'
-            ? 'Accepts Stock Options. Nobody asked how.'
-            : 'Payroll-approved supplies. Exit through the gift shop.')}
+    <div className={`premium-screen ${styles.screen}`}>
+      <div className={styles.head}>
+        <div className={styles.headText}>
+          <div className={`t-display ${styles.title}`}>{title ?? 'THE COMPANY STORE'}</div>
+          <div className={`t-body ${styles.sub}`}>
+            {subtitle ??
+              (title === 'VENDING'
+                ? 'Accepts Stock Options. Nobody asked how.'
+                : 'Payroll-approved supplies. Exit through the gift shop.')}
+          </div>
+        </div>
+
+        <Panel variant="glass" className={styles.balance}>
+          <span className={`t-display ${styles.balanceText}`}>
+            BALANCE: {run.stockOptions} {CURRENCY_ICON}
+          </span>
+        </Panel>
       </div>
 
-      <Panel variant="glass" style={{ padding: '8px 16px', borderColor: 'rgba(255,211,77,.24)' }}>
-        <span
-          className="t-display"
-          style={{ fontSize: 'var(--display-2xs)', color: 'var(--gold)' }}
-        >
-          BALANCE: {run.stockOptions} {CURRENCY_ICON}
-        </span>
-      </Panel>
-
-      <div
-        style={{ display: 'flex', flexDirection: 'column', gap: 10, width: '100%', maxWidth: 366 }}
-      >
+      <div className={styles.stock}>
         {stock.map((id: ItemId, i: number) => {
           const item = ITEMS[id]
           const price = shopPrice(item.price, run.perks, run.floor, run.relics)
@@ -178,7 +125,7 @@ export default function ShopScreen({
           })}
       </div>
 
-      <div className="t-body" style={{ fontSize: 'var(--body-md)', color: 'var(--muted-light)' }}>
+      <div className={`t-body ${styles.meta}`}>
         HP {Math.max(0, run.hp)}/{maxHp} &bull; Items {run.inventory.length}/4
       </div>
 

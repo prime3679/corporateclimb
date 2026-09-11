@@ -1,0 +1,156 @@
+/* Daily result: verdict, modifier, score card, share grid, streak, share,
+   leaderboard, back. Phone values match the screen as it has always
+   rendered; the wide-canvas block turns the score card into a report card
+   (score | stats) and seats the share grid beside the streak. */
+
+.screen {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  gap: 14px;
+  padding: 20px;
+  background: linear-gradient(180deg, #263238 0%, #37474f 50%, #455a64 100%);
+}
+
+.won {
+  background: linear-gradient(180deg, #ff6f00 0%, #ffa000 30%, #ffc107 60%, #ffd54f 100%);
+}
+
+.verdict {
+  font-size: var(--display-xs);
+  color: var(--gold-bright);
+  letter-spacing: 3px;
+}
+
+.won .verdict {
+  color: var(--ink);
+}
+
+.modIcon {
+  font-size: 28px;
+}
+
+.modName {
+  font-size: var(--display-2xs);
+  color: var(--amber-deep);
+}
+
+.won .modName {
+  color: #e65100;
+}
+
+.scoreCard {
+  background: rgba(0, 0, 0, 0.85);
+  border-radius: var(--radius-lg);
+  padding: 14px 18px;
+  max-width: 300px;
+  width: 100%;
+  border: var(--border-w) solid var(--amber-deep);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.score {
+  font-size: var(--display-lg);
+  color: var(--gold-bright);
+  text-align: center;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  font-size: var(--display-2xs);
+}
+
+.statLabel {
+  color: var(--muted);
+}
+
+.statValue {
+  color: var(--paper);
+  text-align: right;
+}
+
+/* Grid + streak wrapper: transparent on the phone stack. */
+.strip {
+  display: contents;
+}
+
+.grid {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.3;
+  letter-spacing: 1px;
+  text-align: center;
+}
+
+.streak {
+  font-size: var(--display-2xs);
+  color: var(--gold-bright);
+}
+
+.won .streak {
+  color: var(--ink);
+}
+
+/* Wide stage (desktop canvas): the score card widens into a report card —
+   the big number on the left, the five stats on the right — and the share
+   grid sits beside the streak on one line. The rest of the column stays
+   centred: a result wants a spine the eye can read top to bottom. */
+@container stage (min-width: 700px) {
+  .screen {
+    gap: 16px;
+    padding: 32px 40px;
+  }
+
+  .verdict {
+    font-size: var(--display-sm);
+  }
+
+  .modIcon {
+    font-size: 36px;
+  }
+
+  .modName {
+    font-size: var(--display-xs);
+  }
+
+  .scoreCard {
+    max-width: 560px;
+    display: grid;
+    grid-template-columns: 200px minmax(0, 1fr);
+    align-items: center;
+    column-gap: 28px;
+    padding: 18px 24px;
+  }
+
+  .score {
+    font-size: var(--display-xl);
+    line-height: 1;
+  }
+
+  .stats {
+    font-size: var(--display-xs);
+    gap: 8px 12px;
+    padding-left: 24px;
+    border-left: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .strip {
+    display: flex;
+    align-items: center;
+    gap: 32px;
+  }
+
+  .grid {
+    font-size: 15px;
+  }
+
+  .streak {
+    font-size: var(--display-xs);
+  }
+}
