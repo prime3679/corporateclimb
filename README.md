@@ -32,8 +32,10 @@ npm run test:production # offline/install/update checks; run npm run build first
 
 The full Office campaign is an opt-in playtest. Set `PLAYTEST_FULL_CLIMB=1` and
 run `npm run test:smoke -- e2e/office-full-climb.spec.ts -g fresh-save`.
-`PLAYTEST_ROLE` accepts `Product Manager`, `Senior Engineer`, or `UX Designer`;
-`PLAYTEST_ARTIFACT_DIR` selects the screenshot/checkpoint directory.
+`PLAYTEST_CLASS` / `PLAYTEST_ROLE` accept `Product Manager`, `Senior Engineer`,
+or `UX Designer` (aliases `pm` / `eng` / `ux`); default is Product Manager.
+`PLAYTEST_ARTIFACT_DIR` selects the screenshot/checkpoint directory and nests a
+role slug when a class env is set so later runs do not overwrite climb PNGs.
 
 ## Linting & Formatting
 

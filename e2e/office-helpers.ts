@@ -5,9 +5,47 @@ import path from 'node:path'
 const PREFERRED_ARTIFACT_DIR = '/opt/cursor/artifacts/e2e-full-climb'
 const FALLBACK_ARTIFACT_DIR = path.join('test-results', 'e2e-full-climb')
 
+const CLASS_ALIASES: Record<string, string> = {
+  'product manager': 'Product Manager',
+  pm: 'Product Manager',
+  'senior engineer': 'Senior Engineer',
+  eng: 'Senior Engineer',
+  engineer: 'Senior Engineer',
+  'ux designer': 'UX Designer',
+  ux: 'UX Designer',
+  designer: 'UX Designer',
+}
+
+/** Office role for a climb. `PLAYTEST_CLASS` aliases `PLAYTEST_ROLE`; default stays PM. */
+export function playtestClassName(
+  raw = process.env.PLAYTEST_CLASS ?? process.env.PLAYTEST_ROLE,
+): string {
+  if (!raw) return 'Product Manager'
+  return CLASS_ALIASES[raw.trim().toLowerCase()] ?? raw
+}
+
+function playtestRoleSlug(): string | null {
+  const raw = process.env.PLAYTEST_CLASS ?? process.env.PLAYTEST_ROLE
+  if (!raw) return null
+  return playtestClassName(raw)
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '')
+}
+
+function withRoleDir(dir: string): string {
+  const slug = playtestRoleSlug()
+  return slug ? path.join(dir, slug) : dir
+}
+
 function resolveArtifactDir(): string {
   const fromEnv = process.env.PLAYTEST_ARTIFACT_DIR
-  const candidates = [...(fromEnv ? [fromEnv] : []), PREFERRED_ARTIFACT_DIR, FALLBACK_ARTIFACT_DIR]
+  const candidates = [
+    ...(fromEnv ? [withRoleDir(fromEnv)] : []),
+    withRoleDir(PREFERRED_ARTIFACT_DIR),
+    withRoleDir(FALLBACK_ARTIFACT_DIR),
+  ]
   for (const dir of candidates) {
     try {
       mkdirSync(dir, { recursive: true })
@@ -17,7 +55,7 @@ function resolveArtifactDir(): string {
       console.warn(`[climb] Artifact directory unavailable: ${dir}`, error)
     }
   }
-  return FALLBACK_ARTIFACT_DIR
+  return withRoleDir(FALLBACK_ARTIFACT_DIR)
 }
 
 export const ARTIFACT_DIR = resolveArtifactDir()
@@ -258,14 +296,28 @@ function glyphAt(floorId: FloorId, x: number, y: number) {
   return raw === '@' ? '.' : raw
 }
 
-function walkable(floorId: FloorId, x: number, y: number) {
+export function harnessWalkable(floorId: FloorId, x: number, y: number) {
   if (x < 0 || y < 0 || x >= 24 || y >= 18) return false
   if (SOLID[floorId].has(glyphAt(floorId, x, y))) return false
   if (NPCS[floorId].some((n) => n.x === x && n.y === y)) return false
   return true
 }
 
-function pathfind(
+const STEP: Record<Facing, { x: number; y: number }> = {
+  n: { x: 0, y: -1 },
+  e: { x: 1, y: 0 },
+  s: { x: 0, y: 1 },
+  w: { x: -1, y: 0 },
+}
+
+const NUDGE: Record<Facing, Facing[]> = {
+  n: ['e', 'w', 's'],
+  e: ['n', 's', 'w'],
+  s: ['e', 'w', 'n'],
+  w: ['n', 's', 'e'],
+}
+
+export function harnessPathfind(
   floorId: FloorId,
   from: { x: number; y: number },
   to: { x: number; y: number },
@@ -285,7 +337,7 @@ function pathfind(
       const nx = cur.x + dx
       const ny = cur.y + dy
       const key = `${nx},${ny}`
-      if (seen.has(key) || !walkable(floorId, nx, ny)) continue
+      if (seen.has(key) || !harnessWalkable(floorId, nx, ny)) continue
       const path = [...cur.path, dir]
       if (nx === to.x && ny === to.y) return path
       seen.add(key)
@@ -314,6 +366,87 @@ export async function startFreshOffice(page: Page, className = 'Product Manager'
   logBeat('fresh-save-started', { className })
 }
 
+async function clickIfVisible(page: Page, locator: Locator) {
+  if (await vis(locator)) {
+    await locator.click({ timeout: 2_000 }).catch(() => {})
+    await page.waitForTimeout(200)
+    return true
+  }
+  return false
+}
+
+function takeFiveToast(page: Page) {
+  return page.getByRole('status').filter({
+    hasText: /take five|blinks red|Got:|Swapped:|restored|Everyone/i,
+  })
+}
+
+async function dismissToast(page: Page) {
+  const toast = takeFiveToast(page)
+  if (await vis(toast.first())) {
+    // Click only. Enter while facing the cooler re-opens Take five.
+    await toast
+      .first()
+      .click({ timeout: 1_000 })
+      .catch(() => {})
+    await page.waitForTimeout(160)
+    return true
+  }
+  return false
+}
+
+/** Coffee-counter confirm only — combat stakes also use "Not now". */
+async function dismissTakeFivePrompt(page: Page) {
+  const dlg = page.getByRole('dialog').filter({ hasText: /Coffee counter|Restores HP and PP/i })
+  if (!(await vis(dlg))) return false
+  const no = dlg.getByRole('button', { name: 'Not now', exact: true })
+  if (!(await vis(no))) return false
+  await no.click({ timeout: 2_000 }).catch(() => {})
+  await page.waitForTimeout(200)
+  return true
+}
+
+async function dismissCoach(page: Page) {
+  const coach = page.locator('[id^="coach_"]')
+  if (await vis(coach)) {
+    await coach.click().catch(() => {})
+    await page.keyboard.press('Enter').catch(() => {})
+    await page.waitForTimeout(200)
+    return true
+  }
+  return false
+}
+
+async function dismissElevatorListbox(page: Page) {
+  if (await vis(page.getByRole('listbox', { name: 'Elevator floors' }))) {
+    await page.keyboard.press('Escape')
+    await page.waitForTimeout(250)
+    return true
+  }
+  return false
+}
+
+/** Stay / File it / Step in — never combat, never a celebration ride (Floor N / Title). */
+async function dismissWalkSafePrompts(page: Page) {
+  if (await clickIfVisible(page, page.getByRole('button', { name: 'File it' }))) return true
+  if (await clickIfVisible(page, page.getByRole('button', { name: /Back to Floor/ }))) return true
+  if (
+    await clickIfVisible(page, page.getByRole('button', { name: 'Stay on the floor', exact: true }))
+  )
+    return true
+  if (await clickIfVisible(page, page.getByRole('button', { name: 'Step in', exact: true })))
+    return true
+  return false
+}
+
+async function clearWalkBlockers(page: Page) {
+  await dismissToast(page)
+  await dismissTakeFivePrompt(page)
+  await dismissWalkSafePrompts(page)
+  await dismissCoach(page)
+  await dismissElevatorListbox(page)
+}
+
 export async function drainOverlays(
   page: Page,
   rounds = 24,
@@ -334,6 +467,9 @@ export async function drainOverlays(
         .catch(() => false)
       if (combatChoice) return
     }
+    if (await dismissToast(page)) continue
+    if (await dismissTakeFivePrompt(page)) continue
+
     if (
       await page
         .getByText(/Floor \d · of 5/)
@@ -348,7 +484,9 @@ export async function drainOverlays(
         .locator('[id^="coach_"]')
         .isVisible({ timeout: 0 })
         .catch(() => false)
-      if (!blocking && !coach) return
+      const toastUp = await vis(takeFiveToast(page).first())
+      // Toast is role=status, not a dialog — HUD-without-dialog is not walkable.
+      if (!blocking && !coach && !toastUp) return
     }
 
     if (
@@ -369,6 +507,8 @@ export async function drainOverlays(
       continue
     }
 
+    // Stay/File it are walk-safe even when we refuse combat confirms.
+    // Celebration ADVANCE is a no-op — must click Back to Floor, never Floor N.
     let confirmNames = allowCombat
       ? [
           'Bring it',
@@ -382,7 +522,15 @@ export async function drainOverlays(
           'Back to Floor 4',
           'Back to Floor 5',
         ]
-      : ['File it']
+      : [
+          'File it',
+          'Stay on the floor',
+          'Back to Floor 1',
+          'Back to Floor 2',
+          'Back to Floor 3',
+          'Back to Floor 4',
+          'Back to Floor 5',
+        ]
     if (opts.keepCelebration) {
       confirmNames = confirmNames.filter((name) => !/^(Back to Floor|Floor \d|Title)/.test(name))
     }
@@ -398,17 +546,26 @@ export async function drainOverlays(
     }
     if (clicked) continue
 
-    const coach = page.locator('[id^="coach_"]')
-    if (await coach.isVisible({ timeout: 0 }).catch(() => false)) {
-      await coach.click().catch(() => {})
-      await page.keyboard.press('Enter').catch(() => {})
-      await page.waitForTimeout(200)
-      continue
-    }
+    if (await dismissCoach(page)) continue
 
     await page.keyboard.press('Enter')
     await page.waitForTimeout(180)
   }
+}
+
+async function nudgeOffTile(page: Page, cur: OfficeSave, dest: { x: number; y: number }) {
+  const facing = cur.player.facing
+  for (const dir of NUDGE[facing]) {
+    const nx = cur.player.x + STEP[dir].x
+    const ny = cur.player.y + STEP[dir].y
+    if (!harnessWalkable(cur.floorId, nx, ny)) continue
+    if (nx === dest.x && ny === dest.y) continue
+    await page.keyboard.press(KEY[dir])
+    await page.waitForTimeout(320)
+    return
+  }
+  await page.keyboard.press(KEY[NUDGE[facing][0]])
+  await page.waitForTimeout(220)
 }
 
 export async function walkTo(
@@ -419,12 +576,15 @@ export async function walkTo(
   label = `${x},${y}`,
 ) {
   logBeat(`walkTo:${label}:start`)
+  let stuckAt: string | null = null
+  let stuckCount = 0
   for (let attempt = 0; attempt < 80; attempt++) {
-    if (await vis(page.getByRole('listbox', { name: 'Elevator floors' }))) {
-      await page.keyboard.press('Escape')
-      await page.waitForTimeout(250)
-    }
-    await drainOverlays(page, 6, { allowCombat: false })
+    const peek = await readOfficeSave(page)
+    const arrived = peek && peek.player.x === x && peek.player.y === y
+    // Leave a boarded cab panel up once we are on the destination tile.
+    if (!arrived) await dismissElevatorListbox(page)
+    await drainOverlays(page, stuckCount >= 3 ? 16 : 10, { allowCombat: false })
+    if (stuckCount >= 2) await clearWalkBlockers(page)
     if (
       await page
         .getByText('TAP A MOVE')
@@ -451,17 +611,36 @@ export async function walkTo(
       }
       return
     }
-    const route = pathfind(cur.floorId, cur.player, { x, y })
+    const here = `${cur.player.x},${cur.player.y}`
+    if (here === stuckAt) {
+      stuckCount += 1
+      if (stuckCount === 4 || stuckCount === 8) {
+        logBeat(`walkTo:${label}:nudge`, { attempt, at: here, stuck: stuckCount })
+      } else if (stuckCount % 20 === 0) {
+        logBeat(`walkTo:${label}:retry`, { attempt, at: here, stuck: stuckCount })
+      }
+      if (stuckCount >= 3) {
+        await clearWalkBlockers(page)
+        await nudgeOffTile(page, cur, { x, y })
+        continue
+      }
+    } else {
+      stuckAt = here
+      stuckCount = 0
+    }
+    const route = harnessPathfind(cur.floorId, cur.player, { x, y })
     if (!route) {
+      if (stuckCount >= 2) {
+        await clearWalkBlockers(page)
+        await nudgeOffTile(page, cur, { x, y })
+        continue
+      }
       throw new Error(
         `walkTo ${label}: no path from ${cur.player.x},${cur.player.y} on ${cur.floorId}`,
       )
     }
-    if (attempt > 0 && attempt % 20 === 0) {
-      logBeat(`walkTo:${label}:retry`, { attempt, at: `${cur.player.x},${cur.player.y}` })
-    }
     await page.keyboard.press(KEY[route[0]])
-    await page.waitForTimeout(300)
+    await page.waitForTimeout(stuckCount >= 3 ? 420 : 300)
   }
   const after = await readOfficeSave(page)
   throw new Error(
@@ -572,6 +751,12 @@ export async function takeFive(page: Page) {
     await page.waitForTimeout(350)
   }
   await drainOverlays(page, 8, { allowCombat: false })
+  await dismissTakeFivePrompt(page)
+  // Step off the cooler so a later Enter cannot re-open Take five.
+  const after = await readOfficeSave(page)
+  if (after && after.player.x === spot.x && after.player.y === spot.y) {
+    await nudgeOffTile(page, after, after.player)
+  }
   logBeat('take-five', { floorId: save.floorId })
 }
 
@@ -861,8 +1046,20 @@ export async function beginAndFight(
 export async function openElevator(page: Page) {
   const panel = page.getByRole('listbox', { name: 'Elevator floors' })
   if (await vis(panel)) return
+  // NOD / CLEARED ADVANCE is a no-op. Stay on this floor before pathing to the cab.
+  await drainOverlays(page, 16, { allowCombat: false })
+  await clearWalkBlockers(page)
+  if (await vis(page.getByRole('dialog', { name: /THE CLIMB|CLEARED/i }))) {
+    await clickIfVisible(page, page.getByRole('button', { name: /Back to Floor/ }))
+    await page.waitForTimeout(350)
+    await drainOverlays(page, 8, { allowCombat: false })
+  }
+  if (await vis(panel)) return
   const here = await readOfficeSave(page)
   if (!here || here.player.x !== 3 || here.player.y !== 2 || here.player.facing !== 'n') {
+    if (here && here.player.y > 5) {
+      await walkTo(page, 3, 5, 'n', 'elevator approach')
+    }
     await walkTo(page, 3, 2, 'n', 'elevator boarding')
   }
   if (await vis(panel)) return
