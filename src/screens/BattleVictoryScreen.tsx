@@ -41,7 +41,7 @@ export default function BattleVictoryScreen({
         style={{
           fontSize: 'var(--display-xs)',
           color: 'var(--gold-bright)',
-          textShadow: '2px 2px 0 #E65100',
+          textShadow: '0 1px 0 rgba(5,7,13,.6)',
           animation: 'pulse 1.5s infinite',
         }}
       >

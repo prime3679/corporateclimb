@@ -145,7 +145,7 @@ export default function FloorIntro({
             textAlign: 'center',
             opacity: show ? 1 : 0,
             transition: 'opacity 0.5s ease',
-            textShadow: '1px 1px 0 #E65100',
+            textShadow: '0 1px 0 rgba(5,7,13,.6)',
           }}
         >
           ACT {getAct(floor)}: {ACT_NAMES[getAct(floor)]}

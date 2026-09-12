@@ -58,7 +58,6 @@ export default function GameOverScreen({
         style={{
           fontSize: 'var(--display-md)',
           color: 'var(--red)',
-          textShadow: '2px 2px 0 #B71C1C',
         }}
       >
         GAME OVER
