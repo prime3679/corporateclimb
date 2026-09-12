@@ -1140,6 +1140,62 @@ floors`. Header comment now names the surround correctly — `--cc-stage`
   FLOOR 1 CLEARED 53.2 s · floor2 56.6 s · helpdesk 61.5 s · floor3 67.1 s
   · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
   99.2–102.2 s.
+- Cut on `4de317c`, where the Title `<h1>` still read `CORPORATE CLIMB`;
+  the CLIMBER follow-up is "Pass J — demo remux: #141 CORPORATE CLIMBER
+  wordmark" below.
+
+### Pass J — demo remux: #141 CORPORATE CLIMBER wordmark
+
+`public/demos/office-demo.mp4` re-recorded on tip `c8b5ac4` (`#141` Title
+h1 `CORPORATE CLIMBER`) through the same `npm run demo:office` pipeline as
+`#119` / `#121` / `#126` / `#140`. Same mux — silent Playwright video, live
+beds and stingers at the scene marks, Floor 1 bed ducked to 22% across the
+spar. 98.4 s at 1280×720, h264 + AAC; no hand-edited bytes. Product code
+untouched: demo script, mp4 and docs only. Fable lane,
+TASK-CLIMBER-REMUX-001.
+
+- **Why.** `#140` was cut on `4de317c`, where the Title `<h1>` still read
+  `CORPORATE CLIMB`; only the vertical spine on the left theater wing said
+  CLIMBER. The `#140` entry above says the wordmark read `CORPORATE
+CLIMBER`; the 5.5 s frame of that cut says otherwise. `#141` changed the
+  h1 span, and this cut proves it:
+  `docs/rpg/ultra-climber-remux/title-welcome-desktop.png` (5.5 s) and the
+  F1 reception walk at `office-floor1-desktop.png` (17.5 s), both pulled
+  from the committed mp4 with `ffmpeg -ss`.
+- **Script.** Three environment overrides so the pipeline runs off the
+  Cursor VM: `DEMO_OUT_DIR` (artifact dir, default `/opt/cursor/artifacts`),
+  `DEMO_FONT` (title / end card face, default the VM's Inter Bold) and
+  `DEMO_TMP_DIR` (scratch, default `/tmp/office-demo`). Gavin's challenge
+  now waits for each typed line before Enter instead of a blind 10 s wait:
+  on a loaded host the blind wait left the dialogue on line one and the
+  spar scene timed out. That also drops ~7 s of dead air on line one, which
+  is why this cut is 98.4 s where `#140` was 102.2 s. No viewport change,
+  no fixture change; the `#140` promotion receipts stay.
+- **Honest deviations.** This host has no Inter Bold, so the 3.2 s title
+  card and 3.0 s end card are set in Liberation Sans Bold via `DEMO_FONT`;
+  in-game frames are unaffected. Four takes: the first lost the spar to
+  the blind wait; the second ran 147 s with 4–8 s boot-splash dwell between
+  scenes while the shared host sat at load 4–9 on 8 cores; the third was
+  clean at 98.0 s but `127.0.0.1:4173` turned out to be a week-old `vite
+dev` server from the main checkout, not the preview, so it was
+  discarded; the committed cut is the fourth, against `vite preview` on
+  `127.0.0.1:4174` serving the `npm run build` output. Same pipeline each
+  time, nothing edited between takes.
+- **Theater surround.** Unchanged, still `--cc-stage` under the vignette
+  and not `--cc-bg`; `#141` touches nothing in `Stage.module.css`.
+- **Kept from `#140`.** Desktop theater / 840 canvas, F1 Renata / Gavin on
+  the recast plates, the wide-stage spar, F2 HELP / DESK walk to Teddy,
+  F3–5 peeks, THE CLIMB with THE NOD stamp. End card still reads `Pass J ·
+tip`. No Floor 6; Classic never entered (blue secondary on the title
+  only).
+- **Not in frame.** Settings is never opened by the trailer, so no Settings
+  still (N/A, as `#140`). The reception desk sign baked into the Floor 1
+  pixel art still reads `CORPORATE CLIMB`; that is art, not this lane.
+- Marks (body offset by the 3.2 s title card): welcome 3.2–7.1 s · floor1
+  12.4 s · combat 33.6 s · hits 35.6–37.8 s · CLEARED 38.5 s · cab 44.8 s ·
+  FLOOR 1 CLEARED 47.6 s · floor2 51.2 s · helpdesk 56.2 s · floor3 62.0 s
+  · floor4 71.0 s · exec 80.0 s · cab 90.8 s · THE CLIMB 90.9 s · end card
+  95.4–98.4 s.
 
 ## Colour / mood bible (living)
 
