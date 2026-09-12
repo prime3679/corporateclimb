@@ -39,6 +39,22 @@ describe('Office climb harness path + role env', () => {
     expect(boardTiles).toContain('3,5')
     expect(boardTiles).toContain('3,2')
   })
+
+  it('can step off Floor 2 take-five so walkTo does not re-open the cooler', async () => {
+    const { harnessWalkable, harnessPathfind } = await import('../../e2e/office-helpers')
+    // BREAK_SPOT floor_02 is (11,11). Kessler door approach is (3,8).
+    expect(harnessWalkable('floor_02', 11, 11)).toBe(true)
+    const exits = [
+      [11, 10],
+      [12, 11],
+      [10, 11],
+      [11, 12],
+    ] as const
+    expect(exits.some(([x, y]) => harnessWalkable('floor_02', x, y))).toBe(true)
+    const away = harnessPathfind('floor_02', { x: 11, y: 11 }, { x: 3, y: 8 })
+    expect(away).not.toBeNull()
+    expect(away!.length).toBeGreaterThan(0)
+  })
 })
 
 function tilesOn(path: Array<'n' | 'e' | 's' | 'w'>, from: { x: number; y: number }) {

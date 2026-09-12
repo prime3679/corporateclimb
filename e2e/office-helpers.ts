@@ -375,20 +375,35 @@ async function clickIfVisible(page: Page, locator: Locator) {
   return false
 }
 
-async function dismissToast(page: Page) {
-  const toast = page.getByRole('status').filter({
+function takeFiveToast(page: Page) {
+  return page.getByRole('status').filter({
     hasText: /take five|blinks red|Got:|Swapped:|restored|Everyone/i,
   })
+}
+
+async function dismissToast(page: Page) {
+  const toast = takeFiveToast(page)
   if (await vis(toast.first())) {
+    // Click only. Enter while facing the cooler re-opens Take five.
     await toast
       .first()
       .click({ timeout: 1_000 })
       .catch(() => {})
-    await page.keyboard.press('Enter').catch(() => {})
     await page.waitForTimeout(160)
     return true
   }
   return false
+}
+
+/** Coffee-counter confirm only — combat stakes also use "Not now". */
+async function dismissTakeFivePrompt(page: Page) {
+  const dlg = page.getByRole('dialog').filter({ hasText: /Coffee counter|Restores HP and PP/i })
+  if (!(await vis(dlg))) return false
+  const no = dlg.getByRole('button', { name: 'Not now', exact: true })
+  if (!(await vis(no))) return false
+  await no.click({ timeout: 2_000 }).catch(() => {})
+  await page.waitForTimeout(200)
+  return true
 }
 
 async function dismissCoach(page: Page) {
@@ -426,6 +441,7 @@ async function dismissWalkSafePrompts(page: Page) {
 
 async function clearWalkBlockers(page: Page) {
   await dismissToast(page)
+  await dismissTakeFivePrompt(page)
   await dismissWalkSafePrompts(page)
   await dismissCoach(page)
   await dismissElevatorListbox(page)
@@ -452,6 +468,7 @@ export async function drainOverlays(
       if (combatChoice) return
     }
     if (await dismissToast(page)) continue
+    if (await dismissTakeFivePrompt(page)) continue
 
     if (
       await page
@@ -467,7 +484,9 @@ export async function drainOverlays(
         .locator('[id^="coach_"]')
         .isVisible({ timeout: 0 })
         .catch(() => false)
-      if (!blocking && !coach) return
+      const toastUp = await vis(takeFiveToast(page).first())
+      // Toast is role=status, not a dialog — HUD-without-dialog is not walkable.
+      if (!blocking && !coach && !toastUp) return
     }
 
     if (
@@ -732,6 +751,12 @@ export async function takeFive(page: Page) {
     await page.waitForTimeout(350)
   }
   await drainOverlays(page, 8, { allowCombat: false })
+  await dismissTakeFivePrompt(page)
+  // Step off the cooler so a later Enter cannot re-open Take five.
+  const after = await readOfficeSave(page)
+  if (after && after.player.x === spot.x && after.player.y === spot.y) {
+    await nudgeOffTile(page, after, after.player)
+  }
   logBeat('take-five', { floorId: save.floorId })
 }
 
