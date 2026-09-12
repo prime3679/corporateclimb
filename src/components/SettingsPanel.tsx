@@ -1,6 +1,7 @@
 import { FEEDBACK_HELPER, FEEDBACK_ISSUES_URL, FEEDBACK_LABEL } from '@/config/tip'
 import { SFX } from '@/sfx'
 import { Haptics } from '@/platform'
+import { setAnalyticsEnabled } from '@/analytics'
 import type { Settings, TextSpeed } from '@/settings'
 import Button from '@/ui/Button'
 import Modal from './Modal'
@@ -102,6 +103,19 @@ export default function SettingsPanel({
           Vibration (combat hits &amp; taps)
         </label>
       )}
+
+      <label className={styles.checkRow}>
+        <input
+          type="checkbox"
+          checked={settings.analytics}
+          onChange={(e) => {
+            onChange({ ...settings, analytics: e.target.checked })
+            // Apply eagerly so the next tap is already honoured.
+            setAnalyticsEnabled(e.target.checked ? null : false)
+          }}
+        />
+        Share anonymous play stats (no names, no account)
+      </label>
 
       <div className={styles.feedback}>
         <a

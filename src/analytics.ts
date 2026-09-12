@@ -161,7 +161,7 @@ export function registerErrorCapture() {
  */
 export function injectVercelAnalytics() {
   if (typeof document === 'undefined') return
-  if (!import.meta.env.PROD || isNative() || dntOff()) return
+  if (!import.meta.env.PROD || isNative() || dntOff() || enabledOverride === false) return
   const w = window as Window & { va?: (...args: unknown[]) => void; vaq?: unknown[] }
   w.va =
     w.va ||

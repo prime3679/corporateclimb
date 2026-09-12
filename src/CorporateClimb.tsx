@@ -101,7 +101,7 @@ import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
 import SaveNotice from './components/SaveNotice'
-import { trackScreenChange } from './analytics'
+import { setAnalyticsEnabled, trackScreenChange } from './analytics'
 import CareerPanel from './components/CareerPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
@@ -261,6 +261,8 @@ export default function CorporateClimb() {
     Music.setVolume(settings.musicVolume)
     SFX.setVolume(settings.sfxVolume)
     Haptics.setEnabled(settings.haptics)
+    // null = defer to key/DNT; false = hard off. Never force-on past DNT.
+    setAnalyticsEnabled(settings.analytics ? null : false)
     saveSettings(settings)
   }, [settings])
 

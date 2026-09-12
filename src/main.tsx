@@ -10,7 +10,13 @@ import '@fontsource/space-grotesk/700.css'
 import './ui/global.css'
 import App from './App'
 import { MUSIC_URLS } from './music'
-import { injectVercelAnalytics, registerErrorCapture, track } from './analytics'
+import {
+  injectVercelAnalytics,
+  registerErrorCapture,
+  setAnalyticsEnabled,
+  track,
+} from './analytics'
+import { loadSettings } from './settings'
 import {
   bootstrapNativeChrome,
   isNative,
@@ -24,6 +30,7 @@ import {
 registerInstallCapture()
 registerLifecycle()
 registerErrorCapture()
+if (!loadSettings().analytics) setAnalyticsEnabled(false)
 injectVercelAnalytics()
 void bootstrapNativeChrome()
 track('title_view')

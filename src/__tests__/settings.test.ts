@@ -21,6 +21,7 @@ describe('settings persistence', () => {
       textSpeed: 'instant' as const,
       reduceMotion: true,
       haptics: false,
+      analytics: false,
     }
     saveSettings(s)
     expect(loadSettings()).toEqual(s)
@@ -42,6 +43,7 @@ describe('settings persistence', () => {
       textSpeed: 'normal',
       reduceMotion: false,
       haptics: true,
+      analytics: true,
     })
   })
 

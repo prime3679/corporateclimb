@@ -13,11 +13,10 @@ three crash paths. `src/__tests__/analytics.test.ts` pins the contract.
 
 ## Do
 
-1. Add a `settings.analytics: boolean` (default `true`) to `src/settings.ts`
-   with a migration-safe load (missing key → true). Expose it as a
-   "Share anonymous play stats" switch in `SettingsPanel`, under the
-   existing sound/haptics rows. Call `setAnalyticsEnabled(value)` on
-   change and on boot (`main.tsx`, before `track('title_view')`).
+1. ~~Settings toggle~~ — done on `climber-launch`: `settings.analytics`
+   (default on, missing key → on), the "Share anonymous play stats" row in
+   `SettingsPanel`, boot honour in `main.tsx`, effect re-apply in
+   `CorporateClimb.tsx`. Verify it in the e2e step below.
 2. In `trackOfficeTransition`, add `office_floor_cleared` → also fire
    `run_end { mode: 'office', screen }` when `screen === 'screen_floor5_complete'`
    so the funnel's last step matches Classic's.
