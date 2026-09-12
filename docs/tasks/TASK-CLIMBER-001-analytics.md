@@ -35,6 +35,15 @@ three crash paths. `src/__tests__/analytics.test.ts` pins the contract.
   `npm run preview` and confirm one POST to `/i/v0/e/` per screen change
   in devtools. Remove the key afterwards.
 
+## Status (2026-09-12, PR #136)
+
+Items 2–4 landed alongside the launch layer. Verification found one wiring
+bug: `OfficeScreen` only tracked transitions that went through its `act`
+wrapper, but the stakes "Bring it" button and the celebration overlays
+dispatch through `overlays.tsx`'s own `onChange`, so `office_fight_start`
+and `office_floor_cleared` never fired in a real walk. Tracking now diffs
+consecutive `state` props in one effect, which every path passes through.
+
 ## Done when
 
 The Settings toggle exists, the no-op default is tested end-to-end, and

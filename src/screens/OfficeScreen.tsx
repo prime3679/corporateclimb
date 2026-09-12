@@ -126,7 +126,6 @@ export default function OfficeScreen({
           Haptics.impact('light')
         }
       }
-      trackOfficeTransition(state, result.state)
       onChange(withTime(result.state))
       return result
     },
@@ -134,6 +133,16 @@ export default function OfficeScreen({
   )
 
   useEffect(() => () => sequencer.cancel(), [sequencer])
+
+  // Funnel events diff consecutive `state` props rather than hooking `act`:
+  // overlays (stakes "Bring it", celebrations) and the battle path dispatch
+  // through their own onChange, so this is the one place every transition
+  // passes. Same-reference renders are skipped inside the mapper.
+  const trackedStateRef = useRef(state)
+  useEffect(() => {
+    trackOfficeTransition(trackedStateRef.current, state)
+    trackedStateRef.current = state
+  }, [state])
 
   useEffect(() => {
     const prev = prevScreenRef.current
@@ -279,7 +288,6 @@ export default function OfficeScreen({
     })
     const outcome = officeBattleOutcome(state, result.state)
     const hold = outcome === 'win' || outcome === 'wipe'
-    trackOfficeTransition(state, result.state)
     if (!hold) onChange(next)
     if (result.events.length) {
       if (!view && state.encounter && state.battle) {

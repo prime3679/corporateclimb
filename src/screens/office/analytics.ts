@@ -19,5 +19,10 @@ export function trackOfficeTransition(prev: OfficeState, next: OfficeState) {
   const nextCel = next.overlay?.kind === 'celebration' ? next.overlay.screen : null
   if (nextCel && nextCel !== prevCel) {
     track('office_floor_cleared', { floor, screen: nextCel })
+    // The Exec celebration is the end of the campaign — mirror Classic's
+    // run_end so the launch funnel's last step reads the same for both modes.
+    if (nextCel === 'screen_floor5_complete') {
+      track('run_end', { mode: 'office', screen: nextCel })
+    }
   }
 }

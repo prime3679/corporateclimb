@@ -62,3 +62,37 @@ test('daily challenge smoke', async ({ page }) => {
     await firstItemBtn.click()
   }
 })
+
+/**
+ * Analytics guard: src/analytics.ts is a no-op unless VITE_POSTHOG_KEY is set
+ * at build time. The dev server this suite runs against has no key, so the
+ * first-run walk (Classic title → class select → floor intro, then Office
+ * title → role → Floor 1) must never open a connection to PostHog.
+ */
+test('analytics never phones home without a key', async ({ page }) => {
+  const phonedHome: string[] = []
+  page.on('request', (request) => {
+    if (/posthog\.com/i.test(request.url())) phonedHome.push(request.url())
+  })
+
+  await page.goto('/')
+  await page.evaluate(() => localStorage.clear())
+  await page.reload()
+
+  // ── Classic: title → class select → floor intro ─────────────────────────────
+  await expect(page.getByRole('button', { name: 'START CLIMB' })).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'START CLIMB' }).click()
+  await expect(page.getByText('SELECT CAREER ARCHETYPE')).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'ACCEPT OFFER' }).click()
+  await expect(page.getByText('TAP TO BATTLE')).toBeVisible({ timeout: 10_000 })
+
+  // ── Office: title → role → Floor 1 ──────────────────────────────────────────
+  await page.goto('/')
+  await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeVisible({ timeout: 15_000 })
+  await page.getByRole('button', { name: 'THE OFFICE' }).click()
+  await expect(page.getByText('YOUR ROLE · FLOORS 1–5')).toBeVisible({ timeout: 10_000 })
+  await page.getByRole('button', { name: 'ACCEPT OFFER' }).click()
+  await expect(page.getByText('SIGNING BONUS')).toBeVisible({ timeout: 10_000 })
+
+  expect(phonedHome).toEqual([])
+})
