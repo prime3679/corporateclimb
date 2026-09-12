@@ -45,7 +45,7 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (e) => pageErrors.push(e.message))
 
-  await startFreshOffice(page)
+  await startFreshOffice(page, process.env.PLAYTEST_ROLE ?? 'Product Manager')
   await shot(page, '00-floor1-signing')
   await assertNoClassicBleed(page)
   await expectObjective(page, 'Talk to Renata')

@@ -1,13 +1,43 @@
-import { readFileSync } from 'node:fs'
+import { readFileSync, mkdirSync, mkdtempSync, writeFileSync, rmSync } from 'node:fs'
+import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { describe, expect, it } from 'vitest'
-import { injectPrecache } from '../../scripts/sw-precache-plugin'
+import { collectPrecacheEntries, injectPrecache } from '../../scripts/sw-precache-plugin'
 
 // vitest runs from the repo root; jsdom rewrites import.meta.url to an
 // http URL, so resolve the template relative to cwd instead.
 const SW_SOURCE = readFileSync(join(process.cwd(), 'public/sw.js'), 'utf8')
 
 describe('sw precache injection', () => {
+  it('includes nested Office artwork without downloading demo video or music on install', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'corpclimb-precache-'))
+    try {
+      for (const file of [
+        'office/tiles.png',
+        'office/icons.png',
+        'office/actors/lead_pm.png',
+        'office/demo.mp4',
+        'audio/music_office.mp3',
+        'audio/sfx_office.mp3',
+      ]) {
+        mkdirSync(join(dir, file, '..'), { recursive: true })
+        writeFileSync(join(dir, file), '')
+      }
+      const entries = collectPrecacheEntries(dir)
+      expect(entries).toEqual(
+        expect.arrayContaining([
+          '/office/tiles.png',
+          '/office/icons.png',
+          '/office/actors/lead_pm.png',
+          '/audio/sfx_office.mp3',
+        ]),
+      )
+      expect(entries).not.toContain('/office/demo.mp4')
+      expect(entries).not.toContain('/audio/music_office.mp3')
+    } finally {
+      rmSync(dir, { recursive: true, force: true })
+    }
+  })
   it('the template carries the placeholders the plugin rewrites', () => {
     expect(SW_SOURCE).toContain("const VERSION = 'dev'")
     expect(SW_SOURCE).toContain("self.__PRECACHE = ['/']")

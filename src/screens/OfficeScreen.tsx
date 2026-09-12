@@ -49,9 +49,7 @@ import {
 } from './office/cast'
 import { useDeferredWallet, useOfficeFeedback } from './office/useOfficeFeedback'
 import styles from './office/OfficeScreen.module.css'
-
-const OFFICE_OLD = { floor: 0, title: 'New Hire' }
-const OFFICE_NEW = { floor: 1, title: 'Cleared Probation' }
+import { officePromotionTiers } from '@/engine/office/promotion'
 
 /** Pointer-first keyboard legend in the thumb band — the overworld rows of
  *  the Stage theater-wing `KEY_LEGEND`, in the same label + keycap language. */
@@ -318,8 +316,7 @@ export default function OfficeScreen({
     return (
       <PromotionScreen
         player={effectiveKit(state, state.party[0])}
-        oldTier={OFFICE_OLD}
-        newTier={OFFICE_NEW}
+        {...officePromotionTiers(state)}
         offers={state.run.pendingPerkOffer.map((id) => PERKS[id])}
         onPick={(id) => {
           SFX.menuConfirm()

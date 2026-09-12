@@ -27,7 +27,13 @@ Fresh coding agents should start with `AGENTS.md`, then `docs/ZERO-CONTEXT-CONTR
 ```bash
 npm test           # run unit tests (vitest)
 npm run test:smoke # run Playwright smoke tests (spins up dev server)
+npm run test:production # offline/install/update checks; run npm run build first
 ```
+
+The full Office campaign is an opt-in playtest. Set `PLAYTEST_FULL_CLIMB=1` and
+run `npm run test:smoke -- e2e/office-full-climb.spec.ts -g fresh-save`.
+`PLAYTEST_ROLE` accepts `Product Manager`, `Senior Engineer`, or `UX Designer`;
+`PLAYTEST_ARTIFACT_DIR` selects the screenshot/checkpoint directory.
 
 ## Linting & Formatting
 

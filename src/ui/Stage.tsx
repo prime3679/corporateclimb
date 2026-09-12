@@ -208,6 +208,7 @@ export default function Stage({ children }: { children: ReactNode }) {
             height: layout.height,
             transform: `scale(${layout.scale})`,
             '--stage-h': `${layout.height}px`,
+            '--stage-scale': layout.scale,
           } as CSSProperties
         }
       >

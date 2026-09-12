@@ -67,6 +67,15 @@ and the remaining roadmap):
   manifest and a content-hash VERSION at build time (`npm run build` prints the entry
   count). Keep its `self.__PRECACHE = ['/']` and `const VERSION = 'dev'` placeholders
   intact.
+- Office saves have their own v3 migration in `src/engine/office/save.ts`. Persist the
+  unfinished overlay chain and elevator destination: dismissing a reward receipt can
+  award a badge or promotion. Validate each coworker's PP against its own kit (two or
+  three moves), not the lead's four moves. Never drop a pending reward on reload.
+- Global Settings/Career panels use `components/Modal.tsx` to own keyboard input and
+  focus while open. Test shortcuts against the underlying game whenever adding a panel.
+- `npm run test:production` serves the built app and verifies first-use offline artwork,
+  reward resume and service-worker updates. Run `npm run build` first. API responses
+  bypass the worker cache; the fallback shell stays paired with its installed assets.
 - Office music/SFX are a second catalog on the same `Music` / `SFX` facades
   (`docs/rpg/office-audio.md`). Do not retarget Classic `CLASSIC_TRACKS` filenames;
   regenerate Office files with `python3 scripts/gen_office_audio.py`.

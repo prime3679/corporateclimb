@@ -56,3 +56,9 @@ jobs:
 
       - name: Run Smoke Tests
         run: npm run test:smoke
+
+      - name: Build offline app
+        run: npm run build
+
+      - name: Verify production offline and update flows
+        run: npm run test:production

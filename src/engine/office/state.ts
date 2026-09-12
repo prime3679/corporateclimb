@@ -45,7 +45,7 @@ export interface BenchRecord {
 }
 
 export interface OfficeSave {
-  version: 1 | 2
+  version: 1 | 2 | 3
   run: RunState
   party: PartyMember[]
   hired: CoworkerId[]
@@ -61,6 +61,8 @@ export interface OfficeSave {
   stats: { battlesWon: number; losses: number; switches: number; msOnFloor: number; rides: number }
   /** Per-floor vending SKUs. `run.shopStock` is the machine currently open. */
   vendingStock: Record<FloorId, ItemId[]>
+  /** v3: resume unfinished dialogue/reward chains and elevator travel. */
+  continuation?: { overlays: Overlay[]; rideTo: FloorId | null }
 }
 
 export type OfficeScreenId = 'overworld' | 'battle' | 'promotion' | 'vending' | 'elevator_ride'
@@ -178,7 +180,7 @@ export function newOfficeCampaign(cls: PlayerClass): OfficeState {
     stockOptions: 10,
   }
   return {
-    version: 2,
+    version: 3,
     vendingStock: defaultVendingStock(),
     run,
     party: [makeLead(cls)],
@@ -210,7 +212,7 @@ export function coworkersInParty(party: PartyMember[]): CoworkerId[] {
 
 export function toOfficeSave(state: OfficeState): OfficeSave {
   return {
-    version: 2,
+    version: 3,
     run: {
       ...state.run,
       hp: state.party[0]?.hp ?? state.run.hp,
@@ -229,15 +231,24 @@ export function toOfficeSave(state: OfficeState): OfficeSave {
     firedTriggers: state.firedTriggers,
     stats: { ...state.stats, rides: state.stats.rides ?? 0 },
     vendingStock: mergeVendingStock(state.vendingStock, state.run.shopStock),
+    continuation: {
+      overlays:
+        state.screen === 'battle'
+          ? []
+          : [state.overlay, ...state.overlayQueue].filter((ov): ov is Overlay => ov !== null),
+      rideTo: state.screen === 'elevator_ride' ? state.rideTo : null,
+    },
   }
 }
 
 export function fromOfficeSave(save: OfficeSave): OfficeState {
   const lead = save.party[0]
   const hired = save.hired ?? coworkersInParty(save.party)
+  const overlays = save.continuation?.overlays ?? []
+  const rideTo = save.continuation?.rideTo ?? null
   return {
     ...save,
-    version: 2,
+    version: 3,
     hired,
     bench: save.bench ?? {},
     vendingStock: mergeVendingStock(save.vendingStock, save.run.shopStock),
@@ -250,14 +261,14 @@ export function fromOfficeSave(save: OfficeSave): OfficeState {
       hp: lead?.hp ?? save.run.hp,
       pp: lead?.pp ?? save.run.pp,
     },
-    screen: save.run.pendingPerkOffer ? 'promotion' : 'overworld',
-    overlay: null,
-    overlayQueue: [],
+    screen: save.run.pendingPerkOffer ? 'promotion' : rideTo ? 'elevator_ride' : 'overworld',
+    overlay: overlays[0] ?? null,
+    overlayQueue: overlays.slice(1),
     encounter: null,
     battle: null,
     lastLossEncounter: null,
     benchOpen: false,
-    rideTo: null,
+    rideTo,
   }
 }
 

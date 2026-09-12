@@ -1,7 +1,7 @@
 // The audio engines must be silent no-ops in environments without
 // WebAudio/media playback (jsdom, private browsing) — these tests pin
 // the facade surface and the volume/mute bookkeeping, not sound.
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 import { SFX } from '@/sfx'
 import {
   CLASSIC_TRACKS,
@@ -15,12 +15,28 @@ import {
 afterEach(() => {
   SFX.setCampaign('classic')
   SFX.setVolume(1)
+  SFX.setMuted(false)
+  vi.restoreAllMocks()
   Music.unduckCombat()
   Music.setVolume(1)
   Music.setMuted(false)
 })
 
 describe('SFX facade', () => {
+  it('master mute silences a playing sample and preserves the chosen volume', () => {
+    const play = vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined)
+    SFX.setVolume(0.4)
+    SFX.menuSelect()
+    const audio = play.mock.instances[0] as HTMLMediaElement
+    SFX.setMuted(true)
+    expect(audio.muted).toBe(true)
+    SFX.setVolume(0.6)
+    SFX.menuSelect()
+    expect(play).toHaveBeenCalledTimes(1)
+    SFX.setMuted(false)
+    expect(audio.muted).toBe(false)
+    expect(SFX.volume).toBe(0.6)
+  })
   it('clamps volume into 0..1', () => {
     SFX.setVolume(7)
     expect(SFX.volume).toBe(1)

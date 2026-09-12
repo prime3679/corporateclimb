@@ -39,6 +39,7 @@ test('daily challenge smoke', async ({ page }) => {
   const itemsTab = page.getByRole('button', { name: /ITEMS/ })
 
   await expect(fightTab).toBeVisible({ timeout: 10_000 })
+  await expect(page.getByText('FLOOR 1/15', { exact: true })).toBeVisible()
   await expect(itemsTab).toBeVisible()
 
   // ── Optional: use an item if one is available ─────────────────────────────────

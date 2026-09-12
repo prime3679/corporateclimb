@@ -9,6 +9,8 @@
 // test/non-browser contexts.
 
 let _volume = 1
+let _muted = false
+const activeAudio = new Set<HTMLAudioElement>()
 let _campaign: 'classic' | 'office' = 'classic'
 
 const SAMPLES = {
@@ -75,7 +77,7 @@ function ensureContext(): AudioContext | null {
     try {
       ctx = new Ctor()
       masterGain = ctx.createGain()
-      masterGain.gain.value = _volume
+      masterGain.gain.value = _muted ? 0 : _volume
       masterGain.connect(ctx.destination)
     } catch {
       ctx = null
@@ -119,7 +121,7 @@ function registerUnlockListener() {
 registerUnlockListener()
 
 function playSample(name: SampleName, volume = 1, rateJitter = 0) {
-  if (_volume <= 0) return
+  if (_muted || _volume <= 0) return
 
   const buf = buffers.get(name)
   if (buf && ctx && masterGain) {
@@ -142,9 +144,13 @@ function playSample(name: SampleName, volume = 1, rateJitter = 0) {
   const audio = new Audio(SAMPLES[name])
   audio.preload = 'auto'
   audio.volume = Math.min(1, Math.max(0, _volume * volume))
+  activeAudio.add(audio)
+  const release = () => activeAudio.delete(audio)
+  audio.addEventListener('ended', release, { once: true })
+  audio.addEventListener('error', release, { once: true })
   if (rateJitter > 0) audio.playbackRate = 1 + (Math.random() * 2 - 1) * rateJitter
   // jsdom's play() returns undefined — guard before chaining.
-  audio.play()?.catch(() => {})
+  audio.play()?.catch(release)
 }
 
 function playSequence(samples: Array<[SampleName, number, number?]>) {
@@ -154,6 +160,16 @@ function playSequence(samples: Array<[SampleName, number, number?]>) {
 }
 
 export const SFX = {
+  get muted() {
+    return _muted
+  },
+  setMuted(muted: boolean) {
+    _muted = muted
+    if (masterGain) masterGain.gain.value = muted ? 0 : _volume
+    activeAudio.forEach((audio) => {
+      audio.muted = muted
+    })
+  },
   get volume() {
     return _volume
   },
@@ -170,7 +186,7 @@ export const SFX = {
   /** Sound-effect volume 0..1. 0 silences all SFX. */
   setVolume(volume: number) {
     _volume = Math.min(1, Math.max(0, volume))
-    if (masterGain) masterGain.gain.value = _volume
+    if (masterGain) masterGain.gain.value = _muted ? 0 : _volume
   },
 
   // Menu / UI

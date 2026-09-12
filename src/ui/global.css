@@ -378,6 +378,12 @@ button {
   right: 20px;
 }
 
+/* Preserve a real 44px hit target even when the phone canvas scales down. */
+.top-chrome > button {
+  min-height: max(36px, calc(44px / var(--stage-scale, 1)));
+  min-width: max(44px, calc(44px / var(--stage-scale, 1)));
+}
+
 @container stage (min-width: 700px) {
   .top-chrome[data-on-title] {
     right: 40px;

@@ -9,6 +9,9 @@
 // perk offer, shop stock); v2 serialized the whole RunState under a
 // version tag; v1 was the old flat 17-field shape (still produced by
 // the e2e fixtures). All older shapes are migrated on load.
+// Office uses a separate slot and migration in office/save.ts. Office v3
+// preserves unfinished reward/dialogue chains and recovers missed v1/v2 promotions;
+// it does not change the Classic v8 format or daily determinism.
 
 import type { ClassId, PerkId, SaveData } from '@/types'
 import {
@@ -26,6 +29,7 @@ import {
 } from '@/data'
 import { getVictoryPayout } from './economy'
 import type { RunState } from './state'
+import { isCount, isRecord, isStringList, owns } from './validation'
 
 export const SAVE_KEY = 'corporate-climb-save'
 
@@ -59,13 +63,50 @@ interface SaveFileV2 {
   run: Omit<SaveFileV3['run'], 'stockOptions' | 'perks' | 'pendingPerkOffer' | 'shopStock'>
 }
 
-function isValidRun(run: RunState): boolean {
+export function isValidRun(value: unknown): value is RunState {
+  if (!isRecord(value)) return false
+  const run = value as unknown as RunState
+  if (!isRecord(run.mode) || run.mode.kind !== 'normal') return false
+  if (
+    !['level', 'xp', 'xpToNext', 'hp', 'stockOptions', 'ngPlus'].every((key) => isCount(value[key]))
+  )
+    return false
+  if (!Number.isInteger(run.level) || run.level < 1 || run.xpToNext <= 0) return false
+  if (!Number.isFinite(run.atkBuff) || !Number.isFinite(run.defBuff)) return false
+  if (!Array.isArray(run.pp) || run.pp.length !== 4 || !run.pp.every(isCount)) return false
+  if (
+    !isRecord(value.stats) ||
+    ![value.stats.totalTurns, value.stats.totalDamageDealt, value.stats.itemsUsed].every(isCount)
+  )
+    return false
+  if (!isStringList(run.usedEvents) || !isStringList(run.floorEnemyIds)) return false
+  if (
+    !isStringList(run.inventory) ||
+    run.inventory.length > 4 ||
+    !run.inventory.every((id) => owns(ITEMS, id))
+  )
+    return false
+  if (
+    run.pendingPerkOffer !== null &&
+    (!isStringList(run.pendingPerkOffer) ||
+      run.pendingPerkOffer.length < 1 ||
+      !run.pendingPerkOffer.every((id) => owns(PERKS, id)))
+  )
+    return false
+  if (
+    run.shopStock !== null &&
+    (!isStringList(run.shopStock) || !run.shopStock.every((id) => owns(ITEMS, id)))
+  )
+    return false
+  if (typeof run.eliteFloor !== 'boolean' || typeof run.treasureFloor !== 'boolean') return false
+  if (run.mystery !== null && !['windfall', 'slacker', 'ambush', 'jackpot'].includes(run.mystery))
+    return false
   if (!PLAYER_CLASSES.find((c) => c.id === run.classId)) return false
-  if (run.floor < 0 || run.floor >= ENEMY_POOLS.length) return false
-  if (!Array.isArray(run.perks) || run.perks.some((id) => !PERKS[id])) return false
-  if (!Array.isArray(run.relics) || run.relics.some((id) => !RELICS[id])) return false
-  if (!Array.isArray(run.perkPool) || run.perkPool.some((id) => !PERKS[id])) return false
-  if (!Array.isArray(run.relicPool) || run.relicPool.some((id) => !RELICS[id])) return false
+  if (!Number.isInteger(run.floor) || run.floor < 0 || run.floor >= ENEMY_POOLS.length) return false
+  if (!isStringList(run.perks) || run.perks.some((id) => !owns(PERKS, id))) return false
+  if (!isStringList(run.relics) || run.relics.some((id) => !owns(RELICS, id))) return false
+  if (!isStringList(run.perkPool) || run.perkPool.some((id) => !owns(PERKS, id))) return false
+  if (!isStringList(run.relicPool) || run.relicPool.some((id) => !owns(RELICS, id))) return false
   if (!Number.isInteger(run.ascension) || run.ascension < 0 || run.ascension > MAX_ASCENSION)
     return false
   if (
@@ -172,8 +213,9 @@ function migrateFrom(version: number, run: unknown): RunState {
 export function saveRun(run: RunState) {
   try {
     localStorage.setItem(SAVE_KEY, JSON.stringify({ version: SAVE_VERSION, run }))
+    return true
   } catch {
-    /* storage unavailable */
+    return false
   }
 }
 

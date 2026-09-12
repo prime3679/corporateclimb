@@ -1,5 +1,6 @@
 import type { DailyModifier } from './types'
-import { ENEMY_POOLS } from './data'
+import { ENEMY_POOLS, PLAYER_CLASSES } from './data'
+import { isCount, isRecord } from './engine/validation'
 
 /** Mulberry32 PRNG — deterministic, fast, good distribution */
 export function createSeededRandom(seed: number): () => number {
@@ -177,7 +178,36 @@ export function getDailyResult(seed: number): DailyResult | null {
 export function getAllDailyResults(): Record<number, DailyResult> {
   try {
     const raw = localStorage.getItem(DAILY_RESULTS_KEY)
-    return raw ? JSON.parse(raw) : {}
+    const parsed: unknown = raw ? JSON.parse(raw) : null
+    if (!isRecord(parsed)) return {}
+    return Object.fromEntries(
+      Object.entries(parsed).filter(([key, value]) => {
+        if (
+          !isRecord(value) ||
+          String(value.seed) !== key ||
+          !Number.isInteger(value.seed) ||
+          !isCount(value.seed)
+        )
+          return false
+        const seed = value.seed
+        const date = new Date(
+          Math.floor(seed / 10000),
+          (Math.floor(seed / 100) % 100) - 1,
+          seed % 100,
+        )
+        return (
+          getDailySeed(date) === seed &&
+          PLAYER_CLASSES.some((c) => c.id === value.classId) &&
+          DAILY_MODIFIERS.some((m) => m.id === value.modifierId) &&
+          ['score', 'floorsCleared', 'totalTurns', 'totalDamageDealt', 'hpRemaining'].every(
+            (field) => isCount(value[field]),
+          ) &&
+          Number.isInteger(value.floorsCleared) &&
+          (value.floorsCleared as number) <= DAILY_FLOOR_COUNT &&
+          typeof value.won === 'boolean'
+        )
+      }),
+    ) as Record<number, DailyResult>
   } catch {
     return {}
   }

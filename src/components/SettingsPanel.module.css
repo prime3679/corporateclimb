@@ -22,6 +22,8 @@
   --glass-line: rgba(255, 255, 255, 0.14);
   color-scheme: dark;
   width: min(340px, calc(100% - 32px));
+  max-height: calc(100% - 32px);
+  overflow-y: auto;
   background:
     linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0) 36%), var(--glass);
   border: 1px solid var(--glass-line);
@@ -34,6 +36,10 @@
   flex-direction: column;
   gap: var(--space-4);
   color: var(--cc-text);
+}
+
+.panel > button {
+  min-height: calc(44px / var(--stage-scale, 1));
 }
 
 /* Title between two short gold hairlines — the deck's eyebrow language. */
@@ -76,7 +82,7 @@
 .slider {
   width: 100%;
   accent-color: var(--cc-gold);
-  height: 24px;
+  height: max(32px, calc(44px / var(--stage-scale, 1)));
   cursor: pointer;
 }
 
@@ -86,6 +92,7 @@
 }
 
 .speedBtn {
+  min-height: max(36px, calc(44px / var(--stage-scale, 1)));
   flex: 1;
   font-family: var(--font-display);
   font-size: var(--display-2xs);
@@ -115,6 +122,7 @@
 }
 
 .checkRow {
+  min-height: max(36px, calc(44px / var(--stage-scale, 1)));
   display: flex;
   align-items: center;
   gap: var(--space-3);
