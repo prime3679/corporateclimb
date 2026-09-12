@@ -70,9 +70,10 @@ describe('player-facing app name', () => {
       'src/screens/RunCompleteScreen.tsx',
       'src/screens/DailyResultScreen.tsx',
     ]) {
-      // Absolute share URLs contain "corpclimber.com"; strip the public origin
-      // first so that host is not a mashed-name false positive.
-      expect(repoText(file).replace(/https:\/\/corpclimber\.com\//g, ''), file).not.toMatch(
+      // Share URLs contain "corpclimber.com" (absolute in meta tags, bare in
+      // share text); strip the public host first so it is not a mashed-name
+      // false positive.
+      expect(repoText(file).replace(/(https:\/\/)?corpclimber\.com\/?/g, ''), file).not.toMatch(
         /CorpClimb/i,
       )
     }
