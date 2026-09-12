@@ -21,7 +21,13 @@
  * 700px)`): enemy stand 236 up-right, player 224 down-left, damage numbers
  * mounted on the stand they hit.
  * The phone canvas (472) is never what the trailer records.
- * Writes /opt/cursor/artifacts/office-demo.mp4 and public/demos/office-demo.mp4
+ * The welcome beat proves the #141 h1: `CORPORATE CLIMBER` on the spine
+ * (#140 was cut on 4de317c, where the h1 still read `CORPORATE CLIMB`;
+ * only the vertical left-wing spine said CLIMBER).
+ * Writes $DEMO_OUT_DIR/office-demo.mp4 (default /opt/cursor/artifacts) and
+ * public/demos/office-demo.mp4. DEMO_FONT and DEMO_TMP_DIR override the
+ * title / end card font and the scratch dir for hosts without Inter or
+ * a writable /opt.
  */
 import { chromium } from '@playwright/test'
 import { spawn } from 'node:child_process'
@@ -29,8 +35,9 @@ import { copyFile, mkdir, writeFile, readdir } from 'node:fs/promises'
 import path from 'node:path'
 
 const BASE = process.env.DEMO_URL || 'http://127.0.0.1:4173'
-const OUT_DIR = '/opt/cursor/artifacts'
-const FONT = '/usr/share/fonts/truetype/macos/Inter-Bold.ttf'
+const OUT_DIR = process.env.DEMO_OUT_DIR || '/opt/cursor/artifacts'
+const FONT = process.env.DEMO_FONT || '/usr/share/fonts/truetype/macos/Inter-Bold.ttf'
+const TMP_DIR = process.env.DEMO_TMP_DIR || '/tmp/office-demo'
 const AUDIO_DIR = path.resolve('public/audio')
 const PUBLIC_OUT = path.resolve('public/demos/office-demo.mp4')
 const TITLE_SECS = 3.2
@@ -528,7 +535,7 @@ async function mixLiveAudio(concat, seconds, out) {
 
 async function main() {
   await mkdir(OUT_DIR, { recursive: true })
-  await mkdir('/tmp/office-demo', { recursive: true })
+  await mkdir(TMP_DIR, { recursive: true })
 
   const browser = await chromium.launch({
     headless: true,
@@ -538,7 +545,7 @@ async function main() {
     viewport: { width: 1280, height: 720 },
     deviceScaleFactor: 1.25,
     recordVideo: {
-      dir: '/tmp/office-demo',
+      dir: TMP_DIR,
       size: { width: 1280, height: 720 },
     },
     colorScheme: 'dark',
@@ -644,11 +651,20 @@ async function main() {
     )
     await hold(page, 500)
     await page.keyboard.press('e')
-    await seen(page, /Desk-pit rules/, 10_000)
-    await hold(page, 700)
+    // Gavin's challenge is two lines and Enter only advances a finished
+    // typewriter. Wait for each typed line instead of a blind 10 s: on a
+    // loaded host that wait left the box on line one and the spar never opened.
+    await page
+      .getByText("You fixed a printer on day one. Now everyone thinks you're competent.", {
+        exact: true,
+      })
+      .first()
+      .waitFor({ timeout: 15_000 })
+    await hold(page, 1800)
     await page.keyboard.press('Enter')
-    await hold(page, 350)
-    await clickIf(page, /Bring it/i)
+    await seen(page, /Loser refills the coffee\./, 15_000)
+    await hold(page, 1200)
+    await clickIf(page, /Bring it/i, 8000)
     await page.getByText(/CHALLENGE/i).waitFor({ timeout: 6000 })
     await hold(page, 700)
     await page
@@ -855,13 +871,13 @@ async function main() {
   const raw = await video.path()
   console.log('raw video', raw)
 
-  const title = '/tmp/office-demo/title.mp4'
-  const end = '/tmp/office-demo/end.mp4'
-  const body = '/tmp/office-demo/body.mp4'
+  const title = path.join(TMP_DIR, 'title.mp4')
+  const end = path.join(TMP_DIR, 'end.mp4')
+  const body = path.join(TMP_DIR, 'body.mp4')
   const out = `${OUT_DIR}/office-demo.mp4`
   const trailer = `${OUT_DIR}/office_pass_c_trailer.mp4`
 
-  await writeFile('/tmp/office-demo/marks.json', JSON.stringify(marks, null, 2))
+  await writeFile(path.join(TMP_DIR, 'marks.json'), JSON.stringify(marks, null, 2))
   await card(title, ['CORPORATE CLIMBER', 'THE OFFICE', 'Floors 1–5'], TITLE_SECS)
   await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass J  ·  tip'], END_SECS)
 
@@ -881,9 +897,9 @@ async function main() {
     body,
   ])
 
-  const list = '/tmp/office-demo/concat.txt'
+  const list = path.join(TMP_DIR, 'concat.txt')
   await writeFile(list, `file '${title}'\nfile '${body}'\nfile '${end}'\n`)
-  const concat = '/tmp/office-demo/concat.mp4'
+  const concat = path.join(TMP_DIR, 'concat.mp4')
   await run('ffmpeg', ['-y', '-f', 'concat', '-safe', '0', '-i', list, '-c', 'copy', concat])
 
   const seconds = Math.max(8, (await probeDuration(concat)) || 90)
