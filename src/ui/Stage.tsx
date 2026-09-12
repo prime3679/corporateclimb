@@ -125,7 +125,7 @@ function TheaterWings() {
     <div className={styles.theater} aria-hidden="true">
       <div className={`${styles.wing} ${styles.wingLeft}`}>
         <div className={styles.spine}>
-          <span className={styles.spineMark}>Corporate Climb</span>
+          <span className={styles.spineMark}>Corporate Climber</span>
           <span className={styles.spineRule} />
           <span className={styles.spineSub}>A satirical turn-based RPG</span>
         </div>

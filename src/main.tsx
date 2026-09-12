@@ -10,6 +10,7 @@ import '@fontsource/space-grotesk/700.css'
 import './ui/global.css'
 import App from './App'
 import { MUSIC_URLS } from './music'
+import { injectVercelAnalytics, registerErrorCapture, track } from './analytics'
 import {
   bootstrapNativeChrome,
   isNative,
@@ -22,7 +23,10 @@ import {
 // pause music regardless of which screen is up.
 registerInstallCapture()
 registerLifecycle()
+registerErrorCapture()
+injectVercelAnalytics()
 void bootstrapNativeChrome()
+track('title_view')
 
 createRoot(document.getElementById('root')!).render(<App />)
 

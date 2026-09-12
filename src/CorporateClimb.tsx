@@ -101,6 +101,7 @@ import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
 import SaveNotice from './components/SaveNotice'
+import { trackScreenChange } from './analytics'
 import CareerPanel from './components/CareerPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
@@ -132,6 +133,13 @@ function useSpritePreloader(): boolean {
 export default function CorporateClimb() {
   const spritesReady = useSpritePreloader()
   const [screen, setScreenRaw] = useState<Screen>('title')
+  // Player signal: one funnel event per screen change, including direct
+  // setScreenRaw('title') resets. Effect-synced so no ref is written in render.
+  const prevScreenRef = useRef<Screen>('title')
+  useEffect(() => {
+    trackScreenChange(prevScreenRef.current, screen)
+    prevScreenRef.current = screen
+  }, [screen])
   const [fadeClass, setFadeClass] = useState<'in' | 'out'>('in')
 
   // Canonical game state
@@ -789,7 +797,7 @@ export default function CorporateClimb() {
               color: 'var(--cc-text)',
             }}
           >
-            CORPORATE CLIMB
+            CORPORATE CLIMBER
           </div>
         </div>
       </Stage>

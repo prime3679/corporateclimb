@@ -1,4 +1,4 @@
-# Corporate Climb — Codebase Audit & Rewrite Plan
+# Corporate Climber — Codebase Audit & Rewrite Plan
 
 _Audited 2026-06-10 at commit `fa6c97d`. All 96 unit tests pass, e2e suite exists,
 production build is clean (81 KB gzipped JS). This document records what's wrong,

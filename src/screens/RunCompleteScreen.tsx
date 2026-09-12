@@ -58,7 +58,7 @@ export default function RunCompleteScreen({
     build.length > 0
       ? ` Build: ${build.map((g) => (g.count > 1 ? `${g.perk.name} ×${g.count}` : g.perk.name)).join(', ')}.`
       : ''
-  const shareText = `I climbed Corporate Climb as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corporateclimb.vercel.app`
+  const shareText = `I climbed Corporate Climber as ${player.name} in ${totalTurns} turns, dealing ${totalDamageDealt.toLocaleString()} total damage. Floor ${floorsCleared} cleared.${ngLevel > 0 ? ` NG+${ngLevel}!` : ''}${buildText} Can you beat that? corpclimber.com`
 
   const { handleShare, shared, shareLabel } = useShareFeedback(shareText, 'SHARE RESULT')
 

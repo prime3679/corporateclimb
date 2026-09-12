@@ -1,4 +1,4 @@
-# Corporate Climb
+# Corporate Climber
 
 A browser-based RPG where you battle your way up the corporate ladder. Fight bosses like the Micromanaging Manager, Overachieving Colleague, and the dreaded VP across 30 floors divided into three acts.
 

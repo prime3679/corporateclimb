@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * SVG Sprite Generator for Corporate Climb
+ * SVG Sprite Generator for Corporate Climber
  * Generates stylized vector art sprites from JSON specs.
  * Run: node scripts/generate-sprites.mjs
  *

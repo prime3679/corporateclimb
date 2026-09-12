@@ -1,6 +1,6 @@
 # Agent Guide
 
-Start with `docs/ZERO-CONTEXT-CONTRIBUTION.md` for the canonical contribution doctrine, then read `CLAUDE.md` for the full Corporate Climb domain guide.
+Start with `docs/ZERO-CONTEXT-CONTRIBUTION.md` for the canonical contribution doctrine, then read `CLAUDE.md` for the full Corporate Climber domain guide.
 
 Instruction precedence lives in `docs/ZERO-CONTEXT-CONTRIBUTION.md` and `.agent/contribution-contract.json`. Follow that canonical list instead of restating a local variant here.
 

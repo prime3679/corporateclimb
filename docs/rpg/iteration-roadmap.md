@@ -1,5 +1,10 @@
 # Office RPG — iteration roadmap (5 floors)
 
+> **2026-09-12 — read `docs/LAUNCH.md` first.** The Office is the hero, the
+> name is Corporate Climber, and the pass ladder is paused at Pass J: no
+> visual/copy pass opens without a playtest line or PostHog insight behind
+> it. Open work is in `docs/tasks/`.
+
 Operating loop for Corporate Climb Office. Five floors, leave ~2026-09-25.
 Design freeze and engine contracts stay in the companion docs; this file is
 how Fable, Astra, and CoS ship the stack without growing the building.

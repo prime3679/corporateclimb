@@ -4,7 +4,7 @@ Guidance for Claude Code when working in this repository.
 
 ## Project
 
-Corporate Climb — a browser-based pixel-art RPG (React 18 + TypeScript + Vite) where you battle
+Corporate Climber (player-facing name; storage keys stay `corporate-climb-*`) — a browser-based pixel-art RPG (React 18 + TypeScript + Vite) where you battle
 up 30 floors of corporate bosses. Deployed on Vercel; pushing to `main` deploys automatically.
 
 ## Commands
@@ -61,6 +61,10 @@ and the remaining roadmap):
   manifest — `src/__tests__/boot-splash.test.ts` guards the chain, and
   `resources/splash.png` (regenerate with `node scripts/gen-splash.mjs`) must keep
   matching the `.boot-splash` in `index.html`.
+- `src/analytics.ts` — dependency-free PostHog capture, no-op without `VITE_POSTHOG_KEY`
+  (dev, e2e and forks never phone home). Funnel events are derived from transitions
+  (`trackScreenChange` in `CorporateClimb.tsx`, `src/screens/office/analytics.ts`), never
+  called by hand from screens. `docs/LAUNCH.md` lists the events and the dashboard.
 - `src/history.ts` / `src/onboarding.ts` — run history + lifetime stats, and the first-run
   coach-mark / install-nudge gates (both persistence modules in the style of `daily.ts`).
 - `public/sw.js` is a template: `scripts/sw-precache-plugin.ts` injects the precache

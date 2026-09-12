@@ -840,7 +840,7 @@ async function main() {
   const trailer = `${OUT_DIR}/office_pass_c_trailer.mp4`
 
   await writeFile('/tmp/office-demo/marks.json', JSON.stringify(marks, null, 2))
-  await card(title, ['CORPORATE CLIMB', 'THE OFFICE', 'Floors 1–5'], TITLE_SECS)
+  await card(title, ['CORPORATE CLIMBER', 'THE OFFICE', 'Floors 1–5'], TITLE_SECS)
   await card(end, ['FIVE FLOORS.', 'There is no Floor 6.', 'Pass J  ·  tip'], END_SECS)
 
   await run('ffmpeg', [

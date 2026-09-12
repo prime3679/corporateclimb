@@ -220,12 +220,12 @@ describe('native leaderboard URL', () => {
     )
     expect(await submitDailyScore(ENTRY)).toBe(true)
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      'https://corporateclimb.vercel.app/api/daily-leaderboard',
+      'https://corpclimber.com/api/daily-leaderboard',
       expect.objectContaining({ method: 'POST' }),
     )
     await fetchDailyLeaderboard(ENTRY.seed)
     expect(vi.mocked(fetch)).toHaveBeenCalledWith(
-      `https://corporateclimb.vercel.app/api/daily-leaderboard?seed=${ENTRY.seed}`,
+      `https://corpclimber.com/api/daily-leaderboard?seed=${ENTRY.seed}`,
       expect.anything(),
     )
     vi.unstubAllGlobals()

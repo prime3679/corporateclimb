@@ -5,6 +5,7 @@
 // A Capacitor shell is always installed — canInstall stays false.
 
 import { isNative } from './native'
+import { track } from '../analytics'
 
 interface BeforeInstallPromptEvent extends Event {
   prompt(): Promise<void>
@@ -44,7 +45,9 @@ export async function promptInstall(): Promise<'accepted' | 'dismissed' | 'unava
   deferredPrompt = null // Chromium only allows one prompt() per event
   try {
     await evt.prompt()
-    return (await evt.userChoice).outcome
+    const outcome = (await evt.userChoice).outcome
+    track('install', { outcome })
+    return outcome
   } catch {
     return 'unavailable'
   }

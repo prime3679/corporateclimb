@@ -1,6 +1,6 @@
 # Capacitor iOS plan (planning only)
 
-Corporate Climb already ships as an installable PWA. This document is the
+Corporate Climber already ships as an installable PWA. This document is the
 **iOS wrap plan** for a Capacitor shell around the existing Vite `dist/`.
 It expands [`PLATFORM.md`](./PLATFORM.md) with a seam inventory, a
 step-by-step wrap recipe for _this_ repo, gaps/risks, and a phased path.
@@ -61,7 +61,7 @@ Splash / status / keep-awake are the niceties in §2.7 (`@capacitor/splash-scree
 ### 2.2 Init
 
 ```
-npx cap init "Corporate Climb" com.corporateclimb.app --web-dir dist
+npx cap init "Corporate Climber" com.corporateclimb.app --web-dir dist
 ```
 
 App id matches `PLATFORM.md`. Do not invent a different bundle id here.

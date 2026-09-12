@@ -34,6 +34,7 @@ import {
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
+import { trackOfficeTransition } from './office/analytics'
 import { SFX } from '@/sfx'
 import WorldMap from './office/WorldMap'
 import PartyStrip, { hpTone } from './office/PartyStrip'
@@ -125,6 +126,7 @@ export default function OfficeScreen({
           Haptics.impact('light')
         }
       }
+      trackOfficeTransition(state, result.state)
       onChange(withTime(result.state))
       return result
     },
@@ -277,6 +279,7 @@ export default function OfficeScreen({
     })
     const outcome = officeBattleOutcome(state, result.state)
     const hold = outcome === 'win' || outcome === 'wipe'
+    trackOfficeTransition(state, result.state)
     if (!hold) onChange(next)
     if (result.events.length) {
       if (!view && state.encounter && state.battle) {

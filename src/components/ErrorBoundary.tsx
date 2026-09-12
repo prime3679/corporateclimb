@@ -1,6 +1,7 @@
 import { Component, type ReactNode } from 'react'
 import Button from '@/ui/Button'
 import styles from './ErrorBoundary.module.css'
+import { track } from '@/analytics'
 
 interface Props {
   children: ReactNode
@@ -24,6 +25,7 @@ export default class ErrorBoundary extends Component<Props, State> {
 
   componentDidCatch(error: Error) {
     console.error('Unhandled render error:', error)
+    track('error', { where: 'render', message: String(error.message ?? error).slice(0, 300) })
   }
 
   render() {
