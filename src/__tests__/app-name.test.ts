@@ -60,6 +60,15 @@ describe('player-facing app name', () => {
     expect(HOME_SCREEN_NAME.length).toBeLessThanOrEqual(HOME_SCREEN_MAX)
   })
 
+  it('the Title centre wordmark spells the full name, one word per line', () => {
+    const title = repoText('src', 'screens', 'TitleScreen.tsx')
+    const lines = [...title.matchAll(/className=\{styles\.wordmarkLine\}>([^<]*)</g)].map(
+      (m) => m[1],
+    )
+    expect(lines).toEqual(APP_NAME.toUpperCase().split(' '))
+    expect(repoText('src', 'CorporateClimb.tsx')).toContain(APP_NAME.toUpperCase())
+  })
+
   it('no mashed short form leaks into anything a player reads', () => {
     for (const file of [
       'index.html',
