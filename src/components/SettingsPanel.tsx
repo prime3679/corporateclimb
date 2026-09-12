@@ -1,3 +1,4 @@
+import { FEEDBACK_HELPER, FEEDBACK_ISSUES_URL, FEEDBACK_LABEL } from '@/config/tip'
 import { SFX } from '@/sfx'
 import { Haptics } from '@/platform'
 import type { Settings, TextSpeed } from '@/settings'
@@ -102,6 +103,19 @@ export default function SettingsPanel({
             Vibration (combat hits &amp; taps)
           </label>
         )}
+
+        <div className={styles.feedback}>
+          <a
+            className={styles.feedbackLink}
+            href={FEEDBACK_ISSUES_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={() => SFX.menuSelect()}
+          >
+            {FEEDBACK_LABEL}
+          </a>
+          <p className={styles.feedbackHint}>{FEEDBACK_HELPER}</p>
+        </div>
 
         <Button variant="primary" size="md" onClick={onClose}>
           DONE

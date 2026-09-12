@@ -10,6 +10,13 @@ import {
   hasGoldenBadge,
   markGoldenBadgeFound,
 } from '@/konami'
+import {
+  COFFEE_THANKS_TOAST,
+  COFFEE_TIP_LABEL,
+  coffeePaymentUrl,
+  hasCoffeeThanksQuery,
+  stripCoffeeThanksQuery,
+} from '@/config/tip'
 import { SFX } from '@/sfx'
 import { Button } from '@/ui'
 import type { ClassId } from '@/types'
@@ -73,6 +80,10 @@ export default function TitleScreen({
   const [confirmNew, setConfirmNew] = useState(false)
   const [goldenBadge, setGoldenBadge] = useState(hasGoldenBadge)
   const [celebrating, setCelebrating] = useState(false)
+  const [coffeeThanks, setCoffeeThanks] = useState(
+    () => typeof window !== 'undefined' && hasCoffeeThanksQuery(window.location.search),
+  )
+  const tipUrl = coffeePaymentUrl()
   const konamiProgress = useRef(0)
   const signTaps = useRef(0)
   const sprites = getSpriteUrls()
@@ -105,6 +116,13 @@ export default function TitleScreen({
     const timer = window.setTimeout(() => setCelebrating(false), 4200)
     return () => window.clearTimeout(timer)
   }, [celebrating])
+
+  useEffect(() => {
+    if (!coffeeThanks) return
+    stripCoffeeThanksQuery()
+    const timer = window.setTimeout(() => setCoffeeThanks(false), 4200)
+    return () => window.clearTimeout(timer)
+  }, [coffeeThanks])
 
   // Touch players can't type the code — tapping the floor sign works too.
   const handleSignTap = () => {
@@ -264,6 +282,16 @@ export default function TitleScreen({
           </Button>
         </div>
 
+        {tipUrl ? (
+          <button
+            type="button"
+            className={styles.tip}
+            onClick={() => window.open(tipUrl, '_blank', 'noopener,noreferrer')}
+          >
+            {COFFEE_TIP_LABEL}
+          </button>
+        ) : null}
+
         {hasStats && (
           <div className={`t-body ${styles.stats}`}>
             {streak.current > 0 && (
@@ -330,6 +358,12 @@ export default function TitleScreen({
               {CONFETTI_GLYPHS[i % CONFETTI_GLYPHS.length]}
             </span>
           ))}
+        </div>
+      )}
+
+      {coffeeThanks && (
+        <div role="status" className={styles.tipToast}>
+          {COFFEE_THANKS_TOAST}
         </div>
       )}
 

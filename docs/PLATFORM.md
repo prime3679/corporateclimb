@@ -62,3 +62,11 @@ never touch a browser API directly.
 - The daily leaderboard client points at `/api/daily-leaderboard` on
   web and `https://corporateclimb.vercel.app/api/daily-leaderboard`
   when `isNative()` (`src/leaderboard.ts`).
+
+## Feedback and coffee tip
+
+- Settings **Send feedback** opens the GitHub issue chooser
+  (`https://github.com/prime3679/corporateclimb/issues/new/choose`).
+- The Title coffee tip reads `VITE_COFFEE_PAYMENT_URL` (see `src/config/tip.ts`).
+  When the env var is unset or empty, the CTA is hidden. Set it on Vercel
+  for Production if you want the tip live.
