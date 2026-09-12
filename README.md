@@ -48,6 +48,8 @@ npm run preview # preview the production build locally
 
 This project is deployed on [Vercel](https://vercel.com). Push to `main` and Vercel will automatically build and deploy from the `dist/` output.
 
+The Title coffee tip is gated on `VITE_COFFEE_PAYMENT_URL` (set it in the Vercel Production env to show **Buy the intern a coffee — $5**). In-game **Send feedback** opens the GitHub issue chooser.
+
 ## Assets
 
 Character sprites live in `src/assets/characters/` as 512×512 WebP. They were

@@ -1,0 +1,17 @@
+name: General feedback
+description: A quick note for the captain
+body:
+  - type: textarea
+    id: note
+    attributes:
+      label: Your note
+      placeholder: Whatever you want to say.
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (optional)
+      placeholder: Email or GitHub handle if you want a reply
+    validations:
+      required: false

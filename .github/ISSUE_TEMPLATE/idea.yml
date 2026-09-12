@@ -1,0 +1,17 @@
+name: Idea / feature
+description: Something you'd like to add or change
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      placeholder: What you'd add or change, and why it would help.
+    validations:
+      required: true
+  - type: textarea
+    id: more
+    attributes:
+      label: Extra context (optional)
+      placeholder: How it might work, or where you felt the gap.
+    validations:
+      required: false

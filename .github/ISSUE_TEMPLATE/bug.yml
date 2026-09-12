@@ -1,0 +1,31 @@
+name: Bug report
+description: Something broke in the game
+body:
+  - type: textarea
+    id: happened
+    attributes:
+      label: What happened
+      placeholder: What you saw, and what you expected.
+    validations:
+      required: true
+  - type: input
+    id: where
+    attributes:
+      label: Where in the game
+      placeholder: Title, Settings, Floor 2 battle, Daily…
+    validations:
+      required: true
+  - type: input
+    id: device
+    attributes:
+      label: Device / browser
+      placeholder: iPhone Safari, Pixel Chrome, desktop Firefox…
+    validations:
+      required: true
+  - type: input
+    id: contact
+    attributes:
+      label: Contact (optional)
+      placeholder: Email or GitHub handle if you want a reply
+    validations:
+      required: false

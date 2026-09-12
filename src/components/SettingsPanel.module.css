@@ -131,3 +131,49 @@
   accent-color: var(--cc-gold);
   cursor: pointer;
 }
+
+/* Feedback drop: same night-glass chip language as the speed row, quieter
+   than DONE. Gold stays the one accent (hover hairline). */
+.feedback {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--cc-line-faint);
+}
+
+.feedbackLink {
+  display: block;
+  text-align: center;
+  font-family: var(--font-display);
+  font-size: var(--display-2xs);
+  letter-spacing: var(--cc-track-chip);
+  padding: 8px 4px;
+  background: var(--cc-fill-soft);
+  border: 1px solid var(--cc-line-strong);
+  border-radius: var(--radius-sm);
+  color: var(--cc-text-2);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.14s var(--cc-ease-out),
+    border-color 0.14s var(--cc-ease-out),
+    color 0.14s var(--cc-ease-out);
+}
+
+@media (hover: hover) {
+  .feedbackLink:hover {
+    background: rgba(255, 255, 255, 0.09);
+    border-color: rgba(255, 193, 7, 0.4);
+    color: var(--cc-text);
+  }
+}
+
+.feedbackHint {
+  margin: 0;
+  font-family: var(--font-body);
+  font-size: var(--body-sm);
+  color: var(--cc-text-3);
+  text-align: center;
+  line-height: 1.35;
+}
