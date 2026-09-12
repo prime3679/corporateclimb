@@ -181,7 +181,7 @@
   gap: 3px;
   min-height: 44px;
   /* The global SOUND / SET chrome owns the top-right corner. */
-  margin-right: 124px;
+  margin-right: max(124px, calc(100px / var(--stage-scale, 1)));
   padding: 6px 10px 7px 12px;
   border-radius: var(--radius-md);
   background: color-mix(in srgb, var(--cc-glass) 90%, var(--cc-gold) 10%);
@@ -357,12 +357,13 @@
 
 /* ── ctl_band ── */
 .ctl {
+  --pad-size: max(58px, calc(44px / var(--stage-scale, 1)));
   position: relative;
   flex: none;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  height: 204px;
+  height: max(204px, calc(3 * var(--pad-size) + 30px));
   padding-top: 26px;
   border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
@@ -380,8 +381,8 @@
 .dpad {
   position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 58px);
-  grid-template-rows: repeat(3, 58px);
+  grid-template-columns: repeat(3, var(--pad-size));
+  grid-template-rows: repeat(3, var(--pad-size));
   gap: 2px;
   transition: opacity 160ms var(--cc-ease-out);
   filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.38));
@@ -500,8 +501,8 @@
 
 .team {
   position: relative;
-  width: 54px;
-  height: 54px;
+  width: max(54px, calc(44px / var(--stage-scale, 1)));
+  height: max(54px, calc(44px / var(--stage-scale, 1)));
   display: grid;
   place-items: center;
   gap: 2px;
@@ -567,7 +568,8 @@
 }
 
 .exit {
-  min-height: 34px;
+  min-width: calc(44px / var(--stage-scale, 1));
+  min-height: max(34px, calc(44px / var(--stage-scale, 1)));
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--cc-line);
@@ -979,7 +981,7 @@
     align-items: stretch;
     gap: 12px;
     /* The global SOUND / SET chrome owns the top-right corner. */
-    padding-right: 124px;
+    padding-right: max(124px, calc(100px / var(--stage-scale, 1)));
   }
 
   .objective {

@@ -79,7 +79,7 @@ describe('office save isolation', () => {
     expect(loaded?.player).toEqual({ x: 8, y: 5, facing: 'w' })
   })
 
-  it('migrates a v1 office save to v2 hired/bench/rides defaults', () => {
+  it('migrates a v1 office save with hired/bench/rides defaults', () => {
     const s = newOfficeCampaign(PM)
     const v1 = {
       ...toOfficeSave(s),
@@ -91,7 +91,7 @@ describe('office save isolation', () => {
     }
     localStorage.setItem(OFFICE_SAVE_KEY, JSON.stringify(v1))
     const loaded = loadOffice()
-    expect(loaded?.version).toBe(2)
+    expect(loaded?.version).toBe(3)
     expect(loaded?.hired).toEqual([])
     expect(loaded?.bench).toEqual({})
     expect(loaded?.stats.rides).toBe(0)

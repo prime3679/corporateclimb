@@ -62,7 +62,7 @@ async function measureArena(page: Page): Promise<Arena> {
       resources: q('[data-testid="player-resources"]'),
       floorCounter: q('[data-testid="floor-counter"]'),
       chrome: box(
-        document.querySelector('[aria-label="Mute music"], [aria-label="Unmute music"]')!,
+        document.querySelector('[aria-label="Mute sound"], [aria-label="Unmute sound"]')!,
       ),
     }
   })

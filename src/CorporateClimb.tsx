@@ -100,6 +100,7 @@ import { campaignSummary } from './screens/office/cast'
 import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
+import SaveNotice from './components/SaveNotice'
 import CareerPanel from './components/CareerPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
@@ -163,6 +164,15 @@ export default function CorporateClimb() {
   const [settings, setSettings] = useState(loadSettings)
   const [showSettings, setShowSettings] = useState(false)
   const [showCareer, setShowCareer] = useState(false)
+  const [failedSave, setFailedSave] = useState<
+    { kind: 'classic'; value: RunState } | { kind: 'office'; value: OfficeState } | null
+  >(null)
+  function persistRun(value: RunState) {
+    setFailedSave(saveRun(value) ? null : { kind: 'classic', value })
+  }
+  function persistOffice(value: OfficeState) {
+    setFailedSave(saveOffice(value) ? null : { kind: 'office', value })
+  }
   /** The just-finished run's history record, shown on the game-over screen. */
   const [lastRecord, setLastRecord] = useState<RunRecord | null>(null)
   /** First-run coach-mark: evaluated once, dismissed forever. */
@@ -230,6 +240,7 @@ export default function CorporateClimb() {
   // Music: sync mute state on mount and when toggled
   useEffect(() => {
     Music.setMuted(muted)
+    SFX.setMuted(muted)
     try {
       localStorage.setItem('cc_muted', muted ? '1' : '0')
     } catch {
@@ -252,17 +263,30 @@ export default function CorporateClimb() {
     } else void WakeLock.release()
   }, [screen, office?.screen])
 
-  // Escape closes whichever overlay panel is open.
+  // Read-only development hook for the visual playtest loop; never shipped.
   useEffect(() => {
-    if (!showSettings && !showCareer) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key !== 'Escape') return
-      setShowSettings(false)
-      setShowCareer(false)
+    if (!import.meta.env.DEV) return
+    const target = window as Window & { render_game_to_text?: () => string }
+    target.render_game_to_text = () =>
+      JSON.stringify({
+        screen,
+        panel: showSettings ? 'settings' : showCareer ? 'career' : null,
+        office: office && {
+          screen: office.screen,
+          floor: office.floorId,
+          coordinates: 'tile grid; origin top-left; x right, y down',
+          player: office.player,
+          overlay: office.overlay,
+          party: office.party.map((member) => ({ def: member.def, hp: member.hp, pp: member.pp })),
+          encounter: office.encounter?.encounterId,
+          battle: office.battle,
+        },
+        run: run && { mode: run.mode.kind, floor: run.floor + 1, hp: run.hp, pp: run.pp },
+      })
+    return () => {
+      delete target.render_game_to_text
     }
-    window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [showSettings, showCareer])
+  }, [screen, office, run, showSettings, showCareer])
 
   // Music: Classic screens keep the Act-1 beds. Office plays its own
   // title / floor loops — never the Classic lobby wallpaper.
@@ -537,7 +561,7 @@ export default function CorporateClimb() {
     SFX.menuConfirm()
     const next = chooseElevator(run, elite)
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: false, eventsDone: true })
   }
 
@@ -547,7 +571,7 @@ export default function CorporateClimb() {
     const rng = new GameRng(run.rngState)
     const next = { ...chooseMysteryFloor(run, rng.next), rngState: rng.serialize() }
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: false, eventsDone: true })
   }
 
@@ -556,7 +580,7 @@ export default function CorporateClimb() {
     SFX.menuConfirm()
     const next = chooseTreasureFloor(run)
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: false, eventsDone: true })
   }
 
@@ -566,7 +590,7 @@ export default function CorporateClimb() {
     else SFX.menuConfirm()
     const { run: next } = chooseTreasureLoot(run, item)
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
@@ -631,7 +655,7 @@ export default function CorporateClimb() {
     const rng = new GameRng(next.rngState)
     next = { ...advanceFloor(next, rng.next), rngState: rng.serialize() }
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
 
     const isDaily = next.mode.kind === 'daily'
     const actPending =
@@ -654,7 +678,7 @@ export default function CorporateClimb() {
       getEffectivePlayer(player, next.classId, next.floor, next.perks, next.relics).maxHp,
     )
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
@@ -664,7 +688,7 @@ export default function CorporateClimb() {
     if (next === run) return
     SFX.menuConfirm()
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
   }
 
   const handleShopBuyWellness = () => {
@@ -673,7 +697,7 @@ export default function CorporateClimb() {
     if (next === run) return
     SFX.heal()
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
   }
 
   const handleShopLeave = () => {
@@ -681,7 +705,7 @@ export default function CorporateClimb() {
     SFX.menuConfirm()
     const next = leaveShop(run)
     setRun(next)
-    if (next.mode.kind === 'normal') saveRun(next)
+    if (next.mode.kind === 'normal') persistRun(next)
     goToStop(next, { actPending: pendingActTransition !== null, eventsDone: false })
   }
 
@@ -782,9 +806,9 @@ export default function CorporateClimb() {
           variant="ghost"
           size="sm"
           onClick={() => setMuted((m) => !m)}
-          style={{ padding: '6px 10px', minWidth: 62 }}
-          title={muted ? 'Unmute music' : 'Mute music'}
-          aria-label={muted ? 'Unmute music' : 'Mute music'}
+          style={{ padding: '6px 10px' }}
+          title={muted ? 'Unmute sound' : 'Mute sound'}
+          aria-label={muted ? 'Unmute sound' : 'Mute sound'}
         >
           {muted ? 'MUTED' : 'SOUND'}
         </Button>
@@ -792,7 +816,7 @@ export default function CorporateClimb() {
           variant="ghost"
           size="sm"
           onClick={() => setShowSettings(true)}
-          style={{ padding: '6px 10px', minWidth: 42 }}
+          style={{ padding: '6px 10px' }}
           title="Settings"
           aria-label="Settings"
         >
@@ -803,7 +827,7 @@ export default function CorporateClimb() {
             variant="ghost"
             size="sm"
             onClick={() => setShowCareer(true)}
-            style={{ padding: '6px 10px', minWidth: 42 }}
+            style={{ padding: '6px 10px' }}
             title="Career profile"
             aria-label="Career profile"
           >
@@ -811,6 +835,16 @@ export default function CorporateClimb() {
           </Button>
         )}
       </div>
+
+      {failedSave && (
+        <SaveNotice
+          onClose={() => setFailedSave(null)}
+          onRetry={() => {
+            if (failedSave.kind === 'office') persistOffice(failedSave.value)
+            else persistRun(failedSave.value)
+          }}
+        />
+      )}
 
       {showSettings && (
         <SettingsPanel
@@ -876,7 +910,7 @@ export default function CorporateClimb() {
               SFX.menuConfirm()
               const campaign = newOfficeCampaign(cls)
               setOffice(campaign)
-              saveOffice(campaign)
+              persistOffice(campaign)
               setScreen('office')
             }}
           />
@@ -886,7 +920,7 @@ export default function CorporateClimb() {
             state={office}
             onChange={(next) => {
               setOffice(next)
-              if (next.screen !== 'battle') saveOffice(next)
+              if (next.screen !== 'battle') persistOffice(next)
             }}
             onExit={() => {
               setScreen('title')
@@ -939,6 +973,7 @@ export default function CorporateClimb() {
             xpToNext={run.xpToNext}
             level={run.level}
             floor={run.floor + 1}
+            floorTotal={run.mode.kind === 'daily' ? DAILY_FLOOR_COUNT : undefined}
             playerAnim={view.playerAnim}
             enemyAnim={view.enemyAnim}
             damagePopups={view.popups}

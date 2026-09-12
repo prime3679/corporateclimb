@@ -33,6 +33,14 @@ export function collectPrecacheEntries(outDir: string): string[] {
       if (/^(sfx_|sting_)/.test(f)) entries.push(`/audio/${f}`)
     }
   }
+  const collectOfficeArt = (dir: string, prefix: string) => {
+    if (!existsSync(dir)) return
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      if (entry.isDirectory()) collectOfficeArt(join(dir, entry.name), `${prefix}/${entry.name}`)
+      else if (/\.(png|webp|svg)$/.test(entry.name)) entries.push(`${prefix}/${entry.name}`)
+    }
+  }
+  collectOfficeArt(join(outDir, 'office'), '/office')
   return entries.sort()
 }
 
@@ -49,6 +57,7 @@ export function swPrecachePlugin(): Plugin {
       if (!existsSync(swPath)) return
       const entries = collectPrecacheEntries(outDir)
       const hash = createHash('sha256')
+      hash.update(readFileSync(swPath))
       hash.update(JSON.stringify(entries))
       for (const e of entries) {
         if (e === '/') continue

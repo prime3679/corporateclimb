@@ -12,7 +12,8 @@
 // deploy invalidates cleanly; the values below are the dev fallback.
 
 const VERSION = 'dev'
-const CACHE = `corporate-climb-${VERSION}`
+const CACHE_PREFIX = 'corporate-climb-'
+const CACHE = `${CACHE_PREFIX}${VERSION}`
 // Replaced by scripts/sw-precache-plugin at build time.
 self.__PRECACHE = ['/']
 
@@ -25,7 +26,13 @@ self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches
       .keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) =>
+        Promise.all(
+          keys
+            .filter((k) => k.startsWith(CACHE_PREFIX) && k !== CACHE)
+            .map((k) => caches.delete(k)),
+        ),
+      )
       .then(() => self.clients.claim()),
   )
 })
@@ -38,17 +45,19 @@ self.addEventListener('message', (event) => {
   event.waitUntil(
     caches.open(CACHE).then((cache) =>
       Promise.all(
-        data.urls.map((url) =>
-          cache.match(url).then(
-            (hit) =>
-              hit ||
-              fetch(url)
-                .then((res) => {
-                  if (res.ok) return cache.put(url, res)
-                })
-                .catch(() => {}),
+        data.urls
+          .filter((url) => typeof url === 'string' && /^\/audio\/music_[\w-]+\.mp3$/.test(url))
+          .map((url) =>
+            cache.match(url).then(
+              (hit) =>
+                hit ||
+                fetch(url)
+                  .then((res) => {
+                    if (res.ok) return cache.put(url, res)
+                  })
+                  .catch(() => {}),
+            ),
           ),
-        ),
       ),
     ),
   )
@@ -59,31 +68,44 @@ self.addEventListener('fetch', (event) => {
   if (request.method !== 'GET') return
   const url = new URL(request.url)
   if (url.origin !== self.location.origin) return
+  // Live results must never be frozen by an asset cache (including old entries).
+  if (url.pathname === '/api' || url.pathname.startsWith('/api/')) return
 
   if (request.mode === 'navigate') {
     event.respondWith(
-      fetch(request)
-        .then((response) => {
-          const copy = response.clone()
-          caches.open(CACHE).then((cache) => cache.put('/', copy))
-          return response
-        })
-        .catch(() => caches.match('/')),
+      (async () => {
+        const cache = await caches.open(CACHE)
+        try {
+          const response = await fetch(request)
+          if (response.ok) return response
+          return (await cache.match('/')) || response
+        } catch {
+          return (await cache.match('/')) || Response.error()
+        }
+        // Only install writes the fallback shell: it stays paired with this
+        // build's fully precached code/art even during an interrupted update.
+      })(),
     )
     return
   }
 
+  if (!self.__PRECACHE.includes(url.pathname) && !/^\/audio\/music_[\w-]+\.mp3$/.test(url.pathname))
+    return
   event.respondWith(
-    caches.match(request).then(
-      (cached) =>
-        cached ||
-        fetch(request).then((response) => {
-          if (response.ok) {
-            const copy = response.clone()
-            caches.open(CACHE).then((cache) => cache.put(request, copy))
-          }
-          return response
-        }),
+    caches.open(CACHE).then((cache) =>
+      // Module requests include Origin; install-time fetches may not. These
+      // allowlisted static files are identical, even when the host adds Vary.
+      cache.match(request, { ignoreVary: true }).then(
+        (cached) =>
+          cached ||
+          fetch(request).then((response) => {
+            if (response.status === 200) {
+              const copy = response.clone()
+              event.waitUntil(cache.put(request, copy))
+            }
+            return response
+          }),
+      ),
     ),
   )
 })

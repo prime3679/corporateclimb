@@ -49,7 +49,7 @@ test('first three minutes present a stronger hook and clearer choices', async ({
 
   // Top chrome shares the sign's row instead of floating in the corner,
   // and the three role plates are equal — the lead's ring is drawn inside.
-  const soundBox = await page.getByRole('button', { name: 'Mute music' }).boundingBox()
+  const soundBox = await page.getByRole('button', { name: 'Mute sound' }).boundingBox()
   expect(Math.abs(soundBox!.y - signBox!.y)).toBeLessThanOrEqual(1)
   const plateWidths = await page
     .locator('figure')

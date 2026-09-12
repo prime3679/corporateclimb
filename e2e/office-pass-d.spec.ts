@@ -232,6 +232,7 @@ test('Floor 5 elevator lists 1–5 and has no Floor 6', async ({ page }) => {
     'flag_floor5_complete',
   )
   f5.encounters.enc_ceo_review = 'won'
+  f5.rewardsClaimed.push('rwd_promotion_f5')
   await continueOffice(page, f5)
   await expect(page.getByText('Floor 5 · of 5')).toBeVisible({ timeout: 10_000 })
   await page.keyboard.press('e')
@@ -258,7 +259,7 @@ test('Floor 5 Exec row after the nod opens THE CLIMB ledger at 78 / 78', async (
   )
   f5.encounters.enc_ceo_review = 'won'
   f5.assignments.asg_board_packet = 'complete'
-  f5.rewardsClaimed = ['rwd_asg_board_packet', 'rwd_enc_ceo_review']
+  f5.rewardsClaimed = ['rwd_asg_board_packet', 'rwd_enc_ceo_review', 'rwd_promotion_f5']
   await continueOffice(page, f5)
   await expect(page.getByText('Floor 5 · of 5')).toBeVisible({ timeout: 10_000 })
   await page.keyboard.press('e')

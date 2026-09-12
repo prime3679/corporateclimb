@@ -32,11 +32,13 @@ export default class ErrorBoundary extends Component<Props, State> {
       <div className={styles.fallback} role="alert">
         <div className={styles.title}>OUT OF OFFICE</div>
         <div className={styles.message}>
-          Something crashed on the way up the ladder. Your run is saved — reload to pick up where
-          you left off.
+          Something interrupted your climb. Return to the title to continue from your last saved
+          checkpoint.
         </div>
-        <div className={styles.detail}>{this.state.error.message}</div>
-        <Button variant="primary" size="lg" onClick={() => window.location.reload()}>
+        <Button variant="primary" size="lg" onClick={() => this.setState({ error: null })}>
+          RETURN TO TITLE
+        </Button>
+        <Button variant="ghost" size="lg" onClick={() => window.location.reload()}>
           RELOAD
         </Button>
       </div>

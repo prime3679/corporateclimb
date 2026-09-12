@@ -87,7 +87,7 @@ export async function clickNonMuteButton(page: Page) {
     const label = (await b.getAttribute('aria-label').catch(() => '')) ?? ''
     if (
       ['SOUND', 'MUTED', 'SET', 'CV', '🔊', '🔇', '⚙️', '💼'].includes(text.trim()) ||
-      ['Mute music', 'Unmute music', 'Settings', 'Career profile'].includes(label)
+      ['Mute sound', 'Unmute sound', 'Settings', 'Career profile'].includes(label)
     )
       continue
     await b.click({ timeout: 2_500 }).catch(() => {})

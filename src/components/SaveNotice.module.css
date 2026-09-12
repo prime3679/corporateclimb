@@ -1,0 +1,31 @@
+.notice {
+  position: absolute;
+  z-index: 190;
+  left: 16px;
+  right: 16px;
+  bottom: 16px;
+  max-width: 440px;
+  margin-inline: auto;
+  padding: 16px;
+  background: #1e2636;
+  color: var(--cc-text);
+  border: 1px solid var(--cc-gold);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.5);
+  font: 600 var(--body-md) / 1.5 var(--font-body);
+}
+.notice strong {
+  font-family: var(--font-display);
+  letter-spacing: 0.06em;
+  color: var(--cc-gold);
+}
+.notice p {
+  margin: 8px 0 12px;
+}
+.actions {
+  display: flex;
+  gap: 12px;
+}
+.actions button {
+  min-height: calc(44px / var(--stage-scale, 1));
+}

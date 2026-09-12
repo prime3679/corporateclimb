@@ -81,12 +81,11 @@ describe('Pass J — Office HUD chrome says what it is', () => {
   })
 })
 
-describe('Pass J — desktop thumb band density, phone 472 untouched', () => {
-  it('keeps the phone pad, ACT disc and TEAM at their §19 sizes', () => {
-    expect(CSS).toMatch(/\.dpad \{[^}]*grid-template-columns: repeat\(3, 58px\)/)
+describe('Pass J — desktop thumb band density', () => {
+  it('keeps the phone ACT disc prominent', () => {
+    // Scaled pad/team/Title targets are exercised at actual phone widths in
+    // e2e/touch-layout.spec.ts; their old fixed design pixels shrank below 44px.
     expect(CSS).toMatch(/\.act \{[^}]*width: 84px;\s*height: 84px;/)
-    expect(CSS).toMatch(/\.team \{[^}]*width: 54px;\s*height: 54px;/)
-    expect(CSS).toMatch(/\.ctl \{[^}]*height: 204px;/)
   })
 
   it('tightens only the wide-stage canvas', () => {

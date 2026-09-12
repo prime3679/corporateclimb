@@ -36,6 +36,7 @@ export type OfficeSave = {
   keyItems: Record<string, number>
   flags: string[]
   rewardsClaimed: string[]
+  continuation?: { overlays: unknown[]; rideTo: FloorId | null }
   run: { stockOptions: number; level: number; hp: number; classId: string }
   stats: { battlesWon: number; losses: number; rides: number }
 }
