@@ -13,6 +13,8 @@ export interface Settings {
   reduceMotion: boolean
   /** Vibration on combat beats and taps (where the device supports it). */
   haptics: boolean
+  /** Anonymous play stats (src/analytics.ts). Off = no network at all. */
+  analytics: boolean
 }
 
 export const SETTINGS_KEY = 'corporate-climb-settings'
@@ -23,6 +25,7 @@ export const DEFAULT_SETTINGS: Settings = {
   textSpeed: 'normal',
   reduceMotion: false,
   haptics: true,
+  analytics: true,
 }
 
 /** Typewriter delay per character. */
@@ -50,6 +53,7 @@ export function loadSettings(): Settings {
           : DEFAULT_SETTINGS.textSpeed,
       reduceMotion: parsed.reduceMotion === true,
       haptics: parsed.haptics !== false, // default on
+      analytics: parsed.analytics !== false, // default on; missing key (pre-launch saves) → on
     }
   } catch {
     return { ...DEFAULT_SETTINGS }

@@ -39,8 +39,8 @@ export default function GameOverScreen({
   const reorgTier = record && record.ascension > 0 ? getAscensionTier(record.ascension) : null
 
   const shareText = record
-    ? `Corporate Climb ended my run on Floor ${floor}${record.defeatedBy ? ` — taken down by ${record.defeatedBy}` : ''}. ${record.totalTurns} turns, ${record.totalDamageDealt.toLocaleString()} damage dealt.${record.ngPlus > 0 ? ` NG+${record.ngPlus}.` : ''} The climb continues. corporateclimb.vercel.app`
-    : `Corporate Climb ended my run on Floor ${floor}. The climb continues. corporateclimb.vercel.app`
+    ? `Corporate Climber ended my run on Floor ${floor}${record.defeatedBy ? ` — taken down by ${record.defeatedBy}` : ''}. ${record.totalTurns} turns, ${record.totalDamageDealt.toLocaleString()} damage dealt.${record.ngPlus > 0 ? ` NG+${record.ngPlus}.` : ''} The climb continues. corpclimber.com`
+    : `Corporate Climber ended my run on Floor ${floor}. The climb continues. corpclimber.com`
 
   const { handleShare, shareLabel } = useShareFeedback(shareText, 'SHARE')
 

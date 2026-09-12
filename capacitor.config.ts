@@ -19,7 +19,7 @@ const BOOT_COLOR = '#12141a'
 // iOS target). Capacitor config cannot lock it; set it after `npx cap add ios`.
 const config: CapacitorConfig = {
   appId: 'com.corporateclimb.app',
-  appName: 'Corporate Climb',
+  appName: 'Corporate Climber',
   webDir: 'dist',
   // WKWebView background — visible only in the gap between the native splash
   // fading out and the first HTML paint. Same midtone, so there is no gap to see.

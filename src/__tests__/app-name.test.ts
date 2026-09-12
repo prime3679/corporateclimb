@@ -5,17 +5,17 @@ import { describe, expect, it } from 'vitest'
 /**
  * One name everywhere a player sees it.
  *
- * The game is "Corporate Climb" — browser tab, link previews, PWA install
+ * The game is "Corporate Climber" — browser tab, link previews, PWA install
  * dialog, native app name, install nudge, share text. The only sanctioned
  * short form is the home-screen label (`short_name` and
  * `apple-mobile-web-app-title`), because launchers truncate labels past
- * roughly twelve characters and "Corporate Climb" is fifteen. That label is
- * "Corp Climb" — a spaced, readable clipping of the real name, never a mashed
+ * roughly twelve characters and "Corporate Climber" is fifteen. That label is
+ * "Corp Climber" — a spaced, readable clipping of the real name, never a mashed
  * "CorpClimb". This file is what keeps the mirrors honest.
  */
 
-const APP_NAME = 'Corporate Climb'
-const HOME_SCREEN_NAME = 'Corp Climb'
+const APP_NAME = 'Corporate Climber'
+const HOME_SCREEN_NAME = 'Corp Climber'
 const HOME_SCREEN_MAX = 12
 
 const repoText = (...parts: string[]) =>
@@ -70,9 +70,10 @@ describe('player-facing app name', () => {
       'src/screens/RunCompleteScreen.tsx',
       'src/screens/DailyResultScreen.tsx',
     ]) {
-      // Absolute share URLs contain "corpclimber.com"; strip the public origin
-      // first so that host is not a mashed-name false positive.
-      expect(repoText(file).replace(/https:\/\/corpclimber\.com\//g, ''), file).not.toMatch(
+      // Share URLs contain "corpclimber.com" (absolute in meta tags, bare in
+      // share text); strip the public host first so it is not a mashed-name
+      // false positive.
+      expect(repoText(file).replace(/(https:\/\/)?corpclimber\.com\/?/g, ''), file).not.toMatch(
         /CorpClimb/i,
       )
     }

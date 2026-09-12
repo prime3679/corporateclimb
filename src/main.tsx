@@ -11,6 +11,13 @@ import './ui/global.css'
 import App from './App'
 import { MUSIC_URLS } from './music'
 import {
+  injectVercelAnalytics,
+  registerErrorCapture,
+  setAnalyticsEnabled,
+  track,
+} from './analytics'
+import { loadSettings } from './settings'
+import {
   bootstrapNativeChrome,
   isNative,
   registerInstallCapture,
@@ -22,7 +29,11 @@ import {
 // pause music regardless of which screen is up.
 registerInstallCapture()
 registerLifecycle()
+registerErrorCapture()
+if (!loadSettings().analytics) setAnalyticsEnabled(false)
+injectVercelAnalytics()
 void bootstrapNativeChrome()
+track('title_view')
 
 createRoot(document.getElementById('root')!).render(<App />)
 

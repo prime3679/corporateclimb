@@ -25,7 +25,7 @@ const SUBMITTED_KEY = 'corporate-climb-lb-submitted'
 /** Same-origin Vercel function on the web PWA. */
 const WEB_LEADERBOARD_API = '/api/daily-leaderboard'
 /** WKWebView has no same-origin API — production HTTPS only (ATS). */
-const NATIVE_LEADERBOARD_API = 'https://corporateclimb.vercel.app/api/daily-leaderboard'
+const NATIVE_LEADERBOARD_API = 'https://corpclimber.com/api/daily-leaderboard'
 const TIMEOUT_MS = 4000
 
 function leaderboardApi(): string {

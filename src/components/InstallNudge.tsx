@@ -45,7 +45,7 @@ export default function InstallNudge() {
       </span>
       {mode === 'prompt' && (
         <>
-          <span style={{ flex: 1 }}>Keep climbing offline — install Corporate Climb.</span>
+          <span style={{ flex: 1 }}>Keep climbing offline — install Corporate Climber.</span>
           <Button
             variant="primary"
             size="sm"

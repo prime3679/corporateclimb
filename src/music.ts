@@ -1,5 +1,5 @@
 // ─── BACKGROUND MUSIC via HTMLAudioElement assets ─────────────
-// Corporate Climb uses short loopable music beds in /public/audio.
+// Corporate Climber uses short loopable music beds in /public/audio.
 // Playback is gated by user activation on browsers that block autoplay.
 // Track changes crossfade (~450ms) instead of hard-cutting; volume
 // ramps are per-element and cancellable, so a settings change or a

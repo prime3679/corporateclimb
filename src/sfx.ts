@@ -1,4 +1,4 @@
-// ─── CORPORATE CLIMB SOUND EFFECTS via audio assets ───────────
+// ─── CORPORATE CLIMBER SOUND EFFECTS via audio assets ───────────
 // Short office-world SFX live in /public/audio. Playback goes through
 // a single AudioContext with a decoded buffer pool (created and warmed
 // on the first user gesture) — per-play `new Audio()` had first-play

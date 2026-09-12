@@ -105,7 +105,7 @@ function page() {
     white-space: nowrap;
   }
 </style></head>
-<body>${LADDER_SVG}<div class="wordmark">CORPORATE CLIMB</div></body></html>`
+<body>${LADDER_SVG}<div class="wordmark">CORPORATE CLIMBER</div></body></html>`
 }
 
 /** Portrait iPhones the aspect-fill crop is worth eyeballing on. */

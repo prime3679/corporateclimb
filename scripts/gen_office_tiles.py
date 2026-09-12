@@ -849,7 +849,7 @@ def clock() -> Cell:
 
 
 def logo(part: str) -> Cell:
-    """Reception plaque, 3 tiles wide: rising-bars mark + 'CORPORATE CLIMB' in gold.
+    """Reception plaque, 3 tiles wide: rising-bars mark + 'CORPORATE CLIMBER' in gold.
 
     The plaque is authored in 96px space; each cell draws it at its own offset
     (Cell.put clips), so the text runs seamlessly across the tile seams."""
@@ -872,7 +872,7 @@ def logo(part: str) -> Cell:
     c.hline(off + 4, 23, 17, GOLD_DARK)
     c.put(off + 21, 12, GOLD_LIT)
     c.put(off + 22, 13, GOLD_LIT)
-    text(c, 'CORPORATE CLIMB', off + 26, 13, GOLD)
+    text(c, 'CORPORATE CLIMBER', off + 26, 13, GOLD)
     c.hline(off + 26, 19, 59, GOLD_DARK)
     text(c, 'FLOOR 1', off + 62, 20, PAPER)
     return c

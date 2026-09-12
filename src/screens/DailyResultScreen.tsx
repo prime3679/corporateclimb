@@ -49,13 +49,13 @@ export default function DailyResultScreen({
         : ''
 
   const shareText = [
-    `Corporate Climb Daily #${dayNum} ${stars}`,
+    `Corporate Climber Daily #${dayNum} ${stars}`,
     `${modifier.icon} ${modifier.name}`,
     grid,
     `${player.emoji} ${player.name} | Floor ${floorsCleared}/15`,
     `\u26A1 ${totalTurns} turns | \uD83D\uDCA5 ${totalDamageDealt.toLocaleString()} dmg`,
     `\uD83C\uDFC6 Score: ${score.toLocaleString()}${streak.current > 1 ? ` | \uD83D\uDD25 ${streak.current}-day streak` : ''}`,
-    `corporateclimb.vercel.app`,
+    `corpclimber.com`,
   ].join('\n')
 
   const { handleShare, shared, shareLabel } = useShareFeedback(shareText, 'SHARE RESULT')

@@ -1,6 +1,6 @@
 # Zero-Context Contribution
 
-Corporate Climb must be understandable to a fresh coding agent from this worktree alone. Hidden chat context can explain why work is needed, but it must not be required to discover repo rules, domain boundaries, verification commands, review standards, or escalation conditions.
+Corporate Climber must be understandable to a fresh coding agent from this worktree alone. Hidden chat context can explain why work is needed, but it must not be required to discover repo rules, domain boundaries, verification commands, review standards, or escalation conditions.
 
 ## Source of truth
 
@@ -8,7 +8,7 @@ Use this precedence order when instructions overlap:
 
 1. `docs/ZERO-CONTEXT-CONTRIBUTION.md` — canonical zero-context doctrine
 2. `.agent/contribution-contract.json` — machine-readable contract and exact verification commands
-3. `CLAUDE.md` — deep Corporate Climb domain guidance
+3. `CLAUDE.md` — deep Corporate Climber domain guidance
 4. `AGENTS.md` — quick-start pointer for fresh agents
 5. `REVIEW.md` — findings-first review rules
 6. `README.md` — project map and contribution-path discoverability
@@ -30,7 +30,7 @@ If an important rule only exists in chat, the repo is missing source of truth. P
 
 - `python3` must be available on `PATH` to run the local gate.
 - Use installed dependencies only. Do not run package installation from this workflow.
-- If this worktree lacks `node_modules`, you may temporarily symlink an already-installed `node_modules` from a sibling Corporate Climb worktree for local verification. Keep the symlink untracked and remove it before commit.
+- If this worktree lacks `node_modules`, you may temporarily symlink an already-installed `node_modules` from a sibling Corporate Climber worktree for local verification. Keep the symlink untracked and remove it before commit.
 
 ## Standard workflow
 

@@ -34,6 +34,7 @@ import {
   type Facing,
 } from '@/content/office'
 import { Haptics } from '@/platform'
+import { trackOfficeTransition } from './office/analytics'
 import { SFX } from '@/sfx'
 import WorldMap from './office/WorldMap'
 import PartyStrip, { hpTone } from './office/PartyStrip'
@@ -132,6 +133,16 @@ export default function OfficeScreen({
   )
 
   useEffect(() => () => sequencer.cancel(), [sequencer])
+
+  // Funnel events diff consecutive `state` props rather than hooking `act`:
+  // overlays (stakes "Bring it", celebrations) and the battle path dispatch
+  // through their own onChange, so this is the one place every transition
+  // passes. Same-reference renders are skipped inside the mapper.
+  const trackedStateRef = useRef(state)
+  useEffect(() => {
+    trackOfficeTransition(trackedStateRef.current, state)
+    trackedStateRef.current = state
+  }, [state])
 
   useEffect(() => {
     const prev = prevScreenRef.current

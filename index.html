@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-    <title>Corporate Climb — A Satirical Turn-Based RPG</title>
+    <title>Corporate Climber — A Satirical Turn-Based RPG</title>
     <!-- Share copy is Office-first: the five-floor campaign is the pitch, the
          Classic 30-floor tower is the second line. Mirrors the Title tagline
          (RECEPTION TO THE BOARD. FIVE FLOORS. ONE BADGE SWIPE FROM GLORY.)
@@ -15,24 +15,25 @@
     />
 
     <!-- Open Graph -->
-    <meta property="og:title" content="Corporate Climb" />
+    <meta property="og:title" content="Corporate Climber" />
     <meta
       property="og:description"
       content="Reception to the board in five floors. A satirical turn-based RPG about climbing the corporate ladder — one badge swipe from glory. Play free in your browser."
     />
     <meta property="og:type" content="website" />
+    <link rel="canonical" href="https://corpclimber.com/" />
     <meta property="og:url" content="https://corpclimber.com/" />
     <meta property="og:image" content="https://corpclimber.com/og.png" />
     <meta property="og:image:width" content="1280" />
     <meta property="og:image:height" content="720" />
     <meta
       property="og:image:alt"
-      content="Corporate Climb — Reception to the board. Five floors. One badge swipe from glory. Three office workers stand in a night lobby beside a gold ladder."
+      content="Corporate Climber — Reception to the board. Five floors. One badge swipe from glory. Three office workers stand in a night lobby beside a gold ladder."
     />
 
     <!-- Twitter Card -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Corporate Climb" />
+    <meta name="twitter:title" content="Corporate Climber" />
     <meta
       name="twitter:description"
       content="Reception to the board in five floors. A satirical turn-based RPG about climbing the corporate ladder — one badge swipe from glory. Play free in your browser."
@@ -59,8 +60,8 @@
     <!-- Home-screen label. Launchers truncate past ~12 characters, so this is
          the one place the name is shortened; it must match the manifest
          short_name (src/__tests__/app-name.test.ts). Everywhere else the game
-         is "Corporate Climb". -->
-    <meta name="apple-mobile-web-app-title" content="Corp Climb" />
+         is "Corporate Climber". -->
+    <meta name="apple-mobile-web-app-title" content="Corp Climber" />
 
     <style>
       * {
@@ -140,6 +141,24 @@
     </style>
   </head>
   <body>
+    <noscript>
+      <div
+        style="
+          padding: 2rem;
+          max-width: 38rem;
+          margin: 0 auto;
+          color: #f2f6fa;
+          font-family: system-ui, sans-serif;
+        "
+      >
+        <h1>Corporate Climber</h1>
+        <p>
+          A satirical office RPG. Five floors from reception to the boardroom, turn-based fights
+          against coworkers, and a team you recruit along the way. It needs JavaScript to run.
+        </p>
+        <p><a href="/about.html" style="color: #ffd54f">Read about the game</a></p>
+      </div>
+    </noscript>
     <div id="root">
       <div class="boot-splash" aria-hidden="true">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
@@ -149,7 +168,7 @@
           <rect x="6" y="16" width="20" height="3" rx="1" fill="#ffd54f" />
           <rect x="6" y="24" width="20" height="3" rx="1" fill="#ffd54f" />
         </svg>
-        <div class="boot-wordmark">CORPORATE CLIMB</div>
+        <div class="boot-wordmark">CORPORATE CLIMBER</div>
       </div>
     </div>
     <script type="module" src="/src/main.tsx"></script>

@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>About Corporate Climber — a satirical office RPG you can finish on your phone</title>
+    <meta
+      name="description"
+      content="Corporate Climber is a free browser RPG about surviving an office: five floors from reception to the boardroom, turn-based fights against coworkers, and a team you recruit along the way. Built by a product manager with AI coding agents."
+    />
+    <link rel="canonical" href="https://corpclimber.com/about.html" />
+    <meta property="og:title" content="About Corporate Climber" />
+    <meta
+      property="og:description"
+      content="Five floors from reception to the boardroom. A satirical turn-based RPG you can finish in a lunch break."
+    />
+    <meta property="og:type" content="article" />
+    <meta property="og:url" content="https://corpclimber.com/about.html" />
+    <meta property="og:image" content="https://corpclimber.com/og.png" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="theme-color" content="#12141a" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Anton&family=Space+Grotesk:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      /* Same tokens as src/ui/tokens.css: night-lobby field, one gold accent. */
+      :root {
+        --bg: #12141a;
+        --plate: #182130;
+        --line: rgba(255, 255, 255, 0.1);
+        --text: #f2f6fa;
+        --text-2: #cdd6e2;
+        --text-3: #aebccb;
+        --gold: #ffc107;
+        --gold-bright: #ffd54f;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      html {
+        background: var(--bg);
+        color: var(--text);
+        font-family: 'Space Grotesk', system-ui, sans-serif;
+        font-size: 17px;
+        line-height: 1.55;
+        -webkit-text-size-adjust: 100%;
+      }
+      body {
+        min-height: 100vh;
+        padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom)
+          env(safe-area-inset-left);
+        background:
+          radial-gradient(ellipse 60% 30% at 50% 0%, rgba(255, 193, 7, 0.07), transparent 70%),
+          var(--bg);
+      }
+      main {
+        max-width: 38rem;
+        margin: 0 auto;
+        padding: 3.5rem 1.25rem 5rem;
+      }
+      h1,
+      h2 {
+        font-family: Anton, Impact, 'Arial Narrow', sans-serif;
+        font-weight: 400;
+        letter-spacing: 0.01em;
+        color: var(--text);
+      }
+      h1 {
+        font-size: clamp(2.6rem, 9vw, 4.4rem);
+        line-height: 0.98;
+        text-wrap: balance;
+        margin-bottom: 1.25rem;
+      }
+      h1 span {
+        display: block;
+        color: var(--gold-bright);
+      }
+      h2 {
+        font-size: 1.55rem;
+        line-height: 1.1;
+        margin: 3rem 0 0.9rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--line);
+      }
+      p {
+        color: var(--text-2);
+        max-width: 60ch;
+        margin-bottom: 1rem;
+      }
+      .lede {
+        font-size: 1.15rem;
+        color: var(--text);
+      }
+      a {
+        color: var(--gold-bright);
+        text-decoration-thickness: 1px;
+        text-underline-offset: 0.15em;
+      }
+      a:focus-visible,
+      .play:focus-visible {
+        outline: 2px solid var(--gold);
+        outline-offset: 3px;
+      }
+      .play {
+        display: inline-block;
+        margin: 0.75rem 0 0.5rem;
+        padding: 0.9rem 1.6rem;
+        background: var(--gold);
+        color: #1a1200;
+        font-family: Anton, Impact, sans-serif;
+        font-size: 1.25rem;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+        border-radius: 4px;
+        box-shadow: 0 3px 0 #b8860b;
+      }
+      .play:active {
+        transform: translateY(2px);
+        box-shadow: 0 1px 0 #b8860b;
+      }
+      .fine {
+        font-size: 0.9rem;
+        color: var(--text-3);
+      }
+      ol {
+        list-style: none;
+        counter-reset: floor;
+        margin: 0 0 1rem;
+      }
+      ol li {
+        counter-increment: floor;
+        display: grid;
+        grid-template-columns: 2.6rem 1fr;
+        gap: 0.75rem;
+        padding: 0.7rem 0;
+        border-bottom: 1px solid var(--line);
+        color: var(--text-2);
+      }
+      ol li::before {
+        content: counter(floor);
+        font-family: Anton, Impact, sans-serif;
+        font-size: 1.5rem;
+        line-height: 1;
+        color: var(--gold-bright);
+      }
+      ol li strong {
+        display: block;
+        color: var(--text);
+        font-weight: 600;
+      }
+      dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.35rem 1rem;
+        color: var(--text-2);
+        margin-bottom: 1rem;
+      }
+      dt {
+        color: var(--text);
+        font-weight: 600;
+      }
+      footer {
+        margin-top: 3.5rem;
+        padding-top: 1.25rem;
+        border-top: 1px solid var(--line);
+        color: var(--text-3);
+        font-size: 0.9rem;
+      }
+      @media (prefers-reduced-motion: no-preference) {
+        .play {
+          transition: transform 80ms ease;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>
+        Reception to the board.
+        <span>One badge swipe from glory.</span>
+      </h1>
+      <p class="lede">
+        Corporate Climber is a free, satirical office RPG that runs in your browser. You start as a
+        new hire with a broken printer and five floors between you and the executive suite.
+        Coworkers become opponents, then teammates. A full climb takes about a lunch break.
+      </p>
+      <a class="play" href="/">Play Corporate Climber</a>
+      <p class="fine">No download, no account. Works on phones. Your progress saves on your device.</p>
+
+      <h2>How it plays</h2>
+      <p>
+        Walk the floor, talk to people, take on their tickets. When a conversation turns into a
+        fight, it is turn-based: pick from four moves, watch for type matchups (Strategy beats
+        Execution, Execution beats Technical, Technical beats Strategy, and so on), and manage your energy. Nothing ambushes
+        you. Every fight is one you chose to start.
+      </p>
+      <p>
+        Beat a coworker and the printer spits out an offer letter. Sign it and they join your
+        team of up to three. Fights become Pokémon-style: one active teammate, the rest ready to
+        swap in. The team lead who has been "interim" for four years is built to outlast one
+        person, so you'll need them.
+      </p>
+      <p>
+        Win a floor and you get promoted, pick a perk, and earn a badge. Badges open elevator
+        floors. Losing sends the whole team to the break room to take five, then you try again.
+        Nothing is lost except your dignity.
+      </p>
+
+      <h2>The five floors</h2>
+      <ol>
+        <li><strong>Your team</strong>A printer ticket, a desk-pit argument, and a one-on-one you cannot decline.</li>
+        <li><strong>Operations</strong>Help desk, people ops, and the access badge that lets you ride up.</li>
+        <li><strong>Product</strong>Roadmaps as weapons. Everyone has an opinion about your priorities.</li>
+        <li><strong>Sales</strong>Quotas, quarter-end, and colleagues who have never once said no.</li>
+        <li><strong>Exec</strong>The boardroom. One boss with two phases and a very long table.</li>
+      </ol>
+
+      <h2>Pick your career</h2>
+      <dl>
+        <dt>Product Manager</dt>
+        <dd>Strategy and influence. Prioritizes the backlog, aligns stakeholders, ships the MVP, heals a little after every fight.</dd>
+        <dt>Senior Engineer</dt>
+        <dd>Technical and execution. Refactors everything, deploys to prod, rejects your code review.</dd>
+        <dt>UX Designer</dt>
+        <dd>Analytics and technical. User research beams, Figma tornados, and a higher crit chance.</dd>
+      </dl>
+
+      <h2>Daily challenge</h2>
+      <p>
+        There is also a Classic mode: a 30-floor tower run with a seeded daily challenge, so
+        everyone gets the same building on the same day and can compare results. Share your run
+        from the results screen.
+      </p>
+
+      <h2>Who made this</h2>
+      <p>
+        <a href="https://adrianlumley.co">Adrian Lumley</a> is a product manager in New York who
+        codes. Corporate Climber started as a weekend idea in March 2026 and was built with AI
+        coding agents doing the implementation while he set the design bar, wrote the encounters,
+        and playtested every floor. The whole thing is open source on
+        <a href="https://github.com/prime3679/corporateclimb">GitHub</a>. Every job in it is one he
+        has had, survived, or watched someone else survive.
+      </p>
+      <p>
+        Found a bug, or a coworker we forgot? Use "Send feedback" in the game's settings.
+      </p>
+
+      <footer>
+        Corporate Climber is a work of satire. Any resemblance to your actual manager is a
+        coincidence you should probably not mention in your next one-on-one.
+      </footer>
+    </main>
+  </body>
+</html>
