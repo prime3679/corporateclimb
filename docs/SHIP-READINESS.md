@@ -29,6 +29,8 @@ The repository gate runs its normal checks with the sanitized child environment 
 
 The full-climb runner supports all three roles through `PLAYTEST_ROLE`; the ordinary smoke suite keeps those longer runs opt-in. CI also runs the new production offline/update suite.
 
+CI exposed an additional cold-start cache miss: a host's `Vary: Origin` header made module requests miss assets cached during installation. Static asset lookup now ignores that irrelevant variation. The offline test clears the browser HTTP cache before disconnecting, so ordinary downloaded files cannot conceal an incomplete installed-app boot.
+
 ### Results recorded on 2026-09-11
 
 | Check                                                              | Result                                               |

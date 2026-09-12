@@ -62,3 +62,11 @@ jobs:
 
       - name: Verify production offline and update flows
         run: npm run test:production
+
+      - name: Keep browser failure evidence
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: browser-failure-evidence
+          path: test-results/
+          retention-days: 7

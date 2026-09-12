@@ -93,7 +93,9 @@ self.addEventListener('fetch', (event) => {
     return
   event.respondWith(
     caches.open(CACHE).then((cache) =>
-      cache.match(request).then(
+      // Module requests include Origin; install-time fetches may not. These
+      // allowlisted static files are identical, even when the host adds Vary.
+      cache.match(request, { ignoreVary: true }).then(
         (cached) =>
           cached ||
           fetch(request).then((response) => {

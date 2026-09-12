@@ -19,6 +19,7 @@ Original prompt: Audit Corporate Climb and improve it into a fully functional, s
 - Fresh Office all-role runs PASS: Product Manager 5.4m, Senior Engineer 5.3m, UX Designer 5.0m. All resumed mid-climb and backtracked after THE NOD. Senior Engineer recovered from a Kessler loss. Existing route-helper retries at Floor 5 succeeded.
 - Visual-client screenshots and state output verified. Changed-file secret scan clean. No dependencies or lockfile changes.
 - Release assessment and next gates: `docs/SHIP-READINESS.md`.
+- CI found a cold offline startup gap hidden by the Mac browser's HTTP cache. Traces isolated `Vary: Origin` mismatches between install fetches and module requests. Static-cache matching now ignores that irrelevant variation, and the production test clears HTTP cache before disconnecting. CI retains failure traces.
 
 ## Release evidence still required
 

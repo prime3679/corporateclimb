@@ -4,6 +4,17 @@ import { readOfficeSave, startFreshOffice } from '../office-helpers'
 
 test.use({ viewport: { width: 390, height: 844 } })
 
+test.afterEach(async ({ page }, info) => {
+  if (info.status === info.expectedStatus) return
+  console.log(
+    '[production-failure]',
+    await page
+      .locator('body')
+      .innerText()
+      .catch(() => 'No page'),
+  )
+})
+
 test('first Office visit works offline, with all artwork and a resumable reward', async ({
   page,
   context,
@@ -14,8 +25,13 @@ test('first Office visit works offline, with all artwork and a resumable reward'
   await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeVisible()
   await page.evaluate(() => navigator.serviceWorker.ready)
   await page.waitForFunction(() => navigator.serviceWorker.controller !== null)
+  // Prove the installed worker can boot the app without the browser HTTP cache.
+  const network = await context.newCDPSession(page)
+  await network.send('Network.clearBrowserCache')
+  await network.detach()
   await context.setOffline(true)
   await page.reload()
+  await expect(page.getByRole('button', { name: 'THE OFFICE' })).toBeVisible()
   await page.getByRole('button', { name: 'THE OFFICE' }).click()
   await page.getByRole('button', { name: 'ACCEPT OFFER' }).click()
   await expect(page.getByText('SIGNING BONUS')).toBeVisible()
