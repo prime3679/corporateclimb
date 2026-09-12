@@ -165,7 +165,7 @@ export default function TitleScreen({
         </div>
         <h1 className={`t-display ${styles.wordmark}`}>
           <span className={styles.wordmarkLine}>CORPORATE</span>{' '}
-          <span className={styles.wordmarkLine}>CLIMB</span>
+          <span className={styles.wordmarkLine}>CLIMBER</span>
         </h1>
         <div className={`t-body ${styles.tagline}`}>
           Reception to the board. One badge swipe from glory.
