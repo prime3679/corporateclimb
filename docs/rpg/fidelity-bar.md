@@ -1139,6 +1139,35 @@ floors`. Header comment now names the surround (`--cc-bg` vs the
   · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
   99.2–102.2 s.
 
+## Colour / mood bible (living)
+
+Locked with the `#122` night lobby; Classic cousins follow it without
+re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
+
+- **Night lobby.** Field `#1a1e28 → #161a24 → #12141a` (top to floor)
+  under a faint top wash (white 3.5%); `--cc-bg #12141a` is the floor and
+  the one boot / `theme-color` colour (`#125`). The desktop theater wall
+  behind the 840 canvas is `--cc-stage #0a0d12` under the 76px hairlines
+  and the edge vignette — a darker room, not a second lobby. No cream, no
+  indigo, no blue pools.
+- **Glass.** Plates and HUD on `--cc-glass rgba(13,18,27,.96)` with
+  `--cc-line` hairlines; cards on `--cc-surface-1/2/3`. Gold is the one
+  accent and wins by value, not bloom: `--cc-gold #ffc107` for actions,
+  `--cc-gold-bright #ffd54f` for display type, one warm pool at most
+  (`48% 24%` ellipse, gold 7%) behind a verdict. Hard 2px inset gold ring
+  for the lead; no width, no lift, no breathe.
+- **Display type.** Gold on a 1px dark hairline, `0 1px 0 rgba(5,7,13,.6)`,
+  no offset colour. **No arcade orange:** `#E65100` / `rgba(122,55,15)`
+  burnt-orange text-shadow offsets are off the palette everywhere
+  (`#129` Shop + Promotion, `#130` Codex, `#132` Daily, `#139` Interlude +
+  Classic cousins);
+  `src/__tests__/pass-j-arcade-orange.test.ts` walks `src/screens` and
+  fails on them. The single exception is `components/DamageNumber.tsx`,
+  whose outline is battle VFX, not type.
+- **Classic.** Visible from the Office side only as the CONTINUE-blue
+  secondary (START CLIMB) and brick DAILY; its screens borrow the lobby
+  and the hairline, never the reverse.
+
 ## Still Fable's (do not treat this PR as §14 done)
 
 #67 and this follow-up raise the presentation floor. They do **not** clear
