@@ -1124,8 +1124,10 @@ button`), and the `#131` HUD labels on the Office floors. `#139` swept the arcad
   save v3 treats a won boss with no promotion receipt as an interrupted
   reward and re-opens the receipt on resume; on tip that receipt sat over
   the cab and the `cab` / `the-climb` scenes timed out on `Elevator
-floors`. Header comment now names the surround (`--cc-bg` vs the
-  `0x070b12` cards). No viewport change, no other script change.
+floors`. Header comment now names the surround correctly — `--cc-stage`
+  under the theater vignette, not `--cc-bg`, with the `0x070b12` cards
+  called out as not the theater — so the next remux does not relearn the
+  wrong token. No viewport change, no other script change.
 - **Kept from `#126`.** Desktop theater / 840 canvas on every beat, Meng
   night lobby with the `#123` Shoulds (inset gold lead ring, sentence-case
   tagline, no breathe glow), F1 Renata / Gavin on the recast plates, the

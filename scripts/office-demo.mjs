@@ -10,10 +10,13 @@
  * capture runs on the 840 canvas inside the theater frame: one-line
  * wordmark on the optical spine, glass cast plates with the hard 2px gold
  * lead ring, night-lobby field with the footer skyline, spine + keyboard
- * wings. The surround outside the canvas is `--cc-bg` (#12141a, the
- * night-lobby midtone boot from #125), not the old frame black #06080c —
- * the cards and letterbox pad stay 0x070b12 on purpose (they are not the
- * theater).
+ * wings. The surround outside the canvas is the theater wall —
+ * `--cc-stage` (#0a0d12) under the 76px hairlines and the edge vignette
+ * (`.backdrop[data-stage-frame='theater']` in Stage.module.css), which
+ * samples ~#05080f at the frame edge. It is NOT `--cc-bg` (#12141a): that
+ * token is the canvas fill and the #125 boot color, never the gutters, so
+ * a re-record does not move the surround. The cards and letterbox pad
+ * stay 0x070b12 on purpose (they are not the theater).
  * Combat records the wide-stage arena (`@container stage (min-width:
  * 700px)`): enemy stand 236 up-right, player 224 down-left, damage numbers
  * mounted on the stand they hit.
