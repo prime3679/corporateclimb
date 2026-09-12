@@ -779,6 +779,8 @@ Product code untouched: demo script, mp4 and docs only.
   50.5 s · FLOOR 1 CLEARED 53.2 s · floor2 56.6 s · helpdesk 61.5 s ·
   floor3 67.1 s · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
   99.2–102.2 s.
+- Captured before `#125` moved `--cc-bg`; the theater-surround follow-up
+  is "Pass J — demo remux: theater surround / #125 `--cc-bg`" below.
 
 ### Pass J — public: gold favicon + Office-first OG
 
@@ -1084,6 +1086,89 @@ After-shots in `docs/rpg/daily-night-glass-calm/`: `daily-pre-phone.png`
 (390×844, via the Title deck), `daily-pre-desktop.png` (1280×720 theater),
 `daily-won-phone.png` and `daily-failed-phone.png` (390×844, the result
 screen mounted in the real `Stage` with a seeded 15/15 and 8/15 record).
+
+### Pass J — demo remux: theater surround / #125 `--cc-bg`
+
+`public/demos/office-demo.mp4` re-recorded on tip `4de317c` (`#138`
+harness hardening over `#139` arcade orange sweep, `#136` rename, `#134`
+save v3, `#131` HUD labels) through the same `npm run demo:office`
+pipeline as `#119` / `#121` / `#126`. Same mux — silent Playwright video,
+live beds and stingers at the scene marks, Floor 1 bed ducked to 22%
+across the spar. 102.2 s at 1280×720, h264 + AAC; no hand-edited bytes.
+Product code untouched: demo script, mp4 and docs only. Fable lane,
+TASK-CLIMB-ULTRA-001 cut #2 (first cut on `cad9787`, moved to `4de317c`
+when `#138` landed; `#138` is e2e / README only, nothing in frame).
+
+- **Why.** `#126` captured on `d32761e`, before `#125` lifted `--cc-bg`
+  from frame black `#06080c` to the night-lobby midtone `#12141a`, and its
+  PR body flagged the theater surround as the one-command follow-up.
+- **Finding — the surround was never `--cc-bg`.** The desktop theater
+  gutters are `.backdrop[data-stage-frame='theater']` in
+  `src/ui/Stage.module.css`: `--cc-stage` (`#0a0d12`) under the 76px floor
+  hairlines and a vignette that runs to `rgba(2,4,8,.92)` at the edges.
+  `--cc-bg` is the `.stage` canvas fill (always covered by a screen) and
+  the boot / `theme-color` chain in `index.html`. Sampled at the same
+  gutter pixels, `#126` and this capture are identical: `#05080f` at the
+  edge, `#08090c` beside the bezel. Re-recording cannot move the surround;
+  only a theater CSS change could (`--cc-stage` → `--cc-bg` on that rule),
+  and that is product CSS, out of this lane's scope — left as the owner's
+  call, not made here.
+- **What the re-record does pick up.** The `#136` rename on the spine
+  wordmark (`CORPORATE CLIMBER`, one line on the optical spine), the
+  `#134` 44px hit-target floor on the SOUND / SET chips (`.top-chrome >
+button`), and the `#131` HUD labels on the Office floors. `#139` swept the arcade-orange offsets off Interlude and
+  its Classic cousins; the trailer never enters those screens, so nothing
+  in-frame changes for it — tip is simply current.
+- **Script.** `save()` now lists `rwd_promotion_fN` in `rewardsClaimed`
+  for every boss the fixture marks `won` (the `#134` e2e pattern). Office
+  save v3 treats a won boss with no promotion receipt as an interrupted
+  reward and re-opens the receipt on resume; on tip that receipt sat over
+  the cab and the `cab` / `the-climb` scenes timed out on `Elevator
+floors`. Header comment now names the surround correctly — `--cc-stage`
+  under the theater vignette, not `--cc-bg`, with the `0x070b12` cards
+  called out as not the theater — so the next remux does not relearn the
+  wrong token. No viewport change, no other script change.
+- **Kept from `#126`.** Desktop theater / 840 canvas on every beat, Meng
+  night lobby with the `#123` Shoulds (inset gold lead ring, sentence-case
+  tagline, no breathe glow), F1 Renata / Gavin on the recast plates, the
+  wide-stage spar from `#120` (Gavin on the 236 stand up-right), F2 HELP /
+  DESK glass walk to Teddy, F3–5 peeks, THE CLIMB with THE NOD stamp.
+- End card still reads `Pass J · tip`. No Floor 6; Classic never entered
+  (blue secondary on the title only).
+- Marks (body offset by the 3.2 s title card): welcome 3.2–7.1 s · floor1
+  12.3 s · combat 39.7 s · hits 41.6–43.7 s · CLEARED 44.4 s · cab 50.5 s ·
+  FLOOR 1 CLEARED 53.2 s · floor2 56.6 s · helpdesk 61.5 s · floor3 67.1 s
+  · floor4 75.7 s · exec 84.4 s · THE CLIMB 94.7 s · end card
+  99.2–102.2 s.
+
+## Colour / mood bible (living)
+
+Locked with the `#122` night lobby; Classic cousins follow it without
+re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
+
+- **Night lobby.** Field `#1a1e28 → #161a24 → #12141a` (top to floor)
+  under a faint top wash (white 3.5%); `--cc-bg #12141a` is the floor and
+  the one boot / `theme-color` colour (`#125`). The desktop theater wall
+  behind the 840 canvas is `--cc-stage #0a0d12` under the 76px hairlines
+  and the edge vignette — a darker room, not a second lobby. No cream, no
+  indigo, no blue pools.
+- **Glass.** Plates and HUD on `--cc-glass rgba(13,18,27,.96)` with
+  `--cc-line` hairlines; cards on `--cc-surface-1/2/3`. Gold is the one
+  accent and wins by value, not bloom: `--cc-gold #ffc107` for actions,
+  `--cc-gold-bright #ffd54f` for display type, one warm pool at most
+  (`48% 24%` ellipse, gold 7%) behind a verdict. Hard 2px inset gold ring
+  for the lead; no width, no lift, no breathe.
+- **Display type.** Gold on a 1px dark hairline, `0 1px 0 rgba(5,7,13,.6)`,
+  no offset colour. **No arcade orange:** `#E65100` / `rgba(122,55,15)`
+  burnt-orange text-shadow offsets are off the palette everywhere
+  (`#129` Shop + Promotion, `#130` Codex, `#132` Daily, `#139` Interlude +
+  Classic cousins);
+  `src/__tests__/pass-j-arcade-orange.test.ts` walks `src/screens` and
+  fails on them. The single exception is `components/DamageNumber.tsx`,
+  whose outline is battle VFX, not type.
+- **Classic.** Visible from the Office side only as the CONTINUE-blue
+  secondary (START CLIMB) and brick DAILY; its screens borrow the lobby
+  and the hairline, never the reverse.
 
 ## Still Fable's (do not treat this PR as §14 done)
 
