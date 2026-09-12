@@ -101,7 +101,7 @@ export default function ClassSelect({
           color: 'var(--gold-bright)',
           textAlign: 'center',
           padding: '0 88px 0 12px',
-          textShadow: '2px 2px 0 #E65100',
+          textShadow: '0 1px 0 rgba(5,7,13,.6)',
         }}
       >
         SELECT CAREER ARCHETYPE

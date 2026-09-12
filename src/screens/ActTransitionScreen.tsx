@@ -10,7 +10,6 @@ const ACT_DATA: Record<
     flavor: string
     bg: string
     accent: string
-    subtitleShadow: string
   }
 > = {
   2: {
@@ -20,7 +19,6 @@ const ACT_DATA: Record<
       "You've proven yourself on the ground floor. But the real game starts now. Politics. Budgets. Power.",
     bg: styles.executive,
     accent: '#a7c4ff',
-    subtitleShadow: '2px 2px 0 rgba(33, 61, 118, 0.9)',
   },
   3: {
     title: 'ACT 3',
@@ -29,7 +27,6 @@ const ACT_DATA: Record<
       'The org chart bows to you. But above the clouds, the air is thin and the stakes are existential.',
     bg: styles.warm,
     accent: '#ffd8a1',
-    subtitleShadow: '2px 2px 0 rgba(122, 55, 15, 0.92)',
   },
 }
 
@@ -109,7 +106,6 @@ export default function ActTransitionScreen({
                 fontSize: 'var(--display-md)',
                 color: data.accent,
                 lineHeight: 1.8,
-                textShadow: data.subtitleShadow,
                 letterSpacing: 4,
                 opacity: phase >= 2 ? 1 : 0.56,
                 transform: phase >= 2 ? 'scale(1)' : 'scale(0.9)',

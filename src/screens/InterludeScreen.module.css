@@ -132,11 +132,13 @@
   gap: 12px;
 }
 
+/* Title / Shop / Promo lift: a dark hairline under the glyphs, never an
+   offset colour. */
 .header {
   color: var(--gold-bright);
   text-align: center;
   letter-spacing: 0.18em;
-  text-shadow: 2px 2px 0 rgba(122, 55, 15, 0.92);
+  text-shadow: 0 1px 0 rgba(5, 7, 13, 0.6);
 }
 
 .eyebrow {
