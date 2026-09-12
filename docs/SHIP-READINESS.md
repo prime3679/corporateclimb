@@ -52,4 +52,6 @@ The final campaign runs reported no page errors or Classic save bleed. The exist
 
 Global leaderboards remain optional: the client already hides that section when its backing service is not provisioned. Local daily play, results and sharing remain the web release scope. Native store builds require a separate decision and physical-device work.
 
+A fresh dependency audit found zero production-package advisories and 14 development/tooling findings (8 high, 4 moderate, 2 low). Track compatible toolchain updates as a separate reviewed maintenance pass; these counts do not establish live-site exploitability. This candidate leaves dependency versions unchanged.
+
 The handoff's remaining art/feel ideas—confetti treatment, Headhunter/binoculars, Bag typography, shop glyph consistency and demo surround—are a subsequent polish pass informed by actual play. A large visual redesign or balance rewrite would add risk without addressing the verified release defects above.
