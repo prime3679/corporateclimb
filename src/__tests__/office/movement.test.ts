@@ -37,6 +37,47 @@ describe('office movement', () => {
     expect(interactTarget(s)?.label).toContain('Renata')
   })
 
+  it('does not collision-block Floor 5 take-five door or landing approach', () => {
+    let s = start()
+    s = {
+      ...s,
+      floorId: 'floor_05',
+      overlay: null,
+      overlayQueue: [],
+      firedTriggers: [...s.firedTriggers, 'trg_first_step_f5:arrival'],
+      flags: [...s.flags, 'flag_visited_f5'],
+      player: { x: 9, y: 9, facing: 's' },
+    }
+    s = dispatchOfficeAction(s, { type: 'MOVE', dir: 's' }).state
+    expect(s.player).toEqual({ x: 9, y: 10, facing: 's' })
+    expect(s.overlay).toBeNull()
+
+    s = { ...s, overlay: null, overlayQueue: [], player: { x: 3, y: 5, facing: 'n' } }
+    s = dispatchOfficeAction(s, { type: 'MOVE', dir: 'n' }).state
+    expect(s.player).toEqual({ x: 3, y: 4, facing: 'n' })
+    expect(s.overlay).toBeNull()
+  })
+
+  it('blocks MOVE while a toast is up — harness must drain, not the tile', () => {
+    let s = start()
+    s = {
+      ...s,
+      floorId: 'floor_05',
+      overlay: {
+        kind: 'toast',
+        text: "You take five. Everyone's restored. The couch has seen worse.",
+      },
+      overlayQueue: [],
+      player: { x: 9, y: 9, facing: 's' },
+    }
+    s = dispatchOfficeAction(s, { type: 'MOVE', dir: 's' }).state
+    expect(s.player).toEqual({ x: 9, y: 9, facing: 's' })
+    s = dispatchOfficeAction(s, { type: 'ADVANCE' }).state
+    expect(s.overlay).toBeNull()
+    s = dispatchOfficeAction(s, { type: 'MOVE', dir: 's' }).state
+    expect(s.player).toEqual({ x: 9, y: 10, facing: 's' })
+  })
+
   it('accepts the printer ticket when talking to Renata', () => {
     let s = start()
     s = { ...s, overlay: null, overlayQueue: [], player: { x: 8, y: 16, facing: 'n' } }

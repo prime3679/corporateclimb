@@ -13,6 +13,7 @@ import {
   logBeat,
   openElevator,
   passDoor,
+  playtestClassName,
   readOfficeSave,
   rideElevator,
   shot,
@@ -33,8 +34,12 @@ import {
  *
  * Teddy checkpoint (#95): PLAYTEST_FULL_CLIMB=1 PLAYTEST_RESUME=1
  * (e2e/fixtures/checkpoint-teddy-won.json, or ARTIFACT_DIR after a fresh run).
+ * Role: PLAYTEST_CLASS or PLAYTEST_ROLE (Product Manager default — CI smoke
+ * that calls startFreshOffice() with no args stays PM).
  * Shots: PLAYTEST_ARTIFACT_DIR, else /opt/cursor/artifacts/e2e-full-climb,
- * else test-results/e2e-full-climb. A screenshot EIO must not fail the climb.
+ * else test-results/e2e-full-climb. A set role nests a slug so later
+ * Playwright runs / other classes do not overwrite climb PNGs.
+ * A screenshot EIO must not fail the climb.
  */
 test.use({ viewport: GAME_VIEWPORT, trace: 'off', video: 'off' })
 
@@ -45,7 +50,7 @@ test('fresh-save Office 1→5 required route to THE NOD', async ({ page }) => {
   const pageErrors: string[] = []
   page.on('pageerror', (e) => pageErrors.push(e.message))
 
-  await startFreshOffice(page, process.env.PLAYTEST_ROLE ?? 'Product Manager')
+  await startFreshOffice(page, playtestClassName())
   await shot(page, '00-floor1-signing')
   await assertNoClassicBleed(page)
   await expectObjective(page, 'Talk to Renata')

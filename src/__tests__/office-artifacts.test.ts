@@ -18,6 +18,8 @@ beforeEach(() => {
   vi.mocked(mkdirSync).mockReset()
   vi.mocked(writeFileSync).mockReset()
   vi.stubEnv('PLAYTEST_ARTIFACT_DIR', '')
+  vi.stubEnv('PLAYTEST_CLASS', '')
+  vi.stubEnv('PLAYTEST_ROLE', '')
   vi.spyOn(console, 'warn').mockImplementation(() => {})
 })
 
@@ -73,6 +75,16 @@ describe('Office artifact directory selection', () => {
     expect(ARTIFACT_DIR).toBe(fallback)
     expect(mkdirSync).toHaveBeenNthCalledWith(1, preferred, { recursive: true })
     expect(mkdirSync).toHaveBeenNthCalledWith(2, fallback, { recursive: true })
+  })
+
+  it('nests a role slug under PLAYTEST_ARTIFACT_DIR so later climbs keep their PNGs', async () => {
+    vi.stubEnv('PLAYTEST_ARTIFACT_DIR', 'custom-artifacts')
+    vi.stubEnv('PLAYTEST_CLASS', 'Senior Engineer')
+    const isolated = path.join('custom-artifacts', 'senior-engineer')
+    const { ARTIFACT_DIR } = await import('../../e2e/office-helpers')
+
+    expect(ARTIFACT_DIR).toBe(isolated)
+    expect(mkdirSync).toHaveBeenCalledWith(isolated, { recursive: true })
   })
 
   it('warns for every failed candidate and keeps logging nonfatal if none are writable', async () => {
