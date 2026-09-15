@@ -1197,6 +1197,42 @@ tip`. No Floor 6; Classic never entered (blue secondary on the title
   · floor4 71.0 s · exec 80.0 s · cab 90.8 s · THE CLIMB 90.9 s · end card
   95.4–98.4 s.
 
+### Pass J — hum: Daily roster night glass
+
+Keep-it-humming DRAFT, Fable lane (`TASK-CLIMB-HUM-001`), authored on tip
+`b12831d` (`#142`). `#132` moved the Daily brief onto the night lobby but
+left the class roster "as it was": the selected class card was still a
+cream `#fff8e1` block on a `2px 2px 0` ink offset with the label flipped
+to ink — the last cream fill and the last hard-offset box shadow anywhere
+under `src/`. CSS only (`DailyPreScreen.module.css`); the `.tsx`, the
+smoke path (`e2e/smoke.spec.ts`) and the daily seeding are untouched.
+Night lobby untouched; phone 472 canvas untouched; no Floor 6; Classic
+tower untouched.
+
+**After.**
+
+- **Roster cards.** The three class cards take the Classic Career Select's
+  night-glass card verbatim: a three-stop glass from `rgba(255,255,255,.06)`
+  through `rgba(22,28,42,.94)` to `rgba(8,10,18,.98)` under a
+  `rgba(132,153,189,.42)` hairline, lifted by `0 10px 18px` blur and a 1px
+  inner highlight. No offset colour.
+- **The pick.** Selected = the Career Select pick: a gold hairline ring
+  (`rgba(255,211,77,.72)`), a faint warm top (`rgba(255,216,161,.18)`) and
+  an inset gold glow at 12% — one warm card, not a cream one. The label
+  goes `--cc-gold-bright` on the `0 1px 0` hairline, the same lift the
+  Career Select uses. Modifier card, rules chip, streak strip, BEGIN and
+  BACK are as they were.
+- **Guard.** `src/__tests__/pass-j-arcade-orange.test.ts` now also fails on
+  `#fff8e1` and on any opaque `Npx Npx 0` box shadow under `src/screens`,
+  and pins the Daily pick to the Career Select ring. The Office handout
+  sheaf (`.handoutThick`, translucent stacked offsets that draw paper) is
+  the one named exception, beside `DamageNumber`.
+
+Shots in `docs/rpg/daily-roster-night-glass/`: `daily-roster-phone.png`
+(390×844 via the Title deck), `daily-roster-desktop.png` (1280×720
+theater), `daily-roster-before-phone-crop.png` / `daily-roster-phone-crop.png`
+(the roster at 2×, before and after).
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
@@ -1221,7 +1257,10 @@ re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
   Classic cousins);
   `src/__tests__/pass-j-arcade-orange.test.ts` walks `src/screens` and
   fails on them. The single exception is `components/DamageNumber.tsx`,
-  whose outline is battle VFX, not type.
+  whose outline is battle VFX, not type. The same suite refuses a cream
+  `#fff8e1` fill and an opaque `Npx Npx 0` box shadow on any card (the
+  Daily roster was the last, `hum-001`); the Office handout sheaf
+  (`.handoutThick`) is a drawn glyph and the one named exception.
 - **Classic.** Visible from the Office side only as the CONTINUE-blue
   secondary (START CLIMB) and brick DAILY; its screens borrow the lobby
   and the hairline, never the reverse.
