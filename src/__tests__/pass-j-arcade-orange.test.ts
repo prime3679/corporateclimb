@@ -39,6 +39,16 @@ const ORANGE = /#e65100|122,\s*55,\s*15/i
 // on display type. The hairline is `0 1px 0 …` and never matches.
 const HARD_OFFSET = /(text-shadow|textShadow)[^;\n]*-?[1-9]\d*px\s+-?[1-9]\d*px\s+0(px)?\b/i
 const HAIRLINE = /0 1px 0 rgba\(5,\s*7,\s*13,\s*0?\.6\)/
+// The Daily roster's old selected card: a cream fill on a `2px 2px 0`
+// box shadow. The night-glass cards lift with `0 Npx Mpx` blur, never an
+// opaque offset, and paint no cream.
+const CREAM = /#fff8e1/i
+const HARD_OFFSET_BOX =
+  /(box-shadow|boxShadow)\s*:[^;]*?(?:^|[\s,'"])-?[1-9]\d*px\s+-?[1-9]\d*px\s+0(px)?(?=[\s,;'"])/im
+// The Office handout icon stacks translucent offsets to draw a sheaf of
+// paper — a pixel glyph, not a card, so it sits beside DamageNumber.
+const DRAWN_GLYPHS = [/\.handoutThick \{[^}]*\}/]
+const chrome = (text: string) => DRAWN_GLYPHS.reduce((t, re) => t.replace(re, ''), text)
 
 describe('Pass J ultra — arcade orange sweep', () => {
   it('walks the Classic screens', () => {
@@ -58,6 +68,21 @@ describe('Pass J ultra — arcade orange sweep', () => {
         .filter((x): x is string => x !== null),
     )
     expect(hits).toEqual([])
+  })
+
+  it('has no cream fill or hard-offset box shadow left in src/screens', () => {
+    const cream = FILES.filter((f) => CREAM.test(f.text)).map((f) => f.path)
+    expect(cream).toEqual([])
+    const offset = FILES.filter((f) => HARD_OFFSET_BOX.test(chrome(f.text))).map((f) => f.path)
+    expect(offset).toEqual([])
+  })
+
+  it('seats the Daily roster pick on the Career Select night-glass card', () => {
+    const css = FILES.find((f) => f.path.endsWith('DailyPreScreen.module.css'))!
+    const on = css.text.match(/\.classOn \{[^}]*\}/)![0]
+    expect(on).toContain('border-color: rgba(255, 211, 77, 0.72)')
+    expect(on).toContain('inset 0 0 18px rgba(255, 193, 7, 0.12)')
+    expect(css.text).toMatch(/\.classOn \.classLabel \{[^}]*--cc-gold-bright/)
   })
 
   it('lifts the shared Interlude header with the Title hairline', () => {
