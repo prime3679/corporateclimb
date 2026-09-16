@@ -5,6 +5,7 @@ import { createRoot, type Root } from 'react-dom/client'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import SettingsPanel from '@/components/SettingsPanel'
 import {
+  COFFEE_PAYMENT_URL_DEFAULT,
   COFFEE_THANKS_TOAST,
   COFFEE_TIP_LABEL,
   FEEDBACK_HELPER,
@@ -75,13 +76,14 @@ afterEach(async () => {
 })
 
 describe('coffeePaymentUrl', () => {
-  it('is empty when VITE_COFFEE_PAYMENT_URL is unset or blank', () => {
-    expect(coffeePaymentUrl({})).toBe('')
-    expect(coffeePaymentUrl({ VITE_COFFEE_PAYMENT_URL: '' })).toBe('')
-    expect(coffeePaymentUrl({ VITE_COFFEE_PAYMENT_URL: '   ' })).toBe('')
+  it('returns the default $2 Payment Link when VITE_COFFEE_PAYMENT_URL is unset or blank', () => {
+    expect(coffeePaymentUrl({})).toBe(COFFEE_PAYMENT_URL_DEFAULT)
+    expect(coffeePaymentUrl({})).toBe('https://buy.stripe.com/00w3cx4ZK1zc1bL38w6Zy02')
+    expect(coffeePaymentUrl({ VITE_COFFEE_PAYMENT_URL: '' })).toBe(COFFEE_PAYMENT_URL_DEFAULT)
+    expect(coffeePaymentUrl({ VITE_COFFEE_PAYMENT_URL: '   ' })).toBe(COFFEE_PAYMENT_URL_DEFAULT)
   })
 
-  it('trims VITE_COFFEE_PAYMENT_URL when set in test', () => {
+  it('trims VITE_COFFEE_PAYMENT_URL and uses it as an override when set', () => {
     expect(coffeePaymentUrl({ VITE_COFFEE_PAYMENT_URL: ' https://pay.example/coffee ' })).toBe(
       'https://pay.example/coffee',
     )
@@ -96,10 +98,16 @@ describe('coffeePaymentUrl', () => {
 })
 
 describe('Title coffee tip', () => {
-  it('hides the tip CTA when the payment URL is unset', async () => {
-    tipState.url = ''
+  it('shows the tip CTA with the default $2 Payment Link', async () => {
+    tipState.url = COFFEE_PAYMENT_URL_DEFAULT
     await mount(<TitleScreen {...titleProps()} />)
-    expect(container!.textContent).not.toContain(COFFEE_TIP_LABEL)
+    const tip = [...container!.querySelectorAll('button')].find(
+      (el) => el.textContent === COFFEE_TIP_LABEL,
+    )
+    expect(tip).toBeDefined()
+    expect(tip!.textContent).toBe('Buy the intern a coffee — $2')
+    expect(COFFEE_PAYMENT_URL_DEFAULT).toBe('https://buy.stripe.com/00w3cx4ZK1zc1bL38w6Zy02')
+    expect(coffeePaymentUrl({})).toBe(COFFEE_PAYMENT_URL_DEFAULT)
   })
 
   it('shows the exact tip copy when VITE_COFFEE_PAYMENT_URL is set', async () => {

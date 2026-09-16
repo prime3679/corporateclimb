@@ -7,13 +7,15 @@ export const FEEDBACK_HELPER = 'Bugs, ideas, or a quick note — it goes straigh
 export const COFFEE_TIP_LABEL = 'Buy the intern a coffee — $2'
 export const COFFEE_THANKS_TOAST = 'Thanks — the intern’s fueled. Keep climbing.'
 export const COFFEE_THANKS_PARAM = 'thanks'
+export const COFFEE_PAYMENT_URL_DEFAULT = 'https://buy.stripe.com/00w3cx4ZK1zc1bL38w6Zy02'
 
-/** Prefers `VITE_COFFEE_PAYMENT_URL`. Empty / unset hides the Title tip CTA. */
+/** Tip CTA stays visible via source default; `VITE_COFFEE_PAYMENT_URL` is an optional override. */
 export function coffeePaymentUrl(
   env: { VITE_COFFEE_PAYMENT_URL?: string } = import.meta.env,
 ): string {
   const raw = env.VITE_COFFEE_PAYMENT_URL
-  return typeof raw === 'string' ? raw.trim() : ''
+  const trimmed = typeof raw === 'string' ? raw.trim() : ''
+  return trimmed || COFFEE_PAYMENT_URL_DEFAULT
 }
 
 export const COFFEE_PAYMENT_URL = coffeePaymentUrl()

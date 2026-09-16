@@ -56,7 +56,7 @@ npm run preview # preview the production build locally
 
 This project is deployed on [Vercel](https://vercel.com). Push to `main` and Vercel will automatically build and deploy from the `dist/` output.
 
-The Title coffee tip is gated on `VITE_COFFEE_PAYMENT_URL` (set it in the Vercel Production env to show **Buy the intern a coffee — $2**). In-game **Send feedback** opens the GitHub issue chooser.
+The Title coffee tip defaults to the $2 Stripe Payment Link (`https://buy.stripe.com/00w3cx4ZK1zc1bL38w6Zy02`) and shows **Buy the intern a coffee — $2**. Set `VITE_COFFEE_PAYMENT_URL` to override. In-game **Send feedback** opens the GitHub issue chooser.
 
 ## Assets
 
