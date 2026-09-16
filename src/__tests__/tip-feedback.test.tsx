@@ -109,7 +109,7 @@ describe('Title coffee tip', () => {
       (el) => el.textContent === COFFEE_TIP_LABEL,
     )
     expect(tip).toBeDefined()
-    expect(tip!.textContent).toBe('Buy the intern a coffee — $5')
+    expect(tip!.textContent).toBe('Buy the intern a coffee — $2')
   })
 
   it('opens the payment URL in a new tab', async () => {

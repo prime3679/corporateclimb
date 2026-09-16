@@ -4,7 +4,7 @@ export const FEEDBACK_ISSUES_URL = 'https://github.com/prime3679/corporateclimb/
 export const FEEDBACK_LABEL = 'Send feedback'
 export const FEEDBACK_HELPER = 'Bugs, ideas, or a quick note — it goes straight to the captain.'
 
-export const COFFEE_TIP_LABEL = 'Buy the intern a coffee — $5'
+export const COFFEE_TIP_LABEL = 'Buy the intern a coffee — $2'
 export const COFFEE_THANKS_TOAST = 'Thanks — the intern’s fueled. Keep climbing.'
 export const COFFEE_THANKS_PARAM = 'thanks'
 
