@@ -1269,6 +1269,48 @@ desktop 1280×720 and phone 390×844, `after-*-wake.png` ~350ms after paint
 (mid-cascade), `*-skyline-crop.png` at 2× steady state, and
 `after-*-late-shift-crop.png` with the shift cycle scrubbed to 70%.
 
+### Pass J — fun: Title hero soft press + idle sheen
+
+Delight DRAFT, Fable lane (`TASK-CLIMB-FUN-002`), authored on tip
+`a1589f9` (`#144`). THE OFFICE plate on the welcome deck had the stock
+Button press (1px down over 140ms, same speed both ways) and no idle life.
+This cut gives the one gold thing on the deck a premium press and a sparse
+glass glint, with nothing above or below it touched. Pure chrome:
+`TitleScreen.module.css` only, no `TitleScreen.tsx` change, no engine
+work. Phone 472 canvas layout untouched (the hero's box is the same
+size in every still); skyline window life (`#144`) untouched; Classic
+tower untouched; no Floor 6.
+
+**After.**
+
+- **Soft press.** Pointer down settles the plate 1px down and to 98.5%
+  in 70ms, the outer shadow tucks from `0 6px 16px` to `0 2px 6px`, and
+  the face dims to 96%. Release eases back over 220ms on the ui ease-out.
+  Fast in, slow out: a plate on felt, not a bouncing arcade button.
+  Hover keeps the stock 1px lift and the `0 10px 22px` lift shadow.
+- **Idle sheen.** A `::after` band (104°, white 22% shoulders, warm white
+  55% peak, ~18% of the plate wide) crosses the plate once per 10s cycle
+  in its first 1.6s, ease-in-out, first pass 2.4s after the lobby opens,
+  then rests off the right edge for the remaining 8.4s. It paints over
+  the gold and under the label, clipped to the plate radius. The hero
+  element itself keeps `animation-name: none`, so the
+  `e2e/first-three-minutes.spec.ts` guard reads exactly what it always
+  did. While pressed the band is hidden and paused.
+- **Reduced motion.** The OS preference and the in-game `.reduce-motion`
+  root both strip the sheen animation, the hero transition, and the
+  hover / press transforms; the pressed shadow tuck stays as a static
+  state change. Probe (both canvases, both roots): `::after`
+  `animation-name: none`, hero `transition-duration: 0s`, pressed
+  `transform: none`.
+
+Shots in `docs/rpg/title-cta-sheen/`: `before-*` / `after-*` at desktop
+1280×720 and phone 390×844, plus 2× hero crops `*-hero-idle-crop.png`,
+`*-hero-hover-crop.png`, `*-hero-pressed-crop.png` (pointer held), and
+`after-*-hero-sheen-crop.png` with the sweep scrubbed to its midpoint.
+Numerically the sweep's peak lifts G/B on the gold by ~+22/+90 (idle
+`rgb(255,205,51)` → `rgb(255,227,141)` at the band centre), which is the
+low-amplitude target: visible as a glint, never a flash.
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
