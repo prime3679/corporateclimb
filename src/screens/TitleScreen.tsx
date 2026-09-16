@@ -52,6 +52,39 @@ const SKYLINE_FAR: ReadonlyArray<{ h: number; wing: boolean }> = [
   ...[104, 126, 90, 138, 98, 116, 82, 110].map((h) => ({ h: tower(h), wing: true })),
 ]
 
+/** Window life for the near skyline row. Every third window is lit (a
+ *  fixed lattice, so the phone's city never changes shape); each lit
+ *  window wakes on its own beat when the lobby opens and then drifts on
+ *  its own slow period, and one dark window in ~seven is a late shift
+ *  that switches on for a stretch of each cycle (3 on the phone, 8 on the
+ *  desktop). All of it is derived from the window's grid position, so the
+ *  city is the same on every open. */
+const WINDOW_WAKE_STEP_MS = 80
+const WINDOW_WAKE_STEPS = 11
+type WindowLife = { className: string; style: CSSProperties }
+function windowLife(tower: number, row: number): WindowLife {
+  // The lit lattice is indexed from the first core block so the phone's
+  // lit windows land exactly where they always have; the hashes use the
+  // absolute tower index so the wings never see a negative remainder.
+  const lit = (tower - SKYLINE_WING_LEFT.length + row) % 3 === 0
+  const lateShift = !lit && (tower * 5 + row * 3) % 7 === 0
+  const beat = (tower * 37 + row * 53) % WINDOW_WAKE_STEPS
+  const drift = 7 + ((tower * 13 + row * 7) % 7)
+  const shift = 16 + ((tower * 11 + row * 5) % 9)
+  const className = lit
+    ? `${styles.window} ${styles.windowLit}`
+    : lateShift
+      ? `${styles.window} ${styles.windowShift}`
+      : styles.window
+  return {
+    className,
+    style: {
+      '--win-wake': `${beat * WINDOW_WAKE_STEP_MS}ms`,
+      '--win-period': `${lit ? drift : shift}s`,
+    } as CSSProperties,
+  }
+}
+
 /** The three lead roles, in the order they stand on the lobby floor:
  *  the engineer takes the centre plate. Role captions are short on purpose
  *  — the badge frame is 96px wide on a phone. */
@@ -323,19 +356,16 @@ export default function TitleScreen({
               className={wing ? `${styles.tower} ${styles.skylineWing}` : styles.tower}
               style={{ height: h }}
             >
-              {Array.from({ length: Math.floor(h / 15) }).map((_, j) => (
-                <span
-                  key={j}
-                  className={
-                    // Indexed from the first core block so the phone's lit
-                    // windows land exactly where they always have.
-                    (i - SKYLINE_WING_LEFT.length + j) % 3 === 0
-                      ? `${styles.window} ${styles.windowLit}`
-                      : styles.window
-                  }
-                  style={{ top: 8 + j * 15 }}
-                />
-              ))}
+              {Array.from({ length: Math.floor(h / 15) }).map((_, j) => {
+                const life = windowLife(i, j)
+                return (
+                  <span
+                    key={j}
+                    className={life.className}
+                    style={{ top: 8 + j * 15, ...life.style }}
+                  />
+                )
+              })}
             </div>
           ))}
         </div>

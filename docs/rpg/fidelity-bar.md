@@ -1233,6 +1233,42 @@ Shots in `docs/rpg/daily-roster-night-glass/`: `daily-roster-phone.png`
 theater), `daily-roster-before-phone-crop.png` / `daily-roster-phone-crop.png`
 (the roster at 2×, before and after).
 
+### Pass J — fun: Title skyline window life
+
+Delight DRAFT, Fable lane (`TASK-CLIMB-FUN-001`), authored on tip
+`40e4a30` (`#143`). The night lobby's footer city was a static comb: every
+third window gold at 85%, the rest blue, from first paint forever. This
+cut gives the near row a life of its own without touching anything above
+the skyline. The hero keeps `animation-name: none`, the lead ring stays a
+hard inset line, the tagline stays one sentence-case line
+(`e2e/first-three-minutes.spec.ts` passes unchanged). No layout change on
+either canvas; phone 472 canvas untouched; no Floor 6; Classic tower
+untouched. `TitleScreen.tsx` + `TitleScreen.module.css` only.
+
+**After.**
+
+- **Wake.** When the lobby opens, the lit windows come on one at a time
+  over the first ~0.9s (11 beats of 80ms, each window's beat hashed from
+  its grid position) with a 700ms ease-out from 0 to the old 85%. A city
+  lighting up as you arrive, not a fade-in.
+- **Drift.** Each lit window then breathes between 85% and 55% opacity on
+  its own 7–13s period, delayed until its wake has landed so opacity is
+  never contested. Opacity only: no size, no colour change, no bloom past
+  the 4px the lit windows already had.
+- **Late shift.** One dark window in ~seven (3 on the phone's nine core
+  blocks, 8 across the desktop's 25) switches from blue to gold for about
+  a third of a 16–24s cycle, with ~200ms ramps so it reads as a light
+  switch rather than a fade. Off state is the ordinary blue, so the
+  reduced-motion and first-frame city is the old one.
+- **Reduced motion.** The OS preference and the in-game `.reduce-motion`
+  root both strip all three animations (probe: zero `title-window-*`
+  animations on both canvases under `reducedMotion: 'reduce'`).
+
+Shots in `docs/rpg/title-skyline-life/`: `before-*` / `after-*` at
+desktop 1280×720 and phone 390×844, `after-*-wake.png` ~350ms after paint
+(mid-cascade), `*-skyline-crop.png` at 2× steady state, and
+`after-*-late-shift-crop.png` with the shift cycle scrubbed to 70%.
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
