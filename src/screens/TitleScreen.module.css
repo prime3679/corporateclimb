@@ -345,8 +345,18 @@
 }
 
 /* THE OFFICE: the one gold thing on the deck. Soft offset shadow only —
-   no breathing glow — so it wins by value, not by bloom. */
+   no breathing glow — so it wins by value, not by bloom.
+
+   Two pieces of chrome live here. The press is a 70ms settle in (1px down,
+   a hair smaller, the shadow tucks under) and a 220ms release, so the
+   plate feels like glass on a felt pad rather than an arcade button. The
+   idle sheen is a specular band on ::after that crosses the plate once
+   every ~10s and then rests off-plate; the hero element itself keeps
+   `animation-name: none` (the first-three-minutes guard reads it). */
 .hero {
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
   width: 100%;
   min-width: 250px;
   font-size: 22px;
@@ -357,6 +367,10 @@
     inset 0 1px 0 rgba(255, 255, 255, 0.55),
     inset 0 -2px 0 rgba(0, 0, 0, 0.12),
     0 6px 16px rgba(0, 0, 0, 0.36);
+  transition:
+    transform 220ms var(--cc-ease-out),
+    box-shadow 220ms var(--cc-ease-out),
+    filter 220ms var(--cc-ease-out);
 }
 
 @media (hover: hover) {
@@ -369,9 +383,75 @@
 }
 
 .hero:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  filter: brightness(0.96);
   box-shadow:
     inset 0 2px 0 rgba(0, 0, 0, 0.14),
-    0 3px 8px rgba(0, 0, 0, 0.3);
+    0 2px 6px rgba(0, 0, 0, 0.3);
+  transition-duration: 70ms;
+}
+
+.hero::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  pointer-events: none;
+  background: linear-gradient(
+    104deg,
+    rgba(255, 255, 255, 0) 41%,
+    rgba(255, 255, 255, 0.22) 47%,
+    rgba(255, 252, 240, 0.55) 50%,
+    rgba(255, 255, 255, 0.22) 53%,
+    rgba(255, 255, 255, 0) 59%
+  );
+  transform: translateX(-100%);
+  animation: title-hero-sheen 10s ease-in-out 2.4s infinite;
+}
+
+.hero:active::after {
+  animation-play-state: paused;
+  opacity: 0;
+}
+
+/* The band crosses in the first 1.6s of each 10s cycle, then waits off
+   the right edge; the rest is plate. */
+@keyframes title-hero-sheen {
+  0% {
+    transform: translateX(-100%);
+  }
+  16%,
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+:global(.reduce-motion) .hero {
+  transition: none;
+}
+
+:global(.reduce-motion) .hero::after {
+  animation: none;
+}
+
+:global(.reduce-motion) .hero:hover:not(:disabled),
+:global(.reduce-motion) .hero:active:not(:disabled) {
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero {
+    transition: none;
+  }
+
+  .hero::after {
+    animation: none;
+  }
+
+  .hero:hover:not(:disabled),
+  .hero:active:not(:disabled) {
+    transform: none;
+  }
 }
 
 .status {
