@@ -589,9 +589,76 @@
   opacity: 0.85;
 }
 
+/* Window life (per-window --win-wake / --win-period come from
+   windowLife() in TitleScreen.tsx). Lit windows come on one by one over
+   the first ~0.9s of the lobby, then each drifts between 85% and 55% on
+   its own 7–13s period so the city is never quite still. The drift is
+   delayed until the wake has landed at 85%, so the two never fight over
+   opacity and nothing pops. Opacity only: no size, no colour, no bloom
+   beyond the 4px the lit windows already had. */
 .windowLit {
   background: #ffd54f;
   box-shadow: 0 0 4px rgba(255, 213, 79, 0.3);
+  animation:
+    title-window-drift var(--win-period, 9s) ease-in-out calc(var(--win-wake, 0ms) + 700ms) infinite,
+    title-window-wake 700ms ease-out var(--win-wake, 0ms) backwards;
+}
+
+/* Late shift: a dark window that switches on for about a third of each
+   16–24s cycle. The 1% ramps are ~200ms, a light switch rather than a
+   fade, and the off state is the ordinary blue so a reduced-motion or
+   first-frame city is exactly the old one. */
+.windowShift {
+  animation: title-window-shift var(--win-period, 20s) linear var(--win-wake, 0ms) infinite;
+}
+
+@keyframes title-window-wake {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 0.85;
+  }
+}
+
+@keyframes title-window-drift {
+  0%,
+  100% {
+    opacity: 0.85;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+@keyframes title-window-shift {
+  0%,
+  58% {
+    background: #2f5fc9;
+    box-shadow: none;
+  }
+  59%,
+  92% {
+    background: #ffd54f;
+    box-shadow: 0 0 4px rgba(255, 213, 79, 0.3);
+  }
+  93%,
+  100% {
+    background: #2f5fc9;
+    box-shadow: none;
+  }
+}
+
+:global(.reduce-motion) .windowLit,
+:global(.reduce-motion) .windowShift {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .windowLit,
+  .windowShift {
+    animation: none;
+  }
 }
 
 /* Extra skyline blocks either side of the phone's nine; only the wide
