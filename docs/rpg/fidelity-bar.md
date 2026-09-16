@@ -1311,6 +1311,54 @@ Numerically the sweep's peak lifts G/B on the gold by ~+22/+90 (idle
 `rgb(255,205,51)` → `rgb(255,227,141)` at the band centre), which is the
 low-amplitude target: visible as a glint, never a flash.
 
+### Pass J — week: Office F1 entry night glass
+
+Keep-it-humming DRAFT, Fable lane (`TASK-CLIMB-WEEK-0916`), authored on tip
+`63e2c74` (`#145`). The first screens after THE OFFICE still wore two
+things the Title deck no longer does. The F1 HUD tinted its glass with
+10–22% gold (`color-mix(… var(--cc-glass) 90%, var(--cc-gold) 10%)` on the
+work ticket, 14% on the wallet chip, 22% on the key chips), which renders
+as a khaki block next to the neutral Title glass; the Class Select perk
+callout and the battle bench picker carried the same mix. And on the
+campaign card, NEW CAMPAIGN beside CONTINUE was the Classic climb's solid
+blue — the colour that on the Title means the other game. CSS plus one
+`className` hook (`OfficeStartScreen.tsx`); no engine, no harness, no
+animation added, so `prefers-reduced-motion` and `.reduce-motion` have
+nothing new to still. Title untouched (`#144` skyline, `#145` sheen stay as
+merged); Settings untouched; Classic tower untouched; no Floor 6.
+
+**After.**
+
+- **Work ticket.** The Title FLOOR sign's night glass: neutral `--cc-glass`
+  under a gold wash (`rgba(255,213,79,.10)`) that fades by a third of the
+  plate, on the sign's gold hairline `rgba(255,211,77,.45)`. The 4px gold
+  accent bar and the perforated edge stay. The plain objective plate,
+  wallet chip and key chips drop the gold mix for `--cc-glass` /
+  `--cc-fill-soft` on their existing hairlines; the dest chip is untouched
+  (it is a type-coloured stamp, not a plate).
+- **Class Select perk.** The same ticket glass — gold wash over neutral
+  glass on the sign hairline — so the hero plate's one warm row matches the
+  ticket the player sees ten seconds later.
+- **NEW CAMPAIGN.** Takes the Title deck's NEW CLIMB ghost verbatim:
+  `rgba(255,255,255,.04)` fill, `rgba(255,255,255,.3)` stroke, full text
+  colour, display face, no lift shadow. Scoped to `.actions .newCampaign`
+  so the shared `Button` secondary is untouched. Only the with-save path
+  renders it; a fresh campaign goes straight to Class Select.
+- **Also swept.** The team overlay's close chip (`Overlays.module.css
+.close`) and the battle bench picker (`OfficeScreen.module.css .bench`)
+  carried the same mix and take the neutral fill, so the guard below holds
+  on a clean tree.
+- **Guard.** `src/__tests__/pass-j-arcade-orange.test.ts` now fails on any
+  `color-mix(… --cc-glass|--cc-fill-soft …, --cc-gold)` fill under
+  `src/screens/office`, pins the ticket and the perk to the sign hairline,
+  and pins NEW CAMPAIGN to the ghost.
+
+Shots in `docs/rpg/f1-entry-night-glass/`: `before-` / `after-phone-*.png`
+(390×844 for the campaign card, Class Select and F1 reception),
+`before-` / `after-phone-hud-crop.png` (the HUD at 2×),
+`before-` / `after-desktop-start-save.png` and `after-desktop-f1-reception.png`
+(1920×1080 theater, downscaled to 1280×720).
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
@@ -1341,7 +1389,12 @@ re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
   (`.handoutThick`) is a drawn glyph and the one named exception.
 - **Classic.** Visible from the Office side only as the CONTINUE-blue
   secondary (START CLIMB) and brick DAILY; its screens borrow the lobby
-  and the hairline, never the reverse.
+  and the hairline, never the reverse. Inside the Office the second action
+  is the deck's ghost, never Classic blue (`week-0916`).
+- **No khaki.** Gold never mixes into a glass fill: the F1 HUD plates and
+  the Class Select perk are neutral `--cc-glass` under a fading gold wash on
+  the sign hairline (`week-0916`); the arcade-orange suite refuses the mix
+  under `src/screens/office`.
 
 ## Still Fable's (do not treat this PR as §14 done)
 

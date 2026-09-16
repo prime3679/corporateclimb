@@ -263,14 +263,16 @@
   background: var(--stat, var(--cc-gold));
 }
 
+/* Perk callout: the same night glass as the F1 work ticket — gold wash
+   over neutral glass on the Title sign's gold hairline. */
 .perk {
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 8px 10px;
   border-radius: var(--radius-sm);
-  background: color-mix(in srgb, var(--cc-glass) 88%, var(--cc-gold) 12%);
-  border: 1px solid color-mix(in srgb, var(--cc-gold) 46%, var(--cc-line-strong));
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 46%), var(--cc-glass);
+  border: 1px solid rgba(255, 211, 77, 0.45);
 }
 
 .perkName {

@@ -47,6 +47,10 @@ const HARD_OFFSET_BOX =
   /(box-shadow|boxShadow)\s*:[^;]*?(?:^|[\s,'"])-?[1-9]\d*px\s+-?[1-9]\d*px\s+0(px)?(?=[\s,;'"])/im
 // The Office handout icon stacks translucent offsets to draw a sheaf of
 // paper — a pixel glyph, not a card, so it sits beside DamageNumber.
+// The Office HUD used to tint its glass with 10–22% gold, which rendered
+// as a khaki block against the neutral Title glass. Gold now lives in the
+// hairline stroke and a fading wash, never mixed into the fill.
+const KHAKI = /color-mix\(in srgb, var\(--cc-(?:glass|fill-soft)\) \d+%, var\(--cc-gold\)/
 const DRAWN_GLYPHS = [/\.handoutThick \{[^}]*\}/]
 const chrome = (text: string) => DRAWN_GLYPHS.reduce((t, re) => t.replace(re, ''), text)
 
@@ -75,6 +79,32 @@ describe('Pass J ultra — arcade orange sweep', () => {
     expect(cream).toEqual([])
     const offset = FILES.filter((f) => HARD_OFFSET_BOX.test(chrome(f.text))).map((f) => f.path)
     expect(offset).toEqual([])
+  })
+
+  it('paints no gold-tinted (khaki) glass in the Office plates', () => {
+    const hits = FILES.filter(
+      (f) => f.path.startsWith('src/screens/office/') && KHAKI.test(f.text),
+    ).map((f) => f.path)
+    expect(hits).toEqual([])
+  })
+
+  it('seats the F1 work ticket and the Class Select perk on the Title sign hairline', () => {
+    const hud = FILES.find((f) => f.path.endsWith('OfficeScreen.module.css'))!
+    const ticket = hud.text.match(/\.ticket \{[^}]*\}/)![0]
+    expect(ticket).toContain('border-color: rgba(255, 211, 77, 0.45)')
+    expect(ticket).toContain('border-left-color: var(--cc-gold)')
+    const select = FILES.find((f) => f.path.endsWith('OfficeClassSelect.module.css'))!
+    const perk = select.text.match(/\.perk \{[^}]*\}/)![0]
+    expect(perk).toContain('border: 1px solid rgba(255, 211, 77, 0.45)')
+  })
+
+  it('ghosts NEW CAMPAIGN beside CONTINUE like the Title deck', () => {
+    const css = FILES.find((f) => f.path.endsWith('OfficeStartScreen.module.css'))!
+    const ghost = css.text.match(/\.actions \.newCampaign \{[^}]*\}/)![0]
+    expect(ghost).toContain('background: rgba(255, 255, 255, 0.04)')
+    expect(ghost).toContain('border-color: rgba(255, 255, 255, 0.3)')
+    const tsx = FILES.find((f) => f.path.endsWith('OfficeStartScreen.tsx'))!
+    expect(tsx.text).toContain('className={save ? styles.newCampaign : undefined}')
   })
 
   it('seats the Daily roster pick on the Career Select night-glass card', () => {
