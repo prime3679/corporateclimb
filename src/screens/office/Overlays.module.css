@@ -467,7 +467,7 @@
   padding: 0 12px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--cc-line-strong);
-  background: color-mix(in srgb, var(--cc-fill-soft) 80%, var(--cc-gold) 20%);
+  background: var(--cc-fill-soft);
   color: var(--cc-text-2);
   font-family: var(--cc-font-display);
   font-size: var(--display-xs);

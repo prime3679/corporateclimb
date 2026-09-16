@@ -164,6 +164,7 @@ export default function OfficeStartScreen({
             <Button
               variant={save ? 'secondary' : 'primary'}
               size={save ? 'md' : 'lg'}
+              className={save ? styles.newCampaign : undefined}
               onClick={() => {
                 if (save) {
                   SFX.menuSelect()

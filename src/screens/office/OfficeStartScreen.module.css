@@ -186,6 +186,18 @@
   min-height: var(--tap-min);
 }
 
+/* NEW CAMPAIGN beside CONTINUE: the Title deck's NEW CLIMB ghost — a
+   near-transparent fill on a stroke you can see, in the display face —
+   not the Classic climb's blue, which on the Title means the other game. */
+.actions .newCampaign {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: var(--cc-text);
+  box-shadow: none;
+  font-family: var(--cc-font-display);
+  font-weight: normal;
+}
+
 .danger {
   padding: 13px 22px;
   border-radius: var(--radius-md);
