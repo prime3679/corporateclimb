@@ -1359,6 +1359,49 @@ Shots in `docs/rpg/f1-entry-night-glass/`: `before-` / `after-phone-*.png`
 `before-` / `after-desktop-start-save.png` and `after-desktop-f1-reception.png`
 (1920×1080 theater, downscaled to 1280×720).
 
+### Pass J — fun: install nudge night glass
+
+Overnight fun DRAFT, Fable lane (`overnight-fun-0916`), authored on tip
+`0a42801` (`#146`). The install offer on the run-end screens (Game Over,
+Daily result, Run Complete) was the last plate still wearing the khaki mix
+the bible bans: an 8% gold fill (`rgba(255,193,7,.08)`) on a 30% gold
+border, all inline in `components/InstallNudge.tsx`, and it popped into
+place with the rest of the screen. It is the beat that turns a visit into a
+home-screen open, so it should read as the same furniture as the Title
+sign, not a banner. CSS module plus className swaps; the mode union, the
+frequency cap, the copy and the Button variants are untouched. No engine,
+no harness. Title (`#144` skyline, `#145` sheen) untouched; Office
+(`#146`) untouched; Classic tower untouched.
+
+**After.**
+
+- **Night glass.** The Title FLOOR sign's plate: neutral `--cc-glass`
+  under a gold wash (`rgba(255,213,79,.10)`) that fades by 46% of the
+  plate, on the sign's gold hairline `rgba(255,211,77,.45)`, a 1px white
+  6% inset top line and the shared `--shadow-sm`. The INSTALL button stays
+  the one gold thing on the plate. Probe (phone, phone iOS, desktop):
+  background `linear-gradient(rgba(255,213,79,.1), transparent 46%) /
+rgba(13,18,27,.96)`, border `rgba(255,211,77,.45)`.
+- **Soft rise.** The plate lifts in once: opacity 0 → 1 and 6px → 0 over
+  320ms on the ui ease-out, after a 180ms beat (`backwards` fill, so it is
+  absent rather than half-drawn during the beat). It lands after the
+  run-end screen has settled instead of competing with the headline.
+- **Reduced motion.** The OS preference and the in-game `.reduce-motion`
+  root both strip the rise (probe: `animation-name: none`,
+  `animation-duration: 0s`, opacity 1 on both roots); the glass is a
+  static state and stays.
+- **Guard.** `src/__tests__/pass-j-arcade-orange.test.ts` pins the nudge
+  by name (it lives under `src/components`, outside the sweep): sign
+  hairline, `--cc-glass` fill, no `color-mix` khaki, no hard-offset box
+  shadow, and no `style={{` or `rgba(255,193,7` left in the component.
+  Mutating the fill back to the gold mix fails the test.
+
+Shots in `docs/rpg/install-nudge-night-glass/`: `before-` / `after-phone.png`
+(390×844, Game Over with the captured prompt), `before-` /
+`after-phone-ios.png` (the Share-sheet copy), `before-` / `after-desktop.png`
+(1280×720), 2× `*-nudge-crop.png` for each, and
+`after-*-rise-nudge-crop.png` with the rise scrubbed to its midpoint.
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
@@ -1394,7 +1437,9 @@ re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
 - **No khaki.** Gold never mixes into a glass fill: the F1 HUD plates and
   the Class Select perk are neutral `--cc-glass` under a fading gold wash on
   the sign hairline (`week-0916`); the arcade-orange suite refuses the mix
-  under `src/screens/office`.
+  under `src/screens/office`. The run-end install nudge is the same plate
+  (`overnight-fun-0916`), pinned by name because it lives under
+  `src/components`.
 
 ## Still Fable's (do not treat this PR as §14 done)
 

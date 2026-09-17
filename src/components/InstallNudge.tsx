@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { canInstall, isIOS, promptInstall } from '@/platform'
 import { markInstallNudgeShown, shouldShowInstallNudge } from '@/onboarding'
 import { Button } from '@/ui'
+import styles from './InstallNudge.module.css'
 
 /**
  * The install offer, surfaced at run-end moments (the natural "I want
@@ -23,29 +24,13 @@ export default function InstallNudge() {
   if (mode === 'hidden') return null
 
   return (
-    <div
-      className="t-body"
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 10,
-        maxWidth: 320,
-        width: '100%',
-        padding: '10px 12px',
-        borderRadius: 'var(--radius-md)',
-        border: '1px solid rgba(255,211,77,.3)',
-        background: 'rgba(255,193,7,.08)',
-        fontSize: 'var(--body-sm)',
-        color: 'var(--paper)',
-        lineHeight: 1.25,
-      }}
-    >
-      <span aria-hidden="true" style={{ fontSize: 20 }}>
+    <div className={`t-body ${styles.nudge}`}>
+      <span aria-hidden="true" className={styles.glyph}>
         📲
       </span>
       {mode === 'prompt' && (
         <>
-          <span style={{ flex: 1 }}>Keep climbing offline — install Corporate Climber.</span>
+          <span className={styles.copy}>Keep climbing offline — install Corporate Climber.</span>
           <Button
             variant="primary"
             size="sm"
@@ -59,11 +44,13 @@ export default function InstallNudge() {
         </>
       )}
       {mode === 'ios' && (
-        <span style={{ flex: 1 }}>
+        <span className={styles.copy}>
           Add it to your home screen: <b>Share</b> → <b>Add to Home Screen</b>.
         </span>
       )}
-      {mode === 'done' && <span style={{ flex: 1 }}>Installed — see you on the home screen.</span>}
+      {mode === 'done' && (
+        <span className={styles.copy}>Installed — see you on the home screen.</span>
+      )}
     </div>
   )
 }

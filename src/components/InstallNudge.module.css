@@ -1,0 +1,52 @@
+/* The install offer on the run-end screens. It wears the Title FLOOR
+   sign's night glass: neutral --cc-glass under a gold wash that fades by
+   roughly a third of the plate, on the sign's gold hairline. No
+   gold-tinted (khaki) fill. One soft rise once the screen has settled. */
+.nudge {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  max-width: 320px;
+  padding: 10px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 211, 77, 0.45);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 46%), var(--cc-glass);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-sm);
+  color: var(--cc-text);
+  font-size: var(--body-sm);
+  line-height: 1.25;
+  animation: install-nudge-rise 320ms var(--cc-ease-out) 180ms backwards;
+}
+
+.glyph {
+  font-size: 20px;
+}
+
+.copy {
+  flex: 1;
+}
+
+@keyframes install-nudge-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:global(.reduce-motion) .nudge {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .nudge {
+    animation: none;
+  }
+}
