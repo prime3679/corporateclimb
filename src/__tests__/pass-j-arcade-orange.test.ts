@@ -14,7 +14,9 @@ import { describe, expect, it } from 'vitest'
  *
  * The one hard offset that stays is `components/DamageNumber.tsx` — a
  * battle VFX outline that has to survive on top of sprite art, not a
- * headline. It lives outside `src/screens` on purpose.
+ * headline. It lives outside `src/screens` on purpose. The install nudge
+ * is pinned by name for the same reason, in reverse: it is run-end screen
+ * chrome that lives under `src/components`, so the sweep misses it.
  */
 
 const ROOT = process.cwd()
@@ -139,5 +141,17 @@ describe('Pass J ultra — arcade orange sweep', () => {
       const f = FILES.find((x) => x.path.endsWith(name))!
       expect(f.text, name).toMatch(HAIRLINE)
     }
+  })
+
+  it('seats the install nudge on the Title sign night glass', () => {
+    const css = readFileSync(join(ROOT, 'src/components/InstallNudge.module.css'), 'utf8')
+    const nudge = css.match(/\.nudge \{[^}]*\}/)![0]
+    expect(nudge).toContain('border: 1px solid rgba(255, 211, 77, 0.45)')
+    expect(nudge).toContain('var(--cc-glass)')
+    expect(nudge).not.toMatch(KHAKI)
+    expect(nudge).not.toMatch(HARD_OFFSET_BOX)
+    const tsx = readFileSync(join(ROOT, 'src/components/InstallNudge.tsx'), 'utf8')
+    expect(tsx).not.toContain('rgba(255,193,7')
+    expect(tsx).not.toContain('style={{')
   })
 })
