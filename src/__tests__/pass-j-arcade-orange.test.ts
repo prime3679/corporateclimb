@@ -143,6 +143,18 @@ describe('Pass J ultra — arcade orange sweep', () => {
     }
   })
 
+  it('seats the Daily score card on the Title sign night glass', () => {
+    const css = FILES.find((f) => f.path.endsWith('DailyResultScreen.module.css'))!
+    const card = css.text.match(/\.scoreCard \{[^}]*\}/)![0]
+    expect(card).toContain('border: 1px solid rgba(255, 211, 77, 0.45)')
+    expect(card).toContain('var(--cc-glass)')
+    expect(card).not.toContain('rgba(0, 0, 0, 0.85)')
+    expect(card).not.toContain('var(--amber-deep)')
+    expect(card).not.toMatch(KHAKI)
+    expect(card).not.toMatch(HARD_OFFSET_BOX)
+    expect(css.text).toMatch(/:global\(\.reduce-motion\) \.scoreCard \{\s*animation: none;/)
+  })
+
   it('seats the install nudge on the Title sign night glass', () => {
     const css = readFileSync(join(ROOT, 'src/components/InstallNudge.module.css'), 'utf8')
     const nudge = css.match(/\.nudge \{[^}]*\}/)![0]
