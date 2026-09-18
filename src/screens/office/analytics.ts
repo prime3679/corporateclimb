@@ -1,7 +1,8 @@
 // Office funnel events derived from state transitions, so the reducer
 // stays pure and no screen has to remember to call track() by hand.
 import { track } from '@/analytics'
-import type { OfficeState } from '@/engine/office'
+import { floorNumber } from '@/content/office'
+import { celebrationFloor, type OfficeState } from '@/engine/office'
 
 export function trackOfficeTransition(prev: OfficeState, next: OfficeState) {
   if (prev === next) return
@@ -18,11 +19,13 @@ export function trackOfficeTransition(prev: OfficeState, next: OfficeState) {
   const prevCel = prev.overlay?.kind === 'celebration' ? prev.overlay.screen : null
   const nextCel = next.overlay?.kind === 'celebration' ? next.overlay.screen : null
   if (nextCel && nextCel !== prevCel) {
-    track('office_floor_cleared', { floor, screen: nextCel })
+    // celebrationFloor is the floor that was actually cleared — next.floorId
+    // can already be the landing after the elevator ride.
+    track('floor_clear', { floor: floorNumber(celebrationFloor(nextCel)), screen: nextCel })
     // The Exec celebration is the end of the campaign — mirror Classic's
     // run_end so the launch funnel's last step reads the same for both modes.
     if (nextCel === 'screen_floor5_complete') {
-      track('run_end', { mode: 'office', screen: nextCel })
+      track('run_end', { mode: 'office', screen: nextCel, result: 'win' })
     }
   }
 }

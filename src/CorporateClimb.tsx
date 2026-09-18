@@ -101,7 +101,7 @@ import { Sequencer, initialBattleView, type BattleView } from './sequencer'
 import { TEXT_SPEED_MS, loadSettings, saveSettings } from './settings'
 import SettingsPanel from './components/SettingsPanel'
 import SaveNotice from './components/SaveNotice'
-import { setAnalyticsEnabled, trackScreenChange } from './analytics'
+import { setAnalyticsEnabled, trackScreenChange, type SessionExtras } from './analytics'
 import CareerPanel from './components/CareerPanel'
 
 // ─── SPRITE PRELOADER ────────────────────────────────────────
@@ -135,9 +135,13 @@ export default function CorporateClimb() {
   const [screen, setScreenRaw] = useState<Screen>('title')
   // Player signal: one funnel event per screen change, including direct
   // setScreenRaw('title') resets. Effect-synced so no ref is written in render.
+  // sessionExtrasRef carries win/loss for dailyResult (same screen either way).
   const prevScreenRef = useRef<Screen>('title')
+  const sessionExtrasRef = useRef<SessionExtras>({})
   useEffect(() => {
-    trackScreenChange(prevScreenRef.current, screen)
+    const extras = sessionExtrasRef.current
+    sessionExtrasRef.current = {}
+    trackScreenChange(prevScreenRef.current, screen, extras)
     prevScreenRef.current = screen
   }, [screen])
   const [fadeClass, setFadeClass] = useState<'in' | 'out'>('in')
@@ -407,11 +411,13 @@ export default function CorporateClimb() {
           modifierId: mode.modifierId,
         })
         SFX.gameOver()
+        sessionExtrasRef.current = { result: 'loss' }
         setScreen('dailyResult')
       } else {
         setLastRecord(record)
         clearSave()
         SFX.gameOver()
+        sessionExtrasRef.current = { result: 'loss' }
         setScreen('gameOver')
       }
     },
@@ -637,6 +643,7 @@ export default function CorporateClimb() {
         })
         SFX.fanfare()
         setRun(next)
+        sessionExtrasRef.current = { result: 'win' }
         setScreen('dailyResult')
       } else {
         clearSave()
@@ -656,6 +663,7 @@ export default function CorporateClimb() {
         )
         SFX.fanfare()
         setRun(next)
+        sessionExtrasRef.current = { result: 'win' }
         setScreen('win')
       }
       return

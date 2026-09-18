@@ -17,6 +17,12 @@ import TitleScreen from '@/screens/TitleScreen'
 import { DEFAULT_SETTINGS } from '@/settings'
 
 const tipState = vi.hoisted(() => ({ url: '' }))
+const trackMock = vi.hoisted(() => vi.fn())
+
+vi.mock('@/analytics', () => ({
+  track: (...args: unknown[]) => trackMock(...args),
+  setAnalyticsEnabled: () => {},
+}))
 
 vi.mock('@/config/tip', async (importOriginal) => {
   const actual = await importOriginal<typeof import('@/config/tip')>()
@@ -67,6 +73,7 @@ function titleProps() {
 
 beforeEach(() => {
   tipState.url = ''
+  trackMock.mockClear()
   window.history.replaceState(null, '', '/')
 })
 
@@ -123,6 +130,8 @@ describe('Title coffee tip', () => {
       tip!.click()
     })
     expect(open).toHaveBeenCalledWith('https://pay.example/coffee', '_blank', 'noopener,noreferrer')
+    expect(trackMock).toHaveBeenCalledTimes(1)
+    expect(trackMock).toHaveBeenCalledWith('tip_click')
     open.mockRestore()
   })
 
@@ -143,6 +152,13 @@ describe('Title coffee tip', () => {
 })
 
 describe('Settings feedback drop', () => {
+  it('does not fire session events when only settings are open', async () => {
+    await mount(
+      <SettingsPanel settings={DEFAULT_SETTINGS} onChange={() => {}} onClose={() => {}} />,
+    )
+    expect(trackMock).not.toHaveBeenCalled()
+  })
+
   it('renders Send feedback with the captain helper and chooser href', async () => {
     await mount(
       <SettingsPanel settings={DEFAULT_SETTINGS} onChange={() => {}} onClose={() => {}} />,

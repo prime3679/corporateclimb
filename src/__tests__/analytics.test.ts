@@ -88,6 +88,17 @@ describe('analytics', () => {
         },
     )
 
+  const SESSION_EVENTS = [
+    'climb_start',
+    'floor_clear',
+    'run_end',
+    'daily_complete',
+    'tip_click',
+  ] as const
+
+  const sessionEvents = () =>
+    events().filter((e) => (SESSION_EVENTS as readonly string[]).includes(e))
+
   it('maps screen transitions to funnel events', () => {
     setAnalyticsEnabled(true)
     trackScreenChange('title', 'officeClassSelect')
@@ -95,9 +106,90 @@ describe('analytics', () => {
     fetchSpy.mockClear()
     trackScreenChange('battle', 'gameOver')
     expect(events()).toEqual(['screen_view', 'run_end'])
+    expect(bodies()[1].properties).toMatchObject({ result: 'loss', mode: 'classic' })
     fetchSpy.mockClear()
     trackScreenChange('title', 'title')
     expect(events()).toEqual([])
+  })
+
+  it('does not fire session events on a title bounce or settings-only stay', () => {
+    setAnalyticsEnabled(true)
+    trackScreenChange('title', 'title')
+    trackScreenChange('title', 'officeClassSelect')
+    trackScreenChange('officeClassSelect', 'title')
+    trackScreenChange('title', 'officeStart')
+    trackScreenChange('officeStart', 'title')
+    trackScreenChange('title', 'classSelect')
+    trackScreenChange('classSelect', 'title')
+    trackScreenChange('title', 'dailyPre')
+    trackScreenChange('dailyPre', 'title')
+    trackScreenChange('title', 'codex')
+    trackScreenChange('codex', 'title')
+    expect(sessionEvents()).toEqual([])
+  })
+
+  it('fires climb_start only when a real play begins', () => {
+    setAnalyticsEnabled(true)
+    trackScreenChange('officeClassSelect', 'office')
+    expect(sessionEvents()).toEqual(['climb_start'])
+    expect(bodies().find((b) => b.event === 'climb_start')?.properties).toMatchObject({
+      mode: 'office',
+    })
+    fetchSpy.mockClear()
+    trackScreenChange('officeStart', 'office')
+    expect(sessionEvents()).toEqual(['climb_start'])
+    fetchSpy.mockClear()
+    trackScreenChange('classSelect', 'floorIntro')
+    expect(sessionEvents()).toEqual(['climb_start'])
+    expect(bodies().find((b) => b.event === 'climb_start')?.properties).toMatchObject({
+      mode: 'classic',
+    })
+    fetchSpy.mockClear()
+    trackScreenChange('dailyPre', 'floorIntro')
+    expect(sessionEvents()).toEqual(['climb_start'])
+    expect(bodies().find((b) => b.event === 'climb_start')?.properties).toMatchObject({
+      mode: 'daily',
+    })
+    fetchSpy.mockClear()
+    // Mid-run navigation is not a new session.
+    trackScreenChange('floorIntro', 'battle')
+    trackScreenChange('battle', 'victory')
+    trackScreenChange('victory', 'floorIntro')
+    expect(sessionEvents()).toEqual([])
+  })
+
+  it('fires run_end with result and daily_complete on a daily finish', () => {
+    setAnalyticsEnabled(true)
+    trackScreenChange('battle', 'win')
+    expect(sessionEvents()).toEqual(['run_end'])
+    expect(bodies().find((b) => b.event === 'run_end')?.properties).toMatchObject({
+      result: 'win',
+      mode: 'classic',
+    })
+    fetchSpy.mockClear()
+    trackScreenChange('battle', 'dailyResult', { result: 'win' })
+    expect(sessionEvents()).toEqual(['run_end', 'daily_complete'])
+    expect(bodies().find((b) => b.event === 'run_end')?.properties).toMatchObject({
+      result: 'win',
+      mode: 'daily',
+    })
+    fetchSpy.mockClear()
+    trackScreenChange('battle', 'dailyResult', { result: 'loss' })
+    expect(sessionEvents()).toEqual(['run_end', 'daily_complete'])
+    expect(bodies().find((b) => b.event === 'run_end')?.properties).toMatchObject({
+      result: 'loss',
+      mode: 'daily',
+    })
+  })
+
+  it('records tip_click with no payment fields', () => {
+    setAnalyticsEnabled(true)
+    track('tip_click')
+    expect(sessionEvents()).toEqual(['tip_click'])
+    const props = bodies()[0].properties
+    expect(props).not.toHaveProperty('email')
+    expect(props).not.toHaveProperty('amount')
+    expect(props).not.toHaveProperty('url')
   })
 
   describe('Office transitions', () => {
@@ -121,12 +213,12 @@ describe('analytics', () => {
       overlay: { kind: 'celebration', screen: 'screen_floor2_complete' },
     }
 
-    it('emits exactly fight_start, fight_won, floor_cleared for a floor clear', () => {
+    it('emits exactly fight_start, fight_won, floor_clear for a floor clear', () => {
       setAnalyticsEnabled(true)
       trackOfficeTransition(fresh, battle)
       trackOfficeTransition(battle, won)
       trackOfficeTransition(won, cleared)
-      expect(events()).toEqual(['office_fight_start', 'office_fight_won', 'office_floor_cleared'])
+      expect(events()).toEqual(['office_fight_start', 'office_fight_won', 'floor_clear'])
       const [start, win, clear] = bodies()
       expect(start.properties).toMatchObject({
         floor: 'floor_01',
@@ -134,12 +226,12 @@ describe('analytics', () => {
       })
       expect(win.properties).toMatchObject({ floor: 'floor_01', encounter: 'enc_desk_challenger' })
       expect(clear.properties).toMatchObject({
-        floor: 'floor_01',
+        floor: 2,
         screen: 'screen_floor2_complete',
       })
     })
 
-    it('adds run_end (mode office) only on the Exec celebration', () => {
+    it('adds run_end (mode office, result win) only on the Exec celebration', () => {
       setAnalyticsEnabled(true)
       const exec: OfficeState = {
         ...won,
@@ -147,10 +239,12 @@ describe('analytics', () => {
         overlay: { kind: 'celebration', screen: 'screen_floor5_complete' },
       }
       trackOfficeTransition(won, exec)
-      expect(events()).toEqual(['office_floor_cleared', 'run_end'])
+      expect(events()).toEqual(['floor_clear', 'run_end'])
+      expect(bodies()[0].properties).toMatchObject({ floor: 5 })
       expect(bodies()[1].properties).toMatchObject({
         mode: 'office',
         screen: 'screen_floor5_complete',
+        result: 'win',
       })
     })
 
