@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties } from 'react'
+import { track } from '@/analytics'
 import { getSpriteUrls } from '@/components/PixelSprite'
 import { PLAYER_CLASSES, TYPE_COLORS, getBestAscension } from '@/data'
 import { getDailyStreak, hasPlayedToday } from '@/daily'
@@ -319,7 +320,10 @@ export default function TitleScreen({
           <button
             type="button"
             className={styles.tip}
-            onClick={() => window.open(tipUrl, '_blank', 'noopener,noreferrer')}
+            onClick={() => {
+              track('tip_click')
+              window.open(tipUrl, '_blank', 'noopener,noreferrer')
+            }}
           >
             {COFFEE_TIP_LABEL}
           </button>

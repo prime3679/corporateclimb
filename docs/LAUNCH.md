@@ -69,9 +69,9 @@ downstream is measurable until 1–3 are done.
 
 ## Dashboard to build once events flow (PostHog, ~15 min)
 
-Funnel: `title_view` → `mode_start (office)` → `office_fight_start` →
-`office_fight_won` → `office_floor_cleared (screen_floor2_complete)` →
-`office_floor_cleared (screen_floor5_complete)` → `share`.
+Funnel: `title_view` → `mode_start (office)` → `climb_start` →
+`office_fight_start` → `office_fight_won` → `floor_clear (2)` →
+`floor_clear (5)` + `run_end { result: win }` → `share`.
 
 Two extra insights: `error` by `message` (crashes), and `mode_start` split
 by `mode` (how much Classic still matters).
