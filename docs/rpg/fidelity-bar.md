@@ -1402,6 +1402,48 @@ Shots in `docs/rpg/install-nudge-night-glass/`: `before-` / `after-phone.png`
 (1280×720), 2× `*-nudge-crop.png` for each, and
 `after-*-rise-nudge-crop.png` with the rise scrubbed to its midpoint.
 
+### Pass J — fun: Daily score card night glass
+
+Overnight fun DRAFT, Fable lane (`overnight-fun-0917`), authored on tip
+`37c6db9` (`#148`). `#132` moved the Daily result onto the night lobby and
+`#148` seated the install nudge under it on the sign glass, which left the
+score card between them as the last ink plate on the screen: an 85% black
+fill on an amber `--amber-deep` stroke, the pre-`#122` HUD card. It is the
+one thing the player reads after a Daily, so it now wears the same plate
+as the sign and the nudge below it. CSS only
+(`DailyResultScreen.module.css`); the `.tsx`, the smoke path
+(`e2e/smoke.spec.ts`), the share text and the daily seeding are untouched.
+The modifier name stays on `--amber-deep` (`#132` / `hum-001` designer
+call). Title, Office, Classic tower untouched.
+
+**After.**
+
+- **Night glass.** Neutral `--cc-glass` under the gold wash
+  (`rgba(255,213,79,.10)`) that fades by 46% of the card, on the sign's
+  gold hairline `rgba(255,211,77,.45)`, the 1px white 6% inset top line
+  and the shared `--shadow-sm`. The score stays `--gold-bright`; the stats
+  stay `--muted` / `--paper`; the wide-canvas report-card divider is
+  unchanged. Probe (phone and desktop, won and failed): background
+  `linear-gradient(rgba(255,213,79,.1), transparent 46%) /
+rgba(13,18,27,.96)`, border `rgba(255,211,77,.45)`, no black fill.
+- **Soft rise.** The card lifts in once, the nudge's beat: opacity 0 → 1
+  and 6px → 0 over 320ms on the ui ease-out after 180ms (`backwards`
+  fill). The verdict and modifier land first; the number arrives.
+- **Reduced motion.** The OS preference and the in-game `.reduce-motion`
+  root both strip the rise (probe: `animation-name: none`,
+  `animation-duration: 0s`, opacity 1 on both roots).
+- **Guard.** `src/__tests__/pass-j-arcade-orange.test.ts` pins
+  `.scoreCard`: sign hairline, `--cc-glass` fill, no `rgba(0,0,0,.85)`
+  ink, no `--amber-deep` stroke, no khaki, no hard-offset box shadow, and
+  the `.reduce-motion` override present.
+
+Shots in `docs/rpg/daily-score-night-glass/`: `before-` /
+`after-phone-won.png` and `-phone-failed.png` (390×844), `before-` /
+`after-desktop-won.png` and `-desktop-failed.png` (1280×720 theater),
+2× `*-card-crop.png` for each, and `after-*-rise-card-crop.png` with the
+rise scrubbed to its midpoint. Result screen mounted in the real `Stage`
+with a seeded 15/15 and 8/15 record, as in `#132`.
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
@@ -1439,7 +1481,8 @@ re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
   the sign hairline (`week-0916`); the arcade-orange suite refuses the mix
   under `src/screens/office`. The run-end install nudge is the same plate
   (`overnight-fun-0916`), pinned by name because it lives under
-  `src/components`.
+  `src/components`; the Daily score card above it is the same plate
+  (`overnight-fun-0917`).
 
 ## Still Fable's (do not treat this PR as §14 done)
 

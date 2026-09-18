@@ -7,7 +7,13 @@
    verdicts sit on the Title's tinted night lobby. A loss gets the faint
    top wash; a win swaps it for one warm pool at the Title cast's value
    behind the verdict instead of the old orange-to-gold wash, so the gold
-   type stays gold in either state and reads by value, not bloom. */
+   type stays gold in either state and reads by value, not bloom.
+
+   The score card is the Title FLOOR sign's plate (the install nudge below
+   it wears the same one): neutral --cc-glass under a gold wash that fades
+   by roughly a third of the card, on the sign's gold hairline. No black
+   ink fill, no amber stroke. It rises once after the headline has
+   settled; both reduced-motion roots leave it as a static state. */
 
 .screen {
   display: flex;
@@ -48,15 +54,41 @@
 }
 
 .scoreCard {
-  background: rgba(0, 0, 0, 0.85);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 46%), var(--cc-glass);
   border-radius: var(--radius-lg);
   padding: 14px 18px;
   max-width: 300px;
   width: 100%;
-  border: var(--border-w) solid var(--amber-deep);
+  border: 1px solid rgba(255, 211, 77, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-sm);
   display: flex;
   flex-direction: column;
   gap: 8px;
+  animation: daily-score-rise 320ms var(--cc-ease-out) 180ms backwards;
+}
+
+@keyframes daily-score-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:global(.reduce-motion) .scoreCard {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scoreCard {
+    animation: none;
+  }
 }
 
 .score {
