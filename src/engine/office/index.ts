@@ -59,6 +59,7 @@ export {
   type CelebrationScreen,
 } from './celebration'
 export { interactTarget, tryStep } from './movement'
+export { canAcceptMove, facingFromKey } from './walkInput'
 export {
   dismissCoworker,
   effectiveKit,

@@ -3,6 +3,7 @@ import {
   DIALOGUE,
   MAP_HEIGHT,
   MAP_WIDTH,
+  MOVE_MS,
   OFFICE_LIGHT_POOLS,
   PHOTO_BOOTH_COPY,
   TILE_SIZE,
@@ -288,6 +289,7 @@ export default function WorldMap({ state }: { state: OfficeState }) {
     <div
       ref={mapRef}
       className={styles.map}
+      data-testid="office-map"
       aria-label={`${floorLabel(state.floorId)} office map`}
       style={
         {
@@ -295,11 +297,13 @@ export default function WorldMap({ state }: { state: OfficeState }) {
           '--tile-sheet': `url(${TILE_SHEET_URL})`,
           '--sheet-w': `${TILE_SHEET_W}px`,
           '--sheet-h': `${TILE_SHEET_H}px`,
+          '--move-ms': `${MOVE_MS}ms`,
         } as CSSProperties
       }
     >
       <div
         className={styles.camera}
+        data-testid="office-camera"
         style={{ transform: `translate(${-camPx.x}px, ${-camPx.y}px)` }}
       >
         <FloorLayer floorId={state.floorId} />

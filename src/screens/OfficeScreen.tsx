@@ -10,6 +10,7 @@ import {
   dispatchOfficeAction,
   effectiveKit,
   encounterIntro,
+  facingFromKey,
   interactTarget,
   kitFor,
   maxHpFor,
@@ -24,7 +25,6 @@ import {
 } from '@/engine/office'
 import { GameRng } from '@/engine'
 import {
-  MOVE_MS,
   OFFICE_ENCOUNTERS,
   hudFloorEyebrow,
   officeBattleChrome,
@@ -49,6 +49,7 @@ import {
   promptVerb,
 } from './office/cast'
 import { useDeferredWallet, useOfficeFeedback } from './office/useOfficeFeedback'
+import { useOfficeWalkInput } from './office/useOfficeWalkInput'
 import styles from './office/OfficeScreen.module.css'
 import { officePromotionTiers } from '@/engine/office/promotion'
 
@@ -132,6 +133,11 @@ export default function OfficeScreen({
     [state, onChange, withTime],
   )
 
+  const walkOpen =
+    state.screen === 'overworld' && (!state.overlay || state.overlay.kind === 'coach')
+  const walkInput = useOfficeWalkInput(act, state.player, walkOpen)
+  const { startHold, release } = walkInput
+
   useEffect(() => () => sequencer.cancel(), [sequencer])
 
   // Funnel events diff consecutive `state` props rather than hooking `act`:
@@ -188,19 +194,10 @@ export default function OfficeScreen({
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (state.screen === 'overworld' && (!state.overlay || state.overlay.kind === 'coach')) {
-        const dir =
-          e.key === 'ArrowUp' || e.key === 'w' || e.key === 'W'
-            ? 'n'
-            : e.key === 'ArrowDown' || e.key === 's' || e.key === 'S'
-              ? 's'
-              : e.key === 'ArrowLeft' || e.key === 'a' || e.key === 'A'
-                ? 'w'
-                : e.key === 'ArrowRight' || e.key === 'd' || e.key === 'D'
-                  ? 'e'
-                  : null
+        const dir = facingFromKey(e.key)
         if (dir) {
           e.preventDefault()
-          act({ type: 'MOVE', dir })
+          if (!e.repeat) startHold(dir)
           return
         }
         if (e.key === 'e' || e.key === 'E' || e.key === 'Enter') {
@@ -272,9 +269,17 @@ export default function OfficeScreen({
         if (state.battle?.phase !== 'switch_required') act({ type: 'CANCEL_SWITCH' })
       }
     }
+    const onKeyUp = (e: KeyboardEvent) => {
+      const dir = facingFromKey(e.key)
+      if (dir) release(dir)
+    }
     window.addEventListener('keydown', onKey)
-    return () => window.removeEventListener('keydown', onKey)
-  }, [act, state])
+    window.addEventListener('keyup', onKeyUp)
+    return () => {
+      window.removeEventListener('keydown', onKey)
+      window.removeEventListener('keyup', onKeyUp)
+    }
+  }, [act, state, startHold, release])
 
   const playBattle = async (action: Parameters<typeof dispatchOfficeAction>[1]) => {
     if (busyRef.current || !state.battle) return
@@ -557,6 +562,7 @@ export default function OfficeScreen({
       announce={announce}
       wallet={wallet}
       sceneFx={sceneFx}
+      walkInput={walkInput}
     />
   )
 }
@@ -577,6 +583,7 @@ function Overworld({
   announce,
   wallet,
   sceneFx,
+  walkInput,
 }: {
   state: OfficeState
   act: (action: Parameters<typeof dispatchOfficeAction>[1]) => unknown
@@ -587,6 +594,7 @@ function Overworld({
   announce: string
   wallet: { shown: number; pulse: boolean }
   sceneFx: 'battle-in' | 'battle-out' | null
+  walkInput: ReturnType<typeof useOfficeWalkInput>
 }) {
   const target = interactTarget(state)
   const prompt = target ? promptText(target, state) : null
@@ -596,29 +604,6 @@ function Overworld({
   const celebrating = state.overlay?.kind === 'celebration'
   const verb = actVerb(prompt, state)
   const chips = hudKeyChips(state)
-  const holdRef = useRef<number | null>(null)
-  const [held, setHeld] = useState<Facing | null>(null)
-  // The repeat timer must dispatch against the latest state, not the one
-  // captured when the thumb first landed.
-  const actRef = useRef(act)
-  useEffect(() => {
-    actRef.current = act
-  })
-
-  const stopHold = useCallback(() => {
-    if (holdRef.current) window.clearInterval(holdRef.current)
-    holdRef.current = null
-    setHeld(null)
-  }, [])
-  useEffect(() => stopHold, [stopHold])
-
-  // Hold-to-walk: the D-pad repeats at tile cadence while pressed.
-  const startHold = (dir: Facing) => {
-    stopHold()
-    setHeld(dir)
-    actRef.current({ type: 'MOVE', dir })
-    holdRef.current = window.setInterval(() => actRef.current({ type: 'MOVE', dir }), MOVE_MS)
-  }
 
   return (
     <div
@@ -704,16 +689,9 @@ function Overworld({
             <button
               key={dir}
               type="button"
-              className={`${styles.pad} ${cls} ${held === dir ? styles.padHeld : ''}`}
+              className={`${styles.pad} ${cls} ${walkInput.held === dir ? styles.padHeld : ''}`}
               aria-label={`Move ${dir === 'n' ? 'up' : dir === 's' ? 'down' : dir === 'w' ? 'left' : 'right'}`}
-              onPointerDown={(e) => {
-                e.preventDefault()
-                startHold(dir)
-              }}
-              onPointerUp={stopHold}
-              onPointerLeave={stopHold}
-              onPointerCancel={stopHold}
-              onContextMenu={(e) => e.preventDefault()}
+              {...walkInput.padHandlers(dir)}
             >
               {glyph}
             </button>
