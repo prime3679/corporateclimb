@@ -1,5 +1,6 @@
 .map {
   --zone-accent: var(--cc-gold);
+  --move-ms: 250ms;
   position: relative;
   overflow: hidden;
   width: 448px;
@@ -13,6 +14,10 @@
     inset 0 -26px 45px rgba(0, 0, 0, 0.36),
     var(--cc-shadow-plate);
   isolation: isolate;
+  /* Phone browsers otherwise treat the map as a scroll/zoom surface and
+     steal the D-pad hold (scroll bleed, double-tap zoom). */
+  touch-action: none;
+  overscroll-behavior: none;
 }
 
 /* Desktop canvas: the whole 24-tile floor across (MAP_WIDTH × TILE_SIZE), so
@@ -41,7 +46,10 @@
   top: 0;
   left: 0;
   will-change: transform;
-  transition: transform 280ms cubic-bezier(0.2, 0.85, 0.35, 1);
+  /* Same clock as the actor tile tween. The old 280ms ease-out restarted
+     every step on the phone (2-axis follow), so the player drifted while
+     the world lagged. */
+  transition: transform var(--move-ms, 250ms) linear;
 }
 
 /* ── sprite-sheet layers (public/office/tiles.png, 32×48 cells in 34×50 slots) ── */
