@@ -155,6 +155,24 @@ describe('Pass J ultra — arcade orange sweep', () => {
     expect(css.text).toMatch(/:global\(\.reduce-motion\) \.scoreCard \{\s*animation: none;/)
   })
 
+  it('seats the Daily briefing card on the Title sign night glass', () => {
+    const css = FILES.find((f) => f.path.endsWith('DailyPreScreen.module.css'))!
+    const mod = css.text.match(/\.modCard \{[^}]*\}/)![0]
+    const result = css.text.match(/\.result \{[^}]*\}/)![0]
+    for (const [name, block] of [
+      ['modCard', mod],
+      ['result', result],
+    ] as const) {
+      expect(block, name).toContain('border: 1px solid rgba(255, 211, 77, 0.45)')
+      expect(block, name).toContain('var(--cc-glass)')
+      expect(block, name).not.toContain('rgba(0, 0, 0, 0.6)')
+      expect(block, name).not.toContain('var(--amber-deep)')
+      expect(block, name).not.toMatch(KHAKI)
+      expect(block, name).not.toMatch(HARD_OFFSET_BOX)
+    }
+    expect(css.text).toMatch(/:global\(\.reduce-motion\) \.modCard \{\s*animation: none;/)
+  })
+
   it('seats the install nudge on the Title sign night glass', () => {
     const css = readFileSync(join(ROOT, 'src/components/InstallNudge.module.css'), 'utf8')
     const nudge = css.match(/\.nudge \{[^}]*\}/)![0]

@@ -1444,6 +1444,53 @@ Shots in `docs/rpg/daily-score-night-glass/`: `before-` /
 rise scrubbed to its midpoint. Result screen mounted in the real `Stage`
 with a seeded 15/15 and 8/15 record, as in `#132`.
 
+### Pass J — fun: Daily briefing card night glass
+
+Overnight fun DRAFT, Fable lane (`overnight-fun-0918`), authored on tip
+`32bd5ea` (`#150`). `#149` seated the Daily score card on the Title FLOOR
+sign glass, which left the Daily _start_ one plate behind the Daily
+_finish_: the briefing's modifier card was still a 60% black fill on an
+amber `--amber-deep` stroke, and the "today's result" plate beside the
+roster the same ink on a 2px `--gold-bright` ring. Both now wear the sign
+plate, so the modifier the player reads before a Daily and the score they
+read after it sit on one language. CSS only
+(`DailyPreScreen.module.css`); the `.tsx`, the smoke path
+(`e2e/smoke.spec.ts`), the class roster (`hum-001`) and the daily seeding
+are untouched. The modifier name stays on `--amber-deep` (`#132` /
+`hum-001` designer call). Title, Office, Classic tower untouched.
+
+**After.**
+
+- **Night glass.** Neutral `--cc-glass` under the gold wash
+  (`rgba(255,213,79,.10)`) that fades by 46% of the card, on the sign's
+  gold hairline `rgba(255,211,77,.45)`, the 1px white 6% inset top line
+  and the shared `--shadow-sm`, on both the modifier card and the result
+  plate. The result score stays `--gold-bright`; the streak strip, rules
+  pill and wide-canvas column hairline are unchanged. Probe (phone and
+  desktop, fresh and played): background
+  `linear-gradient(rgba(255,213,79,.1), transparent 46%) /
+rgba(13,18,27,.96)`, border `1px rgba(255,211,77,.45)`, no black fill on
+  either plate.
+- **Soft rise.** The modifier card lifts in once, the score card's beat:
+  opacity 0 → 1 and 6px → 0 over 320ms on the ui ease-out after 180ms
+  (`backwards` fill). The title lands first; the modifier arrives. The
+  result plate is static.
+- **Reduced motion.** The OS preference and the in-game `.reduce-motion`
+  root both strip the rise (probe: `animation-name: none`,
+  `animation-duration: 0s`, opacity 1 on both roots).
+- **Guard.** `src/__tests__/pass-j-arcade-orange.test.ts` pins `.modCard`
+  and `.result`: sign hairline, `--cc-glass` fill, no `rgba(0,0,0,.6)`
+  ink, no `--amber-deep` stroke, no khaki, no hard-offset box shadow, and
+  the `.reduce-motion` override present for `.modCard`.
+
+Shots in `docs/rpg/daily-pre-night-glass/`: `before-` /
+`after-phone-fresh.png` and `-phone-played.png` (390×844), `before-` /
+`after-desktop-fresh.png` and `-desktop-played.png` (1280×720 theater),
+2× `*-card-crop.png` for each, 2× `*-played-result-crop.png` for the
+result plate, and `after-*-rise-card-crop.png` with the rise scrubbed to
+its midpoint. Pre screen mounted in the real `Stage` with three seeded
+prior days (streak strip) and, for the played state, today's 15/15 record.
+
 ## Colour / mood bible (living)
 
 Locked with the `#122` night lobby; Classic cousins follow it without
@@ -1482,7 +1529,8 @@ re-litigation. Values are the `--cc-*` tokens in `src/ui/tokens.css`.
   under `src/screens/office`. The run-end install nudge is the same plate
   (`overnight-fun-0916`), pinned by name because it lives under
   `src/components`; the Daily score card above it is the same plate
-  (`overnight-fun-0917`).
+  (`overnight-fun-0917`), and so are the Daily briefing's modifier card
+  and result plate (`overnight-fun-0918`).
 
 ## Still Fable's (do not treat this PR as §14 done)
 
