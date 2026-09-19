@@ -16,8 +16,10 @@ const mapCss = cameraCss
 describe('office walk feel — camera lockstep', () => {
   it('keeps camera follow on the same MOVE_MS linear clock as the actor', () => {
     expect(MOVE_MS).toBe(250)
-    expect(cameraCss).toMatch(/transition:\s*transform\s+var\(--move-ms,\s*250ms\)\s+linear/)
-    expect(cameraCss).not.toMatch(/280ms/)
+    expect(cameraCss).toMatch(
+      /\.camera \{[^}]*transition:\s*transform\s+var\(--move-ms,\s*250ms\)\s+linear/,
+    )
+    expect(cameraCss).not.toMatch(/\.camera \{[^}]*280ms/)
     expect(actorCss).toMatch(/left\s+var\(--walk-ms\)\s+linear/)
     expect(actorCss).toMatch(/top\s+var\(--walk-ms\)\s+linear/)
   })

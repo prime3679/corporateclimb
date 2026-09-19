@@ -46,9 +46,9 @@
   top: 0;
   left: 0;
   will-change: transform;
-  /* Same clock as the actor tile tween. The old 280ms ease-out restarted
-     every step on the phone (2-axis follow), so the player drifted while
-     the world lagged. */
+  /* Same clock as the actor tile tween. A longer ease-out restarted every
+     step on the phone (2-axis follow), so the player drifted while the
+     world lagged. */
   transition: transform var(--move-ms, 250ms) linear;
 }
 
