@@ -82,6 +82,8 @@ test('Office D-pad hold walks at tile cadence without scrolling the phone stage'
   await page.mouse.move(x + 12, y + 18)
   await page.waitForTimeout(900)
   await page.mouse.up()
+  await page.waitForTimeout(280)
+  await drainOverlays(page)
 
   const after = await readOfficeSave(page)
   expect(after, 'office save after hold').not.toBeNull()
