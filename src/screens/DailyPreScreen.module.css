@@ -5,7 +5,10 @@
    Light architecture follows the Title / Settings night glass: the field
    is the Title's tinted night lobby under its faint top wash (no indigo,
    no gold bloom), and the one gold headline sits on a 1px dark hairline
-   instead of an orange hard shadow. Gold wins by value, not bloom. */
+   instead of an orange hard shadow. Gold wins by value, not bloom. The
+   modifier card and the result plate wear the Title FLOOR sign glass
+   (neutral --cc-glass under a gold wash on the gold hairline), and the
+   card rises once, with both reduced-motion roots leaving it static. */
 
 .screen {
   display: flex;
@@ -37,13 +40,39 @@
 }
 
 .modCard {
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 46%), var(--cc-glass);
   border-radius: var(--radius-lg);
   padding: 16px;
-  border: var(--border-w) solid var(--amber-deep);
+  border: 1px solid rgba(255, 211, 77, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-sm);
   max-width: 300px;
   width: 100%;
   text-align: center;
+  animation: daily-brief-rise 320ms var(--cc-ease-out) 180ms backwards;
+}
+
+@keyframes daily-brief-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:global(.reduce-motion) .modCard {
+  animation: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modCard {
+    animation: none;
+  }
 }
 
 .modIcon {
@@ -174,10 +203,13 @@
 }
 
 .result {
-  background: rgba(0, 0, 0, 0.6);
+  background: linear-gradient(180deg, rgba(255, 213, 79, 0.1), transparent 46%), var(--cc-glass);
   border-radius: var(--radius-lg);
   padding: 16px;
-  border: 2px solid var(--gold-bright);
+  border: 1px solid rgba(255, 211, 77, 0.45);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    var(--shadow-sm);
   max-width: 300px;
   width: 100%;
   text-align: center;
